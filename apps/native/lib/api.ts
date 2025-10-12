@@ -37,7 +37,7 @@ async function api(path: string, init: RequestInit = {}) {
 }
 
 export const getWeek = async (): Promise<{ workouts: WeekRow[] }> =>
-  api("/api/workouts/week");
+  api("/api/v1/workouts/week");
 
 export async function postGenerateDay(date: string) {
   console.log("[API] postGenerateDay ->", date);
