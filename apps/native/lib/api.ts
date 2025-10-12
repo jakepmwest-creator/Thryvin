@@ -23,8 +23,11 @@ export type DayPayload = {
   blocks: { type: "warmup" | "main" | "recovery"; items: BlockItem[] }[];
 };
 
+const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:5000';
+
 async function api(path: string, init: RequestInit = {}) {
-  const res = await fetch(path, {
+  const fullUrl = `${API_BASE_URL}${path}`;
+  const res = await fetch(fullUrl, {
     ...init,
     credentials: "include",
     headers: { "Content-Type": "application/json", ...(init.headers || {}) },
