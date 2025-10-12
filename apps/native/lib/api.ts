@@ -64,4 +64,4 @@ export const getTodayFallback = async (): Promise<{
   status: string;
   title?: string;
   payloadJson?: DayPayload;
-}> => api("/api/v1/workouts/today");
+}> => api("/api/workouts/today");
