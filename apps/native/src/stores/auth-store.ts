@@ -1,6 +1,18 @@
-// Mock zustand store for development - replace with actual zustand when Expo is set up
+import { create } from 'zustand';
+
+const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:5000';
+
+interface User {
+  id: number;
+  name: string;
+  email: string;
+  trainingType?: string;
+  goal?: string;
+  coachingStyle?: string;
+}
+
 interface AuthState {
-  user: any | null;
+  user: User | null;
   isLoading: boolean;
   error: string | null;
   login: (credentials: { email: string; password: string }) => Promise<void>;
@@ -10,61 +22,105 @@ interface AuthState {
   clearError: () => void;
 }
 
-// Simple state management for development
-const createMockStore = (stateFunction: (set: any, get: any) => AuthState): (() => AuthState) => {
-  let state = stateFunction(() => {}, () => {});
-  return () => state;
-};
-
-// Mock auth store implementation for development
-export const useAuthStore = createMockStore((set: any, get: any) => ({
+export const useAuthStore = create<AuthState>((set, get) => ({
   user: null,
   isLoading: false,
   error: null,
 
   login: async (credentials: { email: string; password: string }) => {
+    set({ isLoading: true, error: null });
     try {
-      // Mock login - replace with actual API calls when Expo is running
-      console.log('Mock login:', credentials);
-      const mockUser = { id: 1, name: 'Test User', email: credentials.email };
-      set({ user: mockUser });
+      const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify(credentials),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Login failed');
+      }
+
+      const userData = await response.json();
+      set({ user: userData, isLoading: false });
+      console.log('Login successful:', userData.name);
     } catch (error) {
       console.error('Login failed:', error);
+      set({ 
+        error: error instanceof Error ? error.message : 'Login failed', 
+        isLoading: false 
+      });
       throw error;
     }
   },
 
   register: async (userData: any) => {
+    set({ isLoading: true, error: null });
     try {
-      // Mock register - replace with actual API calls
-      console.log('Mock register:', userData);
-      const mockUser = { id: 1, name: userData.name, email: userData.email };
-      set({ user: mockUser });
+      const response = await fetch(`${API_BASE_URL}/api/auth/register`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify(userData),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Registration failed');
+      }
+
+      const newUser = await response.json();
+      set({ user: newUser, isLoading: false });
+      console.log('Registration successful:', newUser.name);
     } catch (error) {
       console.error('Registration failed:', error);
+      set({ 
+        error: error instanceof Error ? error.message : 'Registration failed', 
+        isLoading: false 
+      });
       throw error;
     }
   },
 
   logout: async () => {
+    set({ isLoading: true });
     try {
-      console.log('Mock logout');
-      set({ user: null });
+      await fetch(`${API_BASE_URL}/api/auth/logout`, {
+        method: 'POST',
+        credentials: 'include',
+      });
+      set({ user: null, isLoading: false });
+      console.log('Logout successful');
     } catch (error) {
       console.error('Logout failed:', error);
-      throw error;
+      set({ user: null, isLoading: false }); // Clear user anyway
     }
   },
 
   checkAuth: async () => {
+    set({ isLoading: true });
     try {
-      console.log('Mock check auth');
-      // No user for now
-      set({ user: null });
+      const response = await fetch(`${API_BASE_URL}/api/auth/user`, {
+        credentials: 'include',
+      });
+
+      if (response.ok) {
+        const userData = await response.json();
+        set({ user: userData, isLoading: false });
+        console.log('User authenticated:', userData.name);
+      } else {
+        set({ user: null, isLoading: false });
+      }
     } catch (error) {
       console.log('User not authenticated');
+      set({ user: null, isLoading: false });
     }
   },
 
-  clearError: () => console.log('Clear error'),
+  clearError: () => set({ error: null }),
 }));
