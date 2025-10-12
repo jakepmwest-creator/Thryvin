@@ -1,0 +1,12 @@
+{
+  "name": "thryvin-web",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "echo 'Web client placeholder - to be implemented with React Native Web or Next.js'",
+    "build": "echo 'Web build not implemented yet'",
+    "typecheck": "echo 'No TypeScript files to check yet'"
+  },
+  "dependencies": {},
+  "devDependencies": {}
+}

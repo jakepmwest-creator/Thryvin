@@ -1,0 +1,617 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Hide scrollbars for the activity deck */
+@layer utilities {
+  .scrollbar-hide {
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
+  }
+  
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;  /* Chrome, Safari and Opera */
+  }
+
+  /* Ensure no scrollbars appear on the main app container */
+  .ios-style-app {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  
+  .ios-style-app::-webkit-scrollbar {
+    display: none;
+  }
+  
+  /* Snap scrolling for smooth activity deck */
+  .snap-x {
+    scroll-snap-type: x mandatory;
+  }
+  
+  .snap-center {
+    scroll-snap-align: center;
+  }
+  
+  /* Light theme gradient backgrounds */
+  .bg-light-gradient {
+    background: linear-gradient(135deg, #FFFFFF 0%, #F6F7FB 100%);
+  }
+  
+  .text-gradient-brand {
+    background: linear-gradient(135deg, #7A3CF3 0%, #FF4FD8 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  /* Hide scrollbars while keeping scroll */
+  .scroll-hidden {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  
+  .scroll-hidden::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+/* Custom animations */
+@keyframes fall {
+  0% {
+    transform: translateY(-100px) rotate(0deg);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(500px) rotate(360deg);
+    opacity: 0;
+  }
+}
+
+@keyframes fadeIn {
+  0% { opacity: 0; }
+  100% { opacity: 1; }
+}
+
+@keyframes slideUp {
+  0% { 
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  100% { 
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes pulseSlow {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.8;
+    transform: scale(1.05);
+  }
+}
+
+/* Logo container styles */
+.logo-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  max-width: 100%;
+}
+
+.logo-container img {
+  max-width: 100%;
+  height: auto;
+  object-fit: contain;
+}
+
+/* Responsive logo adjustments */
+@media (max-width: 640px) {
+  .logo-container {
+    padding: 0.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .logo-container {
+    padding: 0.25rem;
+  }
+}
+
+/* Full-screen mobile app styles */
+html, body {
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  height: 100%;
+  width: 100%;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* iOS Safari full-screen */
+@supports (-webkit-touch-callout: none) {
+  html, body {
+    height: -webkit-fill-available;
+  }
+}
+
+/* Prevent scrolling on mobile */
+body {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+}
+
+#root {
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden;
+}
+
+/* Avatar animations */
+@keyframes blink {
+  0%, 2%, 60%, 62%, 100% { transform: scaleY(1); }
+  1%, 61% { transform: scaleY(0.1); }
+}
+
+@keyframes breathe {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
+
+@keyframes nod {
+  0%, 100% { transform: rotate(0deg); }
+  25% { transform: rotate(-2deg); }
+  75% { transform: rotate(2deg); }
+}
+
+@keyframes wave {
+  0% { transform: translateY(0); }
+  50% { transform: translateY(-3px); }
+  100% { transform: translateY(0); }
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0) rotate(0deg);
+  }
+  25% {
+    transform: translateY(-2px) rotate(-1deg);
+  }
+  75% {
+    transform: translateY(2px) rotate(1deg);
+  }
+}
+
+.avatar-breathe {
+  animation: breathe 4s ease-in-out infinite;
+}
+
+.avatar-blink {
+  animation: blink 5s ease-in-out infinite;
+}
+
+.avatar-nod {
+  animation: nod 3s ease-in-out infinite;
+  transform-origin: center;
+}
+
+.avatar-wave {
+  animation: wave 2s ease-in-out infinite;
+}
+
+.avatar-float {
+  animation: float 6s ease-in-out infinite;
+  transform-origin: center center;
+}
+
+.animate-fall {
+  animation: fall 3s linear infinite;
+}
+
+.animate-fade-in {
+  animation: fadeIn 1s ease-in-out forwards;
+}
+
+.animate-slide-up {
+  animation: slideUp 0.6s ease-out forwards;
+  opacity: 0;
+}
+
+.animate-pulse-slow {
+  animation: pulseSlow 2s ease-in-out infinite;
+}
+
+/* Tutorial highlight animation styles */
+@keyframes tutorial-super-glow {
+  0% { 
+    transform: scale(1);
+    box-shadow: 
+      0 0 25px rgba(122, 60, 243, 1),
+      0 0 50px rgba(255, 79, 216, 0.7),
+      0 0 75px rgba(122, 60, 243, 0.5),
+      inset 0 0 20px rgba(255, 79, 216, 0.1);
+  }
+  50% { 
+    transform: scale(1.1);
+    box-shadow: 
+      0 0 35px rgba(122, 60, 243, 1),
+      0 0 70px rgba(255, 79, 216, 0.9),
+      0 0 100px rgba(122, 60, 243, 0.7),
+      inset 0 0 30px rgba(255, 79, 216, 0.2);
+  }
+  100% { 
+    transform: scale(1);
+    box-shadow: 
+      0 0 25px rgba(122, 60, 243, 1),
+      0 0 50px rgba(255, 79, 216, 0.7),
+      0 0 75px rgba(122, 60, 243, 0.5),
+      inset 0 0 20px rgba(255, 79, 216, 0.1);
+  }
+}
+
+@keyframes tutorial-pulse-border {
+  0%, 100% { 
+    border-width: 4px;
+    border-color: rgba(122, 60, 243, 0.9);
+  }
+  50% { 
+    border-width: 6px;
+    border-color: rgba(255, 79, 216, 1);
+  }
+}
+
+.tutorial-highlight {
+  position: relative !important;
+  z-index: 55 !important;
+  border: 4px solid rgba(122, 60, 243, 0.9) !important;
+  border-radius: 20px !important;
+  background: rgba(255, 255, 255, 0.98) !important;
+  animation: 
+    tutorial-super-glow 1.8s ease-in-out infinite,
+    tutorial-pulse-border 1.8s ease-in-out infinite !important;
+  filter: none !important;
+  backdrop-filter: none !important;
+  outline: 3px solid rgba(255, 79, 216, 0.5) !important;
+  outline-offset: 6px !important;
+}
+
+.tutorial-highlight * {
+  filter: none !important;
+  backdrop-filter: none !important;
+}
+
+.tutorial-blur {
+  filter: blur(1.5px) !important;
+  opacity: 0.3 !important;
+  transition: filter 0.4s ease, opacity 0.4s ease !important;
+}
+
+/* Make sure tutorial targets are extra bright during their step */
+.tutorial-highlight {
+  filter: none !important;
+  backdrop-filter: none !important;
+  opacity: 1 !important;
+  z-index: 1002 !important;
+}
+
+/* Make sure tutorial targets are extra bright during their step */
+.tutorial-highlight {
+  filter: none !important;
+  backdrop-filter: none !important;
+  opacity: 1 !important;
+  z-index: 1002 !important;
+}
+
+/* Coach button highlighting - just the button, not the text */
+div[data-tutorial="coach-chat-button"].tutorial-highlight {
+  z-index: 1003 !important;
+  position: relative !important;
+}
+
+div[data-tutorial="coach-chat-button"].tutorial-highlight .floating-chat-button {
+  transform: scale(1.1) !important;
+}
+
+/* UNIVERSAL FIX: All buttons with data-tutorial are always bright */
+button[data-tutorial="nutrition-tab"],
+button[data-tutorial="social-tab"],
+button[data-tutorial="dashboard-tab"],
+button[data-tutorial="workouts-tab"],
+button[data-tutorial="awards-tab"],
+button[data-tutorial="stats-tab"],
+button[data-tutorial="profile-tab"],
+button[data-tutorial="nutrition-tab"] *,
+button[data-tutorial="social-tab"] *,
+button[data-tutorial="dashboard-tab"] *,
+button[data-tutorial="workouts-tab"] *,
+button[data-tutorial="awards-tab"] *,
+button[data-tutorial="stats-tab"] *,
+button[data-tutorial="profile-tab"] * {
+  filter: none !important;
+  backdrop-filter: none !important;
+  opacity: 1 !important;
+  z-index: 1001 !important;
+}
+
+/* Keep popup working */
+.tutorial-highlight,
+.fixed.inset-0.z-50,
+.fixed.inset-0.z-50 * {
+  filter: none !important;
+  backdrop-filter: none !important;
+  opacity: 1 !important;
+  z-index: 1001 !important;
+}
+
+/* Override any blur that might be applied to navigation containers */
+.ios-bottom-nav,
+.ios-header,
+.ios-bottom-nav *,
+.ios-header * {
+  filter: none !important;
+  backdrop-filter: none !important;
+}
+
+:root {
+  --background: 0 0% 100%;
+  --foreground: 20 14.3% 4.1%;
+  --muted: 60 4.8% 95.9%;
+  --muted-foreground: 25 5.3% 44.7%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 20 14.3% 4.1%;
+  --card: 0 0% 100%;
+  --card-foreground: 20 14.3% 4.1%;
+  --border: 20 5.9% 90%;
+  --input: 20 5.9% 90%;
+  --primary: 262 83% 58%;
+  --primary-dark: 330 81% 60%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 60 4.8% 95.9%;
+  --secondary-foreground: 24 9.8% 10%;
+  --accent: 60 4.8% 95.9%;
+  --accent-foreground: 24 9.8% 10%;
+  --destructive: 0 84.2% 60.2%;
+  --destructive-foreground: 60 9.1% 97.8%;
+  --ring: 20 14.3% 4.1%;
+  --radius: 0.5rem;
+  
+  /* Coach colors */
+  --coach-kai: 39 96% 51%;
+  --coach-titan: 217 91% 60%;
+  --coach-lumi: 330 83% 66%;
+}
+
+.dark {
+  --background: 240 10% 3.9%;
+  --foreground: 0 0% 98%;
+  --muted: 240 3.7% 15.9%;
+  --muted-foreground: 240 5% 64.9%;
+  --popover: 240 10% 3.9%;
+  --popover-foreground: 0 0% 98%;
+  --card: 240 10% 3.9%;
+  --card-foreground: 0 0% 98%;
+  --border: 240 3.7% 15.9%;
+  --input: 240 3.7% 15.9%;
+  --primary: 207 90% 54%;
+  --primary-foreground: 211 100% 99%;
+  --secondary: 240 3.7% 15.9%;
+  --secondary-foreground: 0 0% 98%;
+  --accent: 240 3.7% 15.9%;
+  --accent-foreground: 0 0% 98%;
+  --destructive: 0 62.8% 30.6%;
+  --destructive-foreground: 0 0% 98%;
+  --ring: 240 4.9% 83.9%;
+  --radius: 0.5rem;
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply font-sans antialiased bg-white text-gray-900;
+  }
+}
+
+/* Animation classes */
+.onboarding-slide {
+  transition: transform 0.5s ease-in-out;
+}
+
+.coach-card {
+  transition: all 0.3s ease;
+}
+
+.coach-card:hover, .coach-card.selected {
+  transform: translateY(-4px);
+}
+
+.message-bubble {
+  max-width: 80%;
+}
+
+.progress-ring {
+  transform: rotate(-90deg);
+}
+
+/* Coach specific coloring */
+.bg-coach-kai {
+  @apply bg-amber-500;
+}
+
+.text-coach-kai {
+  @apply text-amber-500;
+}
+
+.border-coach-kai {
+  @apply border-amber-500;
+}
+
+.bg-coach-titan {
+  @apply bg-blue-500;
+}
+
+.text-coach-titan {
+  @apply text-blue-500;
+}
+
+.border-coach-titan {
+  @apply border-blue-500;
+}
+
+.bg-coach-lumi {
+  @apply bg-pink-500;
+}
+
+.text-coach-lumi {
+  @apply text-pink-500;
+}
+
+.border-coach-lumi {
+  @apply border-pink-500;
+}
+
+/* Realistic coach avatar effects */
+.coach-avatar {
+  position: relative;
+  overflow: hidden;
+}
+
+.coach-avatar::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: radial-gradient(ellipse at center, rgba(255,255,255,0) 0%, rgba(255,255,255,0.3) 100%);
+  opacity: 0;
+  transition: opacity 0.5s ease;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.coach-avatar:hover::before {
+  opacity: 0.6;
+  animation: avatarGlow 2s infinite alternate;
+}
+
+.coach-avatar img {
+  transition: transform 0.7s ease;
+}
+
+.coach-avatar:hover img {
+  transform: scale(1.08);
+}
+
+@keyframes avatarGlow {
+  0% {
+    opacity: 0.2;
+  }
+  100% {
+    opacity: 0.5;
+  }
+}
+
+/* iOS style utilities */
+.ios-card {
+  @apply bg-white rounded-2xl shadow-sm p-5;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+}
+
+.ios-button {
+  @apply text-white px-4 py-2 rounded-xl font-medium shadow-sm flex items-center justify-center;
+  background: linear-gradient(145deg, #8b5cf6, #ec4899);
+  box-shadow: 0 2px 8px rgba(139, 92, 246, 0.3);
+}
+
+.ios-button-secondary {
+  @apply bg-white/20 backdrop-blur-md text-white px-4 py-2 rounded-xl font-medium flex items-center justify-center;
+}
+
+.ios-input {
+  @apply bg-gray-100 border-0 rounded-xl pl-12 pr-4 py-3 focus:ring-2 focus:ring-purple-500 focus:bg-white transition-all;
+}
+
+.ios-input-container {
+  @apply relative;
+}
+
+.ios-gradient-purple {
+  background: linear-gradient(145deg, #8b5cf6, #ec4899);
+}
+
+.ios-gradient-green {
+  background: linear-gradient(145deg, #4caf50, #388e3c);
+}
+
+.ios-gradient-red {
+  background: linear-gradient(145deg, #f44336, #d32f2f);
+}
+
+.ios-bottom-nav {
+  @apply bg-white border-t border-gray-200 pt-2 pb-6 px-2 flex items-center justify-around;
+  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.03);
+  z-index: 30;
+}
+
+/* Cloud Character Animations */
+@keyframes cloudFloat {
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  50% { transform: translateY(-3px) rotate(0.5deg); }
+}
+
+@keyframes fluffFloat1 {
+  0%, 100% { transform: translateY(0px) scale(1); }
+  50% { transform: translateY(-2px) scale(1.05); }
+}
+
+@keyframes fluffFloat2 {
+  0%, 100% { transform: translateY(0px) scale(1); }
+  50% { transform: translateY(-1px) scale(0.98); }
+}
+
+@keyframes fluffFloat3 {
+  0%, 100% { transform: translateY(0px) scale(1); }
+  50% { transform: translateY(1px) scale(1.02); }
+}
+
+@keyframes eyeGlow {
+  0%, 100% { box-shadow: 0 0 8px rgba(139, 92, 246, 0.5), inset 0 1px 2px rgba(255,255,255,0.3); }
+  50% { box-shadow: 0 0 12px rgba(139, 92, 246, 0.8), inset 0 1px 2px rgba(255,255,255,0.5); }
+}
+
+.ios-bottom-nav-item {
+  @apply flex flex-col items-center w-16;
+}
+
+.ios-bottom-nav-item-active {
+  @apply text-purple-500;
+}
+
+.ios-bottom-nav-item-inactive {
+  @apply text-gray-500;
+}
+
+.ios-header {
+  @apply font-bold text-lg text-gray-800;
+}
+
+.ios-subheader {
+  @apply font-medium text-base text-gray-600;
+}
+
+.ios-caption {
+  @apply text-xs text-gray-500;
+}
+
+.ios-shadow {
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+}

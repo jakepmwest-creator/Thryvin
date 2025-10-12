@@ -1,0 +1,158 @@
+Short answer: your Prisma script doesn’t fit your stack. Don’t duct-tape it. We convert it to Drizzle and seed it properly with your extra fields. Then we re-lock the AI prompt. Done.
+
+Here’s the Drizzle-ready seeder (TypeScript) that matches your schema (pattern, is_unilateral, aliases[], equipment[]). Paste it as scripts/seed_recovery.ts (adjust import paths to your project):
+
+// scripts/seed_recovery.ts
+import { db } from "../db";
+import { exercises } from "../db/schema"; // ensure this table has the fields below
+import { sql } from "drizzle-orm";
+
+type Exercise = {
+  slug: string;
+  name: string;
+  aliases: string[];
+  body_part: string;            // you’re using this already (e.g., "recovery")
+  equipment: string[];          // array
+  pattern: string;              // new field in your schema
+  is_unilateral: boolean;       // new field in your schema
+};
+
+const recoveryPack: Exercise[] = [
+  {
+    slug: "childs-pose",
+    name: "Child's Pose",
+    aliases: ["balasana"],
+    body_part: "recovery",
+    equipment: ["bodyweight"],
+    pattern: "stretch",
+    is_unilateral: false,
+  },
+  {
+    slug: "cat-cow-stretch",
+    name: "Cat-Cow Stretch",
+    aliases: ["cat cow", "marjaryasana bitilasana"],
+    body_part: "recovery",
+    equipment: ["bodyweight"],
+    pattern: "mobility",
+    is_unilateral: false,
+  },
+  {
+    slug: "pigeon-pose",
+    name: "Pigeon Pose",
+    aliases: ["eka pada rajakapotasana", "hip opener"],
+    body_part: "recovery",
+    equipment: ["bodyweight"],
+    pattern: "stretch",
+    is_unilateral: true, // left/right
+  },
+  {
+    slug: "seated-forward-fold",
+    name: "Seated Forward Fold",
+    aliases: ["paschimottanasana"],
+    body_part: "recovery",
+    equipment: ["bodyweight"],
+    pattern: "stretch",
+    is_unilateral: false,
+  },
+  {
+    slug: "standing-forward-fold",
+    name: "Standing Forward Fold",
+    aliases: ["uttanasana", "forward bend"],
+    body_part: "recovery",
+    equipment: ["bodyweight"],
+    pattern: "stretch",
+    is_unilateral: false,
+  },
+  {
+    slug: "supine-spinal-twist",
+    name: "Supine Spinal Twist",
+    aliases: ["reclined twist", "supta matsyendrasana"],
+    body_part: "recovery",
+    equipment: ["bodyweight"],
+    pattern: "mobility",
+    is_unilateral: true, // left/right
+  },
+  {
+    slug: "butterfly-stretch",
+    name: "Butterfly Stretch",
+    aliases: ["bound angle pose", "baddha konasana"],
+    body_part: "recovery",
+    equipment: ["bodyweight"],
+    pattern: "stretch",
+    is_unilateral: false,
+  },
+  {
+    slug: "cobra-stretch",
+    name: "Cobra Stretch",
+    aliases: ["bhujangasana", "cobra pose"],
+    body_part: "recovery",
+    equipment: ["bodyweight"],
+    pattern: "mobility",
+    is_unilateral: false,
+  },
+  {
+    slug: "thread-the-needle",
+    name: "Thread the Needle",
+    aliases: ["supine figure four stretch"],
+    body_part: "recovery",
+    equipment: ["bodyweight"],
+    pattern: "stretch",
+    is_unilateral: true, // left/right
+  },
+  {
+    slug: "happy-baby-pose",
+    name: "Happy Baby Pose",
+    aliases: ["ananda balasana"],
+    body_part: "recovery",
+    equipment: ["bodyweight"],
+    pattern: "stretch",
+    is_unilateral: false,
+  },
+];
+
+async function main() {
+  // optional: ensure enum values exist if you're using enums
+  // otherwise skip this.
+
+  // upsert by slug to stay idempotent
+  for (const ex of recoveryPack) {
+    await db.execute(sql`
+      insert into ${exercises} (slug, name, aliases, body_part, equipment, pattern, is_unilateral)
+      values (
+        ${ex.slug},
+        ${ex.name},
+        ${ex.aliases},
+        ${ex.body_part},
+        ${ex.equipment},
+        ${ex.pattern},
+        ${ex.is_unilateral}
+      )
+      on conflict (slug) do update
+      set
+        name = excluded.name,
+        aliases = excluded.aliases,
+        body_part = excluded.body_part,
+        equipment = excluded.equipment,
+        pattern = excluded.pattern,
+        is_unilateral = excluded.is_unilateral
+    `);
+    console.log(✅ Seeded/Updated: ${ex.name});
+  }
+
+  console.log("Recovery Pack seeding complete!");
+}
+
+main().catch((e) => {
+  console.error("❌ Error seeding Recovery Pack", e);
+  process.exit(1);
+});
+
+Why this approach?
+
+Uses your Drizzle pipeline, not Prisma.
+
+Fills your extra fields correctly.
+
+Idempotent via on conflict (slug) do update so you can re-run safely.
+
+Marks unilateral where reps/holds are side-specific (Pigeon, Spinal Twist, Thread-the-Needle).

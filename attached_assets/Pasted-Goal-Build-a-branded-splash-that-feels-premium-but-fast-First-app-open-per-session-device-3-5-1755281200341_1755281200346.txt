@@ -1,0 +1,71 @@
+Goal: Build a branded splash that feels premium but fast:
+
+First app open (per session/device): ~3.5s “cinematic” version.
+
+After that: ~1.5s quick reveal.
+
+Tech
+
+HTML/CSS/JS with GSAP (no other heavy libs). Use SVG logo if possible for crisp masks; fall back to PNG.
+
+Assets
+
+assets/thryvin-logo.svg (preferred) or assets/thryvin-logo.png
+
+Brand gradient: purple → pink linear-gradient(135deg,#7A3CF3 0%, #FF4FD8 100%)
+
+Logic (pseudo)
+
+If sessionStorage.getItem('splashSeen') !== '1' → play Full; then set flag.
+
+Else → play Quick.
+
+FULL animation (first launch, ~3.5s total)
+
+0–0.9s – Background shows subtle brand gradient. Add a radial brighten wipe from center (SVG mask or CSS radial‑gradient animation) to create a quick “reveal” moment.
+
+0.9–2.2s – Logo fill effect: animate a gradient sweep/drip inside the logo using SVG mask or clipPath (2–3 elegant strands, not cartoony). End with logo fully filled in brand gradient.
+
+2.2–3.0s – Settle motion: scale 1 → 1.06 → 1 (soft elastic), slight glow.
+
+3.0–3.5s – Fade out splash container to reveal app; remove listeners.
+
+Constraints
+
+60fps target on mobile; if timeline lags, skip to step 3 (logo settle) and finish on time.
+
+Entire sequence must not exceed 3.5s.
+
+QUICK animation (subsequent opens, ~1.5s total)
+
+0–0.9s – Logo slides in from left (x: -40px → 0) with power3.out.
+
+0.9–1.2s – Subtle bounce (scale 1 → 1.06 → 1).
+
+1.2–1.5s – Fade out splash to app.
+
+Integration
+
+Splash is a full‑screen absolutely positioned container that covers the app and then removes itself.
+
+Expose window.splash.done() when the fade completes; main app can await it or time out at 4s safety cap.
+
+Set sessionStorage.setItem('splashSeen','1') after FULL plays.
+
+Accessibility & Perf
+
+Respect prefers-reduced-motion: if true, skip to QUICK (fade logo in for 400ms, then out).
+
+Keep assets lightweight; inline small SVGs; preload the logo.
+
+Ensure text/icon contrast is AAA over the gradient if any text is shown (ideally logo only).
+
+Acceptance
+
+First open = full 3.5s, then flag set.
+
+Subsequent opens in same session/device = quick 1.5s.
+
+No jank, no layout shift, responsive center alignment.
+
+Works in iOS/Android webviews and desktop preview.

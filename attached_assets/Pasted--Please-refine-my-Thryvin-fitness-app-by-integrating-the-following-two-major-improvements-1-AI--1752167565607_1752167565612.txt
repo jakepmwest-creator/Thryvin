@@ -1,0 +1,72 @@
+"Please refine my Thryvin’ fitness app by integrating the following two major improvements:
+
+1️⃣ AI Workout Engine That Actually Uses the User's Profile
+The app already gathers custom user input through onboarding questions (like fitness goals, preferred training time, equipment, experience level, etc.).
+
+Now I need the AI to actually use those answers when generating workouts. Specifically:
+
+💡 Workout Generation Logic
+Make sure the AI-generated workouts are different for each training type.
+
+e.g. ‘Upper Body’ day = push-ups, rows, overhead presses
+
+‘HIIT’ = high-intensity bodyweight or cardio drills (like jumping jacks, mountain climbers, burpees)
+
+Use the data from userProfile to shape workout difficulty and structure:
+
+A beginner should get simpler, shorter workouts
+
+Advanced users get more volume and complex exercises
+
+If someone has specified limited time (e.g. 30 mins), cap the workout accordingly
+
+If the user said “no equipment,” only include bodyweight exercises
+
+Make the workout generator dynamic — pull from an exerciseLibrary array or database with tags like:
+
+muscleGroup, equipment, difficulty, style (e.g. HIIT, strength)
+
+🧠 Example:
+cpp
+Copy
+Edit
+const userProfile = {
+  goal: "fat loss",
+  timePreference: "morning",
+  equipment: ["bodyweight"],
+  experience: "beginner",
+  trainingDays: ["Mon", "Wed", "Fri"]
+}
+A Monday HIIT workout for this user should include 4–5 cardio-based bodyweight exercises for 30 mins max
+
+Each day should be different. Do not repeat the same workouts unless intended
+
+2️⃣ Monthly Calendar – Samsung Galaxy Style
+I want the calendar (weekly/monthly view) to be completely cleaned up and styled like the Samsung Galaxy S25 Ultra calendar UI.
+
+🗓️ Calendar UX/UI Requirements
+Clean, minimal, modern layout
+
+Rounded squares for each date
+
+Smooth hover/tap animations
+
+Add spacing/padding between days
+
+Use system colors (Thryvin’s pink/purple gradient for current day, faded grey for past days, soft highlight for future planned days)
+
+Add ✅ checkmark icons for completed workout days
+
+Make each date fully interactive:
+
+Tap to open a modal with:
+
+That day's workout summary
+
+Option to re-generate or edit
+
+Button to mark as complete
+
+Monthly view must be responsive and easy to scroll
+
+Optional: Add an icon key (🟣 = active day, ✅ = complete, 🟠 = missed)

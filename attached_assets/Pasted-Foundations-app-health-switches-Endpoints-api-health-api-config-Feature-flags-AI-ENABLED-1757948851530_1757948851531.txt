@@ -1,0 +1,111 @@
+Foundations (app health & switches)
+
+Endpoints: /api/health, /api/config.
+
+Feature flags: AI_ENABLED, COACH_ENABLED, SOCIAL_MIN, AWARDS_ENABLED, STATS_ENABLED.
+
+Secrets sanity: DATABASE_URL, OPENAI_API_KEY, AUTH_SECRET, COOKIE_SECRET.
+Done when: Health returns {ok:true}; flags live-toggle UI.
+
+2) Data shapes (freeze)
+
+Users/Profiles (you already have from onboarding).
+
+Workouts core: workouts, workout_sets, exercises, workout_notes, exercises.video_url.
+
+Stats: workout_events (type: start/set_complete/pr_complete/pb_hit), metrics_daily (rollups).
+
+Awards: awards (catalog), user_awards (earned_at), award_progress.
+
+Nutrition (later/pro): meals, day_plans, plan_meals (just present).
+Done when: Tables exist, FKs & indexes on (user_id, date).
+
+3) One AI backbone (server)
+
+POST /api/ai/chat (general coach).
+
+POST /api/ai/workout/adjust (time/equipment/injury ⇒ sets).
+
+(Nutrition endpoints later in Milestone 9.)
+
+Strict JSON (Zod) validation on all AI responses.
+Done when: Valid JSON or 422 with error; logs on failure.
+
+4) Global Coach (every screen)
+
+Floating Coach button; quick chips like Swap exercise, Shorten to 30m, Move leg day to tomorrow.
+
+Scoped calls: on workout pages use /api/ai/workout/adjust; on calendars perform reschedule; on home it can pull next action.
+
+Always show diff + Undo before committing.
+Done when: From any workout view, Coach can change plan with Undo.
+
+5) Workouts first (core UX)
+
+Adjust Today CTA (same power as Coach).
+
+Exercise Swap flow (AI suggestions) with auto set translation.
+
+Time/equipment presets (20/30/45m; Home/Gym).
+
+Persist to workout_sets; append note to workout_notes.
+Done when: Full workout can be completed with AI adjustments saved.
+
+6) Home (AI-integrated, but thin)
+
+Sections: Today’s workout (start/continue), Next up, Quick actions (Ask Coach, Log PB, Regenerate day), Streaks.
+
+Home pulls from the same data (no new logic) + Coach quick commands.
+Done when: Home reflects current workout state, launches sessions, and Coach can act from here.
+
+7) Stats (MVP, real data)
+
+Capture events: on set completion / workout complete ⇒ write to workout_events.
+
+Nightly (or on-demand) rollup into metrics_daily (volume, time, avg RPE, weekly totals).
+
+UI: PBs list, weekly volume chart, streak counter, best lifts.
+Done when: Completing a workout updates charts without manual hacks.
+
+8) Awards Centre (zero → earned)
+
+Catalog a small set (e.g., First Workout, 3-Day Streak, 5K Volume Week, Form Fanatic 10 videos watched).
+
+Rules engine evaluates on event/rollup; write to user_awards and award_progress.
+
+UI: Locked grid (greyed), Earned with date, In progress with percent.
+Done when: Fresh account shows 0; actions earn awards; progress bars move.
+
+9) Nutrition (Pro-leaning, behind flag)
+
+Keep your new Meal Plan/Overview designs.
+
+Wire later with backbone endpoints:
+
+POST /api/ai/nutrition/day-plan
+
+POST /api/ai/nutrition/swap
+
+Shopping hook optional; hidden unless AI_ENABLED && PRO_ENABLED.
+Done when (flag ON): Day plan generates, swaps work, strict JSON only.
+
+10) Social minimal
+
+Tabs: Feed | Communities | Messages; reactions 🔥💪🥗🙌; simple comments.
+
+People search; remove dim overlay.
+Done when: All three tabs usable, fast, and undimmed.
+
+11) Navigation sanity
+
+Guarded routes, deep links from Home/Coach to detail screens.
+
+Hydrate session on load via /api/auth/me; no refresh hacks.
+Done when: No dead ends; auth guards are clean.
+
+12) Videos (later, but ready now)
+
+Use exercises.video_url; show placeholder when empty.
+
+Drop S3/R2 links when you buy assets; no schema change.
+Done when: Player swaps to real videos once URLs exist.

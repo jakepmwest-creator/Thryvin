@@ -1,0 +1,81 @@
+Goal:
+Create a visually detailed and emotionally expressive cloud character using p5.js that serves as the face of an AI personal trainer. The character should feel alive, responsive, and full of personality — blending soft animated aesthetics with subtle realism.
+
+Visual Design:
+
+A grey, fluffy cloud with realistic softness and layering — built from many animated overlapping ellipses for volume and depth.
+
+The cloud should have a gentle bobbing float (vertical sine wave motion) and side-to-side sway (horizontal movement).
+
+Two bright neon blue rectangular eyes, slightly glowing.
+
+Eyes should track the user's mouse using easing (smooth movement).
+
+Blinking animation every few seconds.
+
+Eyes narrow or widen based on mood/emotion.
+
+Emotions / Moods:
+The cloud should display expressive emotional states, controlled by variables like:
+
+Happy: Eyes widen, float increases slightly, sparkles around the cloud
+
+Focused: Eyes narrow slightly, sparks pause, cloud movement becomes steadier
+
+Thinking: One eye squints, subtle pulsing of cloud, occasional "?" above head
+
+Tired: Eyes half-closed, cloud sinks slightly, slower bobbing
+
+Excited: Eyes large and bright, small electric sparks appear frequently
+
+Mood changes should be visible and optionally time-triggered or changeable via function calls (to allow future voice/mood logic).
+
+Interactions:
+
+Mouse movement: eyes follow the cursor with easing
+
+Click: triggers a burst of electric spark animations around the cloud
+
+Idle: auto-blink, idle expressions (e.g. thinking or sleepy)
+
+Animation Features:
+
+Use sin() or noise() for cloud bobbing and swaying motion
+
+Electric spark effects:
+
+Fade out over time
+
+Light up edge of cloud subtly
+
+Triggered manually or randomly
+
+Eyes animate with smooth transitions (not rigid or static)
+
+Code Requirements:
+
+Use p5.js, fully compatible with Replit
+
+Modular structure with classes:
+
+Cloud: handles fluff, floating, expression
+
+Eye: handles tracking, blinking, shape changes
+
+Spark: manages animations and lifespan
+
+Lightweight, optimized for real-time web use
+
+Responsive canvas (adjusts to screen size)
+
+Future-Proofing:
+
+Design structure should allow easy future additions:
+
+Text dialogue bubble
+
+Voice interaction or audio playback
+
+Workout-specific moods or motivational responses
+
+UI integration (progress tracking, feedback loops)

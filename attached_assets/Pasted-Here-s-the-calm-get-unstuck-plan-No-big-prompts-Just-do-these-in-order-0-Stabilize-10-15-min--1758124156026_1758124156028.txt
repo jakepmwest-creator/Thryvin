@@ -1,0 +1,130 @@
+Here’s the calm, get-unstuck plan. No big prompts. Just do these in order.
+
+0) Stabilize (10–15 min)
+
+Freeze main: make a stabilize branch (or a copy repl).
+
+Feature flags: set AI_ENABLED=false (env or constant).
+
+Baseline on: render your static/hardcoded workouts again so everything runs (calendar + start flow). This gives you a safe UI while we fix generation.
+
+1) Add a strict “workout contract” (20 min)
+
+Create a tiny validator so your UI only ever sees valid workouts.
+
+// contracts/workoutDay.ts
+export type ExerciseSet = {
+  exercise_id: string; name: string;
+  sets: number; reps: number | string;
+  load?: string; rest_sec?: number;
+};
+
+export type WorkoutDay = {
+  date: string; // ISO
+  title: string; duration_min: number;
+  coach_notes?: string;
+  blocks: { type: 'warmup'|'main'|'recovery'; items: ExerciseSet[]; }[];
+};
+
+// super simple validator (no lib): returns null if invalid
+export function validateWorkoutDay(d: any): WorkoutDay | null {
+  try {
+    if (!d || typeof d !== 'object') return null;
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(d.date)) return null;
+    if (typeof d.title !== 'string') return null;
+    if (typeof d.duration_min !== 'number') return null;
+    if (!Array.isArray(d.blocks)) return null;
+    const must = new Set(['warmup','main','recovery']);
+    for (const b of d.blocks) {
+      if (!must.has(b.type)) return null;
+      if (!Array.isArray(b.items) || b.items.length === 0) return null;
+      for (const it of b.items) {
+        if (!it.exercise_id || !it.name || !it.sets || !it.reps) return null;
+      }
+    }
+    return d as WorkoutDay;
+  } catch { return null; }
+}
+
+
+If this validator fails, don’t render the AI result.
+
+2) Add safe fallbacks (15–20 min)
+
+Until AI is reliable, always have something real to show.
+
+// templates/warmups.ts
+export function warmupFor(focus: 'push'|'pull'|'legs') {
+  if (focus==='push') return [
+    { exercise_id:'wu001', name:'Band Pull-Aparts', sets:1, reps:15, rest_sec:30 },
+    { exercise_id:'wu002', name:'Scap Push-ups', sets:1, reps:12, rest_sec:30 },
+  ];
+  if (focus==='pull') return [
+    { exercise_id:'wu003', name:'Dead Hang', sets:1, reps:'30s', rest_sec:30 },
+    { exercise_id:'wu004', name:'Face Pulls', sets:1, reps:15, rest_sec:30 },
+  ];
+  return [
+    { exercise_id:'wu005', name:'Bodyweight Squats', sets:1, reps:15, rest_sec:30 },
+    { exercise_id:'wu006', name:'Hip Airplanes', sets:1, reps:8, rest_sec:30 },
+  ];
+}
+
+export function recoveryFor(focus: 'push'|'pull'|'legs') {
+  if (focus==='push') return [
+    { exercise_id:'rc001', name:'Chest Wall Stretch', sets:1, reps:'30s' },
+    { exercise_id:'rc002', name:'Triceps Overhead Stretch', sets:1, reps:'30s' },
+  ];
+  if (focus==='pull') return [
+    { exercise_id:'rc003', name:'Lat Stretch', sets:1, reps:'30s' },
+  ];
+  return [
+    { exercise_id:'rc004', name:'Hip Flexor Stretch', sets:1, reps:'30s' },
+  ];
+}
+
+
+When AI gives you a day:
+
+Validate; if missing warmup/recovery, insert templates.
+
+If main block empty → reject and keep the static workout or show “Regenerate” with a Retry.
+
+3) Repair calendar & generation flow (20–30 min)
+
+Never delete the week. Store each day independently with a status: pending | generating | ready | error.
+
+When you press “Generate week”: create/keep 7 records, set each to generating, fill one by one, and flip to ready on success (or error with a Retry button).
+
+Week and month read from the same stored days; selecting a day just loads that one record. No wholesale replacement.
+
+4) Back button that always works (10–15 min)
+
+When in an active workout, tapping back opens a confirm sheet with three choices:
+
+Leave without saving (grey) → discard and go back.
+
+Mark as complete (red) → save as done (even mid-way) and go back.
+
+Finish workout (green) → save as complete & exit.
+
+This is just UI logic; it doesn’t depend on AI and will make the app feel solid immediately.
+
+5) Turn AI back on behind a flag (last)
+
+Flip AI_ENABLED=true.
+
+On “Generate day”, call your AI, map names → exercise IDs (use a simple alias map), validate, template-fill, save.
+
+If validation fails, show a friendly toast and keep the previous plan.
+
+Why this will work
+
+You stabilize UI first (users see workouts again right away).
+
+You validate AI output before it hits the screen.
+
+You template warm-up/recovery so they’re never blank.
+
+You protect the calendar with per-day status and no destructive writes.
+
+You make Back reliable so you’re never trapped.

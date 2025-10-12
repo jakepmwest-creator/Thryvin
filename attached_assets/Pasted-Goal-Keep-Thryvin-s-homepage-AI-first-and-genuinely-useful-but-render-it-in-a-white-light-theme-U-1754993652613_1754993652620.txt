@@ -1,0 +1,122 @@
+Goal: Keep Thryvin’s homepage AI‑first and genuinely useful, but render it in a white/light theme. Use existing routes and real data. No legacy “Kai” links.
+
+0) Shell
+Keep top app bar with Thryvin logo (left) and settings (right → /profile/settings).
+
+Keep bottom nav (Home*, Workouts, Nutrition, Social, Profile).
+
+Vertical scroll only (the only horizontal scroll is the Activity swipe deck).
+
+1) AI Talking Banner (light theme)
+Full‑width hero just under the app bar.
+
+Subtle light gradient background (white → #F6F7FB with a faint brand tint).
+
+Copy:
+
+Title: “Hey, {firstName} 👋”
+
+Subtext: AI daily line (time/day/context aware), e.g. “Upper body push today—want me to tweak it?”
+
+Small animated voice‑wave icon on the right (gentle pulse).
+
+Tap → open the existing AI Coach (same endpoint as your coach button):
+/coach?thread=new&prefill=Tell%20me%20about%20today
+
+2) “Today” Progress Row
+Three compact rings with labels underneath:
+
+Workouts → /workouts?date=today
+
+Nutrition → /nutrition?date=today
+
+Recovery → /recovery
+
+Light theme style: neutral track on white, brand‑accent progress.
+
+Animate stroke + count‑up on mount (600–800ms).
+
+3) Main Content Cards (stacked, airy, not boxed)
+A) Today’s Workout
+
+Shows workout name (e.g., Upper Body Push), duration, quick tags.
+
+Primary button: Start → /workouts/player?date=today
+
+Text link: View week → /workouts?view=week
+
+Entire card tap → /workouts?date=today
+
+B) Activity — Swipe Deck (the only horizontal scroll)
+Include these mini‑cards (soft light gradients / tinted fills):
+
+Nutrition — “Complete 3 healthy meals” + mini progress → /nutrition?date=today
+
+Recovery — “Log your relaxation” → /recovery
+
+Stats Snapshot — e.g., “Workouts this week: 2/5” → /stats
+
+Social Highlight — e.g., “Alex hit a PB today” → /social?view=trending
+
+Coach Tip — bite‑sized AI advice → /coach?prefill=Coach%20tip%20for%20today
+
+Challenge — “3‑Day Core Challenge” → your route (e.g., /stats?view=challenges)
+
+Smooth snap‑center; 16px card gap; gentle elevation.
+
+C) Today’s Meals (Preview)
+
+Breakfast / Lunch / Dinner one‑liners for today.
+
+Button: View meals → /nutrition?date=today
+
+Secondary: Swap ideas → /coach?prefill=Suggest%20meal%20alternatives%20for%20today
+
+D) Awards Teaser
+
+“You’re 1 workout away from your next badge.”
+
+Button → /awards
+
+E) Social Highlights
+
+1–2 clean tiles previewing posts/trending.
+
+Tap → /social (or /social?view=trending)
+
+4) Behaviour & Data
+Use real data for rings and cards (no placeholders).
+
+Do not re‑run onboarding if profile.hasPlan === true.
+
+All deep links route to your existing pages above.
+
+Remove any legacy references to “Kai”; use your current coach chat only.
+
+5) Light Theme Tokens (examples)
+Background: #FFFFFF
+
+Section bg: #FFFFFF with soft shadow rgba(0,0,0,0.06) 0 8px 24px
+
+Text primary: #0B0F1A; secondary: #6B7280
+
+Brand gradient (accents/buttons): linear-gradient(135deg,#7A3CF3 0%,#FF4FD8 100%)
+
+Rings: track #EDF0F5; progress = brand accent
+
+Corners: 20dp main; 12–14dp minis
+
+Spacing: 16–24px gutters; 12–16px inside cards
+
+6) QA checklist
+Banner tap → opens existing coach chat (not a placeholder).
+
+Each ring navigates correctly to its tab.
+
+Carousel swipes smoothly; routes per card are correct.
+
+Start on Today’s Workout opens the player for today.
+
+No horizontal page scroll outside the Activity deck.
+
+No duplicate headings; top bar + bottom nav present.

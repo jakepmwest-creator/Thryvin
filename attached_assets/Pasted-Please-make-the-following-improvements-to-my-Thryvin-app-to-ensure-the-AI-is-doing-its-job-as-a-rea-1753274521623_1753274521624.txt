@@ -1,0 +1,75 @@
+Please make the following improvements to my Thryvin’ app to ensure the AI is doing its job as a real fitness coach, and to fix key parts of the workout calendar logic.
+
+1️⃣ Use Questionnaire Answers to Generate Personalized Workouts
+When a new user completes the pre-workout questionnaire (not the main onboarding), the app currently collects:
+
+Fitness goal
+
+Time of day they prefer to train
+
+Days available to train
+
+Workout duration preference
+
+Equipment access
+
+Experience level
+
+Any injuries
+
+These answers must be stored in a persistent object like userWorkoutProfile, saved to localStorage or backend
+
+Update the AI workout generation function to actively use these values when building workouts:
+
+Example:
+
+If the goal is fat loss → prioritize cardio or HIIT styles
+
+If the user has no equipment → use only bodyweight exercises
+
+If training duration = 30 mins → limit total sets/time
+
+If the user has shoulder injuries → avoid overhead pressing, push-ups
+
+Make sure the generated plan reflects this data every time it's shown
+
+Don’t default to a generic plan — adapt based on these fields
+
+2️⃣ Fix Weekly Calendar Click-to-Workout Flow
+The weekly calendar view used to allow users to click a specific day and view/edit that day’s workout
+
+That feature is currently broken or missing — please bring it back
+
+Clicking a day should open a drawer/modal or navigate to that day’s workout
+
+Include options to:
+
+View full workout
+
+Swap an exercise
+
+Mark workout as complete
+
+Leave AI feedback on performance
+
+3️⃣ Ensure Monthly Calendar Fully Works
+The monthly view should:
+
+Display the full month, responsive and styled like the rest of the app
+
+Highlight today’s date
+
+Dim past dates
+
+✅ Show completion status for previous workouts
+
+Allow users to tap a day to view or edit the workout
+
+Please double-check that the layout and click-through functionality is fully working and consistent with the weekly view
+
+🔧 Developer Notes
+Use existing user context or auth to persist the profile data
+
+If user profile changes, regenerate their next workout plan accordingly
+
+Keep styles consistent with the Thryvin’ branding (purple/pink gradient, smooth rounded edges, mobile-first design)

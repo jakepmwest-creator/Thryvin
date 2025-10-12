@@ -1,0 +1,169 @@
+1. Fitness Goals
+
+What is your primary fitness goal?
+
+[ ] Lose weight
+
+[ ] Gain muscle
+
+[ ] Improve endurance/stamina
+
+[ ] Improve flexibility
+
+[ ] General fitness
+
+[ ] Other (please specify) _
+
+
+
+2. Fitness Level
+
+How would you describe your current fitness level?
+
+[ ] Beginner (New to fitness or just getting started)
+
+[ ] Intermediate (Exercise regularly but not at an advanced level)
+
+[ ] Advanced (Highly experienced and consistent with fitness)
+
+
+
+3. Preferred Workout Type
+
+What type of workouts do you enjoy or want to focus on?
+
+[ ] Strength Training (e.g., weightlifting)
+
+[ ] Cardio (e.g., running, cycling, HIIT)
+
+[ ] Calisthenics (bodyweight exercises)
+
+[ ] Yoga/Pilates
+
+[ ] Mixed workouts (Strength + Cardio)
+
+[ ] Other (please specify) _
+
+
+
+4. Weekly Availability
+
+How many days per week do you want to commit to working out?
+
+[ ] 1–2 days
+
+[ ] 3–4 days
+
+[ ] 5–6 days
+
+[ ] Every day
+
+
+
+5. Workout Duration
+
+What is your preferred workout duration?
+
+[ ] Less than 30 minutes
+
+[ ] 30-45 minutes
+
+[ ] 45 minutes – 1 hour
+
+[ ] More than 1 hour
+
+
+
+6. Equipment Available
+
+What equipment do you have access to?
+
+[ ] Dumbbells
+
+[ ] Barbells
+
+[ ] Resistance Bands
+
+[ ] Bodyweight Only (no equipment)
+
+[ ] Treadmill/Rowing Machine
+
+[ ] Other (please specify) _
+
+
+
+7. Injury/Health Considerations
+
+Do you have any injuries or health concerns that we should know about?
+
+[ ] Yes (please specify) _
+
+[ ] No
+
+
+
+8. Motivation Style
+
+What motivates you the most to stay on track with your fitness journey?
+
+[ ] Tracking progress and results
+
+[ ] Getting daily reminders and encouragement
+
+[ ] Engaging with a fitness community
+
+[ ] Competing in challenges
+
+[ ] Other (please specify) _
+
+
+
+9. Nutrition Preferences
+
+Are you interested in personalized nutrition guidance?
+
+[ ] Yes, I want meal suggestions based on my fitness goals
+
+[ ] No, I prefer to track my nutrition independently
+
+[ ] Not sure, but would like more info
+
+
+
+10. Ideal Trainer Style
+
+How would you like your trainer (AI) to communicate with you?
+
+[ ] Motivating and enthusiastic
+
+[ ] Calm and supportive
+
+[ ] Direct and goal-oriented
+
+[ ] Friendly and conversational
+
+[ ] Other (please specify) _
+
+
+
+
+---
+
+Optional (Bonus) Questions
+
+Do you prefer working out in the morning, afternoon, or evening?
+
+[ ] Morning
+
+[ ] Afternoon
+
+[ ] Evening
+
+
+What is your fitness experience with online coaching?
+
+[ ] First time using an AI trainer
+
+[ ] Experienced with online coaching (but new to AI)
+
+[ ] Experienced with both human and AI coaching

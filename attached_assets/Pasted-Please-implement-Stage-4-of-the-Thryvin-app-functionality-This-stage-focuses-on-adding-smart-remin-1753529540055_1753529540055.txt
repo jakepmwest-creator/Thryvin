@@ -1,0 +1,61 @@
+Please implement Stage 4 of the Thryvin’ app functionality. This stage focuses on adding smart reminders, AI-powered progress tracking, and motivational streak features. Follow the design and color system already in use across the app (purple/pink gradient, slick UI, rounded elements).
+
+1️⃣ SMART NOTIFICATIONS SYSTEM
+Set up a notifications system to send the following smart reminders:
+
+⏰ “It’s 30 mins before your scheduled workout — ready to go?”
+
+💧 “You haven’t logged water today.”
+
+🍽️ “Time to log your next meal?”
+
+💤 “Rest day tomorrow. Want a recovery suggestion?”
+
+Allow user to customize notification preferences in their profile/settings (toggle on/off per reminder type)
+
+Use localStorage or a lightweight backend solution to persist preferences
+
+2️⃣ AI PROGRESS TRACKING + ADAPTATION
+When users complete workouts, allow them to rate difficulty or give feedback:
+
+“Too easy” → AI increases reps/weight slightly next time
+
+“Too hard” → AI lowers difficulty or adds recovery
+
+“Perfect” → AI continues progression
+
+Track progress over time:
+
+Reps completed
+
+Weights lifted (if available)
+
+Streaks hit
+
+Store this data in a structured user progress object (userProgress) and use it to adapt the next generated workout
+
+3️⃣ STREAKS + MOTIVATIONAL BOOSTERS
+Implement a streak system:
+
+If the user trains consecutive days (e.g. 3 in a row), show motivational message: “🔥 3-day streak, let’s go!”
+
+Missed workout = streak reset
+
+Display the streak count on the homepage and/or calendar
+
+Add popups/toasts with motivational boosts:
+
+“You’ve hit your weekly target — amazing!”
+
+“Almost at your 5-day streak badge!”
+
+🔧 DEV NOTES:
+Make sure all UI matches the Thryvin’ design language
+
+Keep code modular (NotificationManager, ProgressTracker, StreakManager)
+
+Use dummy data where real sensors or backend aren’t available yet
+
+Voice and text input should both be supported for logging progress or giving feedback
+
+✅ This stage helps make the app feel alive, adaptive, and encouraging — like a real AI fitness coach would.

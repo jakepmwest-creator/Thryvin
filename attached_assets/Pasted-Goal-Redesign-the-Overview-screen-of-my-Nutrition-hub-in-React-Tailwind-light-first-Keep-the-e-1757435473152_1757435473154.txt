@@ -1,0 +1,156 @@
+Goal: Redesign the Overview screen of my Nutrition hub in React + Tailwind (light-first). Keep the existing content, remove the calendar/date line, make the top area functional (4 clickable sections), make Today’s Meals clean and tappable, and make the Nutrition Overview actually compute and update. Hide scrollbars while keeping scroll.
+
+Keep the same sections/content order:
+
+Top area (no date).
+
+Section switcher: Overview · Meal Plan · Shopping · Learn (nice pill tabs, clickable).
+
+Today’s Meals (split visually: “Picked by you” & “Picked by AI”).
+
+Nutrition Overview (daily breakdown of what I had).
+
+Recent favourites (if present) stays as a horizontal strip.
+
+Visual system (light-first)
+
+Page: bg-slate-50
+
+Cards: bg-white border border-slate-200 rounded-2xl shadow-xs
+
+Headings: text-slate-900, body: text-slate-700, muted: text-slate-500
+
+Primary accent: indigo (underline, active chips, buttons)
+
+Spacing: p-4 md:p-5 on cards; section gaps gap-6
+
+Hide scrollbars, keep scroll:
+
+.scroll-hidden { -ms-overflow-style: none; scrollbar-width: none; }
+.scroll-hidden::-webkit-scrollbar { display: none; }
+
+Components to build
+
+NutritionOverviewPage (page shell)
+
+Top bar (no date). Right side can have a subtle icon button (⋯) if needed.
+
+SegmentedTabs (sticky): Overview · Meal Plan · Shopping · Learn
+
+Pills, rounded-full; active pill in indigo; animated underline (Framer Motion).
+
+Keyboard accessible (role="tablist", role="tab", aria-selected).
+
+Main vertical content: class="overflow-y-auto scroll-hidden"
+
+TodaysMeals
+
+Header row: “Today’s meals” + + Quick add (text button in text-indigo-600 hover:text-indigo-700).
+
+Two sub-sections (only if you have both sources; otherwise list straight):
+
+“Picked by you” (small label chip)
+
+“Picked by AI” (small label chip)
+
+MealCard design:
+
+Card: bg-white border border-slate-200 rounded-2xl p-4 md:p-5 shadow-xs hover:shadow-sm transition
+
+Left status marker: hollow circle → filled check when consumed.
+
+Title, kcal, and macro chips (bg-slate-100 text-slate-600 text-xs px-2 py-1 rounded-full).
+
+Tap toggles consumed (optimistic) and updates totals.
+
+Long-press opens action sheet: Edit • Replace • Duplicate • Details.
+
+(Optional) Swipe right = eaten, left = not eaten if a swipe lib is available.
+
+Empty state: suggestion card “Based on your plan: add Oats & Yogurt?” with Add button.
+
+NutritionOverviewBreakdown (today)
+
+Section title: “Nutrition overview (today)”.
+
+Progress bars (light theme friendly) for Protein / Carbs / Fat:
+
+Each row: label on left; on right show Consumed / Target / Remaining (monospace/tabular).
+
+Clicking a macro row expands to list contributing meals (small list of meal names + grams).
+
+Optional micro-metrics (chips): Fibre, Sugar, Sodium.
+
+RecentFavourites (if you show it on Overview)
+
+Horizontal carousel; hidden scrollbar; small cards with name + kcal.
+
+Tap = quick-add; show undo snackbar (“Added Greek Yogurt · Undo”).
+
+State & logic (wire up minimal working)
+type MealItem = {
+  id: string;
+  title: string;
+  kcal: number;
+  protein: number;
+  carbs: number;
+  fat: number;
+  source?: "user" | "ai";
+  time?: "breakfast" | "lunch" | "dinner" | "snack";
+  consumed: boolean;
+};
+
+type Targets = { kcal:number; protein:number; carbs:number; fat:number };
+type Totals  = { kcal:number; protein:number; carbs:number; fat:number };
+
+state = {
+  activeTab: "overview" as const, // tabs are clickable, others can be placeholders for now
+  todaysMeals: MealItem[],        // seed 4–6 items; mix of source: "user" and "ai"
+  targets: { kcal: 2300, protein: 180, carbs: 250, fat: 70 },
+  totals: { kcal: 0, protein: 0, carbs: 0, fat: 0 }
+};
+
+
+Functions
+
+toggleConsumed(id) → flip consumed; then recalcTotals().
+
+recalcTotals() → sum only consumed meals into totals; re-render breakdown.
+
+navigate(tab) → set active tab; animate underline.
+
+quickAdd(meal) → push to todaysMeals; optimistic UI + undo snackbar.
+
+Motion & feedback
+
+Tabs underline: Framer Motion spring; active pill gets subtle glow.
+
+Card press: scale to 0.98 for 150–200ms.
+
+Toggle consumed: check fills + numbers in Breakdown count up/down (~150ms).
+
+When tapping the mini snapshot (if you keep one), smooth scroll to Breakdown and briefly highlight it.
+
+Accessibility
+
+Tabs: correct roles/aria; left/right arrows switch; Enter/Space activates.
+
+MealCard acts as a button; Enter/Space toggles consumed.
+
+Respect prefers-reduced-motion.
+
+Light theme contrast meets WCAG AA.
+
+Definition of done
+
+No date/calendar line at the top.
+
+Segmented tabs look clean (pills) and are clickable (Overview · Meal Plan · Shopping · Learn).
+
+Today’s Meals looks polished; meals are tappable to mark eaten/not eaten; totals update instantly.
+
+Nutrition Overview shows Protein/Carbs/Fat with Consumed / Target / Remaining and expands to show contributors.
+
+Vertical scrollbar is hidden but scrolling works smoothly across Chrome/Safari/Firefox/Edge.
+
+Uses your light-first visuals everywhere.

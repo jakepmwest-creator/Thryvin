@@ -1,0 +1,85 @@
+Replit, please refine the onboarding questionnaire for the Thryvin’ app. Most of the flow is already in place, so just update it with these exact questions and remove any that aren’t listed.
+
+Questions to include (in this order):
+
+What should we call you?
+
+Input: free text (max 30 chars).
+
+Save to: profile.displayName.
+
+What’s your gender?
+
+Options: Male, Female, Prefer not to say, Other.
+
+Save to: profile.gender.
+
+What’s your main fitness goal?
+
+Options: Build muscle, Lose fat, Improve endurance, Increase flexibility, General health, Other.
+
+If “Other” → show short text field.
+
+Save to: goals.primary.
+
+How many days per week can you realistically train?
+
+Options: 1–2, 3–4, 5–6, Every day.
+
+Save to: plan.trainingDaysPerWeek.
+
+How long do you like your workouts?
+
+Options: 20–30 mins, 45–60 mins, 75+ mins.
+
+Save to: plan.sessionDurationMin.
+
+What’s your current fitness level?
+
+Options: Beginner, Intermediate, Advanced.
+
+Save to: profile.fitnessLevel.
+
+Any injuries or limitations we should consider?
+
+Options (multi-select): Shoulder, Elbow/Wrist, Lower back, Knee, Ankle, Cardio/Respiratory, None.
+
+If anything but “None” → allow optional text or voice input.
+
+Save to: profile.limitations[] and profile.limitationsNotes.
+
+What’s your typical daily activity level outside the gym?
+
+Options: Sedentary, Lightly active, Active, Very active.
+
+Save to: profile.activityLevel.
+
+What motivates you most?
+
+Options (multi-select): Progress tracking, Competition, Accountability, Fun/exploration, Results, Other.
+
+If “Other” → optional text.
+
+Save to: profile.motivators[] and profile.motivatorsNotes.
+
+How would you like your AI coach to interact with you?
+
+Options: Encouraging & positive, Straightforward & disciplined, Casual & friendly, Other.
+
+Optional text/voice if “Other.”
+
+Save to: coach.style.
+
+UI/UX requirements
+
+Show one question per screen.
+
+Always display a progress bar (e.g., “Step 4 of 10”).
+
+Use chip-style buttons for multiple-choice answers.
+
+For free-text questions, add a mic icon for voice input (fallback to text if no mic).
+
+Allow “Back” on every screen.
+
+At the end, display a celebration screen with confetti effect:

@@ -1,0 +1,120 @@
+Don’t nuke caches unless you must. Avoid rm -rf node_modules .expo .cache except for real breakages.
+
+Prefer LAN over tunnel. Tunnels are slow. If your phone & Replit are on the same network, use:
+
+EXPO_USE_BRIDGE=0 npx expo start --lan
+
+Use --tunnel only when LAN won’t connect.
+
+Keep Metro running. After scanning the QR once, use r to reload. Don’t stop/start the server.
+
+Pin versions. Version churn = slow installs. Lock to the SDK set we already used (Expo 54).
+
+One install, many runs. Do not run npm install between edits. Only after changing package.json.
+
+Close heavy tooling. Turn off auto type-checking/format-on-save for huge files. (It stalls the single Replit CPU.)
+
+Use smaller logs. Verbose logs slow terminals; keep them but not every request.
+
+
+
+---
+
+Add fast scripts (so you stop typing long commands)
+
+Ask Replit to add these to apps/native/package.json:
+
+{
+  "scripts": {
+    "start:lan": "EXPO_USE_BRIDGE=0 expo start --lan",
+    "start:tunnel": "EXPO_USE_BRIDGE=0 expo start --tunnel",
+    "start:clean": "rimraf .expo .cache && EXPO_USE_BRIDGE=0 expo start --lan -c",
+    "preinstall": "npm config set fund false && npm config set audit false",
+    "postinstall": "expo-doctor --fix || true"
+  }
+}
+
+Now your routine is:
+
+Fast boot (same network): npm run start:lan
+
+Only if LAN fails: npm run start:tunnel
+
+Bad cache day: npm run start:clean (rare)
+
+
+
+---
+
+Prompt for Replit (paste this verbatim)
+
+Goal: Make the Expo native app start & reload much faster in Replit.
+
+Do:
+
+1. Pin deps for Expo SDK 54 in apps/native/package.json (keep what you already installed):
+
+expo@~54.0.10, react@18.3.1, react-native@0.81.4
+
+expo-router@~4.0.7, @expo/metro-runtime@^3, babel-preset-expo@^12
+
+keep our other libs as-is.
+
+Run a single npm install in apps/native (no workspace-wide installs).
+
+
+
+2. Update scripts (create or merge) in apps/native/package.json:
+
+{
+  "scripts": {
+    "start:lan": "EXPO_USE_BRIDGE=0 expo start --lan",
+    "start:tunnel": "EXPO_USE_BRIDGE=0 expo start --tunnel",
+    "start:clean": "rimraf .expo .cache && EXPO_USE_BRIDGE=0 expo start --lan -c",
+    "preinstall": "npm config set fund false && npm config set audit false",
+    "postinstall": "expo-doctor --fix || true"
+  }
+}
+
+
+3. Babel & app config sanity:
+
+apps/native/babel.config.js:
+
+module.exports = {
+  presets: ['babel-preset-expo'],
+  plugins: ['react-native-reanimated/plugin'],
+};
+
+apps/native/app.json:
+
+"entryPoint": "expo-router/entry"
+
+"experiments": { "bridgeless": false }
+
+remove other experimental flags.
+
+
+
+
+4. Stop auto wipe patterns in any Replit “Run” tasks. We should not delete node_modules or caches on every run.
+
+
+5. Prove speed-up:
+
+Run npm run start:lan and paste the first 20 lines of Metro output including the QR.
+
+From a second edit+save, press r in Metro and report the reload time (target: <2–3s after initial build).
+
+Confirm there is no re-install between runs.
+
+
+
+
+If anything fails, show:
+
+npm ls expo react-native @expo/metro-runtime babel-preset-expo
+
+cat apps/native/babel.config.js
+
+cat apps/native/app.json

@@ -1,0 +1,144 @@
+Replit Agent Prompt — “Fix Expo preview only (no rebuilds)”
+
+Goal: I just want to run the existing native app in Expo Go and scan a QR code.
+Do NOT refactor or rebuild the whole project. Do NOT migrate code. Only make the minimal changes required so npx expo start --tunnel works.
+
+Scope & Constraints (read first)
+
+✅ Operate only inside apps/native/.
+
+❌ Do not touch the web app or server code.
+
+❌ Do not upgrade major packages beyond Expo SDK 54.
+
+❌ Do not rewrite folders, routing, or UI.
+
+✅ Ask for confirmation if any task would take > 2 minutes or install > 10 packages.
+
+✅ If something is unclear, stop and ask before proceeding.
+
+
+Expected end state
+
+Running npx expo start --tunnel -c in apps/native/ shows a QR code.
+
+Scanning with Expo Go (SDK 54) opens the app without a red error.
+
+If a runtime error appears, show the exact error and what you changed.
+
+
+Do this in order
+
+1. Verify project location
+
+Ensure the working directory is apps/native/.
+
+If not, cd apps/native.
+
+
+
+2. Pin SDK 54 and matching deps (no upgrades past 54)
+
+Confirm package.json (inside apps/native) contains:
+
+"expo": "^54.0.0" (installed 54.0.x),
+
+"react-native": "0.81.4",
+
+"expo-router": "~4.0.7",
+
+"react": "18.3.x" or "19.x" is OK if peer deps satisfied (don’t downgrade if already compatible).
+
+
+If any are missing/mismatched, only install the minimal versions to satisfy Expo SDK 54.
+
+
+
+3. Babel config sanity
+
+In apps/native/babel.config.js ensure:
+
+module.exports = {
+  presets: ['babel-preset-expo'],
+  plugins: ['react-native-reanimated/plugin'],
+};
+
+Remove expo-router/babel (deprecated in SDK 50+).
+
+Make sure babel-preset-expo is installed somewhere (workspace root or apps/native). If missing, install it with npm i -D babel-preset-expo@^54 (minimal install only).
+
+
+
+4. app.json sanity
+
+In apps/native/app.json:
+
+"entryPoint": "expo-router/entry"
+
+"experiments": { "bridgeless": false, "turboModules": false }
+
+Valid asset paths:
+
+"icon": "./assets/icon.png"
+
+"splash": { "image": "./assets/splash.png", "resizeMode": "contain", "backgroundColor": "#7A3CF3" }
+
+
+If those files don’t exist, create placeholder PNGs (simple 1024x1024 and 2000x3000) so bundling won’t fail.
+
+
+
+
+5. Cache clean
+
+From apps/native/, run:
+
+rm -rf .expo .cache node_modules/.cache
+
+
+
+6. Install only what’s needed
+
+From apps/native/, run:
+
+npm install
+
+If peer conflicts appear, resolve by pinning the version already declared for SDK 54. Do not upgrade to SDK 55+.
+
+
+
+7. Start the dev server with tunnel (QR)
+
+From apps/native/, run (pick one, try A then B if needed):
+
+A (default):
+
+EXPO_USE_BRIDGE=0 npx expo start --tunnel -c
+
+B (fallback if a getDevServer or Hermes devtools error appears):
+
+EXPO_USE_BRIDGE=1 npx expo start --tunnel -c
+
+
+If “Port 8081 is used”, accept the suggested other port.
+
+
+
+8. Report back
+
+Post the QR code and confirm “Metro waiting on exp://…”.
+
+If the app shows a red screen on device, copy the full error and the file/line it points to.
+
+List exact files you changed and why (1–2 sentences each).
+
+
+
+
+Do NOT do
+
+❌ No “upgrade to latest SDK”.
+
+❌ No replacing expo-router or project structure.
+
+❌ No running long “codebase migration” tasks.

@@ -1,0 +1,90 @@
+Scope: Do not redesign anything. Only fix auth so a user can log in without refreshing.
+
+Backend (Express):
+
+Add once at startup:
+
+app.set('trust proxy', 1); // required for secure cookies on Replit/Proxies
+
+
+CORS must allow credentials and our app origin:
+
+import cors from 'cors';
+const ORIGINS = [
+  process.env.APP_ORIGIN || 'https://<my-replit-preview-host>.replit.dev',
+  'http://localhost:3000'
+];
+app.use(cors({
+  origin: (origin, cb) => cb(null, !origin || ORIGINS.includes(origin)),
+  credentials: true,
+  methods: ['GET','POST','PUT','PATCH','DELETE','OPTIONS'],
+  allowedHeaders: ['Content-Type','Authorization']
+}));
+
+
+When setting session/auth cookie on login, use:
+
+const cookieOpts = {
+  httpOnly: true,
+  sameSite: 'lax',           // if frontend and API are same site; otherwise use 'none'
+  secure: true,              // Replit is HTTPS
+  path: '/',
+  maxAge: 1000*60*60*24*7
+};
+res.cookie('session', tokenOrId, cookieOpts);
+return res.status(200).json({ ok: true, user: publicUser });
+
+
+If frontend and API run on different subdomains, set sameSite: 'none' and keep secure: true.
+
+Ensure the login route does not redirect and does not return 204. It must return 200 JSON.
+
+Ensure there’s a GET /api/auth/me that reads the cookie and returns { user } with 200.
+
+Frontend:
+
+Every auth fetch must include credentials and expect JSON:
+
+const base = '';
+const login = async (email: string, password: string) => {
+  const r = await fetch(`${base}/api/auth/login`, {
+    method: 'POST',
+    credentials: 'include',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email, password })
+  });
+  if (!r.ok) throw new Error('Login failed');
+  const { user } = await r.json();
+  setAuthState({ user }); // update UI state immediately
+  // optionally fetch /api/auth/me to confirm cookie:
+  // await fetch(`${base}/api/auth/me`, { credentials: 'include' })
+};
+
+
+On app load, hydrate from:
+
+const me = await fetch('/api/auth/me', { credentials: 'include' });
+if (me.ok) setAuthState({ user: (await me.json()).user });
+
+
+Extra hardening:
+
+Handle preflight: make sure OPTIONS requests return 204 with CORS headers.
+
+If using express-session, ensure store isn’t memory in prod; for now, at least set:
+
+app.use(session({
+  secret: process.env.COOKIE_SECRET,
+  resave: false,
+  saveUninitialized: false,
+  cookie: { sameSite: 'lax', secure: true }
+}));
+
+
+Definition of done:
+
+Submitting login returns 200 {ok:true,user} (no redirect).
+
+Cookie is set and subsequent requests include it (check Network tab → Request Headers has cookie on /api/auth/me).
+
+UI shows logged-in state immediately, no manual refresh needed.

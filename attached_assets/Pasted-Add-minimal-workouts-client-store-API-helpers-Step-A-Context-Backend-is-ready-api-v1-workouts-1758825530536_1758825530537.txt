@@ -1,0 +1,83 @@
+Add minimal workouts client store + API helpers (Step A)
+Context: Backend is ready (/api/v1/workouts/week, /day, /generate-day). Frontend still reads static data. Create a tiny store and API helpers. Do not change the look & feel yet.
+
+Tasks:
+
+1. Create apps/native/lib/api.ts with these helpers using relative URLs and cookies:
+
+
+
+// apps/native/lib/api.ts
+export type WeekRow = { id:number; userId:number; date:string; status:'pending'|'generating'|'ready'|'error'; title?:string; updatedAt?:string; };
+export type BlockItem = { exercise_id:number; name:string; sets:number; reps:number|string; rest_sec?:number; load?:number; };
+export type DayPayload = { date:string; title:string; duration_min:number; coach_notes?:string; blocks:{type:'warmup'|'main'|'recovery'; items:BlockItem[]}[] };
+
+async function api(path:string, init:RequestInit = {}) {
+  const res = await fetch(path, { ...init, credentials:'include', headers:{ 'Content-Type':'application/json', ...(init.headers||{}) }});
+  if (!res.ok) throw new Error(${res.status} ${path});
+  return res.json();
+}
+export const getWeek = async (): Promise<{workouts:WeekRow[]}> => api('/api/v1/workouts/week');
+export const getDay  = async (date:string): Promise<WeekRow & {payloadJson?:DayPayload; error_reason?:string}> =>
+  api(/api/v1/workouts/day?date=${encodeURIComponent(date)});
+export const generateDay = async (date:string): Promise<{status:string; message:string}> =>
+  api('/api/v1/workouts/generate-day', { method:'POST', body: JSON.stringify({ date }) });
+
+2. Create a lightweight store (React Context) at apps/native/store/workoutsStore.tsx:
+
+state: { week: WeekRow[] | null, loading:boolean, error:string|null }
+
+actions:
+
+async loadWeek() → calls getWeek() and sets week.
+
+async ensureToday(date:string) → if today missing or pending/error, call generateDay(date) then return.
+
+async pollUntilReady(date:string, timeoutMs=45000) → poll getDay(date) every 2s until status==='ready' or timeout; return the last row.
+
+
+export WorkoutsProvider and useWorkouts() hook.
+
+
+
+3. Temporary wire-up (for verification only):
+In apps/native/app/(tabs)/workouts.tsx, import useEffect and useWorkouts(). Add:
+
+// at top of component
+const { loadWeek, week } = useWorkouts();
+useEffect(() => { loadWeek(); }, []);
+console.log('WEEK_DEBUG', week?.map(w => ({date:w.date, status:w.status, title:w.title})));
+
+Do not change UI rendering yet—this is only to trigger loading and give us a console log.
+
+
+4. Wrap the app with the provider:
+
+If apps/native/app/_layout.tsx exists, wrap the root with <WorkoutsProvider>…</WorkoutsProvider>.
+
+If not, wrap in apps/native/app/(tabs)/_layout.tsx.
+Provide the exact file you changed.
+
+
+
+
+Constraints:
+
+Use relative paths (/api/v1/...) so cookies/session work.
+
+Don’t install new packages; pure React Context only.
+
+Don’t modify styling or any existing component markup.
+
+
+Deliverables:
+
+New files: apps/native/lib/api.ts, apps/native/store/workoutsStore.tsx.
+
+The one layout file you wrapped.
+
+The small useEffect + console.log added to workouts.tsx.
+
+Post a short snippet of the store’s pollUntilReady function.
+
+Stop and ask me to verify before proceeding to Step B.

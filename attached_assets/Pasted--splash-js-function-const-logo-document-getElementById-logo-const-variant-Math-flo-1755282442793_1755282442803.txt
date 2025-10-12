@@ -1,0 +1,70 @@
+// splash.js
+(function(){
+  const logo = document.getElementById('logo');
+  const variant = Math.floor(Math.random() * 5); // 0..4
+  const tl = gsap.timeline({ defaults: { ease: "power3.out" }, onComplete: done });
+
+  // Start states
+  gsap.set(logo, { opacity: 1, x: 0, y: 0, scale: 1, rotation: 0, transformOrigin: "50% 50%" });
+
+  const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if (reduced) {
+    gsap.set(logo, { opacity: 0 });
+    tl.to(logo, { opacity: 1, duration: 0.2 })
+      .to({}, { duration: 0.9 })
+      .to("#splash", { opacity: 0, duration: 0.12 });
+    return;
+  }
+
+  switch (variant) {
+    case 0: // Slide-in bounce (Left)
+      gsap.set(logo, { x: -60, scale: 1 });
+      tl.to(logo, { x: 0, duration: 0.8 })
+        .to(logo, { scale: 1.06, duration: 0.2 })
+        .to(logo, { scale: 1.0, duration: 0.2 })
+        .to({}, { duration: 0.6 }) // hold
+        .to("#splash", { opacity: 0, duration: 0.12 });
+      break;
+
+    case 1: // Micro-Pop Zoom
+      gsap.set(logo, { scale: 0.4, opacity: 0 });
+      tl.to(logo, { scale: 1.08, opacity: 1, duration: 0.3, ease: "back.out(1.6)" })
+        .to(logo, { scale: 1.0, duration: 0.4 })
+        .to({}, { duration: 0.5 }) // hold
+        .to("#splash", { opacity: 0, duration: 0.12 });
+      break;
+
+    case 2: // Spidey Swing (Pendulum)
+      gsap.set(logo, { transformOrigin: "50% 0%", rotation: -18, y: -12 });
+      tl.to(logo, { rotation: 6, y: 0, duration: 0.8 })
+        .to(logo, { rotation: 0, duration: 0.4 })
+        .to(logo, { rotation: 1.5, duration: 0.25 })
+        .to(logo, { rotation: 0, duration: 0.25 })
+        .to("#splash", { opacity: 0, duration: 0.12 });
+      break;
+
+    case 3: // Flip-In 3D
+      gsap.set("#splash", { perspective: 800 });
+      gsap.set(logo, { rotationY: 70, scale: 0.9, opacity: 0 });
+      tl.to(logo, { rotationY: 0, opacity: 1, scale: 1.02, duration: 0.9, ease: "power4.out" })
+        .to(logo, { scale: 1.0, duration: 0.3 })
+        .to({}, { duration: 0.5 }) // hold
+        .to("#splash", { opacity: 0, duration: 0.12 });
+      break;
+
+    case 4: // Orbit Spin-In
+      gsap.set(logo, { x: -36, y: -14, rotation: -12, scale: 1 });
+      tl.to(logo, { motionPath: { path: [{x:-36,y:-14},{x:-18,y:-8},{x:0,y:0}], curviness: 1 }, rotation: 0, duration: 1.1, ease: "power2.out" })
+        .to(logo, { scale: 1.04, duration: 0.18 })
+        .to(logo, { scale: 1.0, duration: 0.18 })
+        .to("#splash", { opacity: 0, duration: 0.12 });
+      break;
+  }
+
+  function done(){
+    const node = document.getElementById('splash');
+    node?.parentNode?.removeChild(node);
+    window.splash = window.splash || {};
+    window.splash.done && window.splash.done();
+  }
+})();

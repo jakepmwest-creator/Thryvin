@@ -1,0 +1,64 @@
+// apps/native/lib/api.ts
+export type WeekRow = {
+  id: number;
+  userId: number;
+  date: string;
+  status: "pending" | "generating" | "ready" | "error";
+  title?: string;
+  updatedAt?: string;
+};
+export type BlockItem = {
+  exercise_id: number;
+  name: string;
+  sets: number;
+  reps: number | string;
+  rest_sec?: number;
+  load?: number;
+};
+export type DayPayload = {
+  date: string;
+  title: string;
+  duration_min: number;
+  coach_notes?: string;
+  blocks: { type: "warmup" | "main" | "recovery"; items: BlockItem[] }[];
+};
+
+async function api(path: string, init: RequestInit = {}) {
+  const res = await fetch(path, {
+    ...init,
+    credentials: "include",
+    headers: { "Content-Type": "application/json", ...(init.headers || {}) },
+  });
+  if (!res.ok) throw new Error(`${res.status} ${path}`);
+  return res.json();
+}
+
+export const getWeek = async (): Promise<{ workouts: WeekRow[] }> =>
+  api("/api/v1/workouts/week");
+
+export async function postGenerateDay(date: string) {
+  console.log("[API] postGenerateDay ->", date);
+  return fetch("/api/v1/workouts/generate-day", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    credentials: "include",
+    body: JSON.stringify({ date }),
+  });
+}
+
+export async function getDay(date: string) {
+  console.log("[API] getDay ->", date);
+  const r = await fetch(
+    `/api/v1/workouts/day?date=${encodeURIComponent(date)}`,
+    {
+      credentials: "include",
+    },
+  );
+  return r.json();
+}
+
+export const getTodayFallback = async (): Promise<{
+  status: string;
+  title?: string;
+  payloadJson?: DayPayload;
+}> => api("/api/workouts/today");

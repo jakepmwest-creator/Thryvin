@@ -1,0 +1,129 @@
+Goal: Redesign the gamified screen into two sections the user can swipe between (and tap via a segmented control):
+
+AWARDS tab
+
+QUESTS tab
+Keep the existing top banner (level + XP) and global nav. Use real data; no placeholders.
+
+0) Shell
+Keep top banner as-is (Level N, XP bar, subtle confetti on level‑up).
+
+Under banner: segmented control centered: Awards | Quests.
+
+Swipe left/right switches tabs; tapping the segment animates to that tab.
+
+Light theme; rounded corners (20dp); soft shadows; brand gradients for accents.
+
+1) AWARDS tab (swipe to this)
+Layout (top → bottom):
+
+Streaks row (horizontal mini-cards):
+
+Workout Streak, Nutrition Streak, Recovery Streak.
+
+Each shows day count, tiny progress ring, and last completed date.
+
+Tap → opens Stats filtered to that area.
+
+Recent badges (2×N grid, auto-wrap):
+
+Unlocked badges in full colour with a soft shine loop (CSS).
+
+Locked badges greyed with lock icon + tooltip “Do X to unlock”.
+
+Tap any badge → Badge modal:
+
+Large badge art, title, description, XP value, unlock criteria.
+
+If locked: show clear requirement + Track this toggle to pin its tracker to the Home “Activity” deck.
+
+All badges (filter chips):
+
+Filters: All, Consistency, Strength, Mobility, Nutrition, Challenges.
+
+Grid stays in place; filtering animates items (no layout jump).
+
+Behavior:
+
+Unlock event → quick confetti burst over the banner and the badge card.
+
+XP bar increments smoothly; level‑up triggers banner animation.
+
+2) QUESTS tab (swipe to this)
+Layout (top → bottom):
+
+Daily quests (horizontal carousel):
+
+3–5 cards, each with gradient background (category colour), title, short requirement, mini progress bar, XP reward.
+
+Buttons: Track (pins to Home Activity), Details.
+
+Completing shows Claim XP chip on the card.
+
+Weekly quests (2‑column grid):
+
+Similar cards with bigger progress bars and larger XP.
+
+Tap → Quest modal:
+
+Requirement breakdown (e.g., “5 workouts this week; 3/5 done”), eligible actions (open Workouts/Nutrition), due date/time left.
+
+Buttons: Abandon (optional), Claim XP (when done).
+
+Monthly/Seasonal challenge (wide card):
+
+Big gradient hero with progress ring, time remaining, reward bundle (XP + badge).
+
+CTA: View leaderboard (optional route), Open details.
+
+Behavior:
+
+Quest progress auto‑updates from core events (workout complete, meals logged, recovery minutes).
+
+Claim XP animates → updates XP bar in banner.
+
+“Track” pins a quest card to Home Activity deck.
+
+3) Navigation & Routes
+Badge tap → /awards/badge/:id
+
+Streak tap → /stats?focus=workout|nutrition|recovery
+
+Quest detail → /awards/quests/:id
+
+Track actions add a tile to the Home Activity row (existing pattern).
+
+4) Theme tokens (light)
+Page bg #FFFFFF; card bg #FFFFFF with rgba(0,0,0,.06) 0 8px 24px
+
+Text: primary #0B0F1A, secondary #6B7280
+
+Brand gradient: linear-gradient(135deg,#7A3CF3 0%,#FF4FD8 100%)
+
+Category gradients:
+
+Workouts (purple), Nutrition (green), Recovery (blue), Challenges (gold)
+
+Corners: 20dp (cards), 12–14dp (chips)
+
+Motion: 180–220ms ease for tab swipe, grid filter, progress updates
+
+5) Data & State
+Levels & XP: single source of truth; awarding XP is idempotent (no double‑claim).
+
+Streaks: derived server‑side (missed day breaks unless “rest day” counted).
+
+Quests: status ∈ {active, completed_unclaimed, claimed}; progress derived from events.
+
+Badge unlocks logged with timestamp; locked badges expose requirement preview.
+
+6) QA checklist
+Segmented control + swipe keep content in a single route (no reload).
+
+Claiming XP updates banner instantly and cannot double‑claim.
+
+Filtering badges works without layout jump; locked/unlocked states correct.
+
+Tracking a quest/badge adds a tile to Home Activity.
+
+Confetti/shine animations are performant on mid‑range phones.

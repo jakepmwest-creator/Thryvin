@@ -1,0 +1,61 @@
+Redesign the workout section of my app in the same layout, structure, and functionality as the previous dark theme design I approved, but in a clean, modern light theme.
+
+Theme & Style
+
+Use a bright, clean white/light grey background with subtle, smooth gradients in soft pastel tones for section backgrounds (light blues, greens, and purples) instead of solid dark blocks.
+
+Keep the design minimal but visually engaging, with soft shadows, rounded corners, and good spacing between elements.
+
+Ensure text and icons have high contrast for readability.
+
+Top Section – Calendar
+
+Keep the calendar view as in the dark version, with the ability to toggle between weekly view and monthly view.
+
+When a date is tapped, it should still pull up the workout detail page for that day (exactly as in the current working version).
+
+Ensure the “Swap Workout” option is still available and functional from this detail page.
+
+Today’s Workout Card
+
+At the very top under the calendar, show Today’s Workout as a large, clean card with the workout name, duration, and difficulty.
+
+Include a “Start Workout” button that still links to the current functional workout flow (warm-up → main workout → recovery).
+
+Workout Flow (Warm-up → Main Workout → Recovery)
+
+Preserve all functionality where:
+
+Each section expands to show exercises when tapped.
+
+Each exercise can still be clicked to view its video, description, and logging options.
+
+Buttons for logging performance or skipping exercises still work.
+
+At the end of the workout, still display the “Workout Complete” screen, but in a cleaner style for the light theme.
+
+Explore Section (Bottom)
+
+Keep the explore categories (e.g., Calisthenics, Strength, HIIT) as in the previous design, but styled to match the light theme.
+
+Ensure all category buttons link to the correct existing pages as they currently do.
+
+Functionality Preservation
+
+Do not break any existing working features — especially:
+
+Clicking calendar dates.
+
+Viewing workout details.
+
+Starting and completing workouts.
+
+Swap workout functionality.
+
+Viewing exercise videos and logging performance.
+
+Animations & Transitions
+
+Keep smooth swipe animations and transitions between sections as before, but adjust to suit the light theme without dark overlays.
+
+Final goal: The same workout section I approved in the dark theme version, but light-themed and fully functional without losing any of the working features.

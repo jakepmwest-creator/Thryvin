@@ -1,0 +1,77 @@
+Task: Make the cache-first workflow bulletproof and prove it.
+Do:
+
+1. In apps/native/lib/storage.ts, ensure these helpers exist exactly:
+
+
+
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
+export async function saveJson(key: string, value: unknown) {
+  await AsyncStorage.setItem(key, JSON.stringify(value));
+  console.log('[CACHE_SAVE]', key);
+}
+export async function loadJson<T>(key: string): Promise<T | null> {
+  const raw = await AsyncStorage.getItem(key);
+  const val = raw ? (JSON.parse(raw) as T) : null;
+  console.log('[CACHE_HIT?]', key, !!val);
+  return val;
+}
+export async function remove(key: string) {
+  await AsyncStorage.removeItem(key);
+  console.log('[CACHE_REMOVE]', key);
+}
+export async function clearAllWorkoutCache() {
+  const keys = await AsyncStorage.getAllKeys();
+  const wk = keys.filter(k => k.startsWith('workout:'));
+  await AsyncStorage.multiRemove(wk);
+  console.log('[CACHE_CLEAR]', wk.length);
+}
+
+2. In apps/native/store/workoutsStore.tsx:
+
+
+
+Keys:
+
+const TODAY_KEY = (d: string) => workout:day:${d};
+
+In loadToday(date):
+
+First try cache:
+
+
+const cached = await loadJson<TodayRow>(TODAY_KEY(resolvedDate));
+if (cached?.status === 'ready') {
+  console.log('[CACHE_HIT_TODAY]', resolvedDate);
+  dispatch({ type: 'SET_TODAY', payload: cached });
+  return;
+}
+
+Whenever a network result is ready (initial fetch or during polling), save & log:
+
+
+const ready = {
+  date: resolvedDate,
+  status: 'ready' as const,
+  title: dayResult.title,
+  payloadJson: dayResult.payloadJson,
+};
+await saveJson(TODAY_KEY(resolvedDate), ready);
+console.log('[CACHE_SAVE_TODAY]', resolvedDate);
+dispatch({ type: 'SET_TODAY', payload: ready });
+
+Do the same inside the polling branch when polledResult.status === 'ready'.
+
+
+Ensure there are no duplicate dispatch({ type:'SET_TODAY' }) after the save.
+Proof:
+
+Show the final storage.ts and the relevant loadToday snippet with the [CACHE_HIT_TODAY] and [CACHE_SAVE_TODAY] logs.
+
+Run the native app; in server console (via our client-log or normal console) show this sequence for one date:
+
+1. First visit: [CACHE_HIT?] false then [CACHE_SAVE_TODAY] ...
+
+
+2. Navigate away and back: [CACHE_HIT_TODAY] ... and no new generate POST.

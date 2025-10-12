@@ -1,0 +1,40 @@
+{
+  "expo": {
+    "entryPoint": "expo-router/entry",
+    "experiments": {
+      "bridgeless": false,
+      "turboModules": false,
+      "typedRoutes": false,
+      "fastBundle": false
+    },
+    "name": "Thryvin",
+    "slug": "thryvin-native",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "resizeMode": "contain",
+      "backgroundColor": "#7A3CF3"
+    },
+    "assetBundlePatterns": ["**/*"],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.thryvin.app",
+      "infoPlist": {
+        "NSFaceIDUsageDescription": "Use Face ID to authenticate and access your workouts securely"
+      }
+    },
+    "android": {
+      "package": "com.thryvin.app",
+      "permissions": ["USE_FINGERPRINT", "USE_BIOMETRIC"]
+    },
+    "web": {
+    },
+    "plugins": [
+      "expo-router",
+      "expo-local-authentication",
+      "expo-secure-store"
+    ],
+    "scheme": "thryvin"
+  }
+}

@@ -1,0 +1,73 @@
+"Please update my Thryvin’ app's AI workout system and calendar layout with the following improvements to increase personalization and user experience.
+
+✨ 1. First-Time AI Personalization Flow (Free Text Input)
+When a user logs in for the first time:
+
+Trigger a one-time onboarding prompt or modal that asks a series of personal questions
+
+Use free-text input (or speech-to-text) instead of multiple choice
+
+Example questions:
+
+What's your #1 fitness goal right now?
+
+What time of day do you prefer to train?
+
+How many days per week are realistic for you?
+
+Any injuries or movements you avoid?
+
+What motivates you most — progress, fun, challenge, or something else?
+
+Store each response to a userProfile object
+
+This profile should inform all future workouts the AI generates
+
+Don’t show this again unless user resets preferences
+
+🧠 2. Fix Workout Plan Generation
+Currently, clicking on any workout day or type (e.g. HIIT, Lower Body) shows the same "Upper Body" workout
+
+Please update the logic so the workout type selected or assigned to the calendar actually affects the generated workout:
+
+e.g. if it’s a "HIIT" day, show cardio-based interval training
+
+if it’s “Lower Body”, only include leg and glute exercises
+
+Map muscle group focus to each scheduled day using userSchedule
+
+Use userProfile + day type + goal + past performance to generate a diverse workout
+
+📆 3. Monthly Calendar UI Fix
+Redesign the monthly view layout to match the rest of the Thryvin’ aesthetic (modern, gradient, spaced, smooth)
+
+Fix spacing:
+
+Add more padding and breathing room around each day square
+
+Make the layout responsive and mobile-friendly
+
+Visual cues:
+
+Dim or grey-out past days
+
+Highlight the current day
+
+Use a subtle glow or ring on upcoming days with scheduled workouts
+
+✅ Add a checkmark or badge for completed workouts
+
+Functionality:
+
+Clicking a date should open a modal or drawer to view/edit the workout plan for that day
+
+Allow the user to shift the workout to another date
+
+Add a small "+" button on calendar view to add new training sessions manually
+
+🛠️ Developer Notes
+Keep all UI consistent with the purple/pink Thryvin' color scheme
+
+Make sure the AI logic actually pulls the right exercises for the right days
+
+Make the new calendar layout reusable for the stats view in the future"

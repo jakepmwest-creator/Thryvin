@@ -1,0 +1,95 @@
+Goal: On both Home and Workouts screens, completely remove any static workout template usage. The workout modal/detail must render the server day payload (/api/v1/workouts/day?date=YYYY-MM-DD) with the warmup / main / recovery blocks from payloadJson.
+
+Implement exactly:
+
+1. In apps/native/lib/api.ts
+
+
+
+Ensure we have getDay(date:string) that calls GET /api/v1/workouts/day?date=YYYY-MM-DD (relative URL, cookie auth). It should return { id, date, status, title, payloadJson, error_reason }.
+
+
+2. In apps/native/store/workoutsStore.tsx
+
+
+
+Keep week state as implemented.
+
+Add today state: { date, status, title, payloadJson } | null.
+
+Add loadToday(date?:string):
+
+Resolve date as local “today” (new Date().toISOString().split('T')[0]) unless provided.
+
+Call getDay(date).
+
+If status is "generating" or "pending", start a poll loop (2s interval, max ~45s) until status === "ready", then store the result in today.
+
+Never use static templates.
+
+
+
+3. In apps/native/app/(tabs)/workouts.tsx
+
+
+
+When the screen opens or the user taps Start workout, determine the selected calendar day’s date (or today) and call loadToday(date).
+
+Replace any remaining mock/static data. The workout detail UI must render from store.today.payloadJson.blocks.
+
+Rendering rules:
+
+While store.today is null or status is "pending"/"generating" → show “Generating your workout…”.
+
+When status === "ready" → render:
+
+Header title = today.title
+
+Duration = today.payloadJson.duration_min (if present)
+
+Coach notes = today.payloadJson.coach_notes (if present)
+
+Sections for Warm-up, Workout, Recovery, reading from blocks where type is "warmup" | "main" | "recovery".
+
+
+
+Keep the back-button confirm you already described (no design change needed; just ensure it still closes the live detail modal).
+
+
+4. In apps/native/app/(tabs)/home.tsx
+
+
+
+Make the “Today’s workout” card only read from the shared store:
+
+Title = the week entry matching local “today”.
+
+Tapping Start calls loadToday(todayDate) and opens the same detail view as the Workouts tab (so both places show the same session).
+
+
+
+5. Date safety
+
+
+
+Normalize all date comparisons as dateStr = new Date().toISOString().split('T')[0] and compare to row.date (string).
+
+
+6. Temporary debug (keep for me)
+
+
+
+console.log('WEEK_DEBUG', week?.map(w => ({date:w.date, status:w.status, title:w.title})))
+
+console.log('TODAY_DEBUG', today?.status, today?.title)
+
+
+Acceptance checks (please run and report):
+
+Console shows WEEK_DEBUG and TODAY_DEBUG.
+
+No “AI disabled / static template” logs are used by the UI.
+
+Opening Start workout now shows blocks from payloadJson (warm-up / main / recovery) when status is ready.
+
+Home card title matches the Workouts tab for today.

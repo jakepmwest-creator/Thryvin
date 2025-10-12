@@ -1,0 +1,317 @@
+You are rebuilding my native app from scratch while keeping my web app intact.
+Work in clearly labeled CHUNKS. After each chunk, print a short summary and wait for me to reply “continue” before proceeding.
+
+RULES
+
+Do NOT modify or delete the web app (apps/web) or any shared code unless explicitly asked.
+
+Only remove old native scaffolds: apps/native and apps/native-clean.
+
+Always show what files you’ll delete or create first.
+
+Use Expo SDK 54 and expo-router v6 (compatible with SDK 54).
+
+Start Metro with: EXPO_USE_BRIDGE=1 npx expo start --tunnel -c and show me a QR code.
+
+If something fails, STOP and print the exact command + error.
+
+
+
+---
+
+CHUNK 0 — Inventory & Plan
+
+1. Print the workspace tree (top two levels).
+
+
+2. Detect if these exist and list them:
+
+apps/web
+
+apps/native
+
+apps/native-clean
+
+shared dirs likely used by both apps (e.g. components, store, theme, constants, assets, lib).
+
+
+
+3. Print the versions from any existing apps/native/package.json so we know old deps.
+WAIT for my “continue”.
+
+
+
+
+---
+
+CHUNK 1 — Backup & Clean (safe)
+
+1. If apps/native or apps/native-clean exist, zip them to /tmp/native-backup-<timestamp>.zip. Print the zip path.
+
+
+2. Delete ONLY:
+
+apps/native
+
+apps/native-clean
+
+
+
+3. Reprint the tree to confirm those two folders are gone.
+WAIT for my “continue”.
+
+
+
+
+---
+
+CHUNK 2 — Scaffold Fresh Native App (Expo SDK 54 + expo-router v6)
+
+1. Run:
+
+cd apps
+npx create-expo-app native -t expo-router@latest --template expo-router@latest --yes
+
+(Choose TypeScript if prompted. If a prompt blocks automation, pass the flags required to auto-select TS.)
+
+
+2. Inside apps/native/package.json, set pinned core versions compatible with SDK 54:
+
+"expo": "~54.0.12"
+
+"react-native": "0.76.6"
+
+"react": "18.3.1"
+
+"expo-router": "~6.0.10"
+
+
+
+3. Ensure babel-preset-expo is in devDependencies and babel.config.js includes:
+
+module.exports = {
+  presets: ['babel-preset-expo'],
+  plugins: ['react-native-reanimated/plugin'],
+};
+
+
+4. Ensure app.json (or app.config.ts) contains:
+
+"plugins": ["expo-router"]
+
+"experiments": { "bridgeless": false, "turboModules": false }
+
+scheme: "thryvin"
+
+placeholder icons: ./assets/icon.png, ./assets/splash.png, etc. (create blank files if missing)
+
+
+
+5. Run:
+
+cd apps/native
+npx expo install
+
+
+6. Print the exact versions installed.
+WAIT for my “continue”.
+
+
+
+
+---
+
+CHUNK 3 — Add Project Dependencies (from old native/web)
+
+1. Gather the dependency list from the old native package.json (from CHUNK 0).
+
+
+2. For each of these commonly used libraries, install the SDK-54 compatible versions via expo install (so they align with RN 0.76.x):
+
+expo-linear-gradient
+
+expo-local-authentication
+
+expo-notifications
+
+expo-secure-store
+
+expo-status-bar
+
+@react-native-async-storage/async-storage
+
+react-native-gesture-handler
+
+react-native-reanimated
+
+react-native-safe-area-context
+
+@expo/vector-icons
+
+@tanstack/react-query (npm install)
+
+zustand (npm install)
+
+any other deps you find in the old native/web that are needed at runtime in native
+
+
+
+3. Re-run npx expo install to normalize.
+
+
+4. Print the final dependency table.
+WAIT for my “continue”.
+
+
+
+
+---
+
+CHUNK 4 — Configure TS Paths & Aliases (optional but helpful)
+
+1. In apps/native/tsconfig.json, set:
+
+{
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@/": ["./"]
+    }
+  }
+}
+
+
+2. If the app uses other aliases (e.g. @components, @store), add them.
+
+
+3. Make sure imports in copied code will resolve (we’ll adjust later if needed).
+WAIT for my “continue”.
+
+
+
+
+---
+
+CHUNK 5 — Copy Shared Code (safe, in steps)
+
+1. Create these folders if not present:
+apps/native/components, apps/native/store, apps/native/theme, apps/native/constants, apps/native/assets, apps/native/lib
+
+
+2. Copy only these from workspace root (or from apps/web if that’s where they live now). If unsure, print the source and ask:
+
+components/
+
+store/
+
+theme/
+
+constants/
+
+assets/
+
+lib/
+
+
+
+3. Do not copy Next.js specific files (e.g. next.config.js, _app.tsx, _document.tsx).
+
+
+4. Print the list of files copied.
+WAIT for my “continue”.
+
+
+
+
+---
+
+CHUNK 6 — Copy Routes into Expo Router
+
+1. Inspect apps/web for route/page files (or any previous native app/ you backed up).
+
+
+2. Populate apps/native/app/ with equivalent route structure:
+
+Use expo-router file naming ((tabs), index.tsx, [id].tsx, etc.).
+
+Where the web uses Next.js’ Link, use import { Link } from 'expo-router'.
+
+
+
+3. If any imports are web-only (e.g. next/*, DOM APIs, window/document), stub or replace with React Native equivalents and print what you changed.
+
+
+4. Ensure there is a app/_layout.tsx that wraps ThemeProvider and a root Stack:
+
+import { Stack } from 'expo-router';
+export default function RootLayout() {
+  return <Stack screenOptions={{ headerShown: false }} />;
+}
+
+
+5. Print a small diff summary of the created app/ structure.
+WAIT for my “continue”.
+
+
+
+
+---
+
+CHUNK 7 — Quick Lint/Type Fix Pass
+
+1. Run tsc --noEmit and print top 10 actionable errors.
+
+
+2. Fix only trivial path/type issues that block build (e.g., wrong import paths).
+
+
+3. Print what you fixed and any remaining warnings.
+WAIT for my “continue”.
+
+
+
+
+---
+
+CHUNK 8 — Start Metro & Show QR
+
+1. Run from apps/native:
+
+EXPO_USE_BRIDGE=1 npx expo start --tunnel -c
+
+
+2. Confirm SDK 54, classic bridge, tunnel ready, and display the QR code.
+
+
+3. Print “SCAN IN EXPO GO”.
+STOP and wait.
+
+
+
+
+---
+
+ACCEPTANCE CRITERIA
+
+My web app remains untouched.
+
+Fresh native app is at apps/native with Expo SDK 54, expo-router ~6.
+
+I can scan a QR in Expo Go and the app loads (even if the UI isn’t perfect yet).
+
+Any blockers (e.g., missing modules) are printed with the exact file/line and suggested fixes.
+
+
+If at any point a step fails, STOP immediately and show:
+
+The command you ran,
+
+Full error,
+
+Your proposed minimal change to proceed.
+
+
+
+---
+
+That’s it. Start with CHUNK 0. I’ll type “continue” after each checkpoint.

@@ -1,0 +1,34 @@
+[
+  { "name": "Inverted Row", "aliases": ["bodyweight row", "australian pull-up", "ring row", "table row"], "body_part": "back", "equipment": ["bar","rings"], "pattern": "horizontal_pull", "is_unilateral": false },
+
+  { "name": "Incline Push-Up", "aliases": ["elevated push-up"], "body_part": "chest", "equipment": ["bench"], "pattern": "horizontal_push", "is_unilateral": false },
+  { "name": "Decline Push-Up", "aliases": ["feet elevated push-up"], "body_part": "chest", "equipment": ["bench"], "pattern": "horizontal_push", "is_unilateral": false },
+
+  { "name": "Assisted Pull-Up", "aliases": ["banded pull-up", "machine assisted pull-up"], "body_part": "back", "equipment": ["band","machine"], "pattern": "vertical_pull", "is_unilateral": false },
+  { "name": "Lat Pulldown", "aliases": ["pulldown"], "body_part": "back", "equipment": ["cable","machine"], "pattern": "vertical_pull", "is_unilateral": false },
+  { "name": "Seated Cable Row", "aliases": ["cable row", "row machine"], "body_part": "back", "equipment": ["cable","machine"], "pattern": "horizontal_pull", "is_unilateral": false },
+  { "name": "Bent-Over Row", "aliases": ["barbell row"], "body_part": "back", "equipment": ["barbell"], "pattern": "horizontal_pull", "is_unilateral": false },
+
+  { "name": "Romanian Deadlift", "aliases": ["RDL"], "body_part": "legs", "equipment": ["barbell","dumbbell"], "pattern": "hinge", "is_unilateral": false },
+  { "name": "Hip Thrust", "aliases": ["barbell hip thrust"], "body_part": "legs", "equipment": ["barbell","bench"], "pattern": "hinge", "is_unilateral": false },
+  { "name": "Bulgarian Split Squat", "aliases": ["rear foot elevated split squat","RFESS"], "body_part": "legs", "equipment": ["dumbbell","bench"], "pattern": "squat", "is_unilateral": true },
+  { "name": "Leg Press", "aliases": ["machine leg press"], "body_part": "legs", "equipment": ["machine"], "pattern": "squat", "is_unilateral": false },
+  { "name": "Leg Extension", "aliases": ["knee extension"], "body_part": "legs", "equipment": ["machine"], "pattern": "knee_extension", "is_unilateral": false },
+  { "name": "Leg Curl", "aliases": ["hamstring curl"], "body_part": "legs", "equipment": ["machine"], "pattern": "knee_flexion", "is_unilateral": false },
+  { "name": "Calf Raise", "aliases": ["standing calf raise"], "body_part": "legs", "equipment": ["machine","dumbbell"], "pattern": "ankle_plantarflexion", "is_unilateral": false },
+  { "name": "Glute Bridge", "aliases": ["bodyweight hip bridge"], "body_part": "legs", "equipment": ["bodyweight"], "pattern": "hinge", "is_unilateral": false },
+
+  { "name": "Overhead Press", "aliases": ["shoulder press", "military press"], "body_part": "shoulders", "equipment": ["barbell","dumbbell"], "pattern": "vertical_push", "is_unilateral": false },
+  { "name": "Lateral Raise", "aliases": ["side raise"], "body_part": "shoulders", "equipment": ["dumbbell","cable"], "pattern": "shoulder_abduction", "is_unilateral": false },
+  { "name": "Face Pull", "aliases": ["rope face pull"], "body_part": "shoulders", "equipment": ["cable"], "pattern": "horizontal_pull", "is_unilateral": false },
+
+  { "name": "Dead Bug", "aliases": [], "body_part": "core", "equipment": ["bodyweight"], "pattern": "anti_extension", "is_unilateral": true },
+  { "name": "Hollow Hold", "aliases": ["hollow body hold"], "body_part": "core", "equipment": ["bodyweight"], "pattern": "anti_extension", "is_unilateral": false },
+  { "name": "Pallof Press", "aliases": ["anti-rotation press"], "body_part": "core", "equipment": ["cable","band"], "pattern": "anti_rotation", "is_unilateral": true },
+
+  { "name": "Farmer Carry", "aliases": ["farmer's walk"], "body_part": "full", "equipment": ["dumbbell","kettlebell"], "pattern": "carry", "is_unilateral": false },
+  { "name": "Bear Crawl", "aliases": [], "body_part": "full", "equipment": ["bodyweight"], "pattern": "locomotion", "is_unilateral": true },
+  { "name": "Jump Rope", "aliases": ["skipping"], "body_part": "full", "equipment": ["rope"], "pattern": "conditioning", "is_unilateral": false },
+
+  { "name": "World’s Greatest Stretch", "aliases": ["lunge with rotation stretch"], "body_part": "full", "equipment": ["bodyweight"], "pattern": "mobility", "is_unilateral": true }
+]

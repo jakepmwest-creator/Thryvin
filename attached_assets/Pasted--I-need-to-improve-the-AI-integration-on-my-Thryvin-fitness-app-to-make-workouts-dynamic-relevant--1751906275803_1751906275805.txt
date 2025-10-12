@@ -1,0 +1,72 @@
+"I need to improve the AI integration on my Thryvin’ fitness app to make workouts dynamic, relevant, and personalized based on the user. This should include a custom experience for first-time users and smarter workout generation every time.
+
+🔐 1. Link AI to Login/User Profile
+Use the existing login system to retrieve each user’s data:
+
+username
+
+fitness goal
+
+experience level
+
+preferred training days
+
+equipment access
+
+any injuries or movement limits
+
+Store this in a global userProfile object once logged in
+
+The AI should use this profile every time it generates a workout
+
+✨ 2. First-Time User Personalization Flow
+Detect if this is the user's first time accessing the workout system
+
+If yes: show a custom onboarding modal or full-screen intro titled:
+
+“Let’s Build Your Personalized Fitness Plan 💡”
+
+Ask these deeper, AI-specific questions:
+
+What’s your top fitness goal right now?
+
+What time of day do you normally train?
+
+How do you feel about cardio?
+
+Do you have any areas you want to avoid or focus on?
+
+How many minutes per session do you want to spend training?
+
+Save these answers to the userProfile and let the AI use them for all future decisions
+
+Only show this once, or when the user resets their plan
+
+🧠 3. Smart Workout Generation
+When generating a daily workout (e.g. “Upper Body - Back”):
+
+Only include relevant exercises (e.g. rows, pull-ups)
+
+Rotate muscle groups across the week based on their preferences
+
+Scale difficulty with user experience
+
+Factor in any injuries and time preference
+
+Don’t repeat exact workouts every day — add intelligent variation
+
+Make the generation modular so it can be reused on weekly plan creation, or on daily re-rolls
+
+🗓️ 4. Schedule Integration
+Use the user’s preferred training days to populate the weekly view
+
+Attach muscle group targets to each day
+
+Ensure the calendar view reflects this schedule and lets users click in to view/edit
+
+🛠️ Dev Notes
+You can simulate AI logic in JavaScript or link to an OpenAI function if available
+
+Keep all logic modular and consistent with the Thryvin’ app style and voice
+
+Make sure onboarding only appears once, and that returning users skip straight to their calendar and daily plan"

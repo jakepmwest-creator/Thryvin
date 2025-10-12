@@ -1,0 +1,78 @@
+⚠️ Do not redesign the whole app. Keep the existing style/layout. Only update the Meal Plan tab inside Nutrition.
+
+What to do
+
+Calendar (top of screen)
+
+Weekly strip (Mon–Sun) with small dots under each day showing % meals selected.
+
+Click a day → load that day’s meal plan below.
+
+Swipe left/right to move weeks (like workout calendar).
+
+Monthly calendar toggle is fine — just make it work (click day → load plan).
+
+Today’s Nutrition Plan (below calendar)
+
+Use accordions for Breakfast, Lunch, Dinner, Snack.
+
+Closed = show chosen option.
+
+Open = show 3 AI-picked options (title, kcal, macros).
+
+Each option has buttons: Select · Swap · Customize · Explain.
+
+At bottom of each accordion: Ask AI bar (text input + smart chips like No chicken, Gluten-free, Cheaper).
+
+Functionality
+
+Selecting an option updates that meal and shows Undo snackbar.
+
+Swap with AI returns new options.
+
+Customize lets user swap protein/carb/fat and shows macro preview.
+
+Missing ingredients = “Add to shopping list?” button.
+
+Weekly dots fill based on how many meals selected for that day.
+
+Keep the style
+
+Light theme (bg-slate-50, bg-white cards, border-slate-200, indigo accent).
+
+Rounded-2xl, small shadows, same design as rest of app.
+
+Hide scrollbars but keep scrolling (.scroll-hidden).
+
+State (simple mock)
+type MealOption = { id:string; title:string; kcal:number; protein:number; carbs:number; fat:number; };
+type PlannedMeal = { time:"breakfast"|"lunch"|"dinner"|"snack"; selected?:MealOption; options:MealOption[]; };
+type DayPlan = { date:string; meals:PlannedMeal[]; };
+
+state = {
+  activeDate:"2025-09-10",
+  plansByDate: new Map<string,DayPlan>(),
+}
+
+
+Functions:
+
+navigateToDate(date) → load plan
+
+selectOption(date,mealTime,optionId) → set selection + undo
+
+swapWithAI(date,mealTime,query) → new options
+
+addMissingToShopping(option)
+
+Done when
+
+Calendar at top works (weekly strip + monthly view).
+
+Clicking/swiping dates loads the right meals.
+
+Accordions show 3 options with Select / Swap / Customize / Explain.
+
+Ask AI bar swaps meals.
+
+Light-first visuals match rest of app.

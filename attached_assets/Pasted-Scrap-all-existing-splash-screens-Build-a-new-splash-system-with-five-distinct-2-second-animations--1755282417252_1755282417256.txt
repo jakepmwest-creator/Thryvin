@@ -1,0 +1,93 @@
+Scrap all existing splash screens. Build a new splash system with five distinct 2‑second animations. On each app load, randomly select one animation to play. Background must be pure white so the Thryvin’ logo is crystal clear. After the animation, do a very short fade (100–150ms) to reveal the app.
+
+Tech: HTML/CSS/JS + GSAP (no other heavy libs). Use assets/thryvin-logo.svg (preferred) or assets/thryvin-logo.png.
+
+Animations (pick one at random each run)
+
+Slide‑in Bounce (Left)
+
+0.0–0.8s: Logo slides from x:-60px → 0 with power3.out.
+
+0.8–1.2s: Subtle bounce settle (scale 1 → 1.06 → 1).
+
+1.2–2.0s: Hold still (tiny 1% breathing scale).
+
+~2.0s: Fade splash out in 120ms.
+
+Micro‑Pop Zoom
+
+0.0–0.3s: Logo from scale 0.4 → 1.08, opacity 0 → 1 with back.out(1.6).
+
+0.3–0.7s: Settle 1.08 → 1.0.
+
+0.7–2.0s: Hold with a faint glow pulse (opacity 1 → 0.95 → 1).
+
+~2.0s: 120ms fade.
+
+Spidey Swing (Pendulum)
+
+Anchor the logo top‑center (transform‑origin top‑center).
+
+0.0–1.2s: Rotate -18° → +6° → 0° with easing; slight y: -12px → 0 as it “snaps in”.
+
+1.2–2.0s: Micro‑damp (±1.5°).
+
+~2.0s: 120ms fade.
+
+Flip‑In 3D
+
+Perspective container; logo starts rotateY(70°), scale 0.9, opacity 0.
+
+0.0–0.9s: rotateY(0°), scale 1.02, opacity 1 with power4.out.
+
+0.9–1.2s: scale 1.02 → 1.0.
+
+1.2–2.0s: Hold.
+
+~2.0s: 120ms fade.
+
+Orbit Spin‑In
+
+Small circular path into center (translate on an orbit).
+
+0.0–1.1s: Logo moves along a 30° arc into center while rotating -12° → 0°, easing power2.out.
+
+1.1–1.4s: Soft scale settle 1.04 → 1.0.
+
+1.4–2.0s: Hold.
+
+~2.0s: 120ms fade.
+
+Implementation notes
+
+Structure
+
+index.html: full‑screen #splash with white bg and centered logo <img id="logo" src="assets/thryvin-logo.svg">.
+
+splash.js: choose a random animation (0–4), build a GSAP timeline for it, then fade #splash out and remove it.
+
+styles.css: white background, center grid, responsive logo sizing (min(56vw, 320px)).
+
+Performance
+
+60fps target; all transforms should be GPU‑accelerated (transform/opacity only).
+
+If prefers-reduced-motion is true: skip animation, fade logo in 200ms, hold 900ms, fade out 120ms.
+
+Duration
+
+Each animation timeline = ~1.9s, followed by ~0.12s fade.
+
+Hard cap at 2.1s total.
+
+Exit
+
+After fade completes, remove #splash from DOM and fire window.splash?.done().
+
+Acceptance
+
+White background, logo crisp and centered on all devices.
+
+Random animation plays once per app open.
+
+No layout shift; quick, smooth reveal to app.

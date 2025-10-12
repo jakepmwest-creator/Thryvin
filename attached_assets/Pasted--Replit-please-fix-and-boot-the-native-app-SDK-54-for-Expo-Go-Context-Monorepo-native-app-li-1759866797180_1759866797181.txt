@@ -1,0 +1,192 @@
+👉 Replit, please fix and boot the native app (SDK 54) for Expo Go
+
+Context
+
+Monorepo: native app lives in apps/native
+
+I only care about the native app right now. Do not change web.
+
+Current issues were SDK/Babel/Router mismatches and Metro errors.
+
+I want a guaranteed clean boot in Expo Go (SDK 54) with a QR code, tunnel, and a visible “bundle loaded” screen.
+
+
+Your tasks (do these in order):
+
+1. Project scan & report (no changes yet)
+
+Confirm these files exist (or note if missing):
+
+apps/native/package.json
+
+apps/native/app.json (or app.config.js)
+
+apps/native/babel.config.js
+
+apps/native/app (Expo Router directory)
+
+
+Print current versions of: expo, react, react-native, expo-router, @babel/core, babel-preset-expo.
+
+
+
+2. Pin/align dependencies for Expo SDK 54
+
+In apps/native/package.json, ensure (use ~ ranges):
+
+"expo": "~54.0.10"
+
+"react": "19.1.0"
+
+"react-native": "0.81.4"
+
+"expo-router": "~4.0.7"
+
+"expo-linear-gradient": "~15.0.7"
+
+"expo-local-authentication": "~17.0.2"
+
+"expo-notifications": "~0.32.12"
+
+"expo-secure-store": "~15.0.7"
+
+"expo-status-bar": "~3.0.8"
+
+"react-native-gesture-handler": "~2.14.0"
+
+"react-native-reanimated": "~3.6.0"
+
+"react-native-safe-area-context": "~4.8.2"
+
+"@react-native-async-storage/async-storage": "1.21.0"
+
+@tanstack/react-query, zustand, react-native-paper (keep as they are).
+
+
+Add devDeps if missing:
+
+"@babel/core": "^7.25.0", "babel-preset-expo": "^12.0.0", "@types/react": "^19.1.0"
+
+
+In scripts, set:
+
+"start": "EXPO_USE_BRIDGE=1 expo start --tunnel -c"
+
+
+
+
+3. Babel config (must be exact)
+
+apps/native/babel.config.js should be:
+
+module.exports = {
+  presets: ['babel-preset-expo'],
+  plugins: ['react-native-reanimated/plugin'],
+};
+
+Remove any use of expo-router/babel (deprecated in SDK 50+).
+
+
+
+4. Expo config
+
+In apps/native/app.json:
+
+Ensure "entryPoint": "expo-router/entry".
+
+Add "experiments": { "bridgeless": false }.
+
+Keep "userInterfaceStyle": "light" and "orientation": "portrait".
+
+If icon/splash paths reference missing files, temporarily remove those fields so assets don’t 500 during build.
+
+
+
+
+5. Minimal router boot (proof screen)
+
+Ensure folder apps/native/app exists. Create/overwrite:
+
+apps/native/app/_layout.tsx:
+
+import { Stack } from 'expo-router';
+export default function Layout() { return <Stack screenOptions={{ headerShown: false }} />; }
+
+apps/native/app/index.tsx:
+
+import { Text, View } from 'react-native';
+import { useEffect } from 'react';
+
+export default function Index() {
+  useEffect(() => {
+    console.log('[NATIVE_BOOT] If you see this, bundle loaded');
+  }, []);
+  return (
+    <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+      <Text style={{ fontSize: 18 }}>✅ If you see this screen, the bundle loaded.</Text>
+    </View>
+  );
+}
+
+
+This gives a guaranteed landing screen and a boot log line.
+
+
+
+6. Clean, install, and start (with tunnel)
+
+Run (from apps/native):
+
+rm -rf node_modules .expo .cache
+npm install
+npm run start
+
+If asked “port in use?”, choose Yes to use a different port.
+
+Ensure the terminal shows: “Tunnel connected. Tunnel ready.” and a QR code.
+
+
+
+7. Verification you must return to me
+
+Paste a short summary showing:
+
+Final versions you installed for expo, react, react-native, expo-router, babel-preset-expo.
+
+The exact content of:
+
+apps/native/package.json (only dependencies, devDependencies, scripts sections)
+
+apps/native/babel.config.js
+
+apps/native/app.json (just the "expo" block)
+
+apps/native/app/_layout.tsx
+
+apps/native/app/index.tsx
+
+
+The last 30 lines of the Expo dev server logs including the QR code section and the line Tunnel connected. Tunnel ready..
+
+
+After I scan the QR with Expo Go (SDK 54), capture and show the device log line:
+
+[NATIVE_BOOT] If you see this, bundle loaded.
+
+
+
+
+8. (Optional) Re-enable our app assets
+
+If you removed icon/splash, add them back only after the bundle loads once.
+
+
+
+
+Important
+
+Don’t touch web code.
+
+If any step fails, stop and print the exact command and error.
+
+Keep changes minimal; no refactors beyond what’s listed.

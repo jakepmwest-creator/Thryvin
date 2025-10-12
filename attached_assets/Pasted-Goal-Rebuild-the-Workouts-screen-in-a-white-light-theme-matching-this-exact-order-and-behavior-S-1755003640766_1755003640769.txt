@@ -1,0 +1,144 @@
+Goal: Rebuild the Workouts screen in a white/light theme, matching this exact order and behavior:
+
+Session Banner (top) with meta + Start Workout CTA
+
+Weekly Calendar (clean, edge‑to‑edge) — tapping a day shows the correct Day Detail
+
+Explore Fitness grid (3 rows × 2 columns), gradient cards
+
+Keep all existing logic working (day detail, swap exercise, videos, logging, completion). Do not change routes.
+
+0) Shell
+Top app bar: Thryvin logo (left), settings (right → /profile/settings)
+
+Bottom nav: Home, Workouts*, Nutrition, Social, Profile
+
+Vertical scroll only
+
+1) Session Banner (top)
+Light theme, airy white card with soft shadow and rounded corners (20dp)
+
+Left stack:
+
+Title: “Today’s Workout”
+
+Sub: workout name (e.g., Upper Body Push) + duration (e.g., 45 min)
+
+Micro‑meta chips (optional): focus (e.g., Chest/Triceps), equipment
+
+Right: prominent Start Workout pill button → /workouts/player?date=today
+
+Entire banner tap → /workouts?date=today
+
+No onboarding here; if profile.hasPlan === true, never show the questionnaire
+
+2) Weekly Calendar (clean, edge‑to‑edge)
+Default to Week view (7‑day strip); optional Month toggle is allowed but Week is default
+
+Style: light/white background, large taps, no heavy borders; use a faint divider only
+
+States:
+
+Today: brand ring highlight
+
+Past: dim labels
+
+Completed: small ✅ badge
+
+Selected: pill highlight
+
+Behavior: Tapping any date updates Day Detail (below) without page reload and preserves scroll
+
+Deep links supported: /workouts?date=YYYY-MM-DD
+
+(Note: If Month view exists, keep it clean, borderless, and match selection states.)
+
+3) Day Detail (below calendar)
+Header: workout title, date, duration
+
+Sections as accordions: Warm‑up, Main, Recovery
+
+Each row: tiny thumbnail/icon, name, sets×reps/time, rest
+
+Actions: Info (video modal), Swap (AI alternatives), Notes
+
+Button: Start workout (same route as banner) → /workouts/player?date=YYYY-MM-DD
+
+Preserve existing working behavior:
+
+Swapping exercises persists to the plan for that date (not global template)
+
+Video modals use real clips
+
+Notes save inline
+
+4) Explore Fitness (3×2 gradient grid)
+Title: Explore fitness
+
+Grid: 3 rows × 2 columns (6 cards total), equal size, rounded 20dp, gradient backgrounds (brand‑tinted)
+
+Examples:
+
+Strength → /workouts/explore?tag=strength
+
+Calisthenics → /workouts/explore?tag=calisthenics
+
+HIIT → /workouts/explore?tag=hiit
+
+Mobility/Yoga → /workouts/explore?tag=mobility
+
+Core → /workouts/explore?tag=core
+
+Conditioning → /workouts/explore?tag=conditioning
+
+Each card: icon, title; subtle hover/tap lift; no long text
+
+5) Player flow (keep current logic intact)
+/workouts/player?date=YYYY-MM-DD
+
+Pre‑start: section tabs or swipe between Warm‑up / Main / Recovery
+
+Exercise view: video, Log set (idempotent—one log per set), Next/Back, Skip, Notes with voice → text shown before save
+
+Finish:
+
+Block completion for future days (“preview only” message)
+
+Summary for today/past: duration, sets, notes; Save & return marks ✅ on calendar
+
+6) Theme (Light) tokens
+Page background: #FFFFFF
+
+Card background: #FFFFFF; shadow: rgba(0,0,0,0.06) 0 8px 24px
+
+Text: primary #0B0F1A, secondary #6B7280
+
+Brand gradient (accents/buttons/cards): linear-gradient(135deg,#7A3CF3 0%,#FF4FD8 100%)
+
+Calendar selected pill: rgba(122,60,243,0.12) with brand text
+
+Corner radius: 20dp (cards), 12–14dp (rows, pills)
+
+7) Must‑keep functionality
+Calendar tap → shows Day Detail for that date (no reload)
+
+Start Workout works from banner & day detail; routes to player for that date
+
+Swap actually replaces the exercise and persists
+
+Log set can’t double‑save
+
+Completed day shows ✅ on calendar and read‑only summary on reopen
+
+No onboarding loop if hasPlan === true
+
+8) QA checklist
+Deep link ?date= selects the correct day and shows matching details
+
+Week strip scrolls horizontally if needed; page stays vertical
+
+Explore cards route to correct tags
+
+Returning from player preserves selected day and week view
+
+No broken/legacy “Kai” links

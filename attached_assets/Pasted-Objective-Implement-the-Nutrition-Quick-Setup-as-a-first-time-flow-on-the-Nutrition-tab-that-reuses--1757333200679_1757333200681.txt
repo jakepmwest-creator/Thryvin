@@ -1,0 +1,88 @@
+Objective
+Implement the Nutrition Quick Setup as a first-time flow on the Nutrition tab that reuses the exact same UX system as the main onboarding (same screens, components, typography, spacing, progress bar, button placement, animations, and transitions). Do not invent new UI—use the existing onboarding components.
+
+Reuse these onboarding parts (required)
+
+Screen shell / layout
+
+Top progress bar + step label
+
+Back navigation
+
+Primary/secondary CTA buttons
+
+Chip buttons (single/multi)
+
+Text input field + optional mic icon handler
+
+Transition/motion presets
+
+Validation + “Save & continue” behavior
+
+Theme (current light default), typography, spacing, shadows
+
+Flow (5 steps, one per screen; identical look/feel to onboarding)
+
+“What’s your nutrition goal right now?”
+Chips (single): Lose fat | Build muscle | Recomp (leaner + stronger) | Eat healthier
+Save → nutrition.goal
+
+“Any allergies or intolerances we should avoid?”
+Chips (multi): Dairy Gluten Eggs Nuts Shellfish Soy None
+If anything except “None” → show optional short text input (with mic icon).
+Save → nutrition.restrictions[], nutrition.restrictionsNotes
+
+“Any foods you dislike or never want in your plan?”
+Chips (multi, optional): Fish Red meat Spicy Offal Tofu
+
+Short free text (with mic icon).
+Save → nutrition.dislikes[], nutrition.dislikesNotes
+
+“Do you follow a specific dietary pattern?”
+Chips (single): None | Vegetarian | Vegan | Pescatarian | Halal | Kosher | Other
+If “Other” → tiny free text.
+Save → nutrition.pattern, nutrition.patternNotes
+
+“How much time do you usually want to spend cooking?”
+Helper text (onboarding caption style): “You can always challenge yourself later.”
+Chips (single): 5–10 min | 15–25 min | 30–45 min | I batch cook
+If I batch cook → set nutrition.batchCook = true else false.
+Save → nutrition.cookTime, nutrition.batchCook
+
+Trigger & lifecycle
+
+Show this flow only on first visit to Nutrition when nutrition.isSetup !== true.
+
+After completion, set nutrition.isSetup = true and never auto-show again (add a Reset nutrition setup entry in Nutrition settings to re-run).
+
+Data + bootstrap (same pattern as onboarding completion)
+
+Persist answers to profile store/API.
+
+Then call plan bootstrap (same success/fail states as onboarding):
+
+Use onboarding’s age/height/weight/activity to compute TDEE.
+
+Apply goal to set calories; macros via defaults (protein 1.6–2.2 g/kg, fat 25–30% kcal, rest carbs).
+
+Respect restrictions/dislikes/pattern/cookTime/batchCook when selecting meals.
+
+Save under nutrition.plan with source: "auto".
+
+Navigation
+
+On success, route to Nutrition → Today with the same success toast pattern as onboarding (short, non-blocking).
+
+If bootstrap fails, still finish flow; show “We’re generating your plan in the background.”
+
+Acceptance criteria
+
+Visually and behaviorally identical to onboarding (component reuse, not copies).
+
+5 steps render with the onboarding progress bar, back/next, chip styles, and motion.
+
+Data saved to keys listed above; nutrition.isSetup set to true.
+
+Plan bootstrap runs; user lands on Nutrition → Today.
+
+Accessible: same focus/ARIA patterns as onboarding.

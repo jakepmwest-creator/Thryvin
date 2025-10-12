@@ -1,0 +1,84 @@
+Please revise and streamline the Nutrition tab to be much more clean, intuitive, and easy to use. The content and functionality are good — now it just needs to feel polished, modern, and user-friendly. Follow these refinements:
+
+🧠 OVERVIEW PAGE IMPROVEMENTS
+Current Issue: The “Overview” page has sections like Daily Progress, AI Nutrition Coach, Weekly Progress, and Quick Log — but it's cluttered and not visually clean.
+
+Replace with:
+
+📅 Today’s Summary: Show today’s selected meals (from calendar) at a glance
+
+🥦 Nutrient Breakdown: Pie chart showing carbs/fats/proteins from what’s logged today
+
+🧠 Smart AI Tip of the Day: Short, useful advice based on current progress
+
+❤️ Recent Favorites: Horizontal scroll list of 3–4 meals saved recently
+
+🛒 “Build My Shopping List” button linking to auto-generated grocery list
+
+📅 NUTRITION PLANS + CALENDAR
+Merge ‘AI Plans’ and ‘My Plans’ into a single “Meal Plan” section
+
+When user taps a day in the calendar, show the plan for that day
+
+Make the calendar weekly/monthly view fully functional and smooth
+
+Keep the new Galaxy-style calendar you added for monthly
+
+When a day has meals planned, display an icon/badge to show it’s filled
+
+Days in the past should dim visually
+
+🍽️ DAILY MEAL LAYOUT (Make It Sleek)
+Current Problem: Too much vertical scrolling — it shows all meals at once
+
+Replace with accordion/drop-downs:
+
+Display just “Breakfast,” “Lunch,” “Dinner” (and maybe “Snacks”)
+
+When tapped, each section expands smoothly to show the 2–3 options
+
+Keep the swap, favorite, and log buttons inside each drop-down
+
+Swipe Support:
+
+Allow left/right swipe to switch between days (like Instagram Stories feel)
+
+This works well for viewing yesterday/tomorrow without extra taps
+
+📹 MEAL DETAILS
+When a meal is tapped:
+
+Show: Image, ingredients, calorie/macros, video recipe, and cooking steps
+
+Fix the video link issue (currently showing irrelevant videos)
+
+Either embed YouTube or a native player
+
+Swap button must function with alternatives that match dietary preferences
+
+When user clicks “Save to Favorites”, add it to a Favorites tab or carousel on Overview
+
+🛒 SHOPPING LIST (NEW)
+From the Overview or a tab:
+
+Tap to auto-generate a grocery list for the upcoming meals
+
+Let users check off items or export the list
+
+Group by category (Protein, Veg, Pantry, etc.)
+
+💡 GENERAL POLISH
+Remove duplicate ‘X’ buttons in top-right of modals
+
+Eliminate the ugly blue hover bar color — use theme-appropriate accents
+
+Ensure all elements are clean, spaced well, mobile-responsive, and smooth
+
+Keep everything touch-friendly, light on clutter, and sleek
+
+🔧 Dev Notes:
+All styling must remain consistent with the Thryvin’ brand: purple/pink gradients, rounded corners, subtle shadows, smooth transitions
+
+Prioritize a mobile-first design
+
+Aim to reduce scroll fatigue and increase tappable clarity
