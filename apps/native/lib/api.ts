@@ -41,7 +41,7 @@ export const getWeek = async (): Promise<{ workouts: WeekRow[] }> =>
 
 export async function postGenerateDay(date: string) {
   console.log("[API] postGenerateDay ->", date);
-  return fetch("/api/v1/workouts/generate-day", {
+  return fetch(`${API_BASE_URL}/api/v1/workouts/generate-day`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     credentials: "include",
