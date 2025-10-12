@@ -52,7 +52,7 @@ export async function postGenerateDay(date: string) {
 export async function getDay(date: string) {
   console.log("[API] getDay ->", date);
   const r = await fetch(
-    `/api/v1/workouts/day?date=${encodeURIComponent(date)}`,
+    `${API_BASE_URL}/api/v1/workouts/day?date=${encodeURIComponent(date)}`,
     {
       credentials: "include",
     },
