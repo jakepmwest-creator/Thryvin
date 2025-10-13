@@ -3805,8 +3805,10 @@ Respond with a complete workout in JSON format:
           
           User Profile:
           - Goal: ${goal}
+          - Focus Areas: ${focusAreas.join(", ")}
           - Available Equipment: ${equipmentAccess.join(", ")}
           - Target Duration: ${duration} minutes
+          - Coaching Style: ${coachingStyle}
           - Injuries/Exclusions: ${injuries}
           - Cardio Preference: ${cardioPreference} (only include cardio if 'love' or 'like')
           
