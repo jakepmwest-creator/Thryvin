@@ -3797,16 +3797,11 @@ Respond with a complete workout in JSON format:
           
           Available Exercises Library:
           Warm-up: ${exercisesByCategory.warmup.join(", ") || "Jumping Jacks, Arm Circles"}
-          
-          Push Exercises: Push-Ups, Incline Push-Up, Decline Push-Up, Diamond Push-Ups, Wide Grip Push-Ups, Pike Push-Ups, Handstand Push-Ups, Bench Press, Dumbbell Bench Press, Incline Bench Press, Dumbbell Incline Press, Overhead Press, Dumbbell Shoulder Press, Dips, Tricep Dips, Cable Fly, Dumbbell Flyes, Lateral Raises, Front Raises, Arnold Press, Close Grip Bench Press, Overhead Tricep Extension, Cable Tricep Pushdown, One Arm Push-Up, Single Arm Dumbbell Press
-          
-          Pull Exercises: Pull-Ups, Chin-Ups, Wide Grip Pull-Ups, Neutral Grip Pull-Ups, Lat Pulldown, Wide Grip Lat Pulldown, Barbell Row, Dumbbell Row, T-Bar Row, Seated Cable Row, Face Pull, Cable Reverse Fly, Inverted Row, Single Arm Cable Row, Chest Supported Row, Hammer Curls, Bicep Curls, Cable Bicep Curl, Preacher Curl, 21s Bicep Curl, Reverse Curl, Cable Hammer Curl, Concentration Curl, Incline Bicep Curl, Cross Body Hammer Curl
-          
-          Leg Exercises: Back Squat, Front Squat, Goblet Squat, Bodyweight Squats, Jump Squats, Bulgarian Split Squat, Lunges, Reverse Lunge, Walking Lunges, Lateral Lunges, Curtsy Lunges, Romanian Deadlift, Deadlift, Sumo Deadlift, Single Leg Deadlift, Glute Bridge, Single Leg Glute Bridge, Hip Thrust, Barbell Hip Thrust, Calf Raises, Single Leg Calf Raise, Wall Sit, Leg Press, Leg Curl, Leg Extension, Step-Ups, Box Jumps, Single Leg Squat, Cossack Squat
-          
-          Core Exercises: Plank, Side Plank, Plank to Push-Up, Dead Bug, Bird Dog, Hollow Hold, Bicycle Crunches, Russian Twists, Hanging Knee Raises, Captain's Chair, Mountain Climbers, Woodchop, Ab Wheel, Bear Crawl, Superman
-          
-          Conditioning/Recovery: Burpees, High Intensity Intervals, Foam Rolling, Standing Forward Bend, Child's Pose, Downward Dog, Cobra Stretch, Pigeon Pose, Figure Four Stretch, Seated Spinal Twist, Standing Quad Stretch, Cat-Cow Stretch, Seated Forward Fold, Supine Spinal Twist, Butterfly Stretch, Thread the Needle, Happy Baby Pose
+          Upper Body: ${exercisesByCategory.upperBody.join(", ") || "Push-Ups, Pull-Ups"}
+          Lower Body: ${exercisesByCategory.lowerBody.join(", ") || "Bodyweight Squats, Lunges"}
+          Core: ${exercisesByCategory.core.join(", ") || "Plank, Bicycle Crunches"}
+          Full Body: ${exercisesByCategory.fullBody.join(", ") || "Burpees, Mountain Climbers"}
+          Cardio: ${exercisesByCategory.cardio.join(", ") || "High Knees, Jumping Jacks"}
           
           User Profile:
           - Goal: ${goal}
