@@ -3746,22 +3746,57 @@ Respond with a complete workout in JSON format:
         try {
           console.log(`🤖 Generating workout for ${date} using AI`);
 
+          // Load exercises dynamically from database
+          const allExercises = await db.select({
+            id: exercises.id,
+            name: exercises.name,
+            bodyPart: exercises.body_part,
+            equipment: exercises.equipment,
+            pattern: exercises.pattern,
+            category: exercises.category,
+            difficulty: exercises.difficulty
+          }).from(exercises);
+
+          console.log(`📚 Loaded ${allExercises.length} exercises from database`);
+
           // Prepare user profile data
-          const goal = "hypertrophy";
+          const goal = user.goal || "improve-health";
           const equipmentAccess = user.equipmentAccess
             ? JSON.parse(user.equipmentAccess)
             : ["bodyweight"];
           const duration = user.sessionDurationPreference || 45;
           const injuries = user.injuries || "none";
           const cardioPreference = user.cardioPreference || "neutral";
+          const coachingStyle = user.coachingStyle || "encouraging-positive";
+          const focusAreas = user.focusAreas ? JSON.parse(user.focusAreas) : ["strength"];
+
+          // Filter exercises by user's available equipment
+          const availableExercises = allExercises.filter(ex => {
+            if (!ex.equipment) return equipmentAccess.includes("bodyweight");
+            const exerciseEquipment = Array.isArray(ex.equipment) ? ex.equipment : [ex.equipment];
+            return exerciseEquipment.some(eq => equipmentAccess.includes(eq)) || 
+                   (exerciseEquipment.includes("bodyweight") && equipmentAccess.includes("bodyweight"));
+          });
+
+          console.log(`🎯 Filtered to ${availableExercises.length} exercises for user's equipment: ${equipmentAccess.join(", ")}`);
+
+          // Create exercise list by category for the AI prompt
+          const exercisesByCategory = {
+            warmup: availableExercises.filter(ex => ex.category === "warmup" || ex.bodyPart === "warmup").map(ex => ex.name),
+            upperBody: availableExercises.filter(ex => ex.category === "upper-body" || ex.bodyPart === "chest" || ex.bodyPart === "back" || ex.bodyPart === "shoulders").map(ex => ex.name),
+            lowerBody: availableExercises.filter(ex => ex.category === "lower-body" || ex.bodyPart === "legs").map(ex => ex.name),
+            core: availableExercises.filter(ex => ex.category === "core" || ex.bodyPart === "core").map(ex => ex.name),
+            fullBody: availableExercises.filter(ex => ex.category === "full-body" || ex.bodyPart === "full").map(ex => ex.name),
+            cardio: availableExercises.filter(ex => ex.category === "cardio").map(ex => ex.name)
+          };
 
           // Build system prompt for workout generation
           const systemPrompt = `You are an expert fitness coach generating a structured workout.
           
-          CRITICAL: Choose ONLY exercises that exist in the exercises library below. Use the EXACT canonical names provided.
+          CRITICAL: Choose ONLY exercises that exist in the exercises library below. Use the EXACT names provided.
           
           Available Exercises Library:
-          Warm-up/Mobility: Jumping Jacks, Arm Circles, Hip Hinge Drills, World's Greatest Stretch, Cat-Cow, T-Spine Rotation, Leg Swings, High Knees, Butt Kicks, Ankle Circles, Shoulder Rolls, Neck Rolls, Wrist Circles, Walking Knee Hugs, Walking Quad Stretch
+          Warm-up: ${exercisesByCategory.warmup.join(", ") || "Jumping Jacks, Arm Circles"}
           
           Push Exercises: Push-Ups, Incline Push-Up, Decline Push-Up, Diamond Push-Ups, Wide Grip Push-Ups, Pike Push-Ups, Handstand Push-Ups, Bench Press, Dumbbell Bench Press, Incline Bench Press, Dumbbell Incline Press, Overhead Press, Dumbbell Shoulder Press, Dips, Tricep Dips, Cable Fly, Dumbbell Flyes, Lateral Raises, Front Raises, Arnold Press, Close Grip Bench Press, Overhead Tricep Extension, Cable Tricep Pushdown, One Arm Push-Up, Single Arm Dumbbell Press
           
