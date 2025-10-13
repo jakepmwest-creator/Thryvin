@@ -3871,7 +3871,7 @@ Respond with a complete workout in JSON format:
           - Avoid movements that aggravate mentioned injuries
           - Return ONLY valid JSON, no explanation text`;
 
-          const userPrompt = `Generate a ${goal}-focused workout for ${duration} minutes using available equipment: ${equipmentAccess.join(", ")}. Avoid exercises that might aggravate: ${injuries}.`;
+          const userPrompt = `Generate a personalized ${goal}-focused workout for ${duration} minutes. Focus on: ${focusAreas.join(", ")}. Use ${coachingStyle} coaching tone in coach_notes. Equipment available: ${equipmentAccess.join(", ")}. ${injuries !== "none" ? `Avoid exercises that might aggravate: ${injuries}.` : "No injury limitations."}`;
 
           // Call OpenAI with 20s timeout
           const timeoutPromise = new Promise((_, reject) =>
