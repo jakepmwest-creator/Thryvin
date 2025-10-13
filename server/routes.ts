@@ -4120,7 +4120,7 @@ Respond with a complete workout in JSON format:
             .join("\n");
 
           const systemPrompt = `You are a fitness coach AI. Generate a complete workout in strict JSON format.`;
-          const userPrompt = `Generate a ${goal}-focused workout for ${duration} minutes using available equipment: ${equipmentAccess.join(", ")}. Avoid exercises that might aggravate: ${injuries}.`;
+          const userPrompt = `Generate a personalized ${goal}-focused workout for ${duration} minutes. Focus on: ${focusAreas.join(", ")}. Use ${coachingStyle} coaching tone in coach_notes. Equipment available: ${equipmentAccess.join(", ")}. ${injuries !== "none" ? `Avoid exercises that might aggravate: ${injuries}.` : "No injury limitations."}`;
 
           const timeoutPromise = new Promise((_, reject) =>
             setTimeout(
