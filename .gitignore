@@ -82,6 +82,7 @@ android-sdk/
 # Environment files
 *.env
 *.env.*
+!.env.example
 
 # Temporary development files
 *.log
