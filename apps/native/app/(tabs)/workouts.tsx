@@ -55,202 +55,154 @@ export default function WorkoutsScreen() {
       console.error('Failed to generate workout:', error);
     }
   };
+  const WorkoutCard = ({ workout }: { workout: any }) => (
+    <View style={styles.workoutCard}>
+      <View style={styles.workoutHeader}>
+        <View style={styles.workoutInfo}>
+          <Text style={styles.workoutTitle}>{workout.title || 'Custom Workout'}</Text>
+          <Text style={styles.workoutDate}>
+            {format(new Date(workout.date), 'EEEE, MMM d')}
+          </Text>
+        </View>
+        <View style={[
+          styles.statusBadge,
+          workout.status === 'completed' && styles.completedBadge
+        ]}>
+          <Text style={[
+            styles.statusText,
+            workout.status === 'completed' && styles.completedText
+          ]}>
+            {workout.status}
+          </Text>
+        </View>
+      </View>
+      
+      {workout.exercises && workout.exercises.length > 0 && (
+        <View style={styles.exercisesPreview}>
+          <Text style={styles.exercisesLabel}>
+            {workout.exercises.length} exercises
+          </Text>
+          {workout.exercises.slice(0, 2).map((exercise: any, index: number) => (
+            <Text key={index} style={styles.exerciseItem}>
+              • {exercise.name}
+            </Text>
+          ))}
+          {workout.exercises.length > 2 && (
+            <Text style={styles.moreExercises}>
+              +{workout.exercises.length - 2} more
+            </Text>
+          )}
+        </View>
+      )}
+      
+      <TouchableOpacity style={styles.startButton} onPress={() => console.log('Start workout')}>
+        <LinearGradient
+          colors={[COLORS.accent, COLORS.accentSecondary]}
+          style={styles.startButtonGradient}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+        >
+          <Text style={styles.startButtonText}>
+            {workout.status === 'completed' ? 'View Details' : 'Start Workout'}
+          </Text>
+        </LinearGradient>
+      </TouchableOpacity>
+    </View>
+  );
+
   return (
     <SafeAreaView style={styles.container}>
+      {/* Header */}
       <View style={styles.header}>
-        <Text variant="headlineMedium" style={styles.title}>
-          Workouts
-        </Text>
-        <Text variant="bodyMedium" style={styles.subtitle}>
-          Choose your workout type
-        </Text>
-        {loading && (
-          <View style={styles.loadingContainer}>
-            <ActivityIndicator size="small" color="#7A3CF3" />
-            <Text variant="bodySmall" style={styles.loadingText}>
-              Loading workouts...
-            </Text>
-          </View>
-        )}
-        {week && week.length > 0 && (
-          <Text variant="bodySmall" style={styles.weekStatus}>
-            Weekly schedule ready ({week.length}/7 days)
-          </Text>
-        )}
+        <Text style={styles.title}>Workouts</Text>
+        <TouchableOpacity style={styles.filterButton}>
+          <Ionicons name="options" size={20} color={COLORS.accent} />
+        </TouchableOpacity>
       </View>
 
-      <ScrollView contentContainerStyle={styles.content}>
-        {workoutTypes.map((workout) => (
-          <Card key={workout.id} style={styles.card}>
-            <Card.Content style={styles.cardContent}>
-              <View style={styles.cardInfo}>
-                <Text variant="titleMedium" style={styles.cardTitle}>
-                  {workout.title}
-                </Text>
-                <Text variant="bodyMedium" style={styles.cardDescription}>
-                  Personalized {workout.title.toLowerCase()} session
-                </Text>
-              </View>
-              <Button 
-                mode="contained" 
-                compact
-                style={[styles.startButton, { backgroundColor: workout.color }]}
-                onPress={() => handleStartWorkout()}
-                disabled={isGenerating}
-                loading={isGenerating}
-              >
-                {isGenerating ? 'Gen...' : 'Start'}
-              </Button>
-            </Card.Content>
-          </Card>
-        ))}
-
-        <Card style={styles.customCard}>
-          <Card.Content>
-            <Text variant="titleMedium" style={styles.customTitle}>
-              Custom Workout
-            </Text>
-            <Text variant="bodyMedium" style={styles.customDescription}>
-              Let AI create a personalized workout just for you
-            </Text>
-            <Button 
-              mode="contained" 
-              style={styles.customButton}
-              icon="auto-fix"
-              onPress={() => handleStartWorkout()}
-              disabled={isGenerating}
-              loading={isGenerating}
-            >
-              {isGenerating ? 'Generating...' : 'Generate Custom Workout'}
-            </Button>
-          </Card.Content>
-        </Card>
-      </ScrollView>
-
-      <FAB
-        icon="plus"
-        style={styles.fab}
-        onPress={() => console.log('Add workout')}
-      />
-      
-      {/* Workout Detail Modal */}
-      <Modal
-        visible={showWorkoutDetail}
-        animationType="slide"
-        presentationStyle="pageSheet"
+      {/* Workout Type Filter */}
+      <ScrollView 
+        horizontal 
+        showsHorizontalScrollIndicator={false}
+        style={styles.filterScrollView}
+        contentContainerStyle={styles.filterContainer}
       >
-        <SafeAreaView style={styles.modalContainer}>
-          <View style={styles.modalHeader}>
-            <Pressable 
-              style={styles.backButton}
-              onPress={() => setShowWorkoutDetail(false)}
-            >
-              <Text style={styles.backButtonText}>← Back</Text>
-            </Pressable>
-            
-            {!today || today.status === 'pending' || today.status === 'generating' ? (
-              <View style={styles.generatingContainer}>
-                <ActivityIndicator size="large" color="#7A3CF3" />
-                <Text variant="headlineSmall" style={styles.generatingTitle}>
-                  Generating your workout...
-                </Text>
-                <Text variant="bodyMedium" style={styles.generatingSubtitle}>
-                  Our AI is creating the perfect workout for you
-                </Text>
-              </View>
-            ) : today.status === 'ready' && today.payloadJson ? (
-              <ScrollView style={styles.workoutContent}>
-                {/* Workout Header */}
-                <Text variant="headlineMedium" style={styles.workoutTitle}>
-                  {today?.title ?? 'Workout'}
-                </Text>
-                {today?.status && (
-                  <Text testID="today-status" variant="bodySmall" style={styles.debugStatus}>
-                    Status: {today.status}
-                  </Text>
-                )}
-                
-                {today.payloadJson.duration_min && (
-                  <Text variant="bodyLarge" style={styles.duration}>
-                    Duration: {today.payloadJson.duration_min} minutes
-                  </Text>
-                )}
-                
-                {today.payloadJson.coach_notes && (
-                  <View style={styles.coachNotesContainer}>
-                    <Text variant="titleMedium" style={styles.sectionTitle}>
-                      Coach Notes
-                    </Text>
-                    <Text variant="bodyMedium" style={styles.coachNotes}>
-                      {today.payloadJson.coach_notes}
-                    </Text>
-                  </View>
-                )}
-                
-                {/* Workout Blocks */}
-                {!today.payloadJson.blocks || today.payloadJson.blocks.length === 0 ? (
-                  <View style={styles.emptyContainer}>
-                    <Text variant="bodyMedium" style={styles.emptyText}>
-                      No exercises yet
-                    </Text>
-                  </View>
-                ) : (
-                  (() => {
-                    const blockOrder = { warmup: 0, main: 1, recovery: 2 };
-                    const sortedBlocks = [...today.payloadJson.blocks].sort((a, b) => 
-                      (blockOrder[a.type as keyof typeof blockOrder] ?? 999) - (blockOrder[b.type as keyof typeof blockOrder] ?? 999)
-                    );
-                    
-                    return sortedBlocks.map((block: any, blockIndex: number) => (
-                      <View key={blockIndex} style={styles.blockContainer}>
-                        <Text variant="titleLarge" style={styles.blockTitle}>
-                          {block.type === 'warmup' ? 'Warm-up' : 
-                           block.type === 'main' ? 'Workout' : 
-                           block.type === 'recovery' ? 'Recovery' : block.type}
-                        </Text>
-                        
-                        {block.items?.map((item: any, itemIndex: number) => (
-                          <Card key={itemIndex} style={styles.exerciseCard}>
-                            <Card.Content>
-                              <Text variant="titleMedium" style={styles.exerciseName}>
-                                {item.name}
-                              </Text>
-                              <View style={styles.exerciseDetails}>
-                                <Text variant="bodyMedium">
-                                  {item.sets} sets × {item.reps} reps
-                                </Text>
-                                {item.rest_sec && (
-                                  <Text variant="bodySmall" style={styles.restTime}>
-                                    Rest: {item.rest_sec}s
-                                  </Text>
-                                )}
-                                {item.load && (
-                                  <Text variant="bodySmall" style={styles.loadText}>
-                                    Load: {item.load}
-                                  </Text>
-                                )}
-                              </View>
-                            </Card.Content>
-                          </Card>
-                        ))}
-                      </View>
-                    ));
-                  })()
-                )}
-              </ScrollView>
+        {workoutTypes.map((type) => (
+          <TouchableOpacity
+            key={type.key}
+            style={[
+              styles.typeButton,
+              selectedType === type.key && styles.selectedTypeButton
+            ]}
+            onPress={() => setSelectedType(type.key)}
+          >
+            {selectedType === type.key ? (
+              <LinearGradient
+                colors={[COLORS.accent, COLORS.accentSecondary]}
+                style={styles.typeButtonGradient}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+              >
+                <Ionicons name={type.icon as any} size={16} color={COLORS.white} />
+                <Text style={styles.selectedTypeButtonText}>{type.label}</Text>
+              </LinearGradient>
             ) : (
-              <View style={styles.errorContainer}>
-                <Text variant="headlineSmall" style={styles.errorTitle}>
-                  Unable to load workout
-                </Text>
-                <Text variant="bodyMedium">
-                  Status: {today?.status || 'Unknown'}
-                </Text>
+              <View style={styles.typeButtonContent}>
+                <Ionicons name={type.icon as any} size={16} color={COLORS.accent} />
+                <Text style={styles.typeButtonText}>{type.label}</Text>
               </View>
             )}
+          </TouchableOpacity>
+        ))}
+      </ScrollView>
+
+      {/* Generate Workout Button */}
+      <View style={styles.generateSection}>
+        <TouchableOpacity 
+          style={styles.generateButton} 
+          onPress={handleGenerateWorkout}
+          disabled={isLoading}
+        >
+          <LinearGradient
+            colors={[COLORS.accent, COLORS.accentSecondary]}
+            style={styles.generateGradient}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+          >
+            <Ionicons 
+              name={isLoading ? "hourglass" : "sparkles"} 
+              size={20} 
+              color={COLORS.white} 
+            />
+            <Text style={styles.generateText}>
+              {isLoading ? 'Generating...' : 'Generate AI Workout'}
+            </Text>
+          </LinearGradient>
+        </TouchableOpacity>
+      </View>
+
+      {/* Workouts List */}
+      <ScrollView 
+        style={styles.workoutsList} 
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.workoutsContent}
+      >
+        {workouts.length > 0 ? (
+          workouts.map((workout) => (
+            <WorkoutCard key={workout.id} workout={workout} />
+          ))
+        ) : (
+          <View style={styles.emptyState}>
+            <View style={styles.emptyIcon}>
+              <Ionicons name="fitness-outline" size={48} color={COLORS.accent} />
+            </View>
+            <Text style={styles.emptyStateTitle}>Ready to start training?</Text>
+            <Text style={styles.emptyStateText}>
+              Generate your first AI-powered workout tailored to your goals
+            </Text>
           </View>
-        </SafeAreaView>
-      </Modal>
+        )}
+      </ScrollView>
     </SafeAreaView>
   );
 }
