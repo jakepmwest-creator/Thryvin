@@ -210,199 +210,208 @@ export default function WorkoutsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f8f9fa',
+    backgroundColor: COLORS.white,
   },
   header: {
-    padding: spacing.lg,
-    paddingBottom: spacing.md,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 24,
+    paddingTop: 16,
+    paddingBottom: 24,
   },
   title: {
-    color: '#1F2937',
-    marginBottom: 4,
+    fontSize: 28,
+    fontWeight: '700',
+    color: COLORS.text,
   },
-  subtitle: {
-    color: '#6B7280',
-  },
-  content: {
-    paddingHorizontal: spacing.lg,
-    paddingBottom: 100,
-  },
-  card: {
-    marginBottom: spacing.md,
-    borderRadius: 16,
-    elevation: 2,
-  },
-  cardContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  cardInfo: {
-    flex: 1,
-  },
-  cardTitle: {
-    marginBottom: 4,
-    color: '#1F2937',
-  },
-  cardDescription: {
-    color: '#6B7280',
-  },
-  startButton: {
-    borderRadius: 20,
-  },
-  customCard: {
-    marginTop: spacing.lg,
-    marginBottom: spacing.lg,
-    borderRadius: 16,
-    elevation: 2,
-    backgroundColor: '#7A3CF3',
-  },
-  customTitle: {
-    color: '#FFFFFF',
-    marginBottom: 4,
-  },
-  customDescription: {
-    color: '#E5E7EB',
-    marginBottom: spacing.md,
-  },
-  customButton: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 12,
-  },
-  fab: {
-    position: 'absolute',
-    margin: 16,
-    right: 0,
-    bottom: 0,
-    backgroundColor: '#7A3CF3',
-  },
-  loadingContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: spacing.sm,
-  },
-  loadingText: {
-    marginLeft: spacing.sm,
-    color: '#6B7280',
-  },
-  weekStatus: {
-    marginTop: spacing.sm,
-    color: '#10B981',
-    fontWeight: '500',
-  },
-  // Modal styles
-  modalContainer: {
-    flex: 1,
-    backgroundColor: '#f8f9fa',
-  },
-  modalHeader: {
-    padding: spacing.lg,
-  },
-  backButton: {
-    alignSelf: 'flex-start',
-    padding: spacing.sm,
-    marginBottom: spacing.lg,
-  },
-  backButtonText: {
-    fontSize: 16,
-    color: '#7A3CF3',
-    fontWeight: '500',
-  },
-  generatingContainer: {
-    flex: 1,
+  filterButton: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: COLORS.lightGray,
     justifyContent: 'center',
     alignItems: 'center',
-    padding: spacing.xl,
   },
-  generatingTitle: {
-    marginTop: spacing.lg,
-    textAlign: 'center',
-    color: '#1F2937',
+  filterScrollView: {
+    paddingLeft: 24,
+    marginBottom: 20,
   },
-  generatingSubtitle: {
-    marginTop: spacing.sm,
-    textAlign: 'center',
-    color: '#6B7280',
+  filterContainer: {
+    paddingRight: 24,
   },
-  workoutContent: {
+  typeButton: {
+    marginRight: 12,
+    borderRadius: 20,
+    overflow: 'hidden',
+  },
+  selectedTypeButton: {},
+  typeButtonGradient: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+  },
+  typeButtonContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    backgroundColor: COLORS.lightGray,
+    borderRadius: 20,
+  },
+  typeButtonText: {
+    marginLeft: 8,
+    fontSize: 14,
+    fontWeight: '500',
+    color: COLORS.accent,
+  },
+  selectedTypeButtonText: {
+    marginLeft: 8,
+    fontSize: 14,
+    fontWeight: '500',
+    color: COLORS.white,
+  },
+  generateSection: {
+    paddingHorizontal: 24,
+    marginBottom: 24,
+  },
+  generateButton: {
+    borderRadius: 16,
+    overflow: 'hidden',
+    shadowColor: COLORS.shadow,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 6,
+  },
+  generateGradient: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 16,
+    paddingHorizontal: 24,
+  },
+  generateText: {
+    marginLeft: 12,
+    fontSize: 16,
+    fontWeight: '600',
+    color: COLORS.white,
+  },
+  workoutsList: {
+    flex: 1,
+  },
+  workoutsContent: {
+    paddingHorizontal: 24,
+    paddingBottom: 32,
+  },
+  workoutCard: {
+    backgroundColor: COLORS.white,
+    borderRadius: 16,
+    padding: 20,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: COLORS.lightGray,
+    shadowColor: COLORS.shadow,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 3,
+  },
+  workoutHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: 16,
+  },
+  workoutInfo: {
     flex: 1,
   },
   workoutTitle: {
-    color: '#1F2937',
-    marginBottom: spacing.xs,
-    textAlign: 'center',
+    fontSize: 18,
+    fontWeight: '600',
+    color: COLORS.text,
+    marginBottom: 4,
   },
-  debugStatus: {
-    color: '#6B7280',
-    textAlign: 'center',
-    marginBottom: spacing.md,
+  workoutDate: {
+    fontSize: 14,
+    color: COLORS.mediumGray,
+  },
+  statusBadge: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 12,
+    backgroundColor: COLORS.lightGray,
+  },
+  completedBadge: {
+    backgroundColor: `${COLORS.success}20`,
+  },
+  statusText: {
     fontSize: 12,
+    fontWeight: '500',
+    color: COLORS.mediumGray,
+    textTransform: 'capitalize',
   },
-  duration: {
-    color: '#6B7280',
-    textAlign: 'center',
-    marginBottom: spacing.lg,
+  completedText: {
+    color: COLORS.success,
   },
-  coachNotesContainer: {
-    marginBottom: spacing.lg,
-    padding: spacing.md,
-    backgroundColor: '#E5E7EB',
-    borderRadius: 12,
+  exercisesPreview: {
+    marginBottom: 16,
   },
-  sectionTitle: {
-    color: '#1F2937',
-    marginBottom: spacing.sm,
+  exercisesLabel: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: COLORS.text,
+    marginBottom: 8,
   },
-  coachNotes: {
-    color: '#374151',
+  exerciseItem: {
+    fontSize: 14,
+    color: COLORS.mediumGray,
+    marginBottom: 4,
   },
-  blockContainer: {
-    marginBottom: spacing.lg,
-  },
-  blockTitle: {
-    color: '#1F2937',
-    marginBottom: spacing.md,
-    textAlign: 'center',
-    fontWeight: 'bold',
-  },
-  exerciseCard: {
-    marginBottom: spacing.sm,
-    borderRadius: 12,
-    elevation: 1,
-  },
-  exerciseName: {
-    color: '#1F2937',
-    marginBottom: spacing.xs,
-  },
-  exerciseDetails: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  restTime: {
-    color: '#6B7280',
-  },
-  loadText: {
-    color: '#7A3CF3',
+  moreExercises: {
+    fontSize: 14,
+    color: COLORS.accent,
     fontWeight: '500',
   },
-  emptyContainer: {
-    padding: spacing.xl,
+  startButton: {
+    borderRadius: 12,
+    overflow: 'hidden',
+  },
+  startButtonGradient: {
+    paddingVertical: 12,
     alignItems: 'center',
   },
-  emptyText: {
-    color: '#6B7280',
-    textAlign: 'center',
+  startButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: COLORS.white,
   },
-  errorContainer: {
-    flex: 1,
+  emptyState: {
+    alignItems: 'center',
+    paddingVertical: 60,
+    paddingHorizontal: 40,
+  },
+  emptyIcon: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: `${COLORS.accent}10`,
     justifyContent: 'center',
     alignItems: 'center',
-    padding: spacing.xl,
+    marginBottom: 24,
   },
-  errorTitle: {
-    color: '#EF4444',
+  emptyStateTitle: {
+    fontSize: 20,
+    fontWeight: '600',
+    color: COLORS.text,
+    marginBottom: 8,
     textAlign: 'center',
-    marginBottom: spacing.md,
+  },
+  emptyStateText: {
+    fontSize: 16,
+    color: COLORS.mediumGray,
+    textAlign: 'center',
+    lineHeight: 22,
   },
 });
