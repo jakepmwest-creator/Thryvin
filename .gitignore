@@ -105,3 +105,11 @@ more_exercises.json
 
 # Import directory
 imported-thryvin/
+-e 
+# Environment files
+*.env
+*.env.*
+-e 
+# Environment files
+*.env
+*.env.*
