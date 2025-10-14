@@ -1,51 +1,59 @@
-import { View, StyleSheet, ScrollView, Modal, Pressable } from 'react-native';
-import { Text, Card, Button, FAB, ActivityIndicator } from 'react-native-paper';
+import React, { useState, useEffect } from 'react';
+import { 
+  View, 
+  Text, 
+  ScrollView, 
+  TouchableOpacity, 
+  StyleSheet,
+  Dimensions 
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { spacing } from '../../src/theme/theme';
-import { useEffect, useState } from 'react';
-import { useWorkouts } from '../../store/workoutsStore';
+import { LinearGradient } from 'expo-linear-gradient';
+import { Ionicons } from '@expo/vector-icons';
+import { useWorkoutsStore } from '../../store/workoutsStore';
+import { format } from 'date-fns';
 
-const workoutTypes = [
-  { id: 'strength', title: 'Strength Training', icon: 'dumbbell', color: '#EF4444' },
-  { id: 'cardio', title: 'Cardio Blast', icon: 'run-fast', color: '#10B981' },
-  { id: 'yoga', title: 'Yoga & Flexibility', icon: 'yoga', color: '#8B5CF6' },
-  { id: 'hiit', title: 'HIIT Workout', icon: 'fire', color: '#F59E0B' },
-];
+const { width } = Dimensions.get('window');
 
-interface WorkoutDay {
-  id: number;
-  userId: number;
-  date: string;
-  status: string;
-  payloadJson: any;
-  createdAt: string;
-  updatedAt: string;
-}
+const COLORS = {
+  accent: '#a259ff',
+  accentSecondary: '#3a86ff',
+  white: '#ffffff',
+  text: '#222222',
+  lightGray: '#F8F9FA',
+  mediumGray: '#8E8E93',
+  shadow: 'rgba(162, 89, 255, 0.1)',
+  success: '#34C759',
+};
 
 export default function WorkoutsScreen() {
-  const { loadWeek, week, loading, loadToday, today, generateAndPoll } = useWorkouts();
-  const [showWorkoutDetail, setShowWorkoutDetail] = useState(false);
-  const [isGenerating, setIsGenerating] = useState(false);
-  
-  useEffect(() => { loadWeek(); }, [loadWeek]);
-  
-  console.log('WEEK_DEBUG', week?.length, week);
-  console.log('TODAY_DEBUG', today?.status, today?.title);
+  const [selectedType, setSelectedType] = useState('all');
+  const { 
+    workouts, 
+    isLoading, 
+    generateWorkout, 
+    fetchWorkouts,
+    todaysWorkout 
+  } = useWorkoutsStore();
 
-  // Get today's date
-  const todayDate = new Date().toISOString().split('T')[0];
-  
-  const handleStartWorkout = async (selectedDate?: string) => {
-    const dateToUse = selectedDate || todayDate;
-    await loadToday(dateToUse);
-    
-    if (today?.status !== 'ready') {
-      setIsGenerating(true);
-      await generateAndPoll(today?.date || new Date().toISOString().split('T')[0]);
-      setIsGenerating(false);
+  useEffect(() => {
+    fetchWorkouts();
+  }, [fetchWorkouts]);
+
+  const workoutTypes = [
+    { key: 'all', label: 'All', icon: 'fitness' },
+    { key: 'strength', label: 'Strength', icon: 'barbell' },
+    { key: 'cardio', label: 'Cardio', icon: 'heart' },
+    { key: 'flexibility', label: 'Flexibility', icon: 'body' },
+  ];
+
+  const handleGenerateWorkout = async () => {
+    const today = format(new Date(), 'yyyy-MM-dd');
+    try {
+      await generateWorkout(today);
+    } catch (error) {
+      console.error('Failed to generate workout:', error);
     }
-    
-    setShowWorkoutDetail(true);
   };
   return (
     <SafeAreaView style={styles.container}>
