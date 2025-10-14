@@ -77,51 +77,30 @@ agenthub/agents/youtube/db
 .cache/
 
 # Mobile development
-android-sdk/ -e 
+android-sdk/
+
 # Environment files
 *.env
 *.env.*
--e 
-# Environment files
-*.env
-*.env.*
--e 
-# Environment files
-*.env
-*.env.*
--e 
-# Environment files
-*.env
-*.env.*
--e 
-# Environment files
-*.env
-*.env.*
--e 
-# Environment files
-*.env
-*.env.*
--e 
-# Environment files
-*.env
-*.env.*
--e 
-# Environment files
-*.env
-*.env.*
--e 
-# Environment files
-*.env
-*.env.*
--e 
-# Environment files
-*.env
-*.env.*
--e 
-# Environment files
-*.env
-*.env.*
--e 
-# Environment files
-*.env
-*.env.*
+
+# Temporary development files
+*.log
+cookies.txt
+backend.log
+backend_test.log
+
+# Exercise database scripts (contain environment variables)
+add_*.mjs
+build_*.mjs
+check_*.mjs
+fix_*.mjs
+*_exercises.mjs
+*_database.mjs
+*.json
+comprehensive_exercises.json
+massive_exercise_database.json
+basic_exercises.json
+more_exercises.json
+
+# Import directory
+imported-thryvin/
