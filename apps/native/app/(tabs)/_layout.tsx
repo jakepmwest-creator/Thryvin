@@ -41,11 +41,11 @@ export default function TabLayout() {
       }}
     >
       <Tabs.Screen
-        name="home"
+        name="index"
         options={{
           title: 'Home',
           tabBarIcon: ({ color, size }) => (
-            <MaterialCommunityIcons name="home" color={color} size={size} />
+            <Ionicons name="home" size={size} color={color} />
           ),
         }}
       />
@@ -54,16 +54,16 @@ export default function TabLayout() {
         options={{
           title: 'Workouts',
           tabBarIcon: ({ color, size }) => (
-            <MaterialCommunityIcons name="dumbbell" color={color} size={size} />
+            <Ionicons name="fitness" size={size} color={color} />
           ),
         }}
       />
       <Tabs.Screen
-        name="nutrition"
+        name="stats"
         options={{
-          title: 'Nutrition',
+          title: 'Stats',
           tabBarIcon: ({ color, size }) => (
-            <MaterialCommunityIcons name="food-apple" color={color} size={size} />
+            <Ionicons name="bar-chart" size={size} color={color} />
           ),
         }}
       />
@@ -72,7 +72,7 @@ export default function TabLayout() {
         options={{
           title: 'Awards',
           tabBarIcon: ({ color, size }) => (
-            <MaterialCommunityIcons name="trophy" color={color} size={size} />
+            <Ionicons name="trophy" size={size} color={color} />
           ),
         }}
       />
@@ -81,7 +81,7 @@ export default function TabLayout() {
         options={{
           title: 'Profile',
           tabBarIcon: ({ color, size }) => (
-            <MaterialCommunityIcons name="account" color={color} size={size} />
+            <Ionicons name="person" size={size} color={color} />
           ),
         }}
       />
