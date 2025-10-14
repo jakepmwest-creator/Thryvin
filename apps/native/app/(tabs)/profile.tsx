@@ -1,166 +1,283 @@
-import { View, StyleSheet, ScrollView } from 'react-native';
-import { Text, Card, Button, Switch, Divider } from 'react-native-paper';
+import React, { useState } from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  TouchableOpacity,
+  Alert,
+  Switch,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useState } from 'react';
-import { useRouter } from 'expo-router';
-import { useAuthStore } from '../../src/stores/auth-store';
-import { useBiometricAuth } from '../../src/hooks/use-biometric-auth';
-import { spacing } from '../../src/theme/theme';
+import { LinearGradient } from 'expo-linear-gradient';
+import { Ionicons } from '@expo/vector-icons';
+
+const COLORS = {
+  accent: '#a259ff',
+  accentSecondary: '#3a86ff',
+  white: '#ffffff',
+  text: '#222222',
+  lightGray: '#F8F9FA',
+  mediumGray: '#8E8E93',
+  shadow: 'rgba(162, 89, 255, 0.1)',
+  success: '#34C759',
+  danger: '#FF3B30',
+};
+
+const profileData = {
+  name: 'Jake West',
+  email: 'jake@example.com',
+  joinDate: 'January 2024',
+  workoutsCompleted: 25,
+  totalMinutes: 720,
+  currentStreak: 5,
+  level: 'Intermediate',
+  nextGoal: 'Complete 50 workouts',
+};
+
+const MenuButton = ({ 
+  icon, 
+  title, 
+  subtitle, 
+  onPress, 
+  showArrow = true 
+}: {
+  icon: string;
+  title: string;
+  subtitle?: string;
+  onPress: () => void;
+  showArrow?: boolean;
+}) => (
+  <TouchableOpacity style={styles.menuButton} onPress={onPress}>
+    <View style={styles.menuIconContainer}>
+      <Ionicons name={icon as any} size={20} color={COLORS.accent} />
+    </View>
+    <View style={styles.menuContent}>
+      <Text style={styles.menuTitle}>{title}</Text>
+      {subtitle && <Text style={styles.menuSubtitle}>{subtitle}</Text>}
+    </View>
+    {showArrow && (
+      <Ionicons name="chevron-forward" size={16} color={COLORS.mediumGray} />
+    )}
+  </TouchableOpacity>
+);
+
+const SettingToggle = ({ 
+  icon, 
+  title, 
+  subtitle, 
+  value, 
+  onToggle 
+}: {
+  icon: string;
+  title: string;
+  subtitle?: string;
+  value: boolean;
+  onToggle: () => void;
+}) => (
+  <View style={styles.menuButton}>
+    <View style={styles.menuIconContainer}>
+      <Ionicons name={icon as any} size={20} color={COLORS.accent} />
+    </View>
+    <View style={styles.menuContent}>
+      <Text style={styles.menuTitle}>{title}</Text>
+      {subtitle && <Text style={styles.menuSubtitle}>{subtitle}</Text>}
+    </View>
+    <Switch
+      value={value}
+      onValueChange={onToggle}
+      trackColor={{ false: COLORS.lightGray, true: `${COLORS.accent}30` }}
+      thumbColor={value ? COLORS.accent : COLORS.mediumGray}
+    />
+  </View>
+);
 
 export default function ProfileScreen() {
-  const router = useRouter();
-  const { user, logout } = useAuthStore();
-  const { isAvailable, getBiometricType } = useBiometricAuth();
-  
-  const [notificationsEnabled, setNotificationsEnabled] = useState(true);
-  const [biometricsEnabled, setBiometricsEnabled] = useState(false);
+  const [notifications, setNotifications] = useState(true);
+  const [workoutReminders, setWorkoutReminders] = useState(true);
+  const [analytics, setAnalytics] = useState(false);
 
-  const handleLogout = async () => {
-    try {
-      await logout();
-      router.replace('/(auth)/login');
-    } catch (error) {
-      console.error('Logout failed:', error);
-    }
+  const handleLogout = () => {
+    Alert.alert(
+      'Sign Out',
+      'Are you sure you want to sign out?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { text: 'Sign Out', style: 'destructive', onPress: () => console.log('Logout') },
+      ]
+    );
+  };
+
+  const handleDeleteAccount = () => {
+    Alert.alert(
+      'Delete Account',
+      'This action cannot be undone. All your data will be permanently deleted.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { text: 'Delete', style: 'destructive', onPress: () => console.log('Delete account') },
+      ]
+    );
   };
 
   return (
     <SafeAreaView style={styles.container}>
+      {/* Header */}
       <View style={styles.header}>
-        <Text variant="headlineMedium" style={styles.title}>
-          Profile
-        </Text>
+        <Text style={styles.title}>Profile</Text>
+        <TouchableOpacity style={styles.editButton}>
+          <Ionicons name="create" size={20} color={COLORS.accent} />
+        </TouchableOpacity>
       </View>
 
-      <ScrollView contentContainerStyle={styles.content}>
-        <Card style={styles.profileCard}>
-          <Card.Content style={styles.profileContent}>
-            <View style={styles.avatar}>
-              <Text style={styles.avatarText}>
-                {user?.name?.charAt(0).toUpperCase() || 'U'}
-              </Text>
-            </View>
-            <View style={styles.profileInfo}>
-              <Text variant="headlineSmall" style={styles.name}>
-                {user?.name || 'User'}
-              </Text>
-              <Text variant="bodyMedium" style={styles.email}>
-                {user?.email || 'user@example.com'}
-              </Text>
-              <Text variant="bodySmall" style={styles.memberSince}>
-                Member since {new Date().getFullYear()}
-              </Text>
-            </View>
-          </Card.Content>
-        </Card>
-
-        <Text variant="titleMedium" style={styles.sectionTitle}>
-          Settings
-        </Text>
-
-        <Card style={styles.settingsCard}>
-          <Card.Content>
-            <View style={styles.settingRow}>
-              <View style={styles.settingInfo}>
-                <Text variant="titleSmall">Push Notifications</Text>
-                <Text variant="bodySmall" style={styles.settingDescription}>
-                  Receive workout reminders and updates
+      <ScrollView 
+        style={styles.scrollView}
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.scrollContent}
+      >
+        {/* Profile Card */}
+        <View style={styles.profileCard}>
+          <LinearGradient
+            colors={[COLORS.accent, COLORS.accentSecondary]}
+            style={styles.profileGradient}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+          >
+            <View style={styles.profileHeader}>
+              <View style={styles.avatar}>
+                <Text style={styles.avatarText}>
+                  {profileData.name.split(' ').map(n => n[0]).join('')}
                 </Text>
               </View>
-              <Switch
-                value={notificationsEnabled}
-                onValueChange={setNotificationsEnabled}
-              />
-            </View>
-
-            <Divider style={styles.divider} />
-
-            {isAvailable && (
-              <>
-                <View style={styles.settingRow}>
-                  <View style={styles.settingInfo}>
-                    <Text variant="titleSmall">{getBiometricType()}</Text>
-                    <Text variant="bodySmall" style={styles.settingDescription}>
-                      Use biometric authentication to sign in
-                    </Text>
-                  </View>
-                  <Switch
-                    value={biometricsEnabled}
-                    onValueChange={setBiometricsEnabled}
-                  />
-                </View>
-                <Divider style={styles.divider} />
-              </>
-            )}
-
-            <View style={styles.settingRow}>
-              <View style={styles.settingInfo}>
-                <Text variant="titleSmall">Dark Mode</Text>
-                <Text variant="bodySmall" style={styles.settingDescription}>
-                  Switch to dark theme (Coming Soon)
-                </Text>
+              <View style={styles.profileInfo}>
+                <Text style={styles.profileName}>{profileData.name}</Text>
+                <Text style={styles.profileEmail}>{profileData.email}</Text>
+                <Text style={styles.profileLevel}>{profileData.level} • Since {profileData.joinDate}</Text>
               </View>
-              <Switch value={false} disabled />
             </View>
-          </Card.Content>
-        </Card>
+          </LinearGradient>
+        </View>
 
-        <Text variant="titleMedium" style={styles.sectionTitle}>
-          Support
-        </Text>
+        {/* Quick Stats */}
+        <View style={styles.statsContainer}>
+          <View style={styles.statItem}>
+            <Text style={styles.statValue}>{profileData.workoutsCompleted}</Text>
+            <Text style={styles.statLabel}>Workouts</Text>
+          </View>
+          <View style={styles.statDivider} />
+          <View style={styles.statItem}>
+            <Text style={styles.statValue}>{Math.round(profileData.totalMinutes / 60)}h</Text>
+            <Text style={styles.statLabel}>Total Time</Text>
+          </View>
+          <View style={styles.statDivider} />
+          <View style={styles.statItem}>
+            <Text style={styles.statValue}>{profileData.currentStreak}</Text>
+            <Text style={styles.statLabel}>Day Streak</Text>
+          </View>
+        </View>
 
-        <Card style={styles.supportCard}>
-          <Card.Content>
-            <Button
-              mode="text"
-              onPress={() => console.log('Help Center')}
-              style={styles.supportButton}
-              contentStyle={styles.supportButtonContent}
-            >
-              Help Center
-            </Button>
-            
-            <Button
-              mode="text"
-              onPress={() => console.log('Contact Support')}
-              style={styles.supportButton}
-              contentStyle={styles.supportButtonContent}
-            >
-              Contact Support
-            </Button>
-            
-            <Button
-              mode="text"
-              onPress={() => console.log('Privacy Policy')}
-              style={styles.supportButton}
-              contentStyle={styles.supportButtonContent}
-            >
-              Privacy Policy
-            </Button>
-            
-            <Button
-              mode="text"
-              onPress={() => console.log('Terms of Service')}
-              style={styles.supportButton}
-              contentStyle={styles.supportButtonContent}
-            >
-              Terms of Service
-            </Button>
-          </Card.Content>
-        </Card>
+        {/* Menu Sections */}
+        <View style={styles.menuSection}>
+          <Text style={styles.sectionTitle}>Account</Text>
+          <View style={styles.menuContainer}>
+            <MenuButton
+              icon="person"
+              title="Edit Profile"
+              subtitle="Update your personal information"
+              onPress={() => console.log('Edit profile')}
+            />
+            <MenuButton
+              icon="fitness"
+              title="Workout Preferences"
+              subtitle="Customize your training settings"
+              onPress={() => console.log('Workout preferences')}
+            />
+            <MenuButton
+              icon="trophy"
+              title="Goals & Progress"
+              subtitle={profileData.nextGoal}
+              onPress={() => console.log('Goals')}
+            />
+          </View>
+        </View>
 
-        <Button
-          mode="contained"
-          onPress={handleLogout}
-          style={styles.logoutButton}
-          buttonColor="#EF4444"
-        >
-          Sign Out
-        </Button>
+        <View style={styles.menuSection}>
+          <Text style={styles.sectionTitle}>Notifications</Text>
+          <View style={styles.menuContainer}>
+            <SettingToggle
+              icon="notifications"
+              title="Push Notifications"
+              subtitle="Get notified about workouts and progress"
+              value={notifications}
+              onToggle={() => setNotifications(!notifications)}
+            />
+            <SettingToggle
+              icon="alarm"
+              title="Workout Reminders"
+              subtitle="Daily reminders to stay on track"
+              value={workoutReminders}
+              onToggle={() => setWorkoutReminders(!workoutReminders)}
+            />
+          </View>
+        </View>
 
-        <Text variant="bodySmall" style={styles.version}>
-          Version 1.0.0
-        </Text>
+        <View style={styles.menuSection}>
+          <Text style={styles.sectionTitle}>Privacy & Data</Text>
+          <View style={styles.menuContainer}>
+            <SettingToggle
+              icon="analytics"
+              title="Share Analytics"
+              subtitle="Help improve the app with anonymous data"
+              value={analytics}
+              onToggle={() => setAnalytics(!analytics)}
+            />
+            <MenuButton
+              icon="shield"
+              title="Privacy Policy"
+              onPress={() => console.log('Privacy policy')}
+            />
+            <MenuButton
+              icon="document-text"
+              title="Terms of Service"
+              onPress={() => console.log('Terms of service')}
+            />
+          </View>
+        </View>
+
+        <View style={styles.menuSection}>
+          <Text style={styles.sectionTitle}>Support</Text>
+          <View style={styles.menuContainer}>
+            <MenuButton
+              icon="help-circle"
+              title="Help & FAQ"
+              onPress={() => console.log('Help')}
+            />
+            <MenuButton
+              icon="mail"
+              title="Contact Support"
+              onPress={() => console.log('Contact support')}
+            />
+            <MenuButton
+              icon="star"
+              title="Rate Thryvin"
+              subtitle="Love the app? Leave us a review!"
+              onPress={() => console.log('Rate app')}
+            />
+          </View>
+        </View>
+
+        {/* Action Buttons */}
+        <View style={styles.actionButtons}>
+          <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
+            <Text style={styles.logoutText}>Sign Out</Text>
+          </TouchableOpacity>
+          
+          <TouchableOpacity style={styles.deleteButton} onPress={handleDeleteAccount}>
+            <Text style={styles.deleteText}>Delete Account</Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* App Version */}
+        <Text style={styles.versionText}>Thryvin v1.0.0</Text>
       </ScrollView>
     </SafeAreaView>
   );
@@ -169,102 +286,199 @@ export default function ProfileScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f8f9fa',
+    backgroundColor: COLORS.white,
   },
   header: {
-    padding: spacing.lg,
-    paddingBottom: spacing.md,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 24,
+    paddingTop: 16,
+    paddingBottom: 24,
   },
   title: {
-    color: '#1F2937',
+    fontSize: 28,
+    fontWeight: '700',
+    color: COLORS.text,
   },
-  content: {
-    paddingHorizontal: spacing.lg,
-    paddingBottom: spacing.xl,
+  editButton: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: COLORS.lightGray,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  scrollView: {
+    flex: 1,
+  },
+  scrollContent: {
+    paddingBottom: 32,
   },
   profileCard: {
-    marginBottom: spacing.lg,
+    marginHorizontal: 24,
+    marginBottom: 24,
     borderRadius: 16,
-    elevation: 2,
+    overflow: 'hidden',
+    shadowColor: COLORS.shadow,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 6,
   },
-  profileContent: {
+  profileGradient: {
+    padding: 24,
+  },
+  profileHeader: {
     flexDirection: 'row',
     alignItems: 'center',
   },
   avatar: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: '#7A3CF3',
-    alignItems: 'center',
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: COLORS.white,
     justifyContent: 'center',
-    marginRight: spacing.lg,
+    alignItems: 'center',
+    marginRight: 16,
   },
   avatarText: {
-    color: '#FFFFFF',
-    fontSize: 32,
-    fontWeight: 'bold',
+    fontSize: 20,
+    fontWeight: '700',
+    color: COLORS.accent,
   },
   profileInfo: {
     flex: 1,
   },
-  name: {
-    color: '#1F2937',
+  profileName: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: COLORS.white,
     marginBottom: 4,
   },
-  email: {
-    color: '#6B7280',
+  profileEmail: {
+    fontSize: 14,
+    color: 'rgba(255, 255, 255, 0.9)',
+    marginBottom: 2,
+  },
+  profileLevel: {
+    fontSize: 12,
+    color: 'rgba(255, 255, 255, 0.8)',
+  },
+  statsContainer: {
+    flexDirection: 'row',
+    marginHorizontal: 24,
+    marginBottom: 32,
+    backgroundColor: COLORS.white,
+    borderRadius: 16,
+    padding: 20,
+    borderWidth: 1,
+    borderColor: COLORS.lightGray,
+    shadowColor: COLORS.shadow,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 3,
+  },
+  statItem: {
+    flex: 1,
+    alignItems: 'center',
+  },
+  statValue: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: COLORS.accent,
     marginBottom: 4,
   },
-  memberSince: {
-    color: '#9CA3AF',
+  statLabel: {
+    fontSize: 14,
+    color: COLORS.mediumGray,
+    fontWeight: '500',
+  },
+  statDivider: {
+    width: 1,
+    backgroundColor: COLORS.lightGray,
+    marginHorizontal: 16,
+  },
+  menuSection: {
+    paddingHorizontal: 24,
+    marginBottom: 24,
   },
   sectionTitle: {
-    marginBottom: spacing.md,
-    marginTop: spacing.lg,
-    color: '#1F2937',
+    fontSize: 16,
+    fontWeight: '600',
+    color: COLORS.text,
+    marginBottom: 12,
   },
-  settingsCard: {
-    marginBottom: spacing.lg,
+  menuContainer: {
+    backgroundColor: COLORS.white,
     borderRadius: 16,
-    elevation: 2,
+    borderWidth: 1,
+    borderColor: COLORS.lightGray,
+    overflow: 'hidden',
   },
-  settingRow: {
+  menuButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: spacing.sm,
+    padding: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.lightGray,
   },
-  settingInfo: {
+  menuIconContainer: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: `${COLORS.accent}15`,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 12,
+  },
+  menuContent: {
     flex: 1,
-    marginRight: spacing.md,
   },
-  settingDescription: {
-    color: '#6B7280',
-    marginTop: 2,
+  menuTitle: {
+    fontSize: 16,
+    fontWeight: '500',
+    color: COLORS.text,
+    marginBottom: 2,
   },
-  divider: {
-    marginVertical: spacing.sm,
+  menuSubtitle: {
+    fontSize: 14,
+    color: COLORS.mediumGray,
   },
-  supportCard: {
-    marginBottom: spacing.lg,
-    borderRadius: 16,
-    elevation: 2,
-  },
-  supportButton: {
-    justifyContent: 'flex-start',
-    borderRadius: 0,
-  },
-  supportButtonContent: {
-    justifyContent: 'flex-start',
+  actionButtons: {
+    paddingHorizontal: 24,
+    marginBottom: 24,
+    gap: 16,
   },
   logoutButton: {
-    marginTop: spacing.lg,
-    marginBottom: spacing.md,
+    backgroundColor: COLORS.white,
     borderRadius: 12,
+    padding: 16,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: COLORS.lightGray,
   },
-  version: {
+  logoutText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: COLORS.text,
+  },
+  deleteButton: {
+    backgroundColor: 'transparent',
+    borderRadius: 12,
+    padding: 16,
+    alignItems: 'center',
+  },
+  deleteText: {
+    fontSize: 16,
+    fontWeight: '500',
+    color: COLORS.danger,
+  },
+  versionText: {
+    fontSize: 14,
+    color: COLORS.mediumGray,
     textAlign: 'center',
-    color: '#9CA3AF',
-    marginTop: spacing.md,
+    marginBottom: 16,
   },
 });
