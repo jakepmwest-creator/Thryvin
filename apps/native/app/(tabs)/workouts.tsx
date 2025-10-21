@@ -10,7 +10,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
-import { useWorkoutsStore } from '../../store/workoutsStore';
+import { useWorkouts } from '../../store/workoutsStore';
 import { format } from 'date-fns';
 
 const { width } = Dimensions.get('window');
