@@ -1,0 +1,33 @@
+#!/bin/sh
+. "$(dirname "$0")/_/husky.sh"
+
+echo "🔍 Running pre-commit checks..."
+
+# Check for .env files
+if git diff --cached --name-only | grep -E '\.env$' | grep -v '\.env\.example$'; then
+  echo "❌ ERROR: Attempting to commit .env file!"
+  echo "Please remove .env from staging and use .env.example instead"
+  exit 1
+fi
+
+# Check for stray temporary files
+if git diff --cached --name-only | grep -E '\.(log|tmp|temp|swp|swo)$'; then
+  echo "❌ ERROR: Attempting to commit temporary files!"
+  echo "Please remove temporary files from staging"
+  exit 1
+fi
+
+# Check for hardcoded localhost or absolute paths
+if git diff --cached --diff-filter=ACM | grep -E '(localhost:[0-9]+|127\.0\.0\.1:[0-9]+|C:\\|/Users/[^/]+/|/home/[^/]+/)'; then
+  echo "⚠️  WARNING: Hardcoded localhost URL or absolute path detected!"
+  echo "Please use environment variables for URLs"
+  echo ""
+  read -p "Continue anyway? (y/N): " -n 1 -r
+  echo
+  if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+    exit 1
+  fi
+fi
+
+echo "✅ Pre-commit checks passed!"
+exit 0
