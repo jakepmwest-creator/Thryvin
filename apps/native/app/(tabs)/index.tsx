@@ -185,13 +185,21 @@ const styles = StyleSheet.create({
   scrollContent: {
     paddingBottom: 32,
   },
-  header: {
+  logoHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 24,
     paddingTop: 16,
-    paddingBottom: 32,
+    paddingBottom: 12,
+  },
+  logo: {
+    width: 150,
+    height: 45,
+  },
+  header: {
+    paddingHorizontal: 24,
+    paddingBottom: 24,
   },
   welcomeText: {
     fontSize: 28,
