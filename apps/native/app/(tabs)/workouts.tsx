@@ -51,9 +51,10 @@ export default function WorkoutsScreen() {
   ];
 
   const handleGenerateWorkout = async () => {
-    const today = format(new Date(), 'yyyy-MM-dd');
+    const todayDate = format(new Date(), 'yyyy-MM-dd');
     try {
-      await generateWorkout(today);
+      await generateAndPoll(todayDate);
+      await loadWeek(); // Refresh the week view
     } catch (error) {
       console.error('Failed to generate workout:', error);
     }
