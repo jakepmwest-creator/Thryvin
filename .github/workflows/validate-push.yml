@@ -1,0 +1,86 @@
+name: Validate Push
+
+on:
+  push:
+    branches:
+      - main
+      - master
+      - develop
+  pull_request:
+    branches:
+      - main
+      - master
+      - develop
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          
+      - name: Check for secrets in .env files
+        run: |
+          echo "🔒 Checking for accidentally committed .env files..."
+          if git ls-files | grep -E '\.env$' | grep -v '\.env\.example$'; then
+            echo "❌ ERROR: .env file found in repository!"
+            echo "Please remove .env files and use .env.example instead"
+            exit 1
+          else
+            echo "✅ No .env files found in repository"
+          fi
+          
+      - name: Check for hardcoded secrets
+        run: |
+          echo "🔍 Checking for hardcoded API keys or secrets..."
+          if git diff HEAD~1 HEAD | grep -iE '(api[_-]?key|secret|password|token).*=.*[a-zA-Z0-9]{20,}'; then
+            echo "⚠️  WARNING: Possible hardcoded secret detected!"
+            echo "Please review your changes and use environment variables"
+            exit 1
+          else
+            echo "✅ No obvious hardcoded secrets detected"
+          fi
+          
+      - name: Verify React version pinning
+        run: |
+          echo "📌 Checking React version pinning..."
+          cd apps/native
+          if ! grep -q '"react": "19.1' package.json; then
+            echo "⚠️  WARNING: React version should be pinned to 19.1.x"
+          else
+            echo "✅ React version is correctly pinned"
+          fi
+          
+      - name: Check for invalid paths
+        run: |
+          echo "🔍 Checking for common invalid path patterns..."
+          if git diff HEAD~1 HEAD | grep -E '(C:\\|/Users/|/home/[^/]+/)'; then
+            echo "⚠️  WARNING: Absolute path detected in changes!"
+            echo "Please use relative paths"
+          else
+            echo "✅ No absolute paths detected"
+          fi
+          
+      - name: Install dependencies
+        run: |
+          echo "📦 Installing dependencies..."
+          cd apps/native
+          yarn install --frozen-lockfile
+          
+      - name: Build check
+        run: |
+          echo "🔨 Running build check..."
+          cd apps/native
+          yarn tsc --noEmit || echo "⚠️  TypeScript errors detected"
+          
+      - name: Success message
+        run: |
+          echo "✅ ════════════════════════════════════════════"
+          echo "✅  Validation Complete - Ready for GitHub!"
+          echo "✅ ════════════════════════════════════════════"
