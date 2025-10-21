@@ -191,9 +191,9 @@ export default function WorkoutsScreen() {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.workoutsContent}
       >
-        {workouts.length > 0 ? (
-          workouts.map((workout) => (
-            <WorkoutCard key={workout.id} workout={workout} />
+        {week && week.length > 0 ? (
+          week.map((workout) => (
+            <WorkoutCard key={workout.date} workout={workout} />
           ))
         ) : (
           <View style={styles.emptyState}>
