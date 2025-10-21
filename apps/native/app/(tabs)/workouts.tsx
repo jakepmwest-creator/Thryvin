@@ -29,12 +29,15 @@ const COLORS = {
 export default function WorkoutsScreen() {
   const [selectedType, setSelectedType] = useState('all');
   const { 
-    workouts, 
-    isLoading, 
-    generateWorkout, 
-    fetchWorkouts,
-    todaysWorkout 
-  } = useWorkoutsStore();
+    week, 
+    today,
+    loading, 
+    generating,
+    error,
+    loadWeek, 
+    loadToday,
+    generateAndPoll
+  } = useWorkouts();
 
   useEffect(() => {
     fetchWorkouts();
