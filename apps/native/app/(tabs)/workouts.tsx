@@ -40,8 +40,8 @@ export default function WorkoutsScreen() {
   } = useWorkouts();
 
   useEffect(() => {
-    fetchWorkouts();
-  }, [fetchWorkouts]);
+    loadWeek();
+  }, []);
 
   const workoutTypes = [
     { key: 'all', label: 'All', icon: 'fitness' },
