@@ -165,7 +165,7 @@ export default function WorkoutsScreen() {
         <TouchableOpacity 
           style={styles.generateButton} 
           onPress={handleGenerateWorkout}
-          disabled={isLoading}
+          disabled={loading || generating}
         >
           <LinearGradient
             colors={[COLORS.accent, COLORS.accentSecondary]}
@@ -174,12 +174,12 @@ export default function WorkoutsScreen() {
             end={{ x: 1, y: 1 }}
           >
             <Ionicons 
-              name={isLoading ? "hourglass" : "sparkles"} 
+              name={(loading || generating) ? "hourglass" : "sparkles"} 
               size={20} 
               color={COLORS.white} 
             />
             <Text style={styles.generateText}>
-              {isLoading ? 'Generating...' : 'Generate AI Workout'}
+              {(loading || generating) ? 'Generating...' : 'Generate AI Workout'}
             </Text>
           </LinearGradient>
         </TouchableOpacity>
