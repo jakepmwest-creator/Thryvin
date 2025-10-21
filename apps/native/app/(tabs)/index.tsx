@@ -103,15 +103,24 @@ export default function HomeScreen() {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
       >
+        {/* Logo Header */}
+        <View style={styles.logoHeader}>
+          <Image 
+            source={require('../../assets/images/thryvin-logo-small.png')}
+            style={styles.logo}
+            resizeMode="contain"
+          />
+          <TouchableOpacity style={styles.notificationButton}>
+            <Ionicons name="notifications-outline" size={24} color={COLORS.accent} />
+          </TouchableOpacity>
+        </View>
+
         {/* Header */}
         <View style={styles.header}>
           <View>
             <Text style={styles.welcomeText}>Welcome back, Jake 👋</Text>
             <Text style={styles.subtitleText}>Ready to thrive today?</Text>
           </View>
-          <TouchableOpacity style={styles.notificationButton}>
-            <Ionicons name="notifications-outline" size={24} color={COLORS.accent} />
-          </TouchableOpacity>
         </View>
 
         {/* Progress Ring */}
