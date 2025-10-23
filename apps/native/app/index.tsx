@@ -1,13 +1,39 @@
-import { Text, View } from 'react-native';
-import { useEffect } from 'react';
+import React, { useEffect } from 'react';
+import { View, ActivityIndicator, StyleSheet } from 'react-native';
+import { useRouter } from 'expo-router';
+import { useAuthStore } from '../src/stores/auth-store';
+
+const COLORS = {
+  accent: '#a259ff',
+  white: '#ffffff',
+};
 
 export default function Index() {
+  const router = useRouter();
+  const { user, isLoading } = useAuthStore();
+
   useEffect(() => {
-    console.log('[NATIVE_BOOT] If you see this, bundle loaded');
-  }, []);
+    if (!isLoading) {
+      if (user) {
+        router.replace('/(tabs)');
+      } else {
+        router.replace('/(auth)/login');
+      }
+    }
+  }, [user, isLoading]);
+
   return (
-    <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-      <Text style={{ fontSize: 18 }}>✅ If you see this screen, the bundle loaded.</Text>
+    <View style={styles.container}>
+      <ActivityIndicator size="large" color={COLORS.accent} />
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: COLORS.white,
+  },
+});
