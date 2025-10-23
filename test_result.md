@@ -221,3 +221,5 @@ agent_communication:
       message: "Completed all three phases: 1) GitHub workflow with validation scripts and hooks, 2) Fixed workouts store import/export mismatch, 3) Integrated logo with transparent background. Ready for testing."
     - agent: "testing"
       message: "Backend testing completed successfully. All critical endpoints working: Authentication (login/session), Workout APIs (weekly/daily), AI integration (chat/workout adjustment). Server healthy on port 5000. V1 endpoints partially functional - generation works but persistence needs improvement. No critical backend issues found."
+    - agent: "main"
+      message: "Building authentication system: 1) Beautiful login screen with logo and test account info, 2) Registration screen leading to onboarding, 3) Multi-step onboarding flow (10 questions for AI), 4) Auth flow protection - redirects to login if not authenticated. Biometric auth foundation ready for integration."
