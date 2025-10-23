@@ -17,34 +17,41 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useAuthStore } from '../../src/stores/auth-store';
 
+const COLORS = {
+  accent: '#a259ff',
+  accentSecondary: '#3a86ff',
+  white: '#ffffff',
+  text: '#222222',
+  lightGray: '#F8F9FA',
+  mediumGray: '#8E8E93',
+  shadow: 'rgba(162, 89, 255, 0.1)',
+  error: '#FF3B30',
+};
+
 export default function LoginScreen() {
   const router = useRouter();
-  const { login, isLoading } = useAuthStore();
-  const { isAvailable, authenticate } = useBiometricAuth();
+  const { login, isLoading, error } = useAuthStore();
   
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
 
   const handleLogin = async () => {
+    if (!email || !password) {
+      Alert.alert('Error', 'Please enter email and password');
+      return;
+    }
+    
     try {
       await login({ email, password });
-      router.replace('/(tabs)/home');
+      router.replace('/(tabs)');
     } catch (error) {
-      console.error('Login failed:', error);
+      Alert.alert('Login Failed', error instanceof Error ? error.message : 'Invalid credentials');
     }
   };
 
-  const handleBiometricLogin = async () => {
-    try {
-      const result = await authenticate();
-      if (result.success) {
-        // Auto-login with stored credentials
-        router.replace('/(tabs)/home');
-      }
-    } catch (error) {
-      console.error('Biometric login failed:', error);
-    }
+  const handleStartJourney = () => {
+    router.push('/(auth)/register');
   };
 
   return (
