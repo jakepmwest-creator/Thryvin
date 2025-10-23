@@ -185,22 +185,12 @@ export default function OnboardingScreen() {
     }
   };
 
-  const handleComplete = async () => {
-    try {
-      // Get registration data from navigation params or state
-      const userData = {
-        ...formData,
-        // These should come from the register screen
-        name: 'User', // This will be passed from register screen
-        email: 'user@example.com', // This will be passed from register screen
-        password: 'password', // This will be passed from register screen
-      };
-
-      await register(userData);
-      router.replace('/(tabs)');
-    } catch (error) {
-      Alert.alert('Error', 'Failed to complete onboarding');
-    }
+  const handleComplete = () => {
+    // Navigate to quick signup with all onboarding data
+    router.push({
+      pathname: '/(auth)/quick-signup',
+      params: { onboardingData: JSON.stringify(formData) },
+    });
   };
 
   const renderSelectOptions = () => {
