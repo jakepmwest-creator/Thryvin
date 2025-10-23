@@ -72,7 +72,31 @@ export default function LoginScreen() {
   };
 
   const handleStartJourney = () => {
-    router.push('/(auth)/register');
+    router.push('/(auth)/onboarding');
+  };
+
+  const handleBiometricLogin = async () => {
+    try {
+      const result = await LocalAuthentication.authenticateAsync({
+        promptMessage: 'Log in to Thryvin',
+        fallbackLabel: 'Use Password',
+      });
+
+      if (result.success) {
+        // Get stored credentials
+        const storedEmail = await SecureStore.getItemAsync('user_email');
+        const storedPassword = await SecureStore.getItemAsync('user_password');
+        
+        if (storedEmail && storedPassword) {
+          await login({ email: storedEmail, password: storedPassword });
+          router.replace('/(tabs)');
+        } else {
+          Alert.alert('Error', 'No saved credentials found. Please log in with email and password.');
+        }
+      }
+    } catch (error) {
+      Alert.alert('Authentication Failed', 'Please try again or use password');
+    }
   };
 
   return (
