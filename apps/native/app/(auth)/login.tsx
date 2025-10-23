@@ -1,11 +1,21 @@
-import { useState } from 'react';
-import { View, StyleSheet } from 'react-native';
-import { Text, Button, TextInput, Surface } from 'react-native-paper';
+import React, { useState } from 'react';
+import { 
+  View, 
+  StyleSheet, 
+  TouchableOpacity, 
+  TextInput as RNTextInput,
+  Image,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  Alert
+} from 'react-native';
+import { Text } from 'react-native-paper';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { LinearGradient } from 'expo-linear-gradient';
+import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useAuthStore } from '../../src/stores/auth-store';
-import { useBiometricAuth } from '../../src/hooks/use-biometric-auth';
-import { ThryvinLogo } from '../../src/components/ThryvinLogo';
 
 export default function LoginScreen() {
   const router = useRouter();
