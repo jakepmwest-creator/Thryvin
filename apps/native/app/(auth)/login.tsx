@@ -37,6 +37,25 @@ export default function LoginScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [biometricAvailable, setBiometricAvailable] = useState(false);
+  const [biometricEnabled, setBiometricEnabled] = useState(false);
+
+  useEffect(() => {
+    checkBiometricStatus();
+  }, []);
+
+  const checkBiometricStatus = async () => {
+    try {
+      const compatible = await LocalAuthentication.hasHardwareAsync();
+      const enrolled = await LocalAuthentication.isEnrolledAsync();
+      const enabled = await SecureStore.getItemAsync('biometric_enabled');
+      
+      setBiometricAvailable(compatible && enrolled);
+      setBiometricEnabled(enabled === 'true');
+    } catch (error) {
+      console.error('Biometric check failed:', error);
+    }
+  };
 
   const handleLogin = async () => {
     if (!email || !password) {
