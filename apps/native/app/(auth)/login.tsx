@@ -329,6 +329,19 @@ const styles = StyleSheet.create({
     marginLeft: 6,
     fontWeight: '500',
   },
+  biometricButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 16,
+    marginBottom: 16,
+    gap: 8,
+  },
+  biometricText: {
+    fontSize: 15,
+    color: COLORS.accent,
+    fontWeight: '600',
+  },
   divider: {
     flexDirection: 'row',
     alignItems: 'center',
