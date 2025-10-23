@@ -56,69 +56,119 @@ export default function LoginScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <View style={styles.content}>
-        <ThryvinLogo />
-        
-        <Surface style={styles.form}>
-          <Text variant="headlineMedium" style={styles.title}>
-            Welcome back
-          </Text>
-          
-          <TextInput
-            label="Email"
-            value={email}
-            onChangeText={setEmail}
-            mode="outlined"
-            keyboardType="email-address"
-            autoCapitalize="none"
-            style={styles.input}
-          />
-          
-          <TextInput
-            label="Password"
-            value={password}
-            onChangeText={setPassword}
-            mode="outlined"
-            secureTextEntry={!showPassword}
-            right={
-              <TextInput.Icon
-                icon={showPassword ? "eye-off" : "eye"}
-                onPress={() => setShowPassword(!showPassword)}
-              />
-            }
-            style={styles.input}
-          />
-          
-          <Button
-            mode="contained"
-            onPress={handleLogin}
-            loading={isLoading}
-            disabled={!email || !password}
-            style={styles.loginButton}
-          >
-            Sign In
-          </Button>
+      <KeyboardAvoidingView 
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        style={styles.keyboardView}
+      >
+        <ScrollView 
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+        >
+          {/* Logo */}
+          <View style={styles.logoContainer}>
+            <Image 
+              source={require('../../assets/images/thryvin-logo.png')}
+              style={styles.logo}
+              resizeMode="contain"
+            />
+          </View>
 
-          {isAvailable && (
-            <Button
-              mode="outlined"
-              onPress={handleBiometricLogin}
-              icon="fingerprint"
-              style={styles.biometricButton}
+          {/* Welcome Text */}
+          <View style={styles.welcomeContainer}>
+            <Text style={styles.welcomeTitle}>Welcome Back</Text>
+            <Text style={styles.welcomeSubtitle}>Let's continue your fitness journey</Text>
+          </View>
+
+          {/* Login Form */}
+          <View style={styles.formContainer}>
+            {/* Email Input */}
+            <View style={styles.inputWrapper}>
+              <Ionicons name="mail-outline" size={20} color={COLORS.accent} style={styles.inputIcon} />
+              <RNTextInput
+                style={styles.input}
+                placeholder="Email"
+                placeholderTextColor={COLORS.mediumGray}
+                value={email}
+                onChangeText={setEmail}
+                keyboardType="email-address"
+                autoCapitalize="none"
+                autoCorrect={false}
+              />
+            </View>
+
+            {/* Password Input */}
+            <View style={styles.inputWrapper}>
+              <Ionicons name="lock-closed-outline" size={20} color={COLORS.accent} style={styles.inputIcon} />
+              <RNTextInput
+                style={[styles.input, styles.passwordInput]}
+                placeholder="Password"
+                placeholderTextColor={COLORS.mediumGray}
+                value={password}
+                onChangeText={setPassword}
+                secureTextEntry={!showPassword}
+                autoCapitalize="none"
+              />
+              <TouchableOpacity 
+                onPress={() => setShowPassword(!showPassword)}
+                style={styles.eyeIcon}
+              >
+                <Ionicons 
+                  name={showPassword ? "eye-outline" : "eye-off-outline"} 
+                  size={20} 
+                  color={COLORS.mediumGray} 
+                />
+              </TouchableOpacity>
+            </View>
+
+            {/* Login Button */}
+            <TouchableOpacity 
+              style={styles.loginButton} 
+              onPress={handleLogin}
+              disabled={isLoading || !email || !password}
             >
-              Use Biometric Login
-            </Button>
-          )}
-          
-          <Button
-            mode="text"
-            onPress={() => router.push('/(auth)/register')}
-            style={styles.registerButton}
-          >
-            Don't have an account? Sign up
-          </Button>
-        </Surface>
-      </View>
+              <LinearGradient
+                colors={[COLORS.accent, COLORS.accentSecondary]}
+                style={styles.gradientButton}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+              >
+                {isLoading ? (
+                  <Text style={styles.buttonText}>Logging in...</Text>
+                ) : (
+                  <Text style={styles.buttonText}>Login</Text>
+                )}
+              </LinearGradient>
+            </TouchableOpacity>
+
+            {/* Test Account Info */}
+            <View style={styles.testAccountInfo}>
+              <Ionicons name="information-circle-outline" size={16} color={COLORS.accent} />
+              <Text style={styles.testAccountText}>
+                Test: test@example.com / password123
+              </Text>
+            </View>
+
+            {/* Divider */}
+            <View style={styles.divider}>
+              <View style={styles.dividerLine} />
+              <Text style={styles.dividerText}>OR</Text>
+              <View style={styles.dividerLine} />
+            </View>
+
+            {/* Start Journey Button */}
+            <TouchableOpacity 
+              style={styles.startJourneyButton} 
+              onPress={handleStartJourney}
+            >
+              <View style={styles.outlineButton}>
+                <Ionicons name="rocket-outline" size={20} color={COLORS.accent} />
+                <Text style={styles.startJourneyText}>Start Your Journey Here</Text>
+              </View>
+            </TouchableOpacity>
+          </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }
