@@ -186,6 +186,14 @@ export default function LoginScreen() {
               </LinearGradient>
             </TouchableOpacity>
 
+            {/* Biometric Login Button */}
+            {biometricAvailable && biometricEnabled && (
+              <TouchableOpacity style={styles.biometricButton} onPress={handleBiometricLogin}>
+                <Ionicons name="finger-print" size={24} color={COLORS.accent} />
+                <Text style={styles.biometricText}>Use Biometric Login</Text>
+              </TouchableOpacity>
+            )}
+
             {/* Test Account Info */}
             <View style={styles.testAccountInfo}>
               <Ionicons name="information-circle-outline" size={16} color={COLORS.accent} />
