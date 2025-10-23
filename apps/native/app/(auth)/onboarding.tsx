@@ -141,6 +141,7 @@ export default function OnboardingScreen() {
   const { register, isLoading } = useAuthStore();
   const [currentStep, setCurrentStep] = useState(0);
   const [formData, setFormData] = useState<any>({
+    name: '',
     age: '',
     height: '',
     weight: '',
