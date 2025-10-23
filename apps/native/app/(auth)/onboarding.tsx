@@ -29,9 +29,17 @@ const COLORS = {
 // Onboarding questions configuration
 const ONBOARDING_STEPS = [
   {
+    id: 'name',
+    title: 'Welcome to Thryvin! 👋',
+    subtitle: 'First things first...',
+    fields: [
+      { key: 'name', label: 'What should we call you?', icon: 'person-outline', type: 'text', placeholder: 'Your name' },
+    ],
+  },
+  {
     id: 'personal',
     title: 'Personal Details',
-    subtitle: 'Help us get to know you',
+    subtitle: 'Help us personalize your journey',
     fields: [
       { key: 'age', label: 'Age', icon: 'calendar-outline', type: 'number', placeholder: 'e.g., 25' },
       { key: 'height', label: 'Height (cm)', icon: 'resize-outline', type: 'number', placeholder: 'e.g., 175' },
