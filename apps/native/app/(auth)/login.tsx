@@ -176,37 +176,140 @@ export default function LoginScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f8f9fa',
+    backgroundColor: COLORS.white,
   },
-  content: {
+  keyboardView: {
     flex: 1,
-    padding: 24,
-    justifyContent: 'center',
   },
-  form: {
-    padding: 24,
-    marginTop: 32,
-    borderRadius: 20,
-    elevation: 2,
+  scrollContent: {
+    flexGrow: 1,
+    paddingHorizontal: 24,
+    paddingBottom: 40,
   },
-  title: {
+  logoContainer: {
+    alignItems: 'center',
+    marginTop: 60,
+    marginBottom: 40,
+  },
+  logo: {
+    width: 200,
+    height: 60,
+  },
+  welcomeContainer: {
+    marginBottom: 40,
+  },
+  welcomeTitle: {
+    fontSize: 32,
+    fontWeight: '700',
+    color: COLORS.text,
+    marginBottom: 8,
     textAlign: 'center',
-    marginBottom: 24,
-    color: '#7A3CF3',
+  },
+  welcomeSubtitle: {
+    fontSize: 16,
+    color: COLORS.mediumGray,
+    textAlign: 'center',
+  },
+  formContainer: {
+    width: '100%',
+  },
+  inputWrapper: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: COLORS.lightGray,
+    borderRadius: 16,
+    paddingHorizontal: 16,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: COLORS.lightGray,
+  },
+  inputIcon: {
+    marginRight: 12,
   },
   input: {
-    marginBottom: 16,
+    flex: 1,
+    fontSize: 16,
+    color: COLORS.text,
+    paddingVertical: 18,
+  },
+  passwordInput: {
+    paddingRight: 40,
+  },
+  eyeIcon: {
+    position: 'absolute',
+    right: 16,
+    padding: 8,
   },
   loginButton: {
     marginTop: 8,
     marginBottom: 16,
-    borderRadius: 12,
+    borderRadius: 16,
+    shadowColor: COLORS.shadow,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 6,
   },
-  biometricButton: {
-    marginBottom: 16,
-    borderRadius: 12,
+  gradientButton: {
+    paddingVertical: 18,
+    borderRadius: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  registerButton: {
-    marginTop: 8,
+  buttonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: COLORS.white,
+  },
+  testAccountInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: `${COLORS.accent}10`,
+    padding: 12,
+    borderRadius: 12,
+    marginBottom: 24,
+  },
+  testAccountText: {
+    fontSize: 12,
+    color: COLORS.accent,
+    marginLeft: 6,
+    fontWeight: '500',
+  },
+  divider: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginVertical: 24,
+  },
+  dividerLine: {
+    flex: 1,
+    height: 1,
+    backgroundColor: COLORS.lightGray,
+  },
+  dividerText: {
+    marginHorizontal: 16,
+    fontSize: 14,
+    color: COLORS.mediumGray,
+    fontWeight: '500',
+  },
+  startJourneyButton: {
+    borderRadius: 16,
+    marginBottom: 20,
+  },
+  outlineButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 18,
+    borderRadius: 16,
+    borderWidth: 2,
+    borderColor: COLORS.accent,
+    backgroundColor: COLORS.white,
+  },
+  startJourneyText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: COLORS.accent,
+    marginLeft: 8,
   },
 });
