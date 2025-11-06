@@ -1,6 +1,7 @@
 import { create } from 'zustand';
+import * as SecureStore from 'expo-secure-store';
 
-const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:5000';
+const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL || '';
 
 interface User {
   id: number;
@@ -46,6 +47,11 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
       const userData = await response.json();
       set({ user: userData, isLoading: false });
+      
+      // Save credentials securely for biometric login
+      await SecureStore.setItemAsync('user_email', credentials.email);
+      await SecureStore.setItemAsync('user_password', credentials.password);
+      
       console.log('Login successful:', userData.name);
     } catch (error) {
       console.error('Login failed:', error);

@@ -3,7 +3,6 @@ import { Stack, useRouter, useSegments } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { PaperProvider } from 'react-native-paper';
-import { WorkoutsProvider } from '../store/workoutsStore';
 import { useAuthStore } from '../src/stores/auth-store';
 
 export default function Layout() {
@@ -32,14 +31,13 @@ export default function Layout() {
   return (
     <SafeAreaProvider>
       <PaperProvider>
-        <WorkoutsProvider>
-          <Stack screenOptions={{ headerShown: false }}>
-            <Stack.Screen name="(auth)" />
-            <Stack.Screen name="(tabs)" />
-            <Stack.Screen name="index" />
-          </Stack>
-          <StatusBar style="dark" backgroundColor="#ffffff" />
-        </WorkoutsProvider>
+        <StatusBar style="dark" />
+        <Stack screenOptions={{ headerShown: false }}>
+          <Stack.Screen name="index" />
+          <Stack.Screen name="(auth)" />
+          <Stack.Screen name="(tabs)" />
+          <Stack.Screen name="active-workout" />
+        </Stack>
       </PaperProvider>
     </SafeAreaProvider>
   );

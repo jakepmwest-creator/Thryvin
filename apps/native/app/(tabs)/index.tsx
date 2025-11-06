@@ -1,19 +1,22 @@
-import React from 'react';
+import React, { useState, useRef } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  Dimensions,
   Image,
+  Dimensions,
+  Animated,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
+import { AppHeader } from '../../src/components/AppHeader';
+import { WorkoutDetailsModal } from '../../src/components/WorkoutDetailsModal';
 
-const { width } = Dimensions.get('window');
+const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 const COLORS = {
   accent: '#a259ff',
@@ -24,6 +27,24 @@ const COLORS = {
   mediumGray: '#8E8E93',
   shadow: 'rgba(162, 89, 255, 0.1)',
 };
+
+const ACTIVITY_CARDS = [
+  { id: 1, icon: 'trophy', title: 'New PR!', subtitle: 'Bench Press: 225 lbs', color: '#FFD700' },
+  { id: 2, icon: 'person-add', title: '3 New Followers', subtitle: 'Sarah, Mike, Alex', color: '#4CAF50' },
+  { id: 3, icon: 'restaurant', title: "Today's Meal", subtitle: 'Chicken & Rice Bowl', color: '#FF9800' },
+  { id: 4, icon: 'flame', title: 'Streak: 7 Days', subtitle: 'Keep it going!', color: '#FF5252' },
+  { id: 5, icon: 'barbell', title: 'Last Workout', subtitle: 'Upper Body Push', color: '#9C27B0' },
+  { id: 6, icon: 'star', title: 'Achievement', subtitle: '100 Workouts Completed', color: '#2196F3' },
+  { id: 7, icon: 'timer', title: 'Best Time', subtitle: '45 min workout', color: '#00BCD4' },
+  { id: 8, icon: 'analytics', title: 'Weekly Progress', subtitle: '+5% strength gain', color: '#8BC34A' },
+];
+
+const AI_QUOTES = [
+  "You're 15% stronger than last month. Keep crushing it!",
+  "Consistency is key - 7 days streak is impressive!",
+  "Your form has improved 20%. Gains incoming!",
+  "You've hit 3 PRs this week. Unstoppable!",
+];
 
 // Simple circular progress component
 const ProgressRing = ({ progress = 0.7, size = 120 }) => {
@@ -50,125 +71,235 @@ const ProgressRing = ({ progress = 0.7, size = 120 }) => {
   );
 };
 
-const ActionButton = ({ 
-  title, 
-  subtitle, 
-  icon, 
-  onPress, 
-  gradient = false 
-}: {
-  title: string;
-  subtitle: string;
-  icon: string;
-  onPress: () => void;
-  gradient?: boolean;
-}) => {
-  if (gradient) {
-    return (
-      <TouchableOpacity style={styles.actionButton} onPress={onPress}>
-        <LinearGradient
-          colors={[COLORS.accent, COLORS.accentSecondary]}
-          style={styles.gradientButton}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-        >
-          <Ionicons name={icon as any} size={24} color={COLORS.white} />
-          <View style={styles.buttonTextContainer}>
-            <Text style={styles.buttonTitleGradient}>{title}</Text>
-            <Text style={styles.buttonSubtitleGradient}>{subtitle}</Text>
-          </View>
-        </LinearGradient>
-      </TouchableOpacity>
-    );
-  }
-
-  return (
-    <TouchableOpacity style={styles.actionButton} onPress={onPress}>
-      <View style={styles.regularButton}>
-        <Ionicons name={icon as any} size={24} color={COLORS.accent} />
-        <View style={styles.buttonTextContainer}>
-          <Text style={styles.buttonTitle}>{title}</Text>
-          <Text style={styles.buttonSubtitle}>{subtitle}</Text>
-        </View>
-      </View>
-    </TouchableOpacity>
-  );
-};
-
 export default function HomeScreen() {
+  const [expandedRing, setExpandedRing] = useState<string | null>(null);
+  const [modalVisible, setModalVisible] = useState(false);
+  const scrollX = useRef(new Animated.Value(0)).current;
+
+  const handleStartWorkout = () => {
+    router.push('/active-workout');
+    setModalVisible(false);
+  };
+
   return (
     <SafeAreaView style={styles.container}>
+      <AppHeader mode="fitness" />
+      
+      {/* Workout Details Modal */}
+      <WorkoutDetailsModal
+        visible={modalVisible}
+        onClose={() => setModalVisible(false)}
+        onStartWorkout={handleStartWorkout}
+      />
+      
       <ScrollView 
-        style={styles.scrollView}
-        showsVerticalScrollIndicator={false}
+        style={styles.scrollView} 
         contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
       >
-        {/* Logo Header */}
-        <View style={styles.logoHeader}>
-          <Image 
-            source={require('../../assets/images/thryvin-logo-small.png')}
-            style={styles.logo}
-            resizeMode="contain"
-          />
-          <TouchableOpacity style={styles.notificationButton}>
-            <Ionicons name="notifications-outline" size={24} color={COLORS.accent} />
-          </TouchableOpacity>
+        {/* Motivational Banner */}
+        <View style={styles.bannerContainer}>
+          <LinearGradient
+            colors={[COLORS.accent, COLORS.accentSecondary]}
+            style={styles.bannerGradient}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+          >
+            <View style={styles.bannerContent}>
+              <View style={styles.bannerLeft}>
+                <Text style={styles.bannerGreeting}>Hi Jake 👋</Text>
+                <Text style={styles.bannerQuote}>
+                  {AI_QUOTES[Math.floor(Math.random() * AI_QUOTES.length)]}
+                </Text>
+              </View>
+              <View style={styles.achievementBadge}>
+                <Ionicons name="trophy" size={28} color="#FFD700" />
+                <Text style={styles.badgeText}>+3</Text>
+              </View>
+            </View>
+          </LinearGradient>
         </View>
 
-        {/* Header */}
-        <View style={styles.header}>
-          <View>
-            <Text style={styles.welcomeText}>Welcome back, Jake 👋</Text>
-            <Text style={styles.subtitleText}>Ready to thrive today?</Text>
+        {/* Activity Cards - Horizontal Scroll */}
+        <View style={styles.activitySection}>
+          <Text style={styles.sectionTitle}>Recent Activity</Text>
+          <Animated.ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.activityScroll}
+            snapToInterval={SCREEN_WIDTH * 0.7 + 12}
+            decelerationRate="fast"
+            onScroll={Animated.event(
+              [{ nativeEvent: { contentOffset: { x: scrollX } } }],
+              { useNativeDriver: true }
+            )}
+            scrollEventThrottle={16}
+          >
+            {ACTIVITY_CARDS.map((card, index) => (
+              <TouchableOpacity
+                key={card.id}
+                style={styles.activityCard}
+                onPress={() => console.log('Card pressed:', card.title)}
+              >
+                <View style={[styles.activityIcon, { backgroundColor: `${card.color}20` }]}>
+                  <Ionicons name={card.icon as any} size={28} color={card.color} />
+                </View>
+                <Text style={styles.activityTitle}>{card.title}</Text>
+                <Text style={styles.activitySubtitle}>{card.subtitle}</Text>
+              </TouchableOpacity>
+            ))}
+          </Animated.ScrollView>
+        </View>
+
+        {/* Today's Workout Card */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Today's Workout</Text>
+          <View style={styles.workoutCard}>
+            <LinearGradient
+              colors={[`${COLORS.accent}15`, `${COLORS.accentSecondary}15`]}
+              style={styles.workoutCardGradient}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+            >
+              <View style={styles.workoutHeader}>
+                <View style={styles.workoutIconCircle}>
+                  <Ionicons name="barbell" size={32} color={COLORS.accent} />
+                </View>
+                <View style={styles.workoutInfo}>
+                  <Text style={styles.workoutName}>Upper Body Push</Text>
+                  <Text style={styles.workoutMeta}>45 min • 8 exercises • Intermediate</Text>
+                </View>
+              </View>
+              <Text style={styles.workoutDescription}>
+                Focus on chest, shoulders, and triceps with compound movements. Progressive overload focused session.
+              </Text>
+              <TouchableOpacity 
+                style={styles.startButton}
+                onPress={() => setModalVisible(true)}
+              >
+                <LinearGradient
+                  colors={[COLORS.accent, COLORS.accentSecondary]}
+                  style={styles.startGradient}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 1 }}
+                >
+                  <Ionicons name="play" size={20} color={COLORS.white} />
+                  <Text style={styles.startText}>Start Workout</Text>
+                </LinearGradient>
+              </TouchableOpacity>
+            </LinearGradient>
           </View>
         </View>
 
-        {/* Progress Ring */}
-        <View style={styles.progressSection}>
-          <ProgressRing progress={0.7} />
+        {/* Progress Rings */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Weekly Progress</Text>
+          <View style={styles.ringsContainer}>
+            <TouchableOpacity
+              style={styles.ringCard}
+              onPress={() => setExpandedRing(expandedRing === 'calories' ? null : 'calories')}
+            >
+              <View style={styles.ringCircle}>
+                <View style={[styles.ringProgress, { borderColor: COLORS.accent, borderTopColor: 'transparent' }]} />
+                <View style={styles.ringCenter}>
+                  <Text style={styles.ringValue}>78%</Text>
+                </View>
+              </View>
+              <Text style={styles.ringLabel}>Calories</Text>
+              {expandedRing === 'calories' && (
+                <View style={styles.ringDetail}>
+                  <Text style={styles.ringDetailText}>1,890 / 2,400 cal</Text>
+                </View>
+              )}
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.ringCard}
+              onPress={() => setExpandedRing(expandedRing === 'workouts' ? null : 'workouts')}
+            >
+              <View style={styles.ringCircle}>
+                <View style={[styles.ringProgress, { borderColor: COLORS.accentSecondary, borderTopColor: 'transparent', transform: [{ rotate: '90deg' }] }]} />
+                <View style={styles.ringCenter}>
+                  <Text style={styles.ringValue}>5/7</Text>
+                </View>
+              </View>
+              <Text style={styles.ringLabel}>Workouts</Text>
+              {expandedRing === 'workouts' && (
+                <View style={styles.ringDetail}>
+                  <Text style={styles.ringDetailText}>71% complete</Text>
+                </View>
+              )}
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.ringCard}
+              onPress={() => setExpandedRing(expandedRing === 'protein' ? null : 'protein')}
+            >
+              <View style={styles.ringCircle}>
+                <View style={[styles.ringProgress, { borderColor: '#4CAF50', borderTopColor: 'transparent', transform: [{ rotate: '180deg' }] }]} />
+                <View style={styles.ringCenter}>
+                  <Text style={styles.ringValue}>92%</Text>
+                </View>
+              </View>
+              <Text style={styles.ringLabel}>Protein</Text>
+              {expandedRing === 'protein' && (
+                <View style={styles.ringDetail}>
+                  <Text style={styles.ringDetailText}>138 / 150g</Text>
+                </View>
+              )}
+            </TouchableOpacity>
+          </View>
         </View>
 
-        {/* Action Buttons */}
-        <View style={styles.actionsSection}>
-          <Text style={styles.sectionTitle}>Quick Actions</Text>
+        {/* PBs Chart */}
+        <View style={styles.section}>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>Personal Bests</Text>
+            <TouchableOpacity onPress={() => router.push('/(tabs)/stats')}>
+              <Text style={styles.seeMoreText}>See More →</Text>
+            </TouchableOpacity>
+          </View>
           
-          <ActionButton
-            title="Start Workout"
-            subtitle="AI-powered training"
-            icon="fitness"
-            gradient={true}
-            onPress={() => router.push('/(tabs)/workouts')}
-          />
-          
-          <ActionButton
-            title="View Stats"
-            subtitle="Track your progress"
-            icon="bar-chart"
-            onPress={() => router.push('/(tabs)/stats')}
-          />
-          
-          <ActionButton
-            title="Check Nutrition"
-            subtitle="Meal planning & macros"
-            icon="restaurant"
-            onPress={() => {
-              // Stubbed for later - nutrition will be added
-              console.log('Nutrition feature coming soon!');
-            }}
-          />
-        </View>
+          <View style={styles.pbsContainer}>
+            <View style={styles.pbCard}>
+              <View style={styles.pbHeader}>
+                <Ionicons name="barbell" size={24} color={COLORS.accent} />
+                <Text style={styles.pbName}>Bench Press</Text>
+              </View>
+              <Text style={styles.pbValue}>225 lbs</Text>
+              <View style={styles.pbProgress}>
+                <View style={[styles.pbBar, { width: '85%', backgroundColor: COLORS.accent }]} />
+              </View>
+              <Text style={styles.pbDate}>2 days ago • +5 lbs</Text>
+            </View>
 
-        {/* Recent Activity Placeholder */}
-        <View style={styles.recentSection}>
-          <Text style={styles.sectionTitle}>Recent Activity</Text>
-          <View style={styles.activityCard}>
-            <Ionicons name="checkmark-circle" size={32} color={COLORS.accent} />
-            <View style={styles.activityText}>
-              <Text style={styles.activityTitle}>Upper Body Strength</Text>
-              <Text style={styles.activitySubtitle}>Yesterday • 45 min</Text>
+            <View style={styles.pbCard}>
+              <View style={styles.pbHeader}>
+                <Ionicons name="barbell" size={24} color={COLORS.accentSecondary} />
+                <Text style={styles.pbName}>Squat</Text>
+              </View>
+              <Text style={styles.pbValue}>315 lbs</Text>
+              <View style={styles.pbProgress}>
+                <View style={[styles.pbBar, { width: '92%', backgroundColor: COLORS.accentSecondary }]} />
+              </View>
+              <Text style={styles.pbDate}>5 days ago • +10 lbs</Text>
+            </View>
+
+            <View style={styles.pbCard}>
+              <View style={styles.pbHeader}>
+                <Ionicons name="barbell" size={24} color="#4CAF50" />
+                <Text style={styles.pbName}>Deadlift</Text>
+              </View>
+              <Text style={styles.pbValue}>405 lbs</Text>
+              <View style={styles.pbProgress}>
+                <View style={[styles.pbBar, { width: '98%', backgroundColor: '#4CAF50' }]} />
+              </View>
+              <Text style={styles.pbDate}>1 week ago • +15 lbs</Text>
             </View>
           </View>
         </View>
+
+        {/* Removed old action buttons section */}
       </ScrollView>
     </SafeAreaView>
   );
@@ -183,34 +314,175 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scrollContent: {
-    paddingBottom: 32,
+    paddingBottom: 120,
   },
-  logoHeader: {
+  
+  // Banner
+  bannerContainer: {
+    paddingHorizontal: 20,
+    paddingTop: 16,
+    paddingBottom: 20,
+  },
+  bannerGradient: {
+    borderRadius: 20,
+    padding: 20,
+    shadowColor: COLORS.shadow,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 6,
+  },
+  bannerContent: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+  },
+  bannerLeft: {
+    flex: 1,
+    marginRight: 12,
+  },
+  bannerGreeting: {
+    fontSize: 22,
+    fontWeight: '700',
+    color: COLORS.white,
+    marginBottom: 8,
+  },
+  bannerQuote: {
+    fontSize: 14,
+    color: 'rgba(255, 255, 255, 0.95)',
+    lineHeight: 20,
+  },
+  achievementBadge: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  badgeText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: COLORS.white,
+    marginTop: 2,
+  },
+  
+  // Activity Cards
+  activitySection: {
+    marginBottom: 24,
+  },
+  activityScroll: {
+    paddingHorizontal: 20,
+    gap: 12,
+  },
+  activityCard: {
+    width: SCREEN_WIDTH * 0.7,
+    backgroundColor: COLORS.lightGray,
+    borderRadius: 16,
+    padding: 16,
+  },
+  activityIcon: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  activityTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: COLORS.text,
+    marginBottom: 4,
+  },
+  activitySubtitle: {
+    fontSize: 13,
+    color: COLORS.mediumGray,
+  },
+  // Section Headers
+  section: {
+    paddingHorizontal: 20,
+    marginBottom: 24,
+  },
+  sectionTitle: {
+    fontSize: 20,
+    fontWeight: '600',
+    color: COLORS.text,
+    marginBottom: 16,
+  },
+  sectionHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 24,
-    paddingTop: 16,
-    paddingBottom: 12,
+    marginBottom: 16,
   },
-  logo: {
-    width: 150,
-    height: 45,
+  seeMoreText: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: COLORS.accent,
   },
-  header: {
-    paddingHorizontal: 24,
-    paddingBottom: 24,
+  
+  // Today's Workout
+  workoutCard: {
+    borderRadius: 20,
+    overflow: 'hidden',
+    shadowColor: COLORS.shadow,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 4,
   },
-  welcomeText: {
-    fontSize: 28,
+  workoutCardGradient: {
+    padding: 20,
+  },
+  workoutHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  workoutIconCircle: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: COLORS.white,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 16,
+  },
+  workoutInfo: {
+    flex: 1,
+  },
+  workoutName: {
+    fontSize: 20,
     fontWeight: '700',
     color: COLORS.text,
     marginBottom: 4,
   },
-  subtitleText: {
-    fontSize: 16,
+  workoutMeta: {
+    fontSize: 13,
     color: COLORS.mediumGray,
-    fontWeight: '400',
+  },
+  workoutDescription: {
+    fontSize: 14,
+    color: COLORS.text,
+    lineHeight: 20,
+    marginBottom: 16,
+  },
+  startButton: {
+    borderRadius: 12,
+    overflow: 'hidden',
+  },
+  startGradient: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 14,
+    gap: 8,
+  },
+  startText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: COLORS.white,
   },
   notificationButton: {
     width: 44,
@@ -260,93 +532,95 @@ const styles = StyleSheet.create({
     color: COLORS.mediumGray,
     marginTop: 2,
   },
-  actionsSection: {
-    paddingHorizontal: 24,
-    marginBottom: 32,
+  // Removed all duplicate styles - keeping comprehensive versions at top of StyleSheet
+  ringsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
   },
-  sectionTitle: {
+  ringCard: {
+    alignItems: 'center',
+  },
+  ringCircle: {
+    width: 90,
+    height: 90,
+    justifyContent: 'center',
+    alignItems: 'center',
+    position: 'relative',
+  },
+  ringProgress: {
+    position: 'absolute',
+    width: 90,
+    height: 90,
+    borderRadius: 45,
+    borderWidth: 8,
+  },
+  ringCenter: {
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  ringValue: {
     fontSize: 20,
-    fontWeight: '600',
+    fontWeight: '700',
     color: COLORS.text,
-    marginBottom: 16,
   },
-  actionButton: {
-    marginBottom: 16,
-    borderRadius: 16,
-    shadowColor: COLORS.shadow,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 4,
-  },
-  gradientButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 20,
-    borderRadius: 16,
-  },
-  regularButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 20,
-    borderRadius: 16,
-    backgroundColor: COLORS.white,
-    borderWidth: 1,
-    borderColor: COLORS.lightGray,
-  },
-  buttonTextContainer: {
-    marginLeft: 16,
-    flex: 1,
-  },
-  buttonTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: COLORS.text,
-    marginBottom: 2,
-  },
-  buttonSubtitle: {
-    fontSize: 14,
+  ringLabel: {
+    fontSize: 13,
     color: COLORS.mediumGray,
+    marginTop: 8,
+    fontWeight: '500',
   },
-  buttonTitleGradient: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: COLORS.white,
-    marginBottom: 2,
+  ringDetail: {
+    marginTop: 8,
+    backgroundColor: COLORS.lightGray,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 8,
   },
-  buttonSubtitleGradient: {
-    fontSize: 14,
-    color: 'rgba(255, 255, 255, 0.8)',
+  ringDetailText: {
+    fontSize: 12,
+    color: COLORS.text,
+    fontWeight: '500',
   },
-  recentSection: {
-    paddingHorizontal: 24,
+  
+  // PBs
+  pbsContainer: {
+    gap: 12,
   },
-  activityCard: {
+  pbCard: {
+    backgroundColor: COLORS.lightGray,
+    borderRadius: 16,
+    padding: 16,
+  },
+  pbHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 20,
-    backgroundColor: COLORS.white,
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: COLORS.lightGray,
-    shadowColor: COLORS.shadow,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
+    marginBottom: 12,
+    gap: 10,
   },
-  activityText: {
-    marginLeft: 16,
-    flex: 1,
-  },
-  activityTitle: {
+  pbName: {
     fontSize: 16,
     fontWeight: '600',
     color: COLORS.text,
-    marginBottom: 2,
   },
-  activitySubtitle: {
-    fontSize: 14,
+  pbValue: {
+    fontSize: 32,
+    fontWeight: '700',
+    color: COLORS.text,
+    marginBottom: 12,
+  },
+  pbProgress: {
+    height: 8,
+    backgroundColor: COLORS.white,
+    borderRadius: 4,
+    overflow: 'hidden',
+    marginBottom: 8,
+  },
+  pbBar: {
+    height: '100%',
+    borderRadius: 4,
+  },
+  pbDate: {
+    fontSize: 12,
     color: COLORS.mediumGray,
   },
 });

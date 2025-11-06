@@ -12,6 +12,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
+import { PINSetup } from '../../src/components/PINSetup';
 
 const COLORS = {
   accent: '#a259ff',
@@ -97,6 +98,7 @@ export default function ProfileScreen() {
   const [notifications, setNotifications] = useState(true);
   const [workoutReminders, setWorkoutReminders] = useState(true);
   const [analytics, setAnalytics] = useState(false);
+  const [showPINSetup, setShowPINSetup] = useState(false);
 
   const handleLogout = () => {
     Alert.alert(
@@ -202,6 +204,24 @@ export default function ProfileScreen() {
         </View>
 
         <View style={styles.menuSection}>
+          <Text style={styles.sectionTitle}>Security</Text>
+          <View style={styles.menuContainer}>
+            <MenuButton
+              icon="keypad"
+              title="Set PIN Code"
+              subtitle="Quick login with 6-digit PIN"
+              onPress={() => setShowPINSetup(true)}
+            />
+            <MenuButton
+              icon="finger-print"
+              title="Biometric Login"
+              subtitle="Manage Face ID / Touch ID"
+              onPress={() => console.log('Biometric settings')}
+            />
+          </View>
+        </View>
+
+        <View style={styles.menuSection}>
           <Text style={styles.sectionTitle}>Notifications</Text>
           <View style={styles.menuContainer}>
             <SettingToggle
@@ -280,6 +300,16 @@ export default function ProfileScreen() {
         {/* App Version */}
         <Text style={styles.versionText}>Thryvin v1.0.0</Text>
       </ScrollView>
+
+      {/* PIN Setup Modal */}
+      <PINSetup
+        visible={showPINSetup}
+        onClose={() => setShowPINSetup(false)}
+        onSuccess={() => {
+          setShowPINSetup(false);
+          Alert.alert('Success', 'PIN has been set successfully!');
+        }}
+      />
     </SafeAreaView>
   );
 }

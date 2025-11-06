@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { 
   View, 
   Text, 
@@ -10,10 +10,11 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
-import { useWorkouts } from '../../store/workoutsStore';
-import { format } from 'date-fns';
+import { useRouter } from 'expo-router';
+import { AppHeader } from '../../src/components/AppHeader';
+import { WorkoutDetailsModal } from '../../src/components/WorkoutDetailsModal';
 
-const { width } = Dimensions.get('window');
+const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 const COLORS = {
   accent: '#a259ff',
@@ -24,188 +25,260 @@ const COLORS = {
   mediumGray: '#8E8E93',
   shadow: 'rgba(162, 89, 255, 0.1)',
   success: '#34C759',
+  incomplete: '#D1D1D6',
 };
 
+// Mock calendar data with workout status
+const WEEK_DAYS = [
+  { day: 'Mon', date: 21, status: 'completed' },
+  { day: 'Tue', date: 22, status: 'completed' },
+  { day: 'Wed', date: 23, status: 'today' },
+  { day: 'Thu', date: 24, status: 'upcoming' },
+  { day: 'Fri', date: 25, status: 'upcoming' },
+  { day: 'Sat', date: 26, status: 'upcoming' },
+  { day: 'Sun', date: 27, status: 'upcoming' },
+];
+
+// Mock month data (October 2024)
+const MONTH_DATA = [
+  [null, 1, 2, 3, 4, 5, 6],
+  [7, 8, 9, 10, 11, 12, 13],
+  [14, 15, 16, 17, 18, 19, 20],
+  [21, 22, 23, 24, 25, 26, 27],
+  [28, 29, 30, 31, null, null, null],
+];
+
+const MONTH_STATUS: any = {
+  21: 'completed', 22: 'completed', 23: 'today',
+  24: 'upcoming', 25: 'upcoming', 26: 'upcoming', 27: 'upcoming',
+  14: 'completed', 15: 'incomplete', 16: 'completed',
+};
+
+// Workout categories for explore section
+const WORKOUT_CATEGORIES = [
+  { id: 1, name: 'Aesthetics', icon: 'body', color: '#a259ff', workouts: 24 },
+  { id: 2, name: 'Yoga', icon: 'leaf', color: '#4CAF50', workouts: 18 },
+  { id: 3, name: 'HIIT', icon: 'flame', color: '#FF5252', workouts: 32 },
+  { id: 4, name: 'Strength', icon: 'barbell', color: '#2196F3', workouts: 41 },
+  { id: 5, name: 'Cardio', icon: 'heart', color: '#FF9800', workouts: 28 },
+  { id: 6, name: 'Flexibility', icon: 'fitness', color: '#9C27B0', workouts: 15 },
+];
+
 export default function WorkoutsScreen() {
-  const [selectedType, setSelectedType] = useState('all');
-  const { 
-    week, 
-    today,
-    loading, 
-    generating,
-    error,
-    loadWeek, 
-    loadToday,
-    generateAndPoll
-  } = useWorkouts();
+  const router = useRouter();
+  const [calendarView, setCalendarView] = useState<'week' | 'month'>('week');
+  const [selectedDate, setSelectedDate] = useState(23);
+  const [modalVisible, setModalVisible] = useState(false);
 
-  useEffect(() => {
-    loadWeek();
-  }, []);
+  const handleStartWorkout = () => {
+    router.push('/active-workout');
+    setModalVisible(false);
+  };
 
-  const workoutTypes = [
-    { key: 'all', label: 'All', icon: 'fitness' },
-    { key: 'strength', label: 'Strength', icon: 'barbell' },
-    { key: 'cardio', label: 'Cardio', icon: 'heart' },
-    { key: 'flexibility', label: 'Flexibility', icon: 'body' },
-  ];
+  const handleDayPress = (date: number) => {
+    setSelectedDate(date);
+    setModalVisible(true);
+  };
 
-  const handleGenerateWorkout = async () => {
-    const todayDate = format(new Date(), 'yyyy-MM-dd');
-    try {
-      await generateAndPoll(todayDate);
-      await loadWeek(); // Refresh the week view
-    } catch (error) {
-      console.error('Failed to generate workout:', error);
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'completed': return COLORS.success;
+      case 'upcoming': return COLORS.accent;
+      case 'incomplete': return COLORS.incomplete;
+      case 'today': return COLORS.accentSecondary;
+      default: return COLORS.mediumGray;
     }
   };
-  const WorkoutCard = ({ workout }: { workout: any }) => (
-    <View style={styles.workoutCard}>
-      <View style={styles.workoutHeader}>
-        <View style={styles.workoutInfo}>
-          <Text style={styles.workoutTitle}>{workout.title || 'Custom Workout'}</Text>
-          <Text style={styles.workoutDate}>
-            {format(new Date(workout.date), 'EEEE, MMM d')}
-          </Text>
-        </View>
-        <View style={[
-          styles.statusBadge,
-          workout.status === 'completed' && styles.completedBadge
-        ]}>
-          <Text style={[
-            styles.statusText,
-            workout.status === 'completed' && styles.completedText
-          ]}>
-            {workout.status}
-          </Text>
-        </View>
-      </View>
-      
-      {workout.exercises && workout.exercises.length > 0 && (
-        <View style={styles.exercisesPreview}>
-          <Text style={styles.exercisesLabel}>
-            {workout.exercises.length} exercises
-          </Text>
-          {workout.exercises.slice(0, 2).map((exercise: any, index: number) => (
-            <Text key={index} style={styles.exerciseItem}>
-              • {exercise.name}
-            </Text>
-          ))}
-          {workout.exercises.length > 2 && (
-            <Text style={styles.moreExercises}>
-              +{workout.exercises.length - 2} more
-            </Text>
-          )}
-        </View>
-      )}
-      
-      <TouchableOpacity style={styles.startButton} onPress={() => console.log('Start workout')}>
-        <LinearGradient
-          colors={[COLORS.accent, COLORS.accentSecondary]}
-          style={styles.startButtonGradient}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-        >
-          <Text style={styles.startButtonText}>
-            {workout.status === 'completed' ? 'View Details' : 'Start Workout'}
-          </Text>
-        </LinearGradient>
-      </TouchableOpacity>
-    </View>
-  );
 
   return (
     <SafeAreaView style={styles.container}>
-      {/* Header */}
-      <View style={styles.header}>
-        <Text style={styles.title}>Workouts</Text>
-        <TouchableOpacity style={styles.filterButton}>
-          <Ionicons name="options" size={20} color={COLORS.accent} />
-        </TouchableOpacity>
-      </View>
-
-      {/* Workout Type Filter */}
+      <AppHeader mode="fitness" />
+      
+      {/* Workout Details Modal */}
+      <WorkoutDetailsModal
+        visible={modalVisible}
+        onClose={() => setModalVisible(false)}
+        onStartWorkout={handleStartWorkout}
+      />
+      
       <ScrollView 
-        horizontal 
-        showsHorizontalScrollIndicator={false}
-        style={styles.filterScrollView}
-        contentContainerStyle={styles.filterContainer}
-      >
-        {workoutTypes.map((type) => (
-          <TouchableOpacity
-            key={type.key}
-            style={[
-              styles.typeButton,
-              selectedType === type.key && styles.selectedTypeButton
-            ]}
-            onPress={() => setSelectedType(type.key)}
-          >
-            {selectedType === type.key ? (
-              <LinearGradient
-                colors={[COLORS.accent, COLORS.accentSecondary]}
-                style={styles.typeButtonGradient}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 1 }}
-              >
-                <Ionicons name={type.icon as any} size={16} color={COLORS.white} />
-                <Text style={styles.selectedTypeButtonText}>{type.label}</Text>
-              </LinearGradient>
-            ) : (
-              <View style={styles.typeButtonContent}>
-                <Ionicons name={type.icon as any} size={16} color={COLORS.accent} />
-                <Text style={styles.typeButtonText}>{type.label}</Text>
-              </View>
-            )}
-          </TouchableOpacity>
-        ))}
-      </ScrollView>
-
-      {/* Generate Workout Button */}
-      <View style={styles.generateSection}>
-        <TouchableOpacity 
-          style={styles.generateButton} 
-          onPress={handleGenerateWorkout}
-          disabled={loading || generating}
-        >
-          <LinearGradient
-            colors={[COLORS.accent, COLORS.accentSecondary]}
-            style={styles.generateGradient}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-          >
-            <Ionicons 
-              name={(loading || generating) ? "hourglass" : "sparkles"} 
-              size={20} 
-              color={COLORS.white} 
-            />
-            <Text style={styles.generateText}>
-              {(loading || generating) ? 'Generating...' : 'Generate AI Workout'}
-            </Text>
-          </LinearGradient>
-        </TouchableOpacity>
-      </View>
-
-      {/* Workouts List */}
-      <ScrollView 
-        style={styles.workoutsList} 
+        style={styles.scrollView}
+        contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.workoutsContent}
       >
-        {week && week.length > 0 ? (
-          week.map((workout) => (
-            <WorkoutCard key={workout.date} workout={workout} />
-          ))
-        ) : (
-          <View style={styles.emptyState}>
-            <View style={styles.emptyIcon}>
-              <Ionicons name="fitness-outline" size={48} color={COLORS.accent} />
-            </View>
-            <Text style={styles.emptyStateTitle}>Ready to start training?</Text>
-            <Text style={styles.emptyStateText}>
-              Generate your first AI-powered workout tailored to your goals
-            </Text>
+        {/* Today's Workout Card - Same as Home */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Today's Workout</Text>
+          <View style={styles.workoutCard}>
+            <LinearGradient
+              colors={[`${COLORS.accent}15`, `${COLORS.accentSecondary}15`]}
+              style={styles.workoutCardGradient}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+            >
+              <View style={styles.workoutHeader}>
+                <View style={styles.workoutIconCircle}>
+                  <Ionicons name="barbell" size={32} color={COLORS.accent} />
+                </View>
+                <View style={styles.workoutInfo}>
+                  <Text style={styles.workoutName}>Upper Body Push</Text>
+                  <Text style={styles.workoutMeta}>45 min • 8 exercises • Intermediate</Text>
+                </View>
+              </View>
+              <Text style={styles.workoutDescription}>
+                Focus on chest, shoulders, and triceps with compound movements.
+              </Text>
+              <TouchableOpacity 
+                style={styles.startButton}
+                onPress={() => setModalVisible(true)}
+              >
+                <LinearGradient
+                  colors={[COLORS.accent, COLORS.accentSecondary]}
+                  style={styles.startGradient}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 1 }}
+                >
+                  <Ionicons name="play" size={20} color={COLORS.white} />
+                  <Text style={styles.startText}>Start Workout</Text>
+                </LinearGradient>
+              </TouchableOpacity>
+            </LinearGradient>
           </View>
-        )}
+        </View>
+
+        {/* Calendar Section */}
+        <View style={styles.section}>
+          <View style={styles.calendarHeader}>
+            <Text style={styles.sectionTitle}>Workout Schedule</Text>
+            <TouchableOpacity
+              style={styles.viewToggle}
+              onPress={() => setCalendarView(calendarView === 'week' ? 'month' : 'week')}
+            >
+              <Text style={styles.viewToggleText}>
+                {calendarView === 'week' ? 'Month' : 'Week'}
+              </Text>
+              <Ionicons name="chevron-down" size={16} color={COLORS.accent} />
+            </TouchableOpacity>
+          </View>
+
+          {calendarView === 'week' ? (
+            /* Weekly Calendar */
+            <View style={styles.weekCalendar}>
+              {WEEK_DAYS.map((day, index) => (
+                <TouchableOpacity
+                  key={index}
+                  style={[
+                    styles.dayCard,
+                    day.status === 'today' && styles.dayCardToday,
+                  ]}
+                  onPress={() => handleDayPress(day.date)}
+                >
+                  {day.status === 'today' && (
+                    <LinearGradient
+                      colors={[COLORS.accent, COLORS.accentSecondary]}
+                      style={StyleSheet.absoluteFill}
+                      start={{ x: 0, y: 0 }}
+                      end={{ x: 1, y: 1 }}
+                    />
+                  )}
+                  <Text style={[
+                    styles.dayText,
+                    day.status === 'today' && styles.dayTextActive
+                  ]}>
+                    {day.day}
+                  </Text>
+                  <Text style={[
+                    styles.dateText,
+                    day.status === 'today' && styles.dateTextActive
+                  ]}>
+                    {day.date}
+                  </Text>
+                  <View style={[styles.statusDot, { backgroundColor: getStatusColor(day.status) }]} />
+                </TouchableOpacity>
+              ))}
+            </View>
+          ) : (
+            /* Monthly Calendar */
+            <View style={styles.monthCalendar}>
+              <View style={styles.monthHeader}>
+                <Text style={styles.monthTitle}>October 2024</Text>
+              </View>
+              <View style={styles.weekdaysRow}>
+                {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day) => (
+                  <Text key={day} style={styles.weekdayLabel}>{day}</Text>
+                ))}
+              </View>
+              {MONTH_DATA.map((week, weekIndex) => (
+                <View key={weekIndex} style={styles.monthWeekRow}>
+                  {week.map((date, dayIndex) => (
+                    <TouchableOpacity
+                      key={dayIndex}
+                      style={[
+                        styles.monthDayCell,
+                        !date && styles.monthDayCellEmpty,
+                        date === selectedDate && styles.monthDayCellSelected,
+                      ]}
+                      onPress={() => date && handleDayPress(date)}
+                      disabled={!date}
+                    >
+                      {date === selectedDate && (
+                        <LinearGradient
+                          colors={[COLORS.accent, COLORS.accentSecondary]}
+                          style={StyleSheet.absoluteFill}
+                          start={{ x: 0, y: 0 }}
+                          end={{ x: 1, y: 1 }}
+                        />
+                      )}
+                      {date && (
+                        <>
+                          <Text style={[
+                            styles.monthDayText,
+                            date === selectedDate && styles.monthDayTextActive
+                          ]}>
+                            {date}
+                          </Text>
+                          {MONTH_STATUS[date] && (
+                            <View style={[
+                              styles.monthDayDot,
+                              { backgroundColor: getStatusColor(MONTH_STATUS[date]) }
+                            ]} />
+                          )}
+                        </>
+                      )}
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              ))}
+            </View>
+          )}
+        </View>
+
+        {/* Explore Workouts Section */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Explore Workouts</Text>
+          <View style={styles.categoriesGrid}>
+            {WORKOUT_CATEGORIES.map((category) => (
+              <TouchableOpacity
+                key={category.id}
+                style={styles.categoryCard}
+                onPress={() => console.log('Category:', category.name)}
+              >
+                <LinearGradient
+                  colors={[`${category.color}20`, `${category.color}10`]}
+                  style={styles.categoryGradient}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 1 }}
+                >
+                  <View style={[styles.categoryIcon, { backgroundColor: `${category.color}30` }]}>
+                    <Ionicons name={category.icon as any} size={28} color={category.color} />
+                  </View>
+                  <Text style={styles.categoryName}>{category.name}</Text>
+                  <Text style={styles.categoryCount}>{category.workouts} workouts</Text>
+                </LinearGradient>
+              </TouchableOpacity>
+            ))}
+          </View>
+        </View>
       </ScrollView>
     </SafeAreaView>
   );
@@ -216,206 +289,254 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: COLORS.white,
   },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 24,
-    paddingTop: 16,
-    paddingBottom: 24,
+  scrollView: {
+    flex: 1,
   },
-  title: {
-    fontSize: 28,
-    fontWeight: '700',
+  scrollContent: {
+    paddingBottom: 120,
+  },
+  section: {
+    paddingHorizontal: 20,
+    marginBottom: 28,
+  },
+  sectionTitle: {
+    fontSize: 20,
+    fontWeight: '600',
     color: COLORS.text,
+    marginBottom: 16,
   },
-  filterButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: COLORS.lightGray,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  filterScrollView: {
-    paddingLeft: 24,
-    marginBottom: 20,
-  },
-  filterContainer: {
-    paddingRight: 24,
-  },
-  typeButton: {
-    marginRight: 12,
+  
+  // Today's Workout Card
+  workoutCard: {
     borderRadius: 20,
-    overflow: 'hidden',
-  },
-  selectedTypeButton: {},
-  typeButtonGradient: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-  },
-  typeButtonContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    backgroundColor: COLORS.lightGray,
-    borderRadius: 20,
-  },
-  typeButtonText: {
-    marginLeft: 8,
-    fontSize: 14,
-    fontWeight: '500',
-    color: COLORS.accent,
-  },
-  selectedTypeButtonText: {
-    marginLeft: 8,
-    fontSize: 14,
-    fontWeight: '500',
-    color: COLORS.white,
-  },
-  generateSection: {
-    paddingHorizontal: 24,
-    marginBottom: 24,
-  },
-  generateButton: {
-    borderRadius: 16,
     overflow: 'hidden',
     shadowColor: COLORS.shadow,
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
+    shadowOpacity: 0.2,
     shadowRadius: 8,
-    elevation: 6,
+    elevation: 4,
   },
-  generateGradient: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 16,
-    paddingHorizontal: 24,
-  },
-  generateText: {
-    marginLeft: 12,
-    fontSize: 16,
-    fontWeight: '600',
-    color: COLORS.white,
-  },
-  workoutsList: {
-    flex: 1,
-  },
-  workoutsContent: {
-    paddingHorizontal: 24,
-    paddingBottom: 32,
-  },
-  workoutCard: {
-    backgroundColor: COLORS.white,
-    borderRadius: 16,
+  workoutCardGradient: {
     padding: 20,
-    marginBottom: 16,
-    borderWidth: 1,
-    borderColor: COLORS.lightGray,
-    shadowColor: COLORS.shadow,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 3,
   },
   workoutHeader: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
+    alignItems: 'center',
     marginBottom: 16,
+  },
+  workoutIconCircle: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: COLORS.white,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 16,
   },
   workoutInfo: {
     flex: 1,
   },
-  workoutTitle: {
-    fontSize: 18,
-    fontWeight: '600',
+  workoutName: {
+    fontSize: 20,
+    fontWeight: '700',
     color: COLORS.text,
     marginBottom: 4,
   },
-  workoutDate: {
+  workoutMeta: {
+    fontSize: 13,
+    color: COLORS.mediumGray,
+  },
+  workoutDescription: {
     fontSize: 14,
-    color: COLORS.mediumGray,
-  },
-  statusBadge: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 12,
-    backgroundColor: COLORS.lightGray,
-  },
-  completedBadge: {
-    backgroundColor: `${COLORS.success}20`,
-  },
-  statusText: {
-    fontSize: 12,
-    fontWeight: '500',
-    color: COLORS.mediumGray,
-    textTransform: 'capitalize',
-  },
-  completedText: {
-    color: COLORS.success,
-  },
-  exercisesPreview: {
+    color: COLORS.text,
+    lineHeight: 20,
     marginBottom: 16,
-  },
-  exercisesLabel: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: COLORS.text,
-    marginBottom: 8,
-  },
-  exerciseItem: {
-    fontSize: 14,
-    color: COLORS.mediumGray,
-    marginBottom: 4,
-  },
-  moreExercises: {
-    fontSize: 14,
-    color: COLORS.accent,
-    fontWeight: '500',
   },
   startButton: {
     borderRadius: 12,
     overflow: 'hidden',
   },
-  startButtonGradient: {
-    paddingVertical: 12,
+  startGradient: {
+    flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 14,
+    gap: 8,
   },
-  startButtonText: {
-    fontSize: 14,
+  startText: {
+    fontSize: 16,
     fontWeight: '600',
     color: COLORS.white,
   },
-  emptyState: {
+  
+  // Calendar
+  calendarHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: 60,
-    paddingHorizontal: 40,
+    marginBottom: 16,
   },
-  emptyIcon: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: `${COLORS.accent}10`,
-    justifyContent: 'center',
+  viewToggle: {
+    flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 24,
+    backgroundColor: COLORS.lightGray,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 12,
+    gap: 6,
   },
-  emptyStateTitle: {
-    fontSize: 20,
+  viewToggleText: {
+    fontSize: 14,
     fontWeight: '600',
+    color: COLORS.accent,
+  },
+  
+  // Week Calendar
+  weekCalendar: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    gap: 8,
+  },
+  dayCard: {
+    flex: 1,
+    backgroundColor: COLORS.lightGray,
+    borderRadius: 16,
+    paddingVertical: 16,
+    alignItems: 'center',
+    position: 'relative',
+    overflow: 'hidden',
+  },
+  dayCardToday: {
+    backgroundColor: COLORS.accent,
+  },
+  dayText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: COLORS.mediumGray,
+    marginBottom: 8,
+  },
+  dayTextActive: {
+    color: COLORS.white,
+    zIndex: 1,
+  },
+  dateText: {
+    fontSize: 18,
+    fontWeight: '700',
     color: COLORS.text,
     marginBottom: 8,
+  },
+  dateTextActive: {
+    color: COLORS.white,
+    zIndex: 1,
+  },
+  statusDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    zIndex: 1,
+  },
+  
+  // Month Calendar
+  monthCalendar: {
+    backgroundColor: COLORS.lightGray,
+    borderRadius: 20,
+    padding: 16,
+  },
+  monthHeader: {
+    marginBottom: 16,
+  },
+  monthTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: COLORS.text,
     textAlign: 'center',
   },
-  emptyStateText: {
-    fontSize: 16,
+  weekdaysRow: {
+    flexDirection: 'row',
+    marginBottom: 12,
+  },
+  weekdayLabel: {
+    flex: 1,
+    fontSize: 12,
+    fontWeight: '600',
     color: COLORS.mediumGray,
     textAlign: 'center',
-    lineHeight: 22,
+  },
+  monthWeekRow: {
+    flexDirection: 'row',
+    marginBottom: 8,
+  },
+  monthDayCell: {
+    flex: 1,
+    aspectRatio: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRadius: 12,
+    backgroundColor: COLORS.white,
+    marginHorizontal: 2,
+    position: 'relative',
+    overflow: 'hidden',
+  },
+  monthDayCellEmpty: {
+    backgroundColor: 'transparent',
+  },
+  monthDayCellSelected: {
+    backgroundColor: COLORS.accent,
+  },
+  monthDayText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: COLORS.text,
+    zIndex: 1,
+  },
+  monthDayTextActive: {
+    color: COLORS.white,
+  },
+  monthDayDot: {
+    width: 4,
+    height: 4,
+    borderRadius: 2,
+    position: 'absolute',
+    bottom: 6,
+    zIndex: 1,
+  },
+  
+  // Explore Categories
+  categoriesGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 12,
+  },
+  categoryCard: {
+    width: (SCREEN_WIDTH - 52) / 2,
+    borderRadius: 16,
+    overflow: 'hidden',
+    shadowColor: COLORS.shadow,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  categoryGradient: {
+    padding: 20,
+    alignItems: 'center',
+  },
+  categoryIcon: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  categoryName: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: COLORS.text,
+    marginBottom: 4,
+  },
+  categoryCount: {
+    fontSize: 13,
+    color: COLORS.mediumGray,
   },
 });

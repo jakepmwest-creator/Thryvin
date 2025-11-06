@@ -200,6 +200,30 @@ frontend:
           agent: "main"
           comment: "Downloaded logo, removed black background using ImageMagick, created transparent PNG versions. Integrated into Home screen header and splash screen."
 
+  - task: "Workout Details Modal Integration"
+    implemented: true
+    working: true
+    file: "/app/apps/native/app/(tabs)/index.tsx, /app/apps/native/app/(tabs)/workouts.tsx, /app/apps/native/src/components/WorkoutDetailsModal.tsx"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: true
+          agent: "main"
+          comment: "Integrated WorkoutDetailsModal into Home and Workouts screens. Modal opens on 'Start Workout' button clicks and calendar day clicks. Modal's 'Start Workout' button navigates to active-workout.tsx. State management with useState for modal visibility. Calendar day selection triggers modal with corresponding workout data."
+
+  - task: "Active Workout Navigation"
+    implemented: true
+    working: true
+    file: "/app/apps/native/app/active-workout.tsx"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: true
+          agent: "main"
+          comment: "Navigation from WorkoutDetailsModal to active-workout.tsx screen implemented. Screen already has warm-up/main/recovery tabs, exercise tracking, and AI feedback collection ready."
+
 metadata:
   created_by: "main_agent"
   version: "1.0"
@@ -208,6 +232,8 @@ metadata:
 
 test_plan:
   current_focus:
+    - "Workout Details Modal Integration"
+    - "Active Workout Navigation"
     - "Fix Workouts Page Error"
     - "Logo Integration"
     - "GitHub Workflow Configuration"
@@ -223,3 +249,7 @@ agent_communication:
       message: "Backend testing completed successfully. All critical endpoints working: Authentication (login/session), Workout APIs (weekly/daily), AI integration (chat/workout adjustment). Server healthy on port 5000. V1 endpoints partially functional - generation works but persistence needs improvement. No critical backend issues found."
     - agent: "main"
       message: "Building authentication system: 1) Beautiful login screen with logo and test account info, 2) Registration screen leading to onboarding, 3) Multi-step onboarding flow (10 questions for AI), 4) Auth flow protection - redirects to login if not authenticated. Biometric auth foundation ready for integration."
+    - agent: "main"
+      message: "COMPLETE AUTH SYSTEM: 1) Onboarding-first flow (name first, hook strategy), 2) Quick signup after onboarding, 3) Biometric modal with Face ID/Touch ID, 4) PIN code setup (6-digit) in profile, 5) Saved credentials for biometric login, 6) All data saved for AI. Flow: Login → Onboarding (9 steps with name) → Quick Signup → Biometric Modal → Tabs. Test account: test@example.com / password123"
+    - agent: "main"
+      message: "WORKOUT MODAL INTEGRATION: 1) WorkoutDetailsModal now integrated into Home and Workouts screens, 2) 'Start Workout' buttons on both screens open modal with workout details, 3) Calendar day clicks in Workouts screen open modal with that day's data, 4) Modal's 'Start Workout' button navigates to active-workout.tsx screen, 5) Mock data structure ready for AI-generated workouts. Ready for testing on device via Expo Go."
