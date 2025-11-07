@@ -571,7 +571,7 @@ export default function OnboardingScreen() {
                 </TouchableOpacity>
               </View>
             </Animated.View>
-          </ScrollView>
+          </View>
         </KeyboardAvoidingView>
       </SafeAreaView>
     </View>
