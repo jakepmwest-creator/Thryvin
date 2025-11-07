@@ -506,12 +506,7 @@ export default function OnboardingScreen() {
         {/* Progress Bar */}
         <View style={styles.progressBarContainer}>
           <View style={styles.progressBarBackground}>
-            <LinearGradient
-              colors={[COLORS.accent, COLORS.accentSecondary]}
-              style={[styles.progressBarFill, { width: `${progress}%` }]}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 0 }}
-            />
+            <View style={[styles.progressBarFill, { width: `${progress}%` }]} />
           </View>
           <Text style={styles.progressText}>
             {currentStep + 1} of {ONBOARDING_STEPS.length}
