@@ -234,27 +234,34 @@ export default function HomeScreen() {
           </View>
         </View>
 
-        {/* SURPRISE: Quick Actions */}
+        {/* SURPRISE: Nutrition Snapshot */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Quick Actions</Text>
-          <View style={styles.quickActions}>
-            <TouchableOpacity style={styles.quickActionBtn}>
-              <LinearGradient
-                colors={[COLORS.accent, COLORS.accentSecondary]}
-                style={styles.quickActionGradient}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 1 }}
-              >
-                <Ionicons name="chatbubble-ellipses" size={24} color={COLORS.white} />
-                <Text style={styles.quickActionText}>Ask AI Coach</Text>
-              </LinearGradient>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.quickActionBtn}>
-              <View style={styles.quickActionSecondary}>
-                <Ionicons name="calendar" size={24} color={COLORS.accent} />
-                <Text style={styles.quickActionTextSecondary}>View Schedule</Text>
+          <Text style={styles.sectionTitle}>Today's Nutrition</Text>
+          <View style={styles.nutritionCard}>
+            <LinearGradient
+              colors={['#4CAF50', '#66BB6A']}
+              style={styles.nutritionGradient}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+            >
+              <View style={styles.nutritionRow}>
+                <View style={styles.nutritionStat}>
+                  <Text style={styles.nutritionValue}>1,850</Text>
+                  <Text style={styles.nutritionLabel}>Calories</Text>
+                </View>
+                <View style={styles.nutritionDivider} />
+                <View style={styles.nutritionStat}>
+                  <Text style={styles.nutritionValue}>120g</Text>
+                  <Text style={styles.nutritionLabel}>Protein</Text>
+                </View>
+                <View style={styles.nutritionDivider} />
+                <View style={styles.nutritionStat}>
+                  <Text style={styles.nutritionValue}>85g</Text>
+                  <Text style={styles.nutritionLabel}>Carbs</Text>
+                </View>
               </View>
-            </TouchableOpacity>
+              <Text style={styles.nutritionSubtext}>62% of daily goal</Text>
+            </LinearGradient>
           </View>
         </View>
 
