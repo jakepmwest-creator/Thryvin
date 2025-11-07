@@ -181,7 +181,7 @@ export function FloatingCoachButton() {
             <View style={styles.inputContainer}>
               <TextInput
                 style={styles.input}
-                placeholder=\"Ask your coach anything...\"
+                placeholder="Ask your coach anything..."
                 placeholderTextColor={COLORS.mediumGray}
                 value={inputText}
                 onChangeText={setInputText}
