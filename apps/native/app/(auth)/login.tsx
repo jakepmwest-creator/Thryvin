@@ -178,7 +178,7 @@ export default function LoginScreen() {
               ]}
             >
               <Image 
-                source={require('../../assets/images/thryvin-logo.png')}
+                source={require('../../assets/images/thryvin-logo-new.png')}
                 style={styles.logo}
                 resizeMode="contain"
               />
