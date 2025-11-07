@@ -195,6 +195,7 @@ export default function OnboardingScreen() {
   const router = useRouter();
   const { register, isLoading } = useAuthStore();
   const [currentStep, setCurrentStep] = useState(0);
+  const [showDatePicker, setShowDatePicker] = useState(false);
   const [formData, setFormData] = useState<any>({
     name: '',
     gender: '',
