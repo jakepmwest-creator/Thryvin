@@ -52,7 +52,7 @@ const COACH_NAMES = {
   },
 };
 
-// Onboarding steps configuration
+// Onboarding steps configuration - SPLIT FOR NO SCROLLING
 const ONBOARDING_STEPS = [
   {
     id: 'name',
@@ -60,19 +60,35 @@ const ONBOARDING_STEPS = [
     subtitle: 'First things first...',
     emoji: '✨',
     fields: [
-      { key: 'name', label: 'What should we call you?', icon: 'person', type: 'text', placeholder: 'Your name' },
+      { key: 'name', label: 'What should we call you?', icon: 'person-outline', type: 'text', placeholder: 'Your name' },
     ],
   },
   {
-    id: 'personal',
-    title: 'Tell Us About You',
-    subtitle: 'Help us personalize your journey',
-    emoji: '💪',
+    id: 'gender',
+    title: 'A Little About You',
+    subtitle: 'Help us personalize your experience',
+    emoji: '👤',
     fields: [
-      { key: 'gender', label: 'Gender', icon: 'people', type: 'gender', placeholder: 'Select' },
-      { key: 'dateOfBirth', label: 'Date of Birth', icon: 'calendar', type: 'date', placeholder: 'Select your birth date' },
-      { key: 'height', label: 'Height', icon: 'resize', type: 'measurement', unit: 'height', placeholder: 'e.g., 175' },
-      { key: 'weight', label: 'Weight', icon: 'scale', type: 'measurement', unit: 'weight', placeholder: 'e.g., 70' },
+      { key: 'gender', label: 'Gender', icon: 'people-outline', type: 'gender', placeholder: 'Select' },
+    ],
+  },
+  {
+    id: 'birthdate',
+    title: 'Your Age',
+    subtitle: 'When were you born?',
+    emoji: '🎂',
+    fields: [
+      { key: 'dateOfBirth', label: 'Date of Birth', icon: 'calendar-outline', type: 'date', placeholder: 'Select your birth date' },
+    ],
+  },
+  {
+    id: 'measurements',
+    title: 'Body Measurements',
+    subtitle: 'This helps us tailor your workouts',
+    emoji: '📏',
+    fields: [
+      { key: 'height', label: 'Height', icon: 'resize-outline', type: 'measurement', unit: 'height', placeholder: 'e.g., 175' },
+      { key: 'weight', label: 'Weight', icon: 'scale-outline', type: 'measurement', unit: 'weight', placeholder: 'e.g., 70' },
     ],
   },
   {
@@ -82,7 +98,7 @@ const ONBOARDING_STEPS = [
     emoji: '🏋️',
     type: 'select',
     field: 'experience',
-    icon: 'barbell',
+    icon: 'barbell-outline',
     options: [
       { value: 'beginner', label: 'Beginner', subtitle: 'New to working out', emoji: '🌱' },
       { value: 'intermediate', label: 'Intermediate', subtitle: '6+ months experience', emoji: '💪' },
@@ -96,7 +112,7 @@ const ONBOARDING_STEPS = [
     emoji: '🎯',
     type: 'select',
     field: 'goal',
-    icon: 'trophy',
+    icon: 'trophy-outline',
     options: [
       { value: 'weight_loss', label: 'Lose Weight', subtitle: 'Burn fat and get lean', emoji: '📉' },
       { value: 'muscle_gain', label: 'Gain Muscle', subtitle: 'Build strength and size', emoji: '💪' },
@@ -111,7 +127,7 @@ const ONBOARDING_STEPS = [
     emoji: '🏋️',
     type: 'select',
     field: 'equipment',
-    icon: 'fitness',
+    icon: 'fitness-outline',
     options: [
       { value: 'gym', label: 'Full Gym Access', subtitle: 'All equipment available', emoji: '🏢' },
       { value: 'home', label: 'Home Equipment', subtitle: 'Dumbbells, bands, etc.', emoji: '🏠' },
@@ -125,7 +141,7 @@ const ONBOARDING_STEPS = [
     emoji: '📅',
     type: 'select',
     field: 'trainingDays',
-    icon: 'calendar',
+    icon: 'calendar-outline',
     options: [
       { value: '3', label: '3 Days/Week', subtitle: 'Great for beginners', emoji: '3️⃣' },
       { value: '4', label: '4 Days/Week', subtitle: 'Balanced approach', emoji: '4️⃣' },
@@ -140,7 +156,7 @@ const ONBOARDING_STEPS = [
     emoji: '⏱️',
     type: 'select',
     field: 'sessionDuration',
-    icon: 'time',
+    icon: 'time-outline',
     options: [
       { value: '30', label: '30 Minutes', subtitle: 'Quick sessions', emoji: '⚡' },
       { value: '45', label: '45 Minutes', subtitle: 'Standard length', emoji: '✨' },
@@ -154,7 +170,7 @@ const ONBOARDING_STEPS = [
     subtitle: 'Help us keep you safe',
     emoji: '🩹',
     fields: [
-      { key: 'injuries', label: 'Any injuries or concerns?', icon: 'medical', type: 'text', placeholder: 'e.g., Tennis elbow, or "None"' },
+      { key: 'injuries', label: 'Any injuries or concerns?', icon: 'medical-outline', type: 'text', placeholder: 'e.g., Tennis elbow, or "None"' },
     ],
   },
   {
@@ -164,7 +180,7 @@ const ONBOARDING_STEPS = [
     emoji: '🎤',
     type: 'select',
     field: 'coachingStyle',
-    icon: 'megaphone',
+    icon: 'megaphone-outline',
     options: [
       { value: 'motivational', label: 'Motivational', subtitle: 'Energetic & encouraging', emoji: '🔥' },
       { value: 'technical', label: 'Technical', subtitle: 'Detailed & precise', emoji: '🎯' },
