@@ -106,7 +106,7 @@ export function FloatingCoachButton() {
       {/* Chat Modal */}
       <Modal
         visible={chatVisible}
-        animationType=\"slide\"
+        animationType="slide"
         transparent={true}
         onRequestClose={() => setChatVisible(false)}
       >
