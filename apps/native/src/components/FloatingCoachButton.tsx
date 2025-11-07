@@ -162,7 +162,7 @@ export function FloatingCoachButton() {
                 >
                   {msg.role === 'assistant' && (
                     <View style={styles.assistantIcon}>
-                      <Ionicons name=\"sparkles\" size={14} color={COLORS.accent} />
+                      <Ionicons name="sparkles" size={14} color={COLORS.accent} />
                     </View>
                   )}
                   <Text
