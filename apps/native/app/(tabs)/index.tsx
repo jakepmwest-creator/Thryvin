@@ -441,22 +441,25 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: COLORS.white,
   },
-  // Activity Cards - SMALLER
+  // Activity Cards - COLORFUL GRADIENTS, MORE RECTANGULAR
   activityScroll: {
     paddingRight: 20,
     gap: 8,
+    paddingBottom: 4,
+  },
+  activityCardWrapper: {
+    width: SCREEN_WIDTH * 0.38,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 12,
+    elevation: 4,
   },
   activityCard: {
-    width: SCREEN_WIDTH * 0.38,
-    backgroundColor: COLORS.white,
-    borderRadius: 16,
-    padding: 14,
-    borderWidth: 2,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    elevation: 2,
+    borderRadius: 18,
+    padding: 16,
+    height: 110,
+    justifyContent: 'space-between',
   },
   activityIcon: {
     width: 44,
@@ -467,15 +470,17 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   activityTitle: {
-    fontSize: 14,
+    fontSize: 15,
     fontWeight: '700',
-    color: COLORS.text,
+    color: COLORS.white,
     marginBottom: 4,
+    marginTop: 4,
   },
   activitySubtitle: {
     fontSize: 11,
-    color: COLORS.mediumGray,
+    color: COLORS.white,
     fontWeight: '500',
+    opacity: 0.9,
   },
   // Personal Bests - SMALLER GRID
   pbGrid: {
