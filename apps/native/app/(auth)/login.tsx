@@ -333,25 +333,6 @@ const styles = StyleSheet.create({
     right: 0,
     bottom: 0,
   },
-  gradientOrb: {
-    position: 'absolute',
-    borderRadius: 1000,
-    opacity: 0.3,
-  },
-  orb1: {
-    width: 300,
-    height: 300,
-    backgroundColor: COLORS.accent,
-    top: -100,
-    right: -100,
-  },
-  orb2: {
-    width: 250,
-    height: 250,
-    backgroundColor: COLORS.accentSecondary,
-    bottom: -50,
-    left: -80,
-  },
   safeArea: {
     flex: 1,
   },
