@@ -91,6 +91,26 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   register: async (userData: any) => {
     set({ isLoading: true, error: null });
     try {
+      // Demo mode: Accept any registration
+      if (!API_BASE_URL || API_BASE_URL.includes('localhost')) {
+        // Offline/Demo mode
+        await new Promise(resolve => setTimeout(resolve, 800)); // Simulate network delay
+        
+        const newUser = {
+          id: Date.now(),
+          name: userData.name || 'User',
+          email: userData.email,
+          trainingType: userData.trainingType,
+          goal: userData.goal,
+          coachingStyle: userData.coachingStyle,
+        };
+        
+        set({ user: newUser, isLoading: false });
+        await SecureStore.setItemAsync('demo_user', JSON.stringify(newUser));
+        console.log('Registration successful (Demo Mode):', newUser.name);
+        return;
+      }
+
       const response = await fetch(`${API_BASE_URL}/api/auth/register`, {
         method: 'POST',
         headers: {
