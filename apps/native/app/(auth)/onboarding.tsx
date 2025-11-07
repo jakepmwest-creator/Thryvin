@@ -623,9 +623,10 @@ const styles = StyleSheet.create({
   keyboardView: {
     flex: 1,
   },
-  scrollContent: {
-    flexGrow: 1,
+  contentContainer: {
+    flex: 1,
     padding: 20,
+    justifyContent: 'center',
   },
   card: {
     backgroundColor: COLORS.white,
@@ -636,6 +637,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.15,
     shadowRadius: 30,
     elevation: 15,
+    maxHeight: '85%',
   },
   heroEmoji: {
     fontSize: 64,
