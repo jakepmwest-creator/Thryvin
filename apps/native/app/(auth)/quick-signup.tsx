@@ -93,7 +93,7 @@ export default function QuickSignupScreen() {
           {/* Logo */}
           <View style={styles.logoContainer}>
             <Image
-              source={require('../../assets/images/thryvin-logo.png')}
+              source={require('../../assets/images/thryvin-logo-final.png')}
               style={styles.logo}
               resizeMode="contain"
             />
