@@ -156,6 +156,19 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   checkAuth: async () => {
     set({ isLoading: true });
     try {
+      // Demo mode: Check for stored demo user
+      if (!API_BASE_URL || API_BASE_URL.includes('localhost')) {
+        const storedUser = await SecureStore.getItemAsync('demo_user');
+        if (storedUser) {
+          const userData = JSON.parse(storedUser);
+          set({ user: userData, isLoading: false });
+          console.log('User authenticated (Demo Mode):', userData.name);
+        } else {
+          set({ user: null, isLoading: false });
+        }
+        return;
+      }
+
       const response = await fetch(`${API_BASE_URL}/api/auth/user`, {
         credentials: 'include',
       });
