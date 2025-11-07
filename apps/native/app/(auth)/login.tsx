@@ -356,6 +356,14 @@ const styles = StyleSheet.create({
     padding: 28,
     backgroundColor: COLORS.white,
   },
+  cardLogoContainer: {
+    alignItems: 'center',
+    marginBottom: 24,
+  },
+  cardLogo: {
+    width: 180,
+    height: 40,
+  },
   welcomeContainer: {
     marginBottom: 28,
   },
