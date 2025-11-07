@@ -98,7 +98,7 @@ export function FloatingCoachButton() {
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
           >
-            <Ionicons name=\"chatbubble-ellipses\" size={26} color={COLORS.white} />
+            <Ionicons name="chatbubble-ellipses" size={26} color={COLORS.white} />
           </LinearGradient>
         </TouchableOpacity>
       </Animated.View>
