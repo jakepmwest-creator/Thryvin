@@ -71,11 +71,17 @@ const ProgressRing = ({ label, progress, color, size = 90, onPress }: any) => {
 
 export default function HomeScreen() {
   const [modalVisible, setModalVisible] = useState(false);
+  const [ringDetailsVisible, setRingDetailsVisible] = useState<string | null>(null);
   const scrollX = useRef(new Animated.Value(0)).current;
 
   const handleStartWorkout = () => {
     router.push('/active-workout');
     setModalVisible(false);
+  };
+
+  const showRingDetails = (label: string) => {
+    setRingDetailsVisible(label);
+    setTimeout(() => setRingDetailsVisible(null), 3000);
   };
 
   return (
