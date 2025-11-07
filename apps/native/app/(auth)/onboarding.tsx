@@ -592,11 +592,19 @@ export default function OnboardingScreen() {
               <Text style={styles.title}>{currentStepData.title}</Text>
               <Text style={styles.subtitle}>{currentStepData.subtitle}</Text>
 
-              {/* Content */}
-              {renderFields()}
-              {renderSelectOptions()}
+              {/* Scrollable Content Area */}
+              <ScrollView
+                style={styles.scrollableContent}
+                contentContainerStyle={styles.scrollableContentInner}
+                showsVerticalScrollIndicator={false}
+                keyboardShouldPersistTaps="handled"
+              >
+                {/* Content */}
+                {renderFields()}
+                {renderSelectOptions()}
+              </ScrollView>
 
-              {/* Navigation Buttons */}
+              {/* Navigation Buttons - Always Visible */}
               <View style={styles.buttonContainer}>
                 {currentStep > 0 && (
                   <TouchableOpacity style={styles.backButton} onPress={handleBack}>
