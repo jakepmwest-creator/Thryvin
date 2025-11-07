@@ -33,12 +33,12 @@ const COLORS = {
 };
 
 const ACTIVITY_CARDS = [
-  { id: 1, icon: 'trophy', title: 'New PR!', subtitle: 'Bench: 225 lbs', color: COLORS.yellow },
-  { id: 2, icon: 'people', title: '3 Followers', subtitle: 'Sarah, Mike, Alex', color: COLORS.green },
-  { id: 3, icon: 'flame', title: '7 Day Streak', subtitle: 'Keep it going!', color: COLORS.red },
-  { id: 4, icon: 'barbell', title: 'Last Workout', subtitle: 'Upper Body', color: COLORS.purple },
-  { id: 5, icon: 'star', title: 'Achievement', subtitle: '100 Workouts', color: COLORS.blue },
-  { id: 6, icon: 'timer', title: 'Best Time', subtitle: '45 min', color: COLORS.orange },
+  { id: 1, icon: 'trophy', title: 'New PR!', subtitle: 'Bench: 225 lbs', gradient: [COLORS.yellow, '#FFA500'] },
+  { id: 2, icon: 'people', title: '3 Followers', subtitle: 'Sarah, Mike, Alex', gradient: [COLORS.green, '#66BB6A'] },
+  { id: 3, icon: 'flame', title: '7 Day Streak', subtitle: 'Keep it going!', gradient: [COLORS.red, '#FF6B6B'] },
+  { id: 4, icon: 'barbell', title: 'Last Workout', subtitle: 'Upper Body', gradient: [COLORS.purple, '#BA68C8'] },
+  { id: 5, icon: 'star', title: 'Achievement', subtitle: '100 Workouts', gradient: [COLORS.blue, '#42A5F5'] },
+  { id: 6, icon: 'timer', title: 'Best Time', subtitle: '45 min', gradient: [COLORS.orange, '#FFB74D'] },
 ];
 
 const AI_QUOTES = [
