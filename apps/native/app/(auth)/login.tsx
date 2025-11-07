@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import * as LocalAuthentication from 'expo-local-authentication';
 import * as SecureStore from 'expo-secure-store';
 import { 
@@ -10,7 +10,9 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
-  Alert
+  Alert,
+  Animated,
+  Dimensions
 } from 'react-native';
 import { Text } from 'react-native-paper';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -18,6 +20,8 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useAuthStore } from '../../src/stores/auth-store';
+
+const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 const COLORS = {
   accent: '#a259ff',
@@ -28,6 +32,8 @@ const COLORS = {
   mediumGray: '#8E8E93',
   shadow: 'rgba(162, 89, 255, 0.1)',
   error: '#FF3B30',
+  gradientStart: '#f5f0ff',
+  gradientEnd: '#e6f2ff',
 };
 
 export default function LoginScreen() {
@@ -40,8 +46,44 @@ export default function LoginScreen() {
   const [biometricAvailable, setBiometricAvailable] = useState(false);
   const [biometricEnabled, setBiometricEnabled] = useState(false);
 
+  // Animation values
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const slideAnim = useRef(new Animated.Value(50)).current;
+  const pulseAnim = useRef(new Animated.Value(1)).current;
+
   useEffect(() => {
     checkBiometricStatus();
+    
+    // Entrance animations
+    Animated.parallel([
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 800,
+        useNativeDriver: true,
+      }),
+      Animated.spring(slideAnim, {
+        toValue: 0,
+        tension: 50,
+        friction: 8,
+        useNativeDriver: true,
+      }),
+    ]).start();
+
+    // Subtle pulse animation for logo
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(pulseAnim, {
+          toValue: 1.05,
+          duration: 2000,
+          useNativeDriver: true,
+        }),
+        Animated.timing(pulseAnim, {
+          toValue: 1,
+          duration: 2000,
+          useNativeDriver: true,
+        }),
+      ])
+    ).start();
   }, []);
 
   const checkBiometricStatus = async () => {
@@ -83,7 +125,6 @@ export default function LoginScreen() {
       });
 
       if (result.success) {
-        // Get stored credentials
         const storedEmail = await SecureStore.getItemAsync('user_email');
         const storedPassword = await SecureStore.getItemAsync('user_password');
         
@@ -100,129 +141,188 @@ export default function LoginScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <KeyboardAvoidingView 
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={styles.keyboardView}
+    <View style={styles.container}>
+      {/* Animated Gradient Background */}
+      <LinearGradient
+        colors={[COLORS.gradientStart, COLORS.gradientEnd, COLORS.white]}
+        style={styles.gradientBackground}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
       >
-        <ScrollView 
-          contentContainerStyle={styles.scrollContent}
-          showsVerticalScrollIndicator={false}
-          keyboardShouldPersistTaps="handled"
+        {/* Floating gradient orbs for depth */}
+        <View style={[styles.gradientOrb, styles.orb1]} />
+        <View style={[styles.gradientOrb, styles.orb2]} />
+      </LinearGradient>
+
+      <SafeAreaView style={styles.safeArea}>
+        <KeyboardAvoidingView 
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          style={styles.keyboardView}
         >
-          {/* Logo */}
-          <View style={styles.logoContainer}>
-            <Image 
-              source={require('../../assets/images/thryvin-logo.png')}
-              style={styles.logo}
-              resizeMode="contain"
-            />
-          </View>
-
-          {/* Welcome Text */}
-          <View style={styles.welcomeContainer}>
-            <Text style={styles.welcomeTitle}>Welcome Back</Text>
-            <Text style={styles.welcomeSubtitle}>Let's continue your fitness journey</Text>
-          </View>
-
-          {/* Login Form */}
-          <View style={styles.formContainer}>
-            {/* Email Input */}
-            <View style={styles.inputWrapper}>
-              <Ionicons name="mail-outline" size={20} color={COLORS.accent} style={styles.inputIcon} />
-              <RNTextInput
-                style={styles.input}
-                placeholder="Email"
-                placeholderTextColor={COLORS.mediumGray}
-                value={email}
-                onChangeText={setEmail}
-                keyboardType="email-address"
-                autoCapitalize="none"
-                autoCorrect={false}
+          <ScrollView 
+            contentContainerStyle={styles.scrollContent}
+            showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled"
+          >
+            {/* Animated Logo */}
+            <Animated.View 
+              style={[
+                styles.logoContainer,
+                {
+                  opacity: fadeAnim,
+                  transform: [
+                    { translateY: slideAnim },
+                    { scale: pulseAnim }
+                  ]
+                }
+              ]}
+            >
+              <Image 
+                source={require('../../assets/images/thryvin-logo.png')}
+                style={styles.logo}
+                resizeMode="contain"
               />
-            </View>
+            </Animated.View>
 
-            {/* Password Input */}
-            <View style={styles.inputWrapper}>
-              <Ionicons name="lock-closed-outline" size={20} color={COLORS.accent} style={styles.inputIcon} />
-              <RNTextInput
-                style={[styles.input, styles.passwordInput]}
-                placeholder="Password"
-                placeholderTextColor={COLORS.mediumGray}
-                value={password}
-                onChangeText={setPassword}
-                secureTextEntry={!showPassword}
-                autoCapitalize="none"
-              />
-              <TouchableOpacity 
-                onPress={() => setShowPassword(!showPassword)}
-                style={styles.eyeIcon}
-              >
-                <Ionicons 
-                  name={showPassword ? "eye-outline" : "eye-off-outline"} 
-                  size={20} 
-                  color={COLORS.mediumGray} 
-                />
-              </TouchableOpacity>
-            </View>
-
-            {/* Login Button */}
-            <TouchableOpacity 
-              style={styles.loginButton} 
-              onPress={handleLogin}
-              disabled={isLoading || !email || !password}
+            {/* Elevated Card Container */}
+            <Animated.View 
+              style={[
+                styles.cardContainer,
+                {
+                  opacity: fadeAnim,
+                  transform: [{ translateY: slideAnim }]
+                }
+              ]}
             >
               <LinearGradient
-                colors={[COLORS.accent, COLORS.accentSecondary]}
-                style={styles.gradientButton}
+                colors={[COLORS.white, COLORS.white]}
+                style={styles.card}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 1 }}
               >
-                {isLoading ? (
-                  <Text style={styles.buttonText}>Logging in...</Text>
-                ) : (
-                  <Text style={styles.buttonText}>Login</Text>
-                )}
+                {/* Welcome Text */}
+                <View style={styles.welcomeContainer}>
+                  <Text style={styles.welcomeTitle}>Welcome Back 👋</Text>
+                  <Text style={styles.welcomeSubtitle}>Ready to crush your goals?</Text>
+                </View>
+
+                {/* Login Form */}
+                <View style={styles.formContainer}>
+                  {/* Email Input */}
+                  <View style={styles.inputWrapper}>
+                    <View style={styles.inputIconContainer}>
+                      <Ionicons name="mail-outline" size={20} color={COLORS.accent} />
+                    </View>
+                    <RNTextInput
+                      style={styles.input}
+                      placeholder="Email"
+                      placeholderTextColor={COLORS.mediumGray}
+                      value={email}
+                      onChangeText={setEmail}
+                      keyboardType="email-address"
+                      autoCapitalize="none"
+                      autoCorrect={false}
+                    />
+                  </View>
+
+                  {/* Password Input */}
+                  <View style={styles.inputWrapper}>
+                    <View style={styles.inputIconContainer}>
+                      <Ionicons name="lock-closed-outline" size={20} color={COLORS.accent} />
+                    </View>
+                    <RNTextInput
+                      style={[styles.input, styles.passwordInput]}
+                      placeholder="Password"
+                      placeholderTextColor={COLORS.mediumGray}
+                      value={password}
+                      onChangeText={setPassword}
+                      secureTextEntry={!showPassword}
+                      autoCapitalize="none"
+                    />
+                    <TouchableOpacity 
+                      onPress={() => setShowPassword(!showPassword)}
+                      style={styles.eyeIcon}
+                    >
+                      <Ionicons 
+                        name={showPassword ? "eye-outline" : "eye-off-outline"} 
+                        size={20} 
+                        color={COLORS.mediumGray} 
+                      />
+                    </TouchableOpacity>
+                  </View>
+
+                  {/* Login Button */}
+                  <TouchableOpacity 
+                    style={styles.loginButton} 
+                    onPress={handleLogin}
+                    disabled={isLoading || !email || !password}
+                    activeOpacity={0.8}
+                  >
+                    <LinearGradient
+                      colors={[COLORS.accent, COLORS.accentSecondary]}
+                      style={styles.gradientButton}
+                      start={{ x: 0, y: 0 }}
+                      end={{ x: 1, y: 1 }}
+                    >
+                      {isLoading ? (
+                        <Text style={styles.buttonText}>Logging in...</Text>
+                      ) : (
+                        <>
+                          <Ionicons name="arrow-forward" size={20} color={COLORS.white} />
+                          <Text style={styles.buttonText}>Let's Go</Text>
+                        </>
+                      )}
+                    </LinearGradient>
+                  </TouchableOpacity>
+
+                  {/* Biometric Login */}
+                  {biometricAvailable && biometricEnabled && (
+                    <TouchableOpacity style={styles.biometricButton} onPress={handleBiometricLogin}>
+                      <View style={styles.biometricCircle}>
+                        <Ionicons name="finger-print" size={28} color={COLORS.accent} />
+                      </View>
+                      <Text style={styles.biometricText}>Quick Login</Text>
+                    </TouchableOpacity>
+                  )}
+
+                  {/* Divider */}
+                  <View style={styles.divider}>
+                    <View style={styles.dividerLine} />
+                    <Text style={styles.dividerText}>New here?</Text>
+                    <View style={styles.dividerLine} />
+                  </View>
+
+                  {/* Start Journey Button */}
+                  <TouchableOpacity 
+                    style={styles.startJourneyButton} 
+                    onPress={handleStartJourney}
+                    activeOpacity={0.7}
+                  >
+                    <LinearGradient
+                      colors={[`${COLORS.accent}15`, `${COLORS.accentSecondary}15`]}
+                      style={styles.startJourneyGradient}
+                      start={{ x: 0, y: 0 }}
+                      end={{ x: 1, y: 1 }}
+                    >
+                      <Ionicons name="rocket" size={20} color={COLORS.accent} />
+                      <Text style={styles.startJourneyText}>Start Your Journey</Text>
+                    </LinearGradient>
+                  </TouchableOpacity>
+
+                  {/* Demo Hint */}
+                  <View style={styles.demoHint}>
+                    <Ionicons name="bulb-outline" size={14} color={COLORS.accent} />
+                    <Text style={styles.demoText}>
+                      Try: test@example.com / password123
+                    </Text>
+                  </View>
+                </View>
               </LinearGradient>
-            </TouchableOpacity>
-
-            {/* Biometric Login Button */}
-            {biometricAvailable && biometricEnabled && (
-              <TouchableOpacity style={styles.biometricButton} onPress={handleBiometricLogin}>
-                <Ionicons name="finger-print" size={24} color={COLORS.accent} />
-                <Text style={styles.biometricText}>Use Biometric Login</Text>
-              </TouchableOpacity>
-            )}
-
-            {/* Test Account Info */}
-            <View style={styles.testAccountInfo}>
-              <Ionicons name="information-circle-outline" size={16} color={COLORS.accent} />
-              <Text style={styles.testAccountText}>
-                Test: test@example.com / password123
-              </Text>
-            </View>
-
-            {/* Divider */}
-            <View style={styles.divider}>
-              <View style={styles.dividerLine} />
-              <Text style={styles.dividerText}>OR</Text>
-              <View style={styles.dividerLine} />
-            </View>
-
-            {/* Start Journey Button */}
-            <TouchableOpacity 
-              style={styles.startJourneyButton} 
-              onPress={handleStartJourney}
-            >
-              <View style={styles.outlineButton}>
-                <Ionicons name="rocket-outline" size={20} color={COLORS.accent} />
-                <Text style={styles.startJourneyText}>Start Your Journey Here</Text>
-              </View>
-            </TouchableOpacity>
-          </View>
-        </ScrollView>
-      </KeyboardAvoidingView>
-    </SafeAreaView>
+            </Animated.View>
+          </ScrollView>
+        </KeyboardAvoidingView>
+      </SafeAreaView>
+    </View>
   );
 }
 
