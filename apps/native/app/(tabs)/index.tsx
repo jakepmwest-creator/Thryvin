@@ -190,13 +190,18 @@ export default function HomeScreen() {
             {ACTIVITY_CARDS.map((card) => (
               <TouchableOpacity
                 key={card.id}
-                style={[styles.activityCard, { borderColor: `${card.color}30` }]}
+                style={styles.activityCardWrapper}
               >
-                <View style={[styles.activityIcon, { backgroundColor: `${card.color}20` }]}>
-                  <Ionicons name={card.icon as any} size={20} color={card.color} />
-                </View>
-                <Text style={styles.activityTitle}>{card.title}</Text>
-                <Text style={styles.activitySubtitle}>{card.subtitle}</Text>
+                <LinearGradient
+                  colors={card.gradient}
+                  style={styles.activityCard}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 1 }}
+                >
+                  <Ionicons name={card.icon as any} size={24} color={COLORS.white} />
+                  <Text style={styles.activityTitle}>{card.title}</Text>
+                  <Text style={styles.activitySubtitle}>{card.subtitle}</Text>
+                </LinearGradient>
               </TouchableOpacity>
             ))}
           </Animated.ScrollView>
