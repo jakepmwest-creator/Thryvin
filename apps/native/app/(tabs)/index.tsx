@@ -526,9 +526,8 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   pbWeight: {
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: '700',
-    color: COLORS.accent,
   },
   // Quick Actions
   quickActions: {
