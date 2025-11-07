@@ -197,7 +197,7 @@ export function FloatingCoachButton() {
                   start={{ x: 0, y: 0 }}
                   end={{ x: 1, y: 1 }}
                 >
-                  <Ionicons name=\"send\" size={20} color={COLORS.white} />
+                  <Ionicons name="send" size={20} color={COLORS.white} />
                 </LinearGradient>
               </TouchableOpacity>
             </View>
