@@ -819,6 +819,10 @@ const styles = StyleSheet.create({
   measurementContainer: {
     marginBottom: 12,
   },
+  feetInchesRow: {
+    flexDirection: 'row',
+    marginBottom: 8,
+  },
   measurementInput: {
     flexDirection: 'row',
     alignItems: 'center',
