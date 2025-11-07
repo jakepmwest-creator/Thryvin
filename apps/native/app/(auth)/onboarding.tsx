@@ -726,16 +726,20 @@ const styles = StyleSheet.create({
   datePickerButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
     backgroundColor: COLORS.lightGray,
-    paddingVertical: 16,
-    paddingHorizontal: 16,
     borderRadius: 16,
+    paddingHorizontal: 16,
+    marginBottom: 14,
   },
   datePickerText: {
+    flex: 1,
     fontSize: 16,
     color: COLORS.text,
+    paddingVertical: 16,
     fontWeight: '500',
+  },
+  placeholderText: {
+    color: COLORS.mediumGray,
   },
   measurementContainer: {
     marginBottom: 12,
