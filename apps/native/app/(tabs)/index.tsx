@@ -48,11 +48,11 @@ const AI_QUOTES = [
   "3 PRs this week!\nYou're unstoppable! 🔥",
 ];
 
-// Circular progress ring
-const ProgressRing = ({ label, progress, color, size = 90 }: any) => {
+// Circular progress ring with tap interaction
+const ProgressRing = ({ label, progress, color, size = 90, onPress }: any) => {
   return (
-    <View style={styles.ringContainer}>
-      <View style={[styles.ring, { borderColor: `${color}30`, width: size, height: size }]}>
+    <TouchableOpacity style={styles.ringContainer} onPress={onPress}>
+      <View style={[styles.ring, { borderColor: `${color}20`, width: size, height: size }]}>
         <View style={[styles.ringProgress, { 
           borderColor: color,
           width: size,
@@ -65,7 +65,7 @@ const ProgressRing = ({ label, progress, color, size = 90 }: any) => {
         </View>
       </View>
       <Text style={styles.ringLabel}>{label}</Text>
-    </View>
+    </TouchableOpacity>
   );
 };
 
