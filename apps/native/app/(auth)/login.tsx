@@ -142,17 +142,13 @@ export default function LoginScreen() {
 
   return (
     <View style={styles.container}>
-      {/* Animated Gradient Background */}
+      {/* Full Gradient Background */}
       <LinearGradient
-        colors={[COLORS.gradientStart, COLORS.gradientEnd, COLORS.white]}
+        colors={[COLORS.accent, COLORS.accentSecondary, COLORS.white]}
         style={styles.gradientBackground}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
-      >
-        {/* Floating gradient orbs for depth */}
-        <View style={[styles.gradientOrb, styles.orb1]} />
-        <View style={[styles.gradientOrb, styles.orb2]} />
-      </LinearGradient>
+      />
 
       <SafeAreaView style={styles.safeArea}>
         <KeyboardAvoidingView 
