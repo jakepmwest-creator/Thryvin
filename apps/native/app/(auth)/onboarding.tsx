@@ -365,16 +365,73 @@ export default function OnboardingScreen() {
   };
 
   const renderMeasurementField = (field: any) => {
+    const isFeet = field.unit === 'height' && formData.heightUnit === 'ft';
     const unit = field.unit === 'height' ? formData.heightUnit : formData.weightUnit;
     const unitOptions = field.unit === 'height' ? ['cm', 'ft'] : ['kg', 'lbs'];
+
+    if (isFeet) {
+      // Special two-field input for feet and inches
+      return (
+        <View style={styles.measurementContainer}>
+          <View style={styles.feetInchesRow}>
+            <View style={[styles.measurementInput, { flex: 1, marginRight: 8 }]}>
+              <Ionicons name="resize-outline" size={20} color={COLORS.accent} style={{ marginRight: 8 }} />
+              <RNTextInput
+                style={styles.input}
+                placeholder="Feet"
+                placeholderTextColor={COLORS.mediumGray}
+                value={formData.feet || ''}
+                onChangeText={(value) => setFormData({ ...formData, feet: value })}
+                keyboardType="numeric"
+                maxLength={1}
+              />
+              <Text style={styles.unitLabel}>ft</Text>
+            </View>
+            <View style={[styles.measurementInput, { flex: 1 }]}>
+              <RNTextInput
+                style={styles.input}
+                placeholder="Inches"
+                placeholderTextColor={COLORS.mediumGray}
+                value={formData.inches || ''}
+                onChangeText={(value) => setFormData({ ...formData, inches: value })}
+                keyboardType="numeric"
+                maxLength={2}
+              />
+              <Text style={styles.unitLabel}>in</Text>
+            </View>
+          </View>
+          <View style={styles.unitToggle}>
+            {unitOptions.map((u) => (
+              <TouchableOpacity
+                key={u}
+                style={[
+                  styles.unitButton,
+                  unit === u && styles.unitButtonActive,
+                ]}
+                onPress={() => {
+                  setFormData({ ...formData, heightUnit: u });
+                }}
+              >
+                <Text style={[
+                  styles.unitButtonText,
+                  unit === u && styles.unitButtonTextActive,
+                ]}>
+                  {u}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        </View>
+      );
+    }
 
     return (
       <View style={styles.measurementContainer}>
         <View style={styles.measurementInput}>
-          <Ionicons name={field.icon} size={20} color={COLORS.accent} style={{ marginRight: 12 }} />
+          <Ionicons name={field.icon as any} size={20} color={COLORS.accent} style={{ marginRight: 12 }} />
           <RNTextInput
             style={styles.input}
-            placeholder={field.placeholder}
+            placeholder={unit === 'cm' ? 'e.g., 175' : unit === 'ft' ? 'e.g., 5\'10"' : unit === 'kg' ? 'e.g., 70' : 'e.g., 154'}
             placeholderTextColor={COLORS.mediumGray}
             value={formData[field.key]}
             onChangeText={(value) => setFormData({ ...formData, [field.key]: value })}
