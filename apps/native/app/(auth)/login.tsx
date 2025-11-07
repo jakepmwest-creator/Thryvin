@@ -176,6 +176,15 @@ export default function LoginScreen() {
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 1 }}
               >
+                {/* Logo in Card */}
+                <View style={styles.cardLogoContainer}>
+                  <Image 
+                    source={require('../../assets/images/thryvin-logo-clean.png')}
+                    style={styles.cardLogo}
+                    resizeMode="contain"
+                  />
+                </View>
+
                 {/* Welcome Text */}
                 <View style={styles.welcomeContainer}>
                   <Text style={styles.welcomeTitle}>Welcome Back 👋</Text>
