@@ -112,16 +112,6 @@ export default function HomeScreen() {
                 <Text style={styles.bannerQuote}>
                   {AI_QUOTES[Math.floor(Math.random() * AI_QUOTES.length)]}
                 </Text>
-                <View style={styles.bannerStats}>
-                  <View style={styles.statChip}>
-                    <Ionicons name="flame" size={14} color={COLORS.white} />
-                    <Text style={styles.statText}>7 days</Text>
-                  </View>
-                  <View style={styles.statChip}>
-                    <Ionicons name="trophy" size={14} color={COLORS.white} />
-                    <Text style={styles.statText}>3 PRs</Text>
-                  </View>
-                </View>
               </View>
               <View style={styles.achievementBadge}>
                 <Ionicons name="trophy" size={36} color="#FFD700" />
