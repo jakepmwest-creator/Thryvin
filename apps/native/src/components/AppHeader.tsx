@@ -24,7 +24,7 @@ export function AppHeader({ mode = 'fitness' }: AppHeaderProps) {
       {/* Logo and PRO badge */}
       <View style={styles.leftSection}>
         <Image
-          source={require('../../assets/images/thryvin-logo-small.png')}
+          source={require('../../assets/images/thryvin-logo-final.png')}
           style={styles.logo}
           resizeMode="contain"
         />
