@@ -362,6 +362,18 @@ const styles = StyleSheet.create({
     justifyContent: 'space-around',
     paddingVertical: 10,
   },
+  ringDetails: {
+    backgroundColor: `${COLORS.accent}10`,
+    padding: 12,
+    borderRadius: 12,
+    marginBottom: 12,
+  },
+  ringDetailsText: {
+    fontSize: 13,
+    color: COLORS.accent,
+    fontWeight: '600',
+    textAlign: 'center',
+  },
   ringContainer: {
     alignItems: 'center',
   },
