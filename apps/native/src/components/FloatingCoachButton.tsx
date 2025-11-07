@@ -131,7 +131,7 @@ export function FloatingCoachButton() {
               <View style={styles.headerContent}>
                 <View style={styles.coachInfo}>
                   <View style={styles.coachAvatar}>
-                    <Ionicons name=\"sparkles\" size={20} color={COLORS.accent} />
+                    <Ionicons name="sparkles" size={20} color={COLORS.accent} />
                   </View>
                   <View>
                     <Text style={styles.coachName}>AI Coach</Text>
