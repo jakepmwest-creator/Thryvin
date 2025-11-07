@@ -5,7 +5,6 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  Image,
   Dimensions,
   Animated,
 } from 'react-native';
@@ -25,54 +24,52 @@ const COLORS = {
   text: '#222222',
   lightGray: '#F8F9FA',
   mediumGray: '#8E8E93',
-  shadow: 'rgba(162, 89, 255, 0.1)',
+  yellow: '#FFD700',
+  green: '#4CAF50',
+  orange: '#FF9800',
+  red: '#FF5252',
+  purple: '#9C27B0',
+  blue: '#2196F3',
 };
 
 const ACTIVITY_CARDS = [
-  { id: 1, icon: 'trophy', title: 'New PR!', subtitle: 'Bench Press: 225 lbs', color: '#FFD700' },
-  { id: 2, icon: 'person-add', title: '3 New Followers', subtitle: 'Sarah, Mike, Alex', color: '#4CAF50' },
-  { id: 3, icon: 'restaurant', title: "Today's Meal", subtitle: 'Chicken & Rice Bowl', color: '#FF9800' },
-  { id: 4, icon: 'flame', title: 'Streak: 7 Days', subtitle: 'Keep it going!', color: '#FF5252' },
-  { id: 5, icon: 'barbell', title: 'Last Workout', subtitle: 'Upper Body Push', color: '#9C27B0' },
-  { id: 6, icon: 'star', title: 'Achievement', subtitle: '100 Workouts Completed', color: '#2196F3' },
-  { id: 7, icon: 'timer', title: 'Best Time', subtitle: '45 min workout', color: '#00BCD4' },
-  { id: 8, icon: 'analytics', title: 'Weekly Progress', subtitle: '+5% strength gain', color: '#8BC34A' },
+  { id: 1, icon: 'trophy', title: 'New PR!', subtitle: 'Bench: 225 lbs', color: COLORS.yellow },
+  { id: 2, icon: 'people', title: '3 Followers', subtitle: 'Sarah, Mike, Alex', color: COLORS.green },
+  { id: 3, icon: 'flame', title: '7 Day Streak', subtitle: 'Keep it going!', color: COLORS.red },
+  { id: 4, icon: 'barbell', title: 'Last Workout', subtitle: 'Upper Body', color: COLORS.purple },
+  { id: 5, icon: 'star', title: 'Achievement', subtitle: '100 Workouts', color: COLORS.blue },
+  { id: 6, icon: 'timer', title: 'Best Time', subtitle: '45 min', color: COLORS.orange },
 ];
 
 const AI_QUOTES = [
-  "You're 15% stronger than last month. Keep crushing it!",
-  "Consistency is key - 7 days streak is impressive!",
-  "Your form has improved 20%. Gains incoming!",
-  "You've hit 3 PRs this week. Unstoppable!",
+  "You're 15% stronger than last month!\nKeep crushing it! 💪",
+  "7 day streak! Consistency is key!\nProud of you!",
+  "Your form improved 20%!\nGains are coming!",
+  "3 PRs this week!\nYou're unstoppable! 🔥",
 ];
 
-// Simple circular progress component
-const ProgressRing = ({ progress = 0.7, size = 120 }) => {
-  const strokeWidth = 8;
-  const radius = (size - strokeWidth) / 2;
-  const circumference = radius * 2 * Math.PI;
-  const strokeDasharray = `${circumference} ${circumference}`;
-  const strokeDashoffset = circumference - progress * circumference;
-
+// Circular progress ring
+const ProgressRing = ({ label, progress, color, size = 90 }: any) => {
   return (
-    <View style={[styles.progressContainer, { width: size, height: size }]}>
-      <LinearGradient
-        colors={[COLORS.accent, COLORS.accentSecondary]}
-        style={styles.progressGradient}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-      >
-        <View style={styles.progressInner}>
-          <Text style={styles.progressText}>{Math.round(progress * 100)}%</Text>
-          <Text style={styles.progressSubtext}>Weekly Goal</Text>
+    <View style={styles.ringContainer}>
+      <View style={[styles.ring, { borderColor: `${color}30`, width: size, height: size }]}>
+        <View style={[styles.ringProgress, { 
+          borderColor: color,
+          width: size,
+          height: size,
+          borderWidth: 8,
+          transform: [{ rotate: `${progress * 360}deg` }]
+        }]} />
+        <View style={styles.ringInner}>
+          <Text style={styles.ringPercentage}>{Math.round(progress * 100)}%</Text>
         </View>
-      </LinearGradient>
+      </View>
+      <Text style={styles.ringLabel}>{label}</Text>
     </View>
   );
 };
 
 export default function HomeScreen() {
-  const [expandedRing, setExpandedRing] = useState<string | null>(null);
   const [modalVisible, setModalVisible] = useState(false);
   const scrollX = useRef(new Animated.Value(0)).current;
 
@@ -85,7 +82,6 @@ export default function HomeScreen() {
     <SafeAreaView style={styles.container}>
       <AppHeader mode="fitness" />
       
-      {/* Workout Details Modal */}
       <WorkoutDetailsModal
         visible={modalVisible}
         onClose={() => setModalVisible(false)}
@@ -94,10 +90,9 @@ export default function HomeScreen() {
       
       <ScrollView 
         style={styles.scrollView} 
-        contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* Motivational Banner */}
+        {/* Bigger, More Inviting Banner */}
         <View style={styles.bannerContainer}>
           <LinearGradient
             colors={[COLORS.accent, COLORS.accentSecondary]}
@@ -107,72 +102,58 @@ export default function HomeScreen() {
           >
             <View style={styles.bannerContent}>
               <View style={styles.bannerLeft}>
-                <Text style={styles.bannerGreeting}>Hi Jake 👋</Text>
+                <Text style={styles.bannerGreeting}>Hi Jake! 👋</Text>
                 <Text style={styles.bannerQuote}>
                   {AI_QUOTES[Math.floor(Math.random() * AI_QUOTES.length)]}
                 </Text>
+                <View style={styles.bannerStats}>
+                  <View style={styles.statChip}>
+                    <Ionicons name="flame" size={14} color={COLORS.white} />
+                    <Text style={styles.statText}>7 days</Text>
+                  </View>
+                  <View style={styles.statChip}>
+                    <Ionicons name="trophy" size={14} color={COLORS.white} />
+                    <Text style={styles.statText}>3 PRs</Text>
+                  </View>
+                </View>
               </View>
               <View style={styles.achievementBadge}>
-                <Ionicons name="trophy" size={28} color="#FFD700" />
+                <Ionicons name="trophy" size={36} color="#FFD700" />
                 <Text style={styles.badgeText}>+3</Text>
               </View>
             </View>
           </LinearGradient>
         </View>
 
-        {/* Activity Cards - Horizontal Scroll */}
-        <View style={styles.activitySection}>
-          <Text style={styles.sectionTitle}>Recent Activity</Text>
-          <Animated.ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.activityScroll}
-            snapToInterval={SCREEN_WIDTH * 0.7 + 12}
-            decelerationRate="fast"
-            onScroll={Animated.event(
-              [{ nativeEvent: { contentOffset: { x: scrollX } } }],
-              { useNativeDriver: true }
-            )}
-            scrollEventThrottle={16}
-          >
-            {ACTIVITY_CARDS.map((card, index) => (
-              <TouchableOpacity
-                key={card.id}
-                style={styles.activityCard}
-                onPress={() => console.log('Card pressed:', card.title)}
-              >
-                <View style={[styles.activityIcon, { backgroundColor: `${card.color}20` }]}>
-                  <Ionicons name={card.icon as any} size={28} color={card.color} />
-                </View>
-                <Text style={styles.activityTitle}>{card.title}</Text>
-                <Text style={styles.activitySubtitle}>{card.subtitle}</Text>
-              </TouchableOpacity>
-            ))}
-          </Animated.ScrollView>
+        {/* Weekly Progress Rings - MOVED UP */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Weekly Progress</Text>
+          <View style={styles.ringsContainer}>
+            <ProgressRing label="Workouts" progress={0.8} color={COLORS.accent} />
+            <ProgressRing label="Calories" progress={0.65} color={COLORS.red} />
+            <ProgressRing label="Active Days" progress={0.75} color={COLORS.green} />
+          </View>
         </View>
 
-        {/* Today's Workout Card */}
+        {/* Today's Workout */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Today's Workout</Text>
-          <View style={styles.workoutCard}>
+          <View style={styles.todayWorkoutCard}>
             <LinearGradient
               colors={[`${COLORS.accent}15`, `${COLORS.accentSecondary}15`]}
-              style={styles.workoutCardGradient}
+              style={styles.workoutGradient}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 1 }}
             >
               <View style={styles.workoutHeader}>
-                <View style={styles.workoutIconCircle}>
-                  <Ionicons name="barbell" size={32} color={COLORS.accent} />
-                </View>
-                <View style={styles.workoutInfo}>
-                  <Text style={styles.workoutName}>Upper Body Push</Text>
+                <View>
+                  <Text style={styles.workoutTitle}>Upper Body Push</Text>
                   <Text style={styles.workoutMeta}>45 min • 8 exercises • Intermediate</Text>
                 </View>
+                <View style={styles.workoutBadge}>
+                  <Ionicons name="barbell" size={24} color={COLORS.accent} />
+                </View>
               </View>
-              <Text style={styles.workoutDescription}>
-                Focus on chest, shoulders, and triceps with compound movements. Progressive overload focused session.
-              </Text>
               <TouchableOpacity 
                 style={styles.startButton}
                 onPress={() => setModalVisible(true)}
@@ -191,115 +172,96 @@ export default function HomeScreen() {
           </View>
         </View>
 
-        {/* Progress Rings */}
+        {/* Recent Activity - MOVED DOWN, SMALLER CARDS */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Weekly Progress</Text>
-          <View style={styles.ringsContainer}>
-            <TouchableOpacity
-              style={styles.ringCard}
-              onPress={() => setExpandedRing(expandedRing === 'calories' ? null : 'calories')}
-            >
-              <View style={styles.ringCircle}>
-                <View style={[styles.ringProgress, { borderColor: COLORS.accent, borderTopColor: 'transparent' }]} />
-                <View style={styles.ringCenter}>
-                  <Text style={styles.ringValue}>78%</Text>
+          <Text style={styles.sectionTitle}>Recent Activity</Text>
+          <Animated.ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.activityScroll}
+            snapToInterval={SCREEN_WIDTH * 0.38 + 8}
+            decelerationRate="fast"
+          >
+            {ACTIVITY_CARDS.map((card) => (
+              <TouchableOpacity
+                key={card.id}
+                style={[styles.activityCard, { borderColor: `${card.color}30` }]}
+              >
+                <View style={[styles.activityIcon, { backgroundColor: `${card.color}20` }]}>
+                  <Ionicons name={card.icon as any} size={20} color={card.color} />
                 </View>
-              </View>
-              <Text style={styles.ringLabel}>Calories</Text>
-              {expandedRing === 'calories' && (
-                <View style={styles.ringDetail}>
-                  <Text style={styles.ringDetailText}>1,890 / 2,400 cal</Text>
-                </View>
-              )}
-            </TouchableOpacity>
+                <Text style={styles.activityTitle}>{card.title}</Text>
+                <Text style={styles.activitySubtitle}>{card.subtitle}</Text>
+              </TouchableOpacity>
+            ))}
+          </Animated.ScrollView>
+        </View>
 
-            <TouchableOpacity
-              style={styles.ringCard}
-              onPress={() => setExpandedRing(expandedRing === 'workouts' ? null : 'workouts')}
-            >
-              <View style={styles.ringCircle}>
-                <View style={[styles.ringProgress, { borderColor: COLORS.accentSecondary, borderTopColor: 'transparent', transform: [{ rotate: '90deg' }] }]} />
-                <View style={styles.ringCenter}>
-                  <Text style={styles.ringValue}>5/7</Text>
+        {/* Personal Bests - SMALLER */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Personal Bests</Text>
+          <View style={styles.pbGrid}>
+            {[
+              { name: 'Bench Press', weight: '225 lbs', icon: 'fitness', color: COLORS.purple },
+              { name: 'Squat', weight: '315 lbs', icon: 'barbell', color: COLORS.blue },
+              { name: 'Deadlift', weight: '405 lbs', icon: 'flame', color: COLORS.red },
+              { name: 'Pull Ups', weight: '15 reps', icon: 'arrow-up', color: COLORS.green },
+            ].map((pb, i) => (
+              <View key={i} style={styles.pbCard}>
+                <View style={[styles.pbIcon, { backgroundColor: `${pb.color}20` }]}>
+                  <Ionicons name={pb.icon as any} size={18} color={pb.color} />
                 </View>
+                <Text style={styles.pbName}>{pb.name}</Text>
+                <Text style={styles.pbWeight}>{pb.weight}</Text>
               </View>
-              <Text style={styles.ringLabel}>Workouts</Text>
-              {expandedRing === 'workouts' && (
-                <View style={styles.ringDetail}>
-                  <Text style={styles.ringDetailText}>71% complete</Text>
-                </View>
-              )}
-            </TouchableOpacity>
+            ))}
+          </View>
+        </View>
 
-            <TouchableOpacity
-              style={styles.ringCard}
-              onPress={() => setExpandedRing(expandedRing === 'protein' ? null : 'protein')}
-            >
-              <View style={styles.ringCircle}>
-                <View style={[styles.ringProgress, { borderColor: '#4CAF50', borderTopColor: 'transparent', transform: [{ rotate: '180deg' }] }]} />
-                <View style={styles.ringCenter}>
-                  <Text style={styles.ringValue}>92%</Text>
-                </View>
+        {/* SURPRISE: Quick Actions */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Quick Actions</Text>
+          <View style={styles.quickActions}>
+            <TouchableOpacity style={styles.quickActionBtn}>
+              <LinearGradient
+                colors={[COLORS.accent, COLORS.accentSecondary]}
+                style={styles.quickActionGradient}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+              >
+                <Ionicons name="chatbubble-ellipses" size={24} color={COLORS.white} />
+                <Text style={styles.quickActionText}>Ask AI Coach</Text>
+              </LinearGradient>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.quickActionBtn}>
+              <View style={styles.quickActionSecondary}>
+                <Ionicons name="calendar" size={24} color={COLORS.accent} />
+                <Text style={styles.quickActionTextSecondary}>View Schedule</Text>
               </View>
-              <Text style={styles.ringLabel}>Protein</Text>
-              {expandedRing === 'protein' && (
-                <View style={styles.ringDetail}>
-                  <Text style={styles.ringDetailText}>138 / 150g</Text>
-                </View>
-              )}
             </TouchableOpacity>
           </View>
         </View>
 
-        {/* PBs Chart */}
-        <View style={styles.section}>
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Personal Bests</Text>
-            <TouchableOpacity onPress={() => router.push('/(tabs)/stats')}>
-              <Text style={styles.seeMoreText}>See More →</Text>
-            </TouchableOpacity>
-          </View>
-          
-          <View style={styles.pbsContainer}>
-            <View style={styles.pbCard}>
-              <View style={styles.pbHeader}>
-                <Ionicons name="barbell" size={24} color={COLORS.accent} />
-                <Text style={styles.pbName}>Bench Press</Text>
+        {/* SURPRISE 2: Weekly Streak Card */}
+        <View style={[styles.section, { marginBottom: 30 }]}>
+          <View style={styles.streakCard}>
+            <LinearGradient
+              colors={[COLORS.orange, COLORS.red]}
+              style={styles.streakGradient}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+            >
+              <View style={styles.streakContent}>
+                <Ionicons name="flame" size={48} color={COLORS.white} />
+                <View>
+                  <Text style={styles.streakNumber}>7</Text>
+                  <Text style={styles.streakLabel}>Day Streak</Text>
+                </View>
               </View>
-              <Text style={styles.pbValue}>225 lbs</Text>
-              <View style={styles.pbProgress}>
-                <View style={[styles.pbBar, { width: '85%', backgroundColor: COLORS.accent }]} />
-              </View>
-              <Text style={styles.pbDate}>2 days ago • +5 lbs</Text>
-            </View>
-
-            <View style={styles.pbCard}>
-              <View style={styles.pbHeader}>
-                <Ionicons name="barbell" size={24} color={COLORS.accentSecondary} />
-                <Text style={styles.pbName}>Squat</Text>
-              </View>
-              <Text style={styles.pbValue}>315 lbs</Text>
-              <View style={styles.pbProgress}>
-                <View style={[styles.pbBar, { width: '92%', backgroundColor: COLORS.accentSecondary }]} />
-              </View>
-              <Text style={styles.pbDate}>5 days ago • +10 lbs</Text>
-            </View>
-
-            <View style={styles.pbCard}>
-              <View style={styles.pbHeader}>
-                <Ionicons name="barbell" size={24} color="#4CAF50" />
-                <Text style={styles.pbName}>Deadlift</Text>
-              </View>
-              <Text style={styles.pbValue}>405 lbs</Text>
-              <View style={styles.pbProgress}>
-                <View style={[styles.pbBar, { width: '98%', backgroundColor: '#4CAF50' }]} />
-              </View>
-              <Text style={styles.pbDate}>1 week ago • +15 lbs</Text>
-            </View>
+              <Text style={styles.streakSubtext}>You're on fire! Don't break it now!</Text>
+            </LinearGradient>
           </View>
         </View>
-
-        {/* Removed old action buttons section */}
       </ScrollView>
     </SafeAreaView>
   );
@@ -313,24 +275,27 @@ const styles = StyleSheet.create({
   scrollView: {
     flex: 1,
   },
-  scrollContent: {
-    paddingBottom: 120,
-  },
-  
-  // Banner
-  bannerContainer: {
+  section: {
     paddingHorizontal: 20,
-    paddingTop: 16,
-    paddingBottom: 20,
+    marginBottom: 24,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: COLORS.text,
+    marginBottom: 14,
+  },
+  // Banner - BIGGER
+  bannerContainer: {
+    marginHorizontal: 20,
+    marginTop: 16,
+    marginBottom: 24,
+    borderRadius: 24,
+    overflow: 'hidden',
   },
   bannerGradient: {
-    borderRadius: 20,
-    padding: 20,
-    shadowColor: COLORS.shadow,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 6,
+    padding: 24,
+    minHeight: 160,
   },
   bannerContent: {
     flexDirection: 'row',
@@ -339,121 +304,100 @@ const styles = StyleSheet.create({
   },
   bannerLeft: {
     flex: 1,
-    marginRight: 12,
   },
   bannerGreeting: {
-    fontSize: 22,
+    fontSize: 26,
     fontWeight: '700',
     color: COLORS.white,
     marginBottom: 8,
   },
   bannerQuote: {
     fontSize: 14,
-    color: 'rgba(255, 255, 255, 0.95)',
+    color: COLORS.white,
     lineHeight: 20,
+    marginBottom: 16,
+    opacity: 0.95,
+  },
+  bannerStats: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  statChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: 'rgba(255, 255, 255, 0.25)',
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 12,
+  },
+  statText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: COLORS.white,
   },
   achievementBadge: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    justifyContent: 'center',
     alignItems: 'center',
+    justifyContent: 'center',
   },
   badgeText: {
-    fontSize: 12,
+    fontSize: 14,
     fontWeight: '700',
     color: COLORS.white,
-    marginTop: 2,
+    marginTop: 4,
   },
-  
-  // Activity Cards
-  activitySection: {
-    marginBottom: 24,
+  // Weekly Progress Rings
+  ringsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    paddingVertical: 10,
   },
-  activityScroll: {
-    paddingHorizontal: 20,
-    gap: 12,
+  ringContainer: {
+    alignItems: 'center',
   },
-  activityCard: {
-    width: SCREEN_WIDTH * 0.7,
-    backgroundColor: COLORS.lightGray,
-    borderRadius: 16,
-    padding: 16,
-  },
-  activityIcon: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
+  ring: {
+    borderWidth: 8,
+    borderRadius: 100,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 12,
+    position: 'relative',
   },
-  activityTitle: {
-    fontSize: 16,
-    fontWeight: '600',
+  ringProgress: {
+    position: 'absolute',
+    borderRadius: 100,
+    borderTopColor: 'transparent',
+    borderRightColor: 'transparent',
+  },
+  ringInner: {
+    position: 'absolute',
+  },
+  ringPercentage: {
+    fontSize: 18,
+    fontWeight: '700',
     color: COLORS.text,
-    marginBottom: 4,
   },
-  activitySubtitle: {
-    fontSize: 13,
+  ringLabel: {
+    fontSize: 12,
+    fontWeight: '600',
     color: COLORS.mediumGray,
+    marginTop: 8,
   },
-  // Section Headers
-  section: {
-    paddingHorizontal: 20,
-    marginBottom: 24,
+  // Today's Workout
+  todayWorkoutCard: {
+    borderRadius: 20,
+    overflow: 'hidden',
   },
-  sectionTitle: {
-    fontSize: 20,
-    fontWeight: '600',
-    color: COLORS.text,
-    marginBottom: 16,
+  workoutGradient: {
+    padding: 18,
   },
-  sectionHeader: {
+  workoutHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: 16,
   },
-  seeMoreText: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: COLORS.accent,
-  },
-  
-  // Today's Workout
-  workoutCard: {
-    borderRadius: 20,
-    overflow: 'hidden',
-    shadowColor: COLORS.shadow,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
-    elevation: 4,
-  },
-  workoutCardGradient: {
-    padding: 20,
-  },
-  workoutHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  workoutIconCircle: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    backgroundColor: COLORS.white,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 16,
-  },
-  workoutInfo: {
-    flex: 1,
-  },
-  workoutName: {
-    fontSize: 20,
+  workoutTitle: {
+    fontSize: 18,
     fontWeight: '700',
     color: COLORS.text,
     marginBottom: 4,
@@ -461,15 +405,18 @@ const styles = StyleSheet.create({
   workoutMeta: {
     fontSize: 13,
     color: COLORS.mediumGray,
+    fontWeight: '500',
   },
-  workoutDescription: {
-    fontSize: 14,
-    color: COLORS.text,
-    lineHeight: 20,
-    marginBottom: 16,
+  workoutBadge: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    backgroundColor: COLORS.white,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   startButton: {
-    borderRadius: 12,
+    borderRadius: 14,
     overflow: 'hidden',
   },
   startGradient: {
@@ -481,146 +428,139 @@ const styles = StyleSheet.create({
   },
   startText: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '700',
     color: COLORS.white,
   },
-  notificationButton: {
+  // Activity Cards - SMALLER
+  activityScroll: {
+    paddingRight: 20,
+    gap: 8,
+  },
+  activityCard: {
+    width: SCREEN_WIDTH * 0.38,
+    backgroundColor: COLORS.white,
+    borderRadius: 16,
+    padding: 14,
+    borderWidth: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 2,
+  },
+  activityIcon: {
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: COLORS.lightGray,
     justifyContent: 'center',
     alignItems: 'center',
+    marginBottom: 10,
   },
-  progressSection: {
-    alignItems: 'center',
-    paddingVertical: 32,
-  },
-  progressContainer: {
-    borderRadius: 60,
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: COLORS.shadow,
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.3,
-    shadowRadius: 16,
-    elevation: 8,
-  },
-  progressGradient: {
-    width: '100%',
-    height: '100%',
-    borderRadius: 60,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 8,
-  },
-  progressInner: {
-    flex: 1,
-    width: '100%',
-    backgroundColor: COLORS.white,
-    borderRadius: 52,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  progressText: {
-    fontSize: 24,
+  activityTitle: {
+    fontSize: 14,
     fontWeight: '700',
     color: COLORS.text,
+    marginBottom: 4,
   },
-  progressSubtext: {
-    fontSize: 12,
+  activitySubtitle: {
+    fontSize: 11,
     color: COLORS.mediumGray,
-    marginTop: 2,
-  },
-  // Removed all duplicate styles - keeping comprehensive versions at top of StyleSheet
-  ringsContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-  },
-  ringCard: {
-    alignItems: 'center',
-  },
-  ringCircle: {
-    width: 90,
-    height: 90,
-    justifyContent: 'center',
-    alignItems: 'center',
-    position: 'relative',
-  },
-  ringProgress: {
-    position: 'absolute',
-    width: 90,
-    height: 90,
-    borderRadius: 45,
-    borderWidth: 8,
-  },
-  ringCenter: {
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  ringValue: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: COLORS.text,
-  },
-  ringLabel: {
-    fontSize: 13,
-    color: COLORS.mediumGray,
-    marginTop: 8,
     fontWeight: '500',
   },
-  ringDetail: {
-    marginTop: 8,
-    backgroundColor: COLORS.lightGray,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 8,
-  },
-  ringDetailText: {
-    fontSize: 12,
-    color: COLORS.text,
-    fontWeight: '500',
-  },
-  
-  // PBs
-  pbsContainer: {
-    gap: 12,
-  },
-  pbCard: {
-    backgroundColor: COLORS.lightGray,
-    borderRadius: 16,
-    padding: 16,
-  },
-  pbHeader: {
+  // Personal Bests - SMALLER GRID
+  pbGrid: {
     flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 12,
+    flexWrap: 'wrap',
     gap: 10,
   },
+  pbCard: {
+    width: (SCREEN_WIDTH - 50) / 2,
+    backgroundColor: COLORS.lightGray,
+    borderRadius: 16,
+    padding: 14,
+  },
+  pbIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 10,
+  },
   pbName: {
-    fontSize: 16,
+    fontSize: 13,
     fontWeight: '600',
     color: COLORS.text,
+    marginBottom: 4,
   },
-  pbValue: {
-    fontSize: 32,
+  pbWeight: {
+    fontSize: 16,
     fontWeight: '700',
-    color: COLORS.text,
-    marginBottom: 12,
+    color: COLORS.accent,
   },
-  pbProgress: {
-    height: 8,
-    backgroundColor: COLORS.white,
-    borderRadius: 4,
+  // Quick Actions
+  quickActions: {
+    gap: 10,
+  },
+  quickActionBtn: {
+    borderRadius: 16,
     overflow: 'hidden',
+  },
+  quickActionGradient: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 16,
+    gap: 10,
+  },
+  quickActionText: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: COLORS.white,
+  },
+  quickActionSecondary: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 16,
+    gap: 10,
+    backgroundColor: COLORS.lightGray,
+    borderRadius: 16,
+  },
+  quickActionTextSecondary: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: COLORS.accent,
+  },
+  // Streak Card
+  streakCard: {
+    borderRadius: 20,
+    overflow: 'hidden',
+  },
+  streakGradient: {
+    padding: 20,
+  },
+  streakContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 16,
     marginBottom: 8,
   },
-  pbBar: {
-    height: '100%',
-    borderRadius: 4,
+  streakNumber: {
+    fontSize: 36,
+    fontWeight: '700',
+    color: COLORS.white,
+    lineHeight: 40,
   },
-  pbDate: {
-    fontSize: 12,
-    color: COLORS.mediumGray,
+  streakLabel: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: COLORS.white,
+    opacity: 0.9,
+  },
+  streakSubtext: {
+    fontSize: 13,
+    color: COLORS.white,
+    opacity: 0.85,
   },
 });
