@@ -31,6 +31,31 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   login: async (credentials: { email: string; password: string }) => {
     set({ isLoading: true, error: null });
     try {
+      // Demo mode: Accept test@example.com / password123 or any credentials
+      if (!API_BASE_URL || API_BASE_URL.includes('localhost')) {
+        // Offline/Demo mode
+        await new Promise(resolve => setTimeout(resolve, 800)); // Simulate network delay
+        
+        const demoUser = {
+          id: 1,
+          name: 'Jake',
+          email: credentials.email,
+          trainingType: 'Aesthetics',
+          goal: 'Build Muscle',
+          coachingStyle: 'Motivational',
+        };
+        
+        set({ user: demoUser, isLoading: false });
+        
+        // Save credentials securely for biometric login
+        await SecureStore.setItemAsync('user_email', credentials.email);
+        await SecureStore.setItemAsync('user_password', credentials.password);
+        await SecureStore.setItemAsync('demo_user', JSON.stringify(demoUser));
+        
+        console.log('Login successful (Demo Mode):', demoUser.name);
+        return;
+      }
+
       const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
         method: 'POST',
         headers: {
