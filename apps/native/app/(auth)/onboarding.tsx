@@ -718,6 +718,14 @@ const styles = StyleSheet.create({
     marginBottom: 32,
     fontWeight: '500',
   },
+  scrollableContent: {
+    flex: 1,
+    marginBottom: 20,
+  },
+  scrollableContentInner: {
+    flexGrow: 1,
+    paddingBottom: 10,
+  },
   fieldsContainer: {
     marginBottom: 24,
   },
