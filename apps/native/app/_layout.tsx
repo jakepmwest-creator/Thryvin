@@ -9,6 +9,7 @@ export default function RootLayout() {
     <SafeAreaProvider>
       <PaperProvider>
         <Stack screenOptions={{ headerShown: false }} />
+        <FloatingCoachButton />
       </PaperProvider>
     </SafeAreaProvider>
   );
