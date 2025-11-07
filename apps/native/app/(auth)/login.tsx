@@ -350,8 +350,8 @@ const styles = StyleSheet.create({
     marginBottom: 32,
   },
   logo: {
-    width: 180,
-    height: 50,
+    width: 240,
+    height: 60,
   },
   cardContainer: {
     borderRadius: 32,
