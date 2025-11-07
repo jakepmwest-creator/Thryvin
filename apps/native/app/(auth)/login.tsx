@@ -160,26 +160,6 @@ export default function LoginScreen() {
             showsVerticalScrollIndicator={false}
             keyboardShouldPersistTaps="handled"
           >
-            {/* Animated Logo */}
-            <Animated.View 
-              style={[
-                styles.logoContainer,
-                {
-                  opacity: fadeAnim,
-                  transform: [
-                    { translateY: slideAnim },
-                    { scale: pulseAnim }
-                  ]
-                }
-              ]}
-            >
-              <Image 
-                source={require('../../assets/images/thryvin-logo-new.png')}
-                style={styles.logo}
-                resizeMode="contain"
-              />
-            </Animated.View>
-
             {/* Elevated Card Container */}
             <Animated.View 
               style={[
