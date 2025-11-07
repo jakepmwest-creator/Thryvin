@@ -536,39 +536,43 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '700',
   },
-  // Quick Actions
-  quickActions: {
-    gap: 10,
-  },
-  quickActionBtn: {
-    borderRadius: 16,
+  // Nutrition Snapshot
+  nutritionCard: {
+    borderRadius: 20,
     overflow: 'hidden',
   },
-  quickActionGradient: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 16,
-    gap: 10,
+  nutritionGradient: {
+    padding: 20,
   },
-  quickActionText: {
-    fontSize: 16,
+  nutritionRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    marginBottom: 12,
+  },
+  nutritionStat: {
+    alignItems: 'center',
+  },
+  nutritionValue: {
+    fontSize: 24,
     fontWeight: '700',
     color: COLORS.white,
+    marginBottom: 4,
   },
-  quickActionSecondary: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 16,
-    gap: 10,
-    backgroundColor: COLORS.lightGray,
-    borderRadius: 16,
+  nutritionLabel: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: COLORS.white,
+    opacity: 0.9,
   },
-  quickActionTextSecondary: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: COLORS.accent,
+  nutritionDivider: {
+    width: 1,
+    backgroundColor: 'rgba(255, 255, 255, 0.3)',
+  },
+  nutritionSubtext: {
+    fontSize: 13,
+    color: COLORS.white,
+    textAlign: 'center',
+    opacity: 0.85,
   },
   // Streak Card
   streakCard: {
