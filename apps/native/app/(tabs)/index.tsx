@@ -387,28 +387,28 @@ const styles = StyleSheet.create({
     color: COLORS.mediumGray,
     marginTop: 8,
   },
-  // Today's Workout
+  // Today's Workout - MEDIUM SIZE
   todayWorkoutCard: {
     borderRadius: 20,
     overflow: 'hidden',
   },
   workoutGradient: {
-    padding: 18,
+    padding: 20,
   },
   workoutHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: 18,
   },
   workoutTitle: {
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: '700',
     color: COLORS.text,
-    marginBottom: 4,
+    marginBottom: 6,
   },
   workoutMeta: {
-    fontSize: 13,
+    fontSize: 14,
     color: COLORS.mediumGray,
     fontWeight: '500',
   },
