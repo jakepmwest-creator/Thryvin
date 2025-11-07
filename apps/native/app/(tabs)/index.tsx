@@ -508,9 +508,8 @@ const styles = StyleSheet.create({
   },
   pbCard: {
     width: (SCREEN_WIDTH - 50) / 2,
-    backgroundColor: COLORS.lightGray,
-    borderRadius: 16,
-    padding: 14,
+    borderRadius: 18,
+    padding: 16,
   },
   pbIcon: {
     width: 40,
