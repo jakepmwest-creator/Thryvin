@@ -179,7 +179,7 @@ export default function LoginScreen() {
                 {/* Logo in Card */}
                 <View style={styles.cardLogoContainer}>
                   <Image 
-                    source={require('../../assets/images/thryvin-logo-clean.png')}
+                    source={require('../../assets/images/thryvin-logo-final.png')}
                     style={styles.cardLogo}
                     resizeMode="contain"
                   />
