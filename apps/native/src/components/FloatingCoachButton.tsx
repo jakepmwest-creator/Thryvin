@@ -142,7 +142,7 @@ export function FloatingCoachButton() {
                   onPress={() => setChatVisible(false)}
                   style={styles.closeButton}
                 >
-                  <Ionicons name=\"close\" size={28} color={COLORS.white} />
+                  <Ionicons name="close" size={28} color={COLORS.white} />
                 </TouchableOpacity>
               </View>
             </LinearGradient>
