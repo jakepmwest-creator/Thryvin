@@ -318,17 +318,51 @@ export default function OnboardingScreen() {
     </View>
   );
 
-  const renderDatePicker = () => (
-    <TouchableOpacity
-      style={styles.datePickerButton}
-      onPress={() => Alert.alert('Date Picker', 'Date picker would open here (requires expo-date-time-picker)')}
-    >
-      <Ionicons name="calendar" size={20} color={COLORS.accent} />
-      <Text style={styles.datePickerText}>
-        {formData.dateOfBirth || 'Select your birth date'}
-      </Text>
-    </TouchableOpacity>
-  );
+  const renderDatePicker = () => {
+    const formatDate = (date: Date | null) => {
+      if (!date) return null;
+      return date.toLocaleDateString('en-US', { 
+        year: 'numeric', 
+        month: 'long', 
+        day: 'numeric' 
+      });
+    };
+
+    return (
+      <>
+        <TouchableOpacity
+          style={styles.datePickerButton}
+          onPress={() => setShowDatePicker(true)}
+        >
+          <View style={styles.iconContainer}>
+            <Ionicons name="calendar-outline" size={20} color={COLORS.accent} />
+          </View>
+          <Text style={[
+            styles.datePickerText,
+            !formData.dateOfBirth && styles.placeholderText
+          ]}>
+            {formData.dateOfBirth ? formatDate(formData.dateOfBirth) : 'Select your birth date'}
+          </Text>
+        </TouchableOpacity>
+
+        {showDatePicker && (
+          <DateTimePicker
+            value={formData.dateOfBirth || new Date(2000, 0, 1)}
+            mode="date"
+            display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+            onChange={(event, selectedDate) => {
+              setShowDatePicker(Platform.OS === 'ios');
+              if (selectedDate) {
+                setFormData({ ...formData, dateOfBirth: selectedDate });
+              }
+            }}
+            maximumDate={new Date()}
+            minimumDate={new Date(1940, 0, 1)}
+          />
+        )}
+      </>
+    );
+  };
 
   const renderMeasurementField = (field: any) => {
     const unit = field.unit === 'height' ? formData.heightUnit : formData.weightUnit;
