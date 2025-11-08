@@ -85,10 +85,10 @@ export function SlidingTabBar({ state, descriptors, navigation }: BottomTabBarPr
   };
 
   return (
-    <View style={[styles.container, { paddingBottom: insets.bottom }]}>
+    <View style={styles.container}>
       <LinearGradient
         colors={gradientColors}
-        style={styles.gradient}
+        style={[styles.gradient, { paddingBottom: insets.bottom }]}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 0 }}
       >
