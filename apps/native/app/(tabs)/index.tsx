@@ -134,6 +134,11 @@ export default function HomeScreen() {
         {/* Weekly Progress Rings - MOVED UP */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Weekly Progress</Text>
+          <View style={styles.ringsContainer}>
+            <ProgressRing label="Workouts" progress={0.8} color={COLORS.accent} onPress={() => showRingDetails('Workouts')} />
+            <ProgressRing label="Calories" progress={0.65} color={COLORS.red} onPress={() => showRingDetails('Calories')} />
+            <ProgressRing label="Active Days" progress={0.75} color={COLORS.green} onPress={() => showRingDetails('Active Days')} />
+          </View>
           {ringDetailsVisible && (
             <View style={styles.ringDetails}>
               <Text style={styles.ringDetailsText}>
@@ -143,11 +148,6 @@ export default function HomeScreen() {
               </Text>
             </View>
           )}
-          <View style={styles.ringsContainer}>
-            <ProgressRing label="Workouts" progress={0.8} color={COLORS.accent} onPress={() => showRingDetails('Workouts')} />
-            <ProgressRing label="Calories" progress={0.65} color={COLORS.red} onPress={() => showRingDetails('Calories')} />
-            <ProgressRing label="Active Days" progress={0.75} color={COLORS.green} onPress={() => showRingDetails('Active Days')} />
-          </View>
         </View>
 
         {/* Today's Workout */}
