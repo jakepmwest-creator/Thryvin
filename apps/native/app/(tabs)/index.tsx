@@ -247,8 +247,8 @@ export default function HomeScreen() {
           </View>
         </View>
 
-        {/* SURPRISE: Nutrition Snapshot */}
-        <View style={styles.section}>
+        {/* Today's Nutrition */}
+        <View style={[styles.section, { marginBottom: 100 }]}>
           <Text style={styles.sectionTitle}>Today's Nutrition</Text>
           <View style={styles.nutritionCard}>
             <LinearGradient
@@ -274,27 +274,6 @@ export default function HomeScreen() {
                 </View>
               </View>
               <Text style={styles.nutritionSubtext}>62% of daily goal</Text>
-            </LinearGradient>
-          </View>
-        </View>
-
-        {/* SURPRISE 2: Weekly Streak Card */}
-        <View style={[styles.section, { marginBottom: 30 }]}>
-          <View style={styles.streakCard}>
-            <LinearGradient
-              colors={[COLORS.orange, COLORS.red]}
-              style={styles.streakGradient}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-            >
-              <View style={styles.streakContent}>
-                <Ionicons name="flame" size={48} color={COLORS.white} />
-                <View>
-                  <Text style={styles.streakNumber}>7</Text>
-                  <Text style={styles.streakLabel}>Day Streak</Text>
-                </View>
-              </View>
-              <Text style={styles.streakSubtext}>You're on fire! Don't break it now!</Text>
             </LinearGradient>
           </View>
         </View>
