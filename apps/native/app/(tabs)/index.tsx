@@ -161,9 +161,12 @@ export default function HomeScreen() {
               end={{ x: 1, y: 1 }}
             >
               <View style={styles.workoutHeader}>
-                <View>
+                <View style={{ flex: 1 }}>
                   <Text style={styles.workoutTitle}>Upper Body Push</Text>
                   <Text style={styles.workoutMeta}>45 min • 8 exercises • Intermediate</Text>
+                  <Text style={styles.workoutDescription}>
+                    Focus on chest, shoulders, and triceps. Build strength and muscle with progressive overload techniques.
+                  </Text>
                 </View>
                 <View style={styles.workoutBadge}>
                   <Ionicons name="barbell" size={24} color={COLORS.accent} />
