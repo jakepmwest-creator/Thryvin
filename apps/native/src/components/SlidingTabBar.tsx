@@ -93,45 +93,6 @@ export function SlidingTabBar({ state, descriptors, navigation }: BottomTabBarPr
         end={{ x: 1, y: 0 }}
       >
         <View style={styles.tabsContainer}>
-          {/* Toggle Button - LEFT side when in Nutrition mode */}
-          {(mode === 'nutrition') && (
-            <TouchableOpacity
-              style={styles.toggleContainer}
-              onPress={handleToggle}
-              activeOpacity={0.8}
-            >
-              <View style={styles.toggleTrack}>
-                <Animated.View
-                  style={[
-                    styles.toggleThumb,
-                    {
-                      transform: [{
-                        translateX: slideAnim.interpolate({
-                          inputRange: [0, 1],
-                          outputRange: [2, 22],
-                        }),
-                      }],
-                    },
-                  ]}
-                />
-                <View style={styles.toggleIcons}>
-                  <Ionicons
-                    name="fitness"
-                    size={14}
-                    color={mode === 'fitness' ? COLORS.white : 'rgba(255,255,255,0.3)'}
-                    style={styles.toggleIcon}
-                  />
-                  <Ionicons
-                    name="nutrition"
-                    size={14}
-                    color={mode === 'nutrition' ? COLORS.white : 'rgba(255,255,255,0.3)'}
-                    style={styles.toggleIcon}
-                  />
-                </View>
-              </View>
-            </TouchableOpacity>
-          )}
-
           {/* Tabs */}
           <View style={styles.tabs}>
             {currentTabs.map((tab, index) => {
@@ -160,44 +121,42 @@ export function SlidingTabBar({ state, descriptors, navigation }: BottomTabBarPr
             })}
           </View>
 
-          {/* Toggle Button - RIGHT side when in Fitness mode */}
-          {(mode === 'fitness') && (
-            <TouchableOpacity
-              style={styles.toggleContainer}
-              onPress={handleToggle}
-              activeOpacity={0.8}
-            >
-              <View style={styles.toggleTrack}>
-                <Animated.View
-                  style={[
-                    styles.toggleThumb,
-                    {
-                      transform: [{
-                        translateX: slideAnim.interpolate({
-                          inputRange: [0, 1],
-                          outputRange: [2, 22],
-                        }),
-                      }],
-                    },
-                  ]}
+          {/* Toggle Button - ALWAYS on the RIGHT side */}
+          <TouchableOpacity
+            style={styles.toggleContainer}
+            onPress={handleToggle}
+            activeOpacity={0.8}
+          >
+            <View style={styles.toggleTrack}>
+              <Animated.View
+                style={[
+                  styles.toggleThumb,
+                  {
+                    transform: [{
+                      translateX: slideAnim.interpolate({
+                        inputRange: [0, 1],
+                        outputRange: [2, 22],
+                      }),
+                    }],
+                  },
+                ]}
+              />
+              <View style={styles.toggleIcons}>
+                <Ionicons
+                  name="fitness"
+                  size={14}
+                  color={mode === 'fitness' ? COLORS.white : 'rgba(255,255,255,0.3)'}
+                  style={styles.toggleIcon}
                 />
-                <View style={styles.toggleIcons}>
-                  <Ionicons
-                    name="fitness"
-                    size={14}
-                    color={mode === 'fitness' ? COLORS.white : 'rgba(255,255,255,0.3)'}
-                    style={styles.toggleIcon}
-                  />
-                  <Ionicons
-                    name="nutrition"
-                    size={14}
-                    color={mode === 'nutrition' ? COLORS.white : 'rgba(255,255,255,0.3)'}
-                    style={styles.toggleIcon}
-                  />
-                </View>
+                <Ionicons
+                  name="nutrition"
+                  size={14}
+                  color={mode === 'nutrition' ? COLORS.white : 'rgba(255,255,255,0.3)'}
+                  style={styles.toggleIcon}
+                />
               </View>
-            </TouchableOpacity>
-          )}
+            </View>
+          </TouchableOpacity>
         </View>
       </LinearGradient>
     </View>
