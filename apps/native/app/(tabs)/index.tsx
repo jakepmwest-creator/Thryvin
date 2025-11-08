@@ -416,11 +416,12 @@ const styles = StyleSheet.create({
   },
   workoutGradient: {
     padding: 20,
+    minHeight: 180,
   },
   workoutHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     marginBottom: 18,
   },
   workoutTitle: {
@@ -433,6 +434,13 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: COLORS.mediumGray,
     fontWeight: '500',
+    marginBottom: 8,
+  },
+  workoutDescription: {
+    fontSize: 13,
+    color: COLORS.mediumGray,
+    lineHeight: 18,
+    marginTop: 4,
   },
   workoutBadge: {
     width: 50,
