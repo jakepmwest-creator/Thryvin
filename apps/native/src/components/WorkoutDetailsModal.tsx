@@ -123,19 +123,19 @@ const WORKOUT_DATA: any = {
             <View style={styles.statsRow}>
               <View style={styles.statBox}>
                 <Ionicons name="time-outline" size={20} color={COLORS.accent} />
-                <Text style={styles.statValue}>{MOCK_WORKOUT.duration}</Text>
+                <Text style={styles.statValue}>{currentWorkout.duration}</Text>
                 <Text style={styles.statLabel}>Duration</Text>
               </View>
 
               <View style={styles.statBox}>
                 <Ionicons name="list-outline" size={20} color={COLORS.accent} />
-                <Text style={styles.statValue}>{MOCK_WORKOUT.exercises}</Text>
+                <Text style={styles.statValue}>{currentWorkout.exercises}</Text>
                 <Text style={styles.statLabel}>Exercises</Text>
               </View>
 
               <View style={styles.statBox}>
                 <Ionicons name="speedometer-outline" size={20} color={COLORS.accent} />
-                <Text style={styles.statValue}>{MOCK_WORKOUT.difficulty}</Text>
+                <Text style={styles.statValue}>{currentWorkout.difficulty}</Text>
                 <Text style={styles.statLabel}>Level</Text>
               </View>
 
@@ -147,7 +147,7 @@ const WORKOUT_DATA: any = {
                   start={{ x: 0, y: 0 }}
                   end={{ x: 1, y: 1 }}
                 >
-                  <Text style={styles.circularValue}>{MOCK_WORKOUT.caloriesBurn}</Text>
+                  <Text style={styles.circularValue}>{currentWorkout.caloriesBurn}</Text>
                   <Text style={styles.circularLabel}>cal</Text>
                 </LinearGradient>
               </View>
@@ -155,61 +155,65 @@ const WORKOUT_DATA: any = {
 
             {/* Workout Title & Target */}
             <View style={styles.titleSection}>
-              <Text style={styles.workoutTitle}>{MOCK_WORKOUT.title}</Text>
-              <Text style={styles.targetText}>Target: {MOCK_WORKOUT.targetMuscles}</Text>
+              <Text style={styles.workoutTitle}>{currentWorkout.title}</Text>
+              <Text style={styles.targetText}>Target: {currentWorkout.targetMuscles}</Text>
             </View>
 
             {/* Overview Dropdown */}
-            <TouchableOpacity
-              style={styles.dropdown}
-              onPress={() => setOverviewExpanded(!overviewExpanded)}
-            >
-              <View style={styles.dropdownHeader}>
-                <Ionicons name="document-text-outline" size={22} color={COLORS.accent} />
-                <Text style={styles.dropdownTitle}>Overview</Text>
-                <Ionicons 
-                  name={overviewExpanded ? "chevron-up" : "chevron-down"} 
-                  size={20} 
-                  color={COLORS.mediumGray} 
-                />
-              </View>
-              {overviewExpanded && (
-                <View style={styles.dropdownContent}>
-                  <Text style={styles.overviewText}>{MOCK_WORKOUT.overview}</Text>
+            {currentWorkout.overview && (
+              <TouchableOpacity
+                style={styles.dropdown}
+                onPress={() => setOverviewExpanded(!overviewExpanded)}
+              >
+                <View style={styles.dropdownHeader}>
+                  <Ionicons name="document-text-outline" size={22} color={COLORS.accent} />
+                  <Text style={styles.dropdownTitle}>Overview</Text>
+                  <Ionicons 
+                    name={overviewExpanded ? "chevron-up" : "chevron-down"} 
+                    size={20} 
+                    color={COLORS.mediumGray} 
+                  />
                 </View>
-              )}
-            </TouchableOpacity>
+                {overviewExpanded && (
+                  <View style={styles.dropdownContent}>
+                    <Text style={styles.overviewText}>{currentWorkout.overview}</Text>
+                  </View>
+                )}
+              </TouchableOpacity>
+            )}
 
             {/* Exercises Dropdown */}
-            <TouchableOpacity
-              style={styles.dropdown}
-              onPress={() => setExercisesExpanded(!exercisesExpanded)}
-            >
-              <View style={styles.dropdownHeader}>
-                <Ionicons name="barbell-outline" size={22} color={COLORS.accent} />
-                <Text style={styles.dropdownTitle}>All Exercises ({MOCK_WORKOUT.exercises})</Text>
-                <Ionicons 
-                  name={exercisesExpanded ? "chevron-up" : "chevron-down"} 
-                  size={20} 
-                  color={COLORS.mediumGray} 
-                />
-              </View>
-              {exercisesExpanded && (
-                <View style={styles.dropdownContent}>
-                  {MOCK_WORKOUT.exerciseList.map((exercise, index) => (
-                    <View key={index} style={styles.exerciseItem}>
-                      <Text style={styles.exerciseNumber}>{index + 1}</Text>
-                      <View style={styles.exerciseInfo}>
-                        <Text style={styles.exerciseName}>{exercise.name}</Text>
-                        <Text style={styles.exerciseDetails}>
-                          {exercise.sets} sets × {exercise.reps} reps • {exercise.rest} rest
-                        </Text>
-                      </View>
-                    </View>
-                  ))}
+            {currentWorkout.exerciseList.length > 0 && (
+              <TouchableOpacity
+                style={styles.dropdown}
+                onPress={() => setExercisesExpanded(!exercisesExpanded)}
+              >
+                <View style={styles.dropdownHeader}>
+                  <Ionicons name="barbell-outline" size={22} color={COLORS.accent} />
+                  <Text style={styles.dropdownTitle}>All Exercises ({currentWorkout.exercises})</Text>
+                  <Ionicons 
+                    name={exercisesExpanded ? "chevron-up" : "chevron-down"} 
+                    size={20} 
+                    color={COLORS.mediumGray} 
+                  />
                 </View>
-              )}
-            </TouchableOpacity>
+                {exercisesExpanded && (
+                  <View style={styles.dropdownContent}>
+                    {currentWorkout.exerciseList.map((exercise: any, index: number) => (
+                      <View key={index} style={styles.exerciseItem}>
+                        <Text style={styles.exerciseNumber}>{index + 1}</Text>
+                        <View style={styles.exerciseInfo}>
+                          <Text style={styles.exerciseName}>{exercise.name}</Text>
+                          <Text style={styles.exerciseDetails}>
+                            {exercise.sets} sets × {exercise.reps} reps • {exercise.rest} rest
+                          </Text>
+                        </View>
+                      </View>
+                    ))}
+                  </View>
+                )}
+              </TouchableOpacity>
+            )}
 
             {/* Action Buttons */}
             <View style={styles.actionButtons}>
