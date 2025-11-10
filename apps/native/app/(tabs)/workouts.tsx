@@ -99,6 +99,7 @@ export default function WorkoutsScreen() {
         visible={modalVisible}
         onClose={() => setModalVisible(false)}
         onStartWorkout={handleStartWorkout}
+        selectedDate={selectedDate}
       />
       
       <ScrollView 
