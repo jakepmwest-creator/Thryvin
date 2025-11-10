@@ -33,12 +33,12 @@ const COLORS = {
 };
 
 const ACTIVITY_CARDS = [
-  { id: 1, icon: 'trophy', title: 'New PR!', subtitle: 'Bench: 225 lbs', gradient: [COLORS.yellow, '#FFA500'] },
-  { id: 2, icon: 'people', title: '3 Followers', subtitle: 'Sarah, Mike, Alex', gradient: [COLORS.green, '#66BB6A'] },
-  { id: 3, icon: 'flame', title: '7 Day Streak', subtitle: 'Keep it going!', gradient: [COLORS.red, '#FF6B6B'] },
-  { id: 4, icon: 'barbell', title: 'Last Workout', subtitle: 'Upper Body', gradient: [COLORS.purple, '#BA68C8'] },
-  { id: 5, icon: 'star', title: 'Achievement', subtitle: '100 Workouts', gradient: [COLORS.blue, '#42A5F5'] },
-  { id: 6, icon: 'timer', title: 'Best Time', subtitle: '45 min', gradient: [COLORS.orange, '#FFB74D'] },
+  { id: 1, icon: 'trophy', title: 'New PR!', subtitle: 'Bench: 225 lbs', gradient: ['#FFD700', '#FFA000'] },
+  { id: 2, icon: 'people', title: '3 Followers', subtitle: 'Sarah, Mike, Alex', gradient: ['#4CAF50', '#00C853'] },
+  { id: 3, icon: 'flame', title: '7 Day Streak', subtitle: 'Keep it going!', gradient: ['#FF5252', '#FF1744'] },
+  { id: 4, icon: 'barbell', title: 'Last Workout', subtitle: 'Upper Body', gradient: ['#9C27B0', '#AA00FF'] },
+  { id: 5, icon: 'star', title: 'Achievement', subtitle: '100 Workouts', gradient: ['#2196F3', '#00B0FF'] },
+  { id: 6, icon: 'timer', title: 'Best Time', subtitle: '45 min', gradient: ['#FF9800', '#FF6D00'] },
 ];
 
 const AI_QUOTES = [
@@ -48,7 +48,6 @@ const AI_QUOTES = [
   "3 PRs this week!\nYou're unstoppable! 🔥",
 ];
 
-// Circular progress ring with tap interaction
 const ProgressRing = ({ label, progress, color, size = 90, onPress }: any) => {
   return (
     <TouchableOpacity style={styles.ringContainer} onPress={onPress}>
@@ -99,7 +98,7 @@ export default function HomeScreen() {
         style={styles.scrollView} 
         showsVerticalScrollIndicator={false}
       >
-        {/* Bigger, More Inviting Banner */}
+        {/* Banner */}
         <View style={styles.bannerContainer}>
           <LinearGradient
             colors={[COLORS.accent, COLORS.accentSecondary]}
@@ -132,7 +131,7 @@ export default function HomeScreen() {
           </LinearGradient>
         </View>
 
-        {/* Weekly Progress Rings - MOVED UP */}
+        {/* Weekly Progress Rings */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Weekly Progress</Text>
           <View style={styles.ringsContainer}>
@@ -191,7 +190,7 @@ export default function HomeScreen() {
           </View>
         </View>
 
-        {/* Recent Activity - MOVED DOWN, SMALLER CARDS */}
+        {/* Recent Activity - VIBRANT GRADIENTS */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Recent Activity</Text>
           <Animated.ScrollView
@@ -210,9 +209,9 @@ export default function HomeScreen() {
                   colors={card.gradient}
                   style={styles.activityCard}
                   start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 1 }}
+                  end={{ x: 1.2, y: 1.2 }}
                 >
-                  <Ionicons name={card.icon as any} size={24} color={COLORS.white} />
+                  <Ionicons name={card.icon as any} size={28} color={COLORS.white} />
                   <Text style={styles.activityTitle}>{card.title}</Text>
                   <Text style={styles.activitySubtitle}>{card.subtitle}</Text>
                 </LinearGradient>
@@ -221,7 +220,7 @@ export default function HomeScreen() {
           </Animated.ScrollView>
         </View>
 
-        {/* Personal Bests - SMALLER */}
+        {/* Personal Bests */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Personal Bests</Text>
           <View style={styles.pbGrid}>
@@ -248,15 +247,15 @@ export default function HomeScreen() {
           </View>
         </View>
 
-        {/* Today's Nutrition */}
+        {/* Today's Nutrition - VIBRANT GRADIENT */}
         <View style={[styles.section, { marginBottom: 100 }]}>
           <Text style={styles.sectionTitle}>Today's Nutrition</Text>
           <View style={styles.nutritionCard}>
             <LinearGradient
-              colors={['#4CAF50', '#66BB6A']}
+              colors={['#00C853', '#69F0AE']}
               style={styles.nutritionGradient}
               start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
+              end={{ x: 1.2, y: 1.2 }}
             >
               <View style={styles.nutritionRow}>
                 <View style={styles.nutritionStat}>
@@ -301,7 +300,6 @@ const styles = StyleSheet.create({
     color: COLORS.text,
     marginBottom: 14,
   },
-  // Banner - BIGGER
   bannerContainer: {
     marginHorizontal: 20,
     marginTop: 16,
@@ -362,7 +360,6 @@ const styles = StyleSheet.create({
     color: COLORS.white,
     marginTop: 4,
   },
-  // Weekly Progress Rings
   ringsContainer: {
     flexDirection: 'row',
     justifyContent: 'space-around',
@@ -372,7 +369,7 @@ const styles = StyleSheet.create({
     backgroundColor: `${COLORS.accent}10`,
     padding: 12,
     borderRadius: 12,
-    marginBottom: 12,
+    marginTop: 12,
   },
   ringDetailsText: {
     fontSize: 13,
@@ -410,7 +407,6 @@ const styles = StyleSheet.create({
     color: COLORS.mediumGray,
     marginTop: 8,
   },
-  // Today's Workout - MEDIUM SIZE
   todayWorkoutCard: {
     borderRadius: 20,
     overflow: 'hidden',
@@ -467,7 +463,6 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: COLORS.white,
   },
-  // Activity Cards - COLORFUL GRADIENTS, MORE RECTANGULAR
   activityScroll: {
     paddingRight: 20,
     gap: 8,
@@ -476,24 +471,16 @@ const styles = StyleSheet.create({
   activityCardWrapper: {
     width: SCREEN_WIDTH * 0.38,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
-    shadowRadius: 12,
-    elevation: 4,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.25,
+    shadowRadius: 14,
+    elevation: 6,
   },
   activityCard: {
     borderRadius: 18,
     padding: 16,
     height: 110,
     justifyContent: 'space-between',
-  },
-  activityIcon: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 10,
   },
   activityTitle: {
     fontSize: 15,
@@ -506,9 +493,8 @@ const styles = StyleSheet.create({
     fontSize: 11,
     color: COLORS.white,
     fontWeight: '500',
-    opacity: 0.9,
+    opacity: 0.95,
   },
-  // Personal Bests - SMALLER GRID
   pbGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -537,10 +523,14 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '700',
   },
-  // Nutrition Snapshot
   nutritionCard: {
     borderRadius: 20,
     overflow: 'hidden',
+    shadowColor: '#00C853',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.3,
+    shadowRadius: 14,
+    elevation: 6,
   },
   nutritionGradient: {
     padding: 20,
@@ -563,7 +553,7 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '600',
     color: COLORS.white,
-    opacity: 0.9,
+    opacity: 0.95,
   },
   nutritionDivider: {
     width: 1,
@@ -573,37 +563,6 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: COLORS.white,
     textAlign: 'center',
-    opacity: 0.85,
-  },
-  // Streak Card
-  streakCard: {
-    borderRadius: 20,
-    overflow: 'hidden',
-  },
-  streakGradient: {
-    padding: 20,
-  },
-  streakContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 16,
-    marginBottom: 8,
-  },
-  streakNumber: {
-    fontSize: 36,
-    fontWeight: '700',
-    color: COLORS.white,
-    lineHeight: 40,
-  },
-  streakLabel: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: COLORS.white,
     opacity: 0.9,
-  },
-  streakSubtext: {
-    fontSize: 13,
-    color: COLORS.white,
-    opacity: 0.85,
   },
 });
