@@ -296,6 +296,12 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: COLORS.text,
   },
+  dayText: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: COLORS.mediumGray,
+    marginTop: 2,
+  },
   statsRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
