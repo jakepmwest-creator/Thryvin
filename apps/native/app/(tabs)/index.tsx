@@ -229,6 +229,7 @@ export default function HomeScreen() {
               <TouchableOpacity
                 key={card.id}
                 style={styles.activityCardWrapper}
+                onPress={() => handleActivityCardPress(card.action)}
               >
                 <LinearGradient
                   colors={card.gradient}
