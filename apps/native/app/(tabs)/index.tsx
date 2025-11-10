@@ -256,19 +256,23 @@ export default function HomeScreen() {
               { name: 'Deadlift', weight: '405 lbs', icon: 'flame', color: COLORS.red },
               { name: 'Pull Ups', weight: '15 reps', icon: 'arrow-up', color: COLORS.green },
             ].map((pb, i) => (
-              <LinearGradient
+              <TouchableOpacity
                 key={i}
-                colors={[`${pb.color}08`, `${pb.color}05`]}
-                style={styles.pbCard}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 1 }}
+                onPress={() => handlePersonalBestPress(pb)}
               >
-                <View style={[styles.pbIcon, { backgroundColor: `${pb.color}20` }]}>
-                  <Ionicons name={pb.icon as any} size={18} color={pb.color} />
-                </View>
-                <Text style={styles.pbName}>{pb.name}</Text>
-                <Text style={[styles.pbWeight, { color: pb.color }]}>{pb.weight}</Text>
-              </LinearGradient>
+                <LinearGradient
+                  colors={[`${pb.color}08`, `${pb.color}05`]}
+                  style={styles.pbCard}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 1 }}
+                >
+                  <View style={[styles.pbIcon, { backgroundColor: `${pb.color}20` }]}>
+                    <Ionicons name={pb.icon as any} size={18} color={pb.color} />
+                  </View>
+                  <Text style={styles.pbName}>{pb.name}</Text>
+                  <Text style={[styles.pbWeight, { color: pb.color }]}>{pb.weight}</Text>
+                </LinearGradient>
+              </TouchableOpacity>
             ))}
           </View>
         </View>
