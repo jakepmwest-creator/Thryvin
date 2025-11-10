@@ -15,7 +15,6 @@ import {
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
-import { BlurView } from 'expo-blur';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
@@ -32,35 +31,61 @@ const MOCK_MESSAGES = [
   { role: 'assistant', text: "Hey! I'm your AI coach. Ask me anything about workouts, nutrition, or modify your training plan!" },
 ];
 
+const BUTTON_SIZE = 60;
+const EDGE_PADDING = 20;
+
 export function FloatingCoachButton() {
   const [chatVisible, setChatVisible] = useState(false);
   const [messages, setMessages] = useState(MOCK_MESSAGES);
   const [inputText, setInputText] = useState('');
 
   // Draggable position
-  const pan = useRef(new Animated.ValueXY({ x: SCREEN_WIDTH - 80, y: SCREEN_HEIGHT - 200 })).current;
+  const pan = useRef(new Animated.ValueXY({ 
+    x: SCREEN_WIDTH - BUTTON_SIZE - EDGE_PADDING, 
+    y: SCREEN_HEIGHT - 200 
+  })).current;
 
   const panResponder = useRef(
     PanResponder.create({
       onStartShouldSetPanResponder: () => true,
+      onMoveShouldSetPanResponder: () => true,
       onPanResponderGrant: () => {
-        pan.setOffset({
-          x: pan.x._value,
-          y: pan.y._value,
-        });
-        pan.setValue({ x: 0, y: 0 });
+        // Extract the current position
+        pan.extractOffset();
       },
-      onPanResponderMove: Animated.event([null, { dx: pan.x, dy: pan.y }], {
-        useNativeDriver: false,
-      }),
+      onPanResponderMove: Animated.event(
+        [null, { dx: pan.x, dy: pan.y }],
+        { useNativeDriver: false }
+      ),
       onPanResponderRelease: (_, gesture) => {
+        // Flatten the offset so that the current value becomes the offset
         pan.flattenOffset();
         
-        // Snap to edges
-        const finalX = gesture.moveX < SCREEN_WIDTH / 2 ? 20 : SCREEN_WIDTH - 80;
+        // Get current position
+        const currentX = pan.x._value;
+        const currentY = pan.y._value;
+        
+        // Constrain within screen bounds
+        const finalX = Math.max(
+          EDGE_PADDING,
+          Math.min(currentX, SCREEN_WIDTH - BUTTON_SIZE - EDGE_PADDING)
+        );
+        const finalY = Math.max(
+          100,
+          Math.min(currentY, SCREEN_HEIGHT - BUTTON_SIZE - 100)
+        );
+        
+        // Snap to nearest edge (left or right)
+        const snapX = finalX < SCREEN_WIDTH / 2 
+          ? EDGE_PADDING 
+          : SCREEN_WIDTH - BUTTON_SIZE - EDGE_PADDING;
+        
+        // Animate to final position
         Animated.spring(pan, {
-          toValue: { x: finalX, y: pan.y._value },
+          toValue: { x: snapX, y: finalY },
           useNativeDriver: false,
+          friction: 7,
+          tension: 40,
         }).start();
       },
     })
@@ -83,7 +108,10 @@ export function FloatingCoachButton() {
         style={[
           styles.floatingButton,
           {
-            transform: pan.getTranslateTransform(),
+            transform: [
+              { translateX: pan.x },
+              { translateY: pan.y },
+            ],
           },
         ]}
         {...panResponder.panHandlers}
@@ -91,6 +119,7 @@ export function FloatingCoachButton() {
         <TouchableOpacity
           onPress={() => setChatVisible(true)}
           activeOpacity={0.9}
+          style={styles.touchable}
         >
           <LinearGradient
             colors={[COLORS.accent, COLORS.accentSecondary]}
@@ -211,13 +240,17 @@ export function FloatingCoachButton() {
 const styles = StyleSheet.create({
   floatingButton: {
     position: 'absolute',
-    width: 60,
-    height: 60,
+    width: BUTTON_SIZE,
+    height: BUTTON_SIZE,
     zIndex: 9999,
   },
+  touchable: {
+    width: '100%',
+    height: '100%',
+  },
   buttonGradient: {
-    width: 60,
-    height: 60,
+    width: BUTTON_SIZE,
+    height: BUTTON_SIZE,
     borderRadius: 16,
     justifyContent: 'center',
     alignItems: 'center',
