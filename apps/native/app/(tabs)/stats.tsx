@@ -10,6 +10,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
+import { AppHeader } from '../../src/components/AppHeader';
 
 const { width } = Dimensions.get('window');
 
@@ -119,13 +120,7 @@ const StatCard = ({
 export default function StatsScreen() {
   return (
     <SafeAreaView style={styles.container}>
-      {/* Header */}
-      <View style={styles.header}>
-        <Text style={styles.title}>Stats</Text>
-        <TouchableOpacity style={styles.filterButton}>
-          <Ionicons name="calendar" size={20} color={COLORS.accent} />
-        </TouchableOpacity>
-      </View>
+      <AppHeader mode="fitness" />
 
       <ScrollView 
         style={styles.scrollView}
@@ -259,27 +254,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: COLORS.white,
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 24,
-    paddingTop: 16,
-    paddingBottom: 24,
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: '700',
-    color: COLORS.text,
-  },
-  filterButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: COLORS.lightGray,
-    justifyContent: 'center',
-    alignItems: 'center',
   },
   scrollView: {
     flex: 1,
