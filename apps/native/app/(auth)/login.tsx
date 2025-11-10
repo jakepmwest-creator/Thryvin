@@ -277,6 +277,22 @@ export default function LoginScreen() {
                     <View style={styles.dividerLine} />
                   </View>
 
+                  {/* Why Join - 3 Bullet Points */}
+                  <View style={styles.whyJoinContainer}>
+                    <View style={styles.bulletPoint}>
+                      <Ionicons name="fitness" size={16} color={COLORS.accent} />
+                      <Text style={styles.bulletText}>AI-powered personalized workouts</Text>
+                    </View>
+                    <View style={styles.bulletPoint}>
+                      <Ionicons name="trending-up" size={16} color={COLORS.accent} />
+                      <Text style={styles.bulletText}>Track progress and smash your goals</Text>
+                    </View>
+                    <View style={styles.bulletPoint}>
+                      <Ionicons name="people" size={16} color={COLORS.accent} />
+                      <Text style={styles.bulletText}>Join a community of winners</Text>
+                    </View>
+                  </View>
+
                   {/* Start Journey Button */}
                   <TouchableOpacity 
                     style={styles.startJourneyButton} 
