@@ -71,6 +71,8 @@ const ProgressRing = ({ label, progress, color, size = 90, onPress }: any) => {
 export default function HomeScreen() {
   const [modalVisible, setModalVisible] = useState(false);
   const [ringDetailsVisible, setRingDetailsVisible] = useState<string | null>(null);
+  const [chartModalVisible, setChartModalVisible] = useState(false);
+  const [selectedExercise, setSelectedExercise] = useState<any>(null);
   const scrollX = useRef(new Animated.Value(0)).current;
 
   const handleStartWorkout = () => {
