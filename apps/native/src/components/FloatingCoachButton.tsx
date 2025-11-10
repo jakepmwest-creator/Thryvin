@@ -12,6 +12,7 @@ import {
   Dimensions,
   KeyboardAvoidingView,
   Platform,
+  ActivityIndicator,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
@@ -27,19 +28,20 @@ const COLORS = {
   mediumGray: '#8E8E93',
 };
 
-const MOCK_MESSAGES = [
-  { role: 'assistant', text: "Hey! I'm your AI coach. Ask me anything about workouts, nutrition, or modify your training plan!" },
-];
-
 const BUTTON_SIZE = 60;
 const EDGE_PADDING = 20;
 
+const OPENAI_API_KEY = process.env.EXPO_PUBLIC_OPENAI_API_KEY;
+
 export function FloatingCoachButton() {
   const [chatVisible, setChatVisible] = useState(false);
-  const [messages, setMessages] = useState(MOCK_MESSAGES);
+  const [messages, setMessages] = useState([
+    { role: 'assistant', text: "Hey! I'm your AI coach. Ask me anything about workouts, nutrition, or how to crush your goals!" },
+  ]);
   const [inputText, setInputText] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
 
-  // Draggable position
   const pan = useRef(new Animated.ValueXY({ 
     x: SCREEN_WIDTH - BUTTON_SIZE - EDGE_PADDING, 
     y: SCREEN_HEIGHT - 200 
@@ -47,10 +49,15 @@ export function FloatingCoachButton() {
 
   const panResponder = useRef(
     PanResponder.create({
-      onStartShouldSetPanResponder: () => true,
-      onMoveShouldSetPanResponder: () => true,
+      onStartShouldSetPanResponder: () => false,
+      onMoveShouldSetPanResponder: (_, gestureState) => {
+        const isSignificantMove = Math.abs(gestureState.dx) > 5 || Math.abs(gestureState.dy) > 5;
+        if (isSignificantMove) {
+          setIsDragging(true);
+        }
+        return isSignificantMove;
+      },
       onPanResponderGrant: () => {
-        // Extract the current position
         pan.extractOffset();
       },
       onPanResponderMove: Animated.event(
@@ -58,14 +65,11 @@ export function FloatingCoachButton() {
         { useNativeDriver: false }
       ),
       onPanResponderRelease: (_, gesture) => {
-        // Flatten the offset so that the current value becomes the offset
         pan.flattenOffset();
         
-        // Get current position
         const currentX = pan.x._value;
         const currentY = pan.y._value;
         
-        // Constrain within screen bounds
         const finalX = Math.max(
           EDGE_PADDING,
           Math.min(currentX, SCREEN_WIDTH - BUTTON_SIZE - EDGE_PADDING)
@@ -75,35 +79,81 @@ export function FloatingCoachButton() {
           Math.min(currentY, SCREEN_HEIGHT - BUTTON_SIZE - 100)
         );
         
-        // Snap to nearest edge (left or right)
         const snapX = finalX < SCREEN_WIDTH / 2 
           ? EDGE_PADDING 
           : SCREEN_WIDTH - BUTTON_SIZE - EDGE_PADDING;
         
-        // Animate to final position
         Animated.spring(pan, {
           toValue: { x: snapX, y: finalY },
           useNativeDriver: false,
           friction: 7,
           tension: 40,
         }).start();
+
+        setTimeout(() => setIsDragging(false), 100);
       },
     })
   ).current;
 
-  const handleSend = () => {
-    if (!inputText.trim()) return;
+  const handleButtonPress = () => {
+    if (!isDragging) {
+      setChatVisible(true);
+    }
+  };
 
-    setMessages([...messages, 
-      { role: 'user', text: inputText },
-      { role: 'assistant', text: 'Great question! (AI response would go here)' }
-    ]);
+  const callOpenAI = async (userMessage: string) => {
+    try {
+      const response = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${OPENAI_API_KEY}`,
+        },
+        body: JSON.stringify({
+          model: 'gpt-4o',
+          messages: [
+            {
+              role: 'system',
+              content: 'You are an enthusiastic and knowledgeable AI fitness coach for the Thryvin app. You help users with workout advice, nutrition tips, motivation, and can modify their workout plans. Keep responses concise, encouraging, and actionable. Use emojis occasionally to keep it fun.'
+            },
+            ...messages.map(m => ({ role: m.role, content: m.text })),
+            { role: 'user', content: userMessage }
+          ],
+          max_tokens: 300,
+          temperature: 0.7,
+        }),
+      });
+
+      const data = await response.json();
+      
+      if (data.error) {
+        throw new Error(data.error.message);
+      }
+
+      return data.choices[0].message.content;
+    } catch (error) {
+      console.error('OpenAI Error:', error);
+      return "I'm having trouble connecting right now. Please try again in a moment! 💪";
+    }
+  };
+
+  const handleSend = async () => {
+    if (!inputText.trim() || isLoading) return;
+
+    const userMessage = inputText.trim();
     setInputText('');
+    
+    setMessages(prev => [...prev, { role: 'user', text: userMessage }]);
+    setIsLoading(true);
+
+    const aiResponse = await callOpenAI(userMessage);
+    
+    setMessages(prev => [...prev, { role: 'assistant', text: aiResponse }]);
+    setIsLoading(false);
   };
 
   return (
     <>
-      {/* Floating Button */}
       <Animated.View
         style={[
           styles.floatingButton,
@@ -117,7 +167,7 @@ export function FloatingCoachButton() {
         {...panResponder.panHandlers}
       >
         <TouchableOpacity
-          onPress={() => setChatVisible(true)}
+          onPress={handleButtonPress}
           activeOpacity={0.9}
           style={styles.touchable}
         >
@@ -132,7 +182,6 @@ export function FloatingCoachButton() {
         </TouchableOpacity>
       </Animated.View>
 
-      {/* Chat Modal */}
       <Modal
         visible={chatVisible}
         animationType="slide"
@@ -150,7 +199,6 @@ export function FloatingCoachButton() {
           />
           
           <View style={styles.chatContainer}>
-            {/* Header */}
             <LinearGradient
               colors={[COLORS.accent, COLORS.accentSecondary]}
               style={styles.chatHeader}
@@ -176,7 +224,6 @@ export function FloatingCoachButton() {
               </View>
             </LinearGradient>
 
-            {/* Messages */}
             <ScrollView
               style={styles.messagesContainer}
               contentContainerStyle={styles.messagesContent}
@@ -204,9 +251,14 @@ export function FloatingCoachButton() {
                   </Text>
                 </View>
               ))}
+              {isLoading && (
+                <View style={styles.loadingBubble}>
+                  <ActivityIndicator color={COLORS.accent} />
+                  <Text style={styles.loadingText}>Thinking...</Text>
+                </View>
+              )}
             </ScrollView>
 
-            {/* Input */}
             <View style={styles.inputContainer}>
               <TextInput
                 style={styles.input}
@@ -215,10 +267,12 @@ export function FloatingCoachButton() {
                 value={inputText}
                 onChangeText={setInputText}
                 multiline
+                editable={!isLoading}
               />
               <TouchableOpacity
                 style={styles.sendButton}
                 onPress={handleSend}
+                disabled={isLoading || !inputText.trim()}
               >
                 <LinearGradient
                   colors={[COLORS.accent, COLORS.accentSecondary]}
@@ -360,6 +414,25 @@ const styles = StyleSheet.create({
   },
   assistantText: {
     color: COLORS.text,
+    fontWeight: '500',
+  },
+  loadingBubble: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    alignSelf: 'flex-start',
+    backgroundColor: COLORS.white,
+    borderRadius: 18,
+    padding: 14,
+    gap: 10,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  loadingText: {
+    fontSize: 15,
+    color: COLORS.mediumGray,
     fontWeight: '500',
   },
   inputContainer: {
