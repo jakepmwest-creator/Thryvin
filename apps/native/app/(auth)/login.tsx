@@ -382,17 +382,20 @@ const styles = StyleSheet.create({
   },
   welcomeContainer: {
     marginBottom: 28,
+    alignItems: 'center',
   },
   welcomeTitle: {
     fontSize: 28,
     fontWeight: '700',
     color: COLORS.text,
     marginBottom: 6,
+    textAlign: 'center',
   },
   welcomeSubtitle: {
     fontSize: 15,
     color: COLORS.mediumGray,
     fontWeight: '500',
+    textAlign: 'center',
   },
   formContainer: {
     width: '100%',
