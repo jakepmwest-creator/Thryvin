@@ -254,6 +254,52 @@ export default function HomeScreen() {
           </Animated.ScrollView>
         </View>
 
+        {/* Quick Actions */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Quick Actions</Text>
+          <View style={styles.quickActionsGrid}>
+            <TouchableOpacity 
+              style={styles.quickAction}
+              onPress={() => router.push('/(tabs)/workouts')}
+            >
+              <View style={[styles.quickActionIcon, { backgroundColor: `${COLORS.accent}15` }]}>
+                <Ionicons name="calendar" size={24} color={COLORS.accent} />
+              </View>
+              <Text style={styles.quickActionText}>My Plan</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity 
+              style={styles.quickAction}
+              onPress={() => router.push('/(tabs)/stats')}
+            >
+              <View style={[styles.quickActionIcon, { backgroundColor: `${COLORS.blue}15` }]}>
+                <Ionicons name=\"analytics\" size={24} color={COLORS.blue} />
+              </View>
+              <Text style={styles.quickActionText}>Analytics</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity 
+              style={styles.quickAction}
+              onPress={() => router.push('/(tabs)/profile')}
+            >
+              <View style={[styles.quickActionIcon, { backgroundColor: `${COLORS.green}15` }]}>
+                <Ionicons name=\"settings\" size={24} color={COLORS.green} />
+              </View>
+              <Text style={styles.quickActionText}>Settings</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity 
+              style={styles.quickAction}
+              onPress={() => router.push('/(tabs)/awards')}
+            >
+              <View style={[styles.quickActionIcon, { backgroundColor: `${COLORS.orange}15` }]}>
+                <Ionicons name=\"trophy\" size={24} color={COLORS.orange} />
+              </View>
+              <Text style={styles.quickActionText}>Awards</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+
         {/* Personal Bests */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Personal Bests</Text>
