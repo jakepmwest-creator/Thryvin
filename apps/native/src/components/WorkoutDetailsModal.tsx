@@ -85,7 +85,15 @@ const WORKOUT_DATA: any = {
       onRequestClose={onClose}
     >
       <View style={styles.modalOverlay}>
-        <View style={styles.modalContainer}>
+        <Animated.View 
+          style={[
+            styles.modalContainer,
+            {
+              transform: [{ translateX: swipeX }],
+            },
+          ]}
+          {...panResponder.panHandlers}
+        >
           {/* Close Button */}
           <TouchableOpacity style={styles.closeButton} onPress={onClose}>
             <Ionicons name="close" size={28} color={COLORS.text} />
@@ -102,7 +110,8 @@ const WORKOUT_DATA: any = {
               </TouchableOpacity>
               
               <View style={styles.dateContainer}>
-                <Text style={styles.dateText}>{MOCK_WORKOUT.date}</Text>
+                <Text style={styles.dateText}>{currentWorkout.date}</Text>
+                <Text style={styles.dayText}>{currentDay}</Text>
               </View>
               
               <TouchableOpacity style={styles.navButton} onPress={handleNextDay}>
