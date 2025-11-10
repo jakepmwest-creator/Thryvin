@@ -86,6 +86,28 @@ export default function HomeScreen() {
     setTimeout(() => setRingDetailsVisible(null), 3000);
   };
 
+  const handleActivityCardPress = (action: string) => {
+    switch (action) {
+      case 'stats':
+        router.push('/(tabs)/stats');
+        break;
+      case 'awards':
+        router.push('/(tabs)/awards');
+        break;
+      case 'workouts':
+        router.push('/(tabs)/workouts');
+        break;
+      case 'profile':
+        router.push('/(tabs)/profile');
+        break;
+    }
+  };
+
+  const handlePersonalBestPress = (pb: any) => {
+    setSelectedExercise(pb);
+    setChartModalVisible(true);
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <AppHeader mode="fitness" />
