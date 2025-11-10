@@ -254,7 +254,7 @@ export default function WorkoutsScreen() {
           )}
         </View>
 
-        {/* Explore Workouts Section */}
+        {/* Explore Workouts Section - VIBRANT GRADIENTS */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Explore Workouts</Text>
           <View style={styles.categoriesGrid}>
@@ -265,16 +265,16 @@ export default function WorkoutsScreen() {
                 onPress={() => console.log('Category:', category.name)}
               >
                 <LinearGradient
-                  colors={[`${category.color}20`, `${category.color}10`]}
+                  colors={category.gradient}
                   style={styles.categoryGradient}
                   start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 1 }}
+                  end={{ x: 1.2, y: 1.2 }}
                 >
-                  <View style={[styles.categoryIcon, { backgroundColor: `${category.color}30` }]}>
-                    <Ionicons name={category.icon as any} size={28} color={category.color} />
+                  <View style={styles.categoryIconWhite}>
+                    <Ionicons name={category.icon as any} size={32} color={COLORS.white} />
                   </View>
-                  <Text style={styles.categoryName}>{category.name}</Text>
-                  <Text style={styles.categoryCount}>{category.workouts} workouts</Text>
+                  <Text style={styles.categoryNameWhite}>{category.name}</Text>
+                  <Text style={styles.categoryCountWhite}>{category.workouts} workouts</Text>
                 </LinearGradient>
               </TouchableOpacity>
             ))}
