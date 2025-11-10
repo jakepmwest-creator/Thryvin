@@ -34,12 +34,12 @@ const COLORS = {
 };
 
 const ACTIVITY_CARDS = [
-  { id: 1, icon: 'trophy', title: 'New PR!', subtitle: 'Bench: 225 lbs', gradient: ['#FFD700', '#FFA000'] },
-  { id: 2, icon: 'people', title: '3 Followers', subtitle: 'Sarah, Mike, Alex', gradient: ['#4CAF50', '#00C853'] },
-  { id: 3, icon: 'flame', title: '7 Day Streak', subtitle: 'Keep it going!', gradient: ['#FF5252', '#FF1744'] },
-  { id: 4, icon: 'barbell', title: 'Last Workout', subtitle: 'Upper Body', gradient: ['#9C27B0', '#AA00FF'] },
-  { id: 5, icon: 'star', title: 'Achievement', subtitle: '100 Workouts', gradient: ['#2196F3', '#00B0FF'] },
-  { id: 6, icon: 'timer', title: 'Best Time', subtitle: '45 min', gradient: ['#FF9800', '#FF6D00'] },
+  { id: 1, icon: 'trophy', title: 'New PR!', subtitle: 'Bench: 225 lbs', gradient: ['#FFD700', '#FFA000'], action: 'stats' },
+  { id: 2, icon: 'people', title: '3 Followers', subtitle: 'Sarah, Mike, Alex', gradient: ['#4CAF50', '#00C853'], action: 'profile' },
+  { id: 3, icon: 'flame', title: '7 Day Streak', subtitle: 'Keep it going!', gradient: ['#FF5252', '#FF1744'], action: 'stats' },
+  { id: 4, icon: 'barbell', title: 'Last Workout', subtitle: 'Upper Body', gradient: ['#9C27B0', '#AA00FF'], action: 'workouts' },
+  { id: 5, icon: 'star', title: 'Achievement', subtitle: '100 Workouts', gradient: ['#2196F3', '#00B0FF'], action: 'awards' },
+  { id: 6, icon: 'timer', title: 'Best Time', subtitle: '45 min', gradient: ['#FF9800', '#FF6D00'], action: 'stats' },
 ];
 
 const AI_QUOTES = [
