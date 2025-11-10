@@ -92,6 +92,7 @@ export default function HomeScreen() {
         visible={modalVisible}
         onClose={() => setModalVisible(false)}
         onStartWorkout={handleStartWorkout}
+        selectedDate={23}
       />
       
       <ScrollView 
