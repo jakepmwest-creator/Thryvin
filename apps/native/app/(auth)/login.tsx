@@ -185,7 +185,7 @@ export default function LoginScreen() {
                   />
                 </View>
 
-                {/* Welcome Text */}
+                {/* Welcome Text - CENTERED */}
                 <View style={styles.welcomeContainer}>
                   <Text style={styles.welcomeTitle}>Welcome Back 👋</Text>
                   <Text style={styles.welcomeSubtitle}>Ready to crush your goals?</Text>
