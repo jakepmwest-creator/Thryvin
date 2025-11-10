@@ -54,14 +54,14 @@ const MONTH_STATUS: any = {
   14: 'completed', 15: 'incomplete', 16: 'completed',
 };
 
-// Workout categories for explore section
+// Workout categories for explore section with vibrant gradients
 const WORKOUT_CATEGORIES = [
-  { id: 1, name: 'Aesthetics', icon: 'body', color: '#a259ff', workouts: 24 },
-  { id: 2, name: 'Yoga', icon: 'leaf', color: '#4CAF50', workouts: 18 },
-  { id: 3, name: 'HIIT', icon: 'flame', color: '#FF5252', workouts: 32 },
-  { id: 4, name: 'Strength', icon: 'barbell', color: '#2196F3', workouts: 41 },
-  { id: 5, name: 'Cardio', icon: 'heart', color: '#FF9800', workouts: 28 },
-  { id: 6, name: 'Flexibility', icon: 'fitness', color: '#9C27B0', workouts: 15 },
+  { id: 1, name: 'Aesthetics', icon: 'body', gradient: ['#a259ff', '#7B2BFF'], workouts: 24 },
+  { id: 2, name: 'Yoga', icon: 'leaf', gradient: ['#4CAF50', '#00C853'], workouts: 18 },
+  { id: 3, name: 'HIIT', icon: 'flame', gradient: ['#FF5252', '#FF1744'], workouts: 32 },
+  { id: 4, name: 'Strength', icon: 'barbell', gradient: ['#2196F3', '#00B0FF'], workouts: 41 },
+  { id: 5, name: 'Cardio', icon: 'heart', gradient: ['#FF9800', '#FF6D00'], workouts: 28 },
+  { id: 6, name: 'Flexibility', icon: 'fitness', gradient: ['#9C27B0', '#AA00FF'], workouts: 15 },
 ];
 
 export default function WorkoutsScreen() {
