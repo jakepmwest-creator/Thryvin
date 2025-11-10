@@ -118,6 +118,14 @@ export default function HomeScreen() {
         onStartWorkout={handleStartWorkout}
         selectedDate={23}
       />
+
+      {selectedExercise && (
+        <PersonalBestChart
+          visible={chartModalVisible}
+          onClose={() => setChartModalVisible(false)}
+          exercise={selectedExercise}
+        />
+      )}
       
       <ScrollView 
         style={styles.scrollView} 
