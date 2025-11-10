@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import {
   View,
   Text,
@@ -7,6 +7,8 @@ import {
   TouchableOpacity,
   ScrollView,
   Dimensions,
+  PanResponder,
+  Animated,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
@@ -24,47 +26,56 @@ const COLORS = {
   shadow: 'rgba(162, 89, 255, 0.1)',
 };
 
-// Mock workout data
-const MOCK_WORKOUT = {
-  title: 'Upper Body Push',
-  date: 'Wednesday, Oct 23',
-  duration: '45 min',
-  exercises: 8,
-  difficulty: 'Intermediate',
-  caloriesBurn: 420,
-  targetMuscles: 'Chest, Shoulders, Triceps',
-  overview: 'Progressive overload focused session targeting the pushing muscles. We\'ll start with compound movements and finish with isolation work to maximize muscle growth and strength gains.',
-  exerciseList: [
-    { name: 'Bench Press', sets: 4, reps: '8-10', rest: '2 min' },
-    { name: 'Incline Dumbbell Press', sets: 3, reps: '10-12', rest: '90 sec' },
-    { name: 'Overhead Press', sets: 4, reps: '6-8', rest: '2 min' },
-    { name: 'Lateral Raises', sets: 3, reps: '12-15', rest: '60 sec' },
-    { name: 'Tricep Dips', sets: 3, reps: '10-12', rest: '90 sec' },
-    { name: 'Cable Flyes', sets: 3, reps: '12-15', rest: '60 sec' },
-    { name: 'Tricep Pushdowns', sets: 3, reps: '12-15', rest: '60 sec' },
-    { name: 'Face Pulls', sets: 3, reps: '15-20', rest: '60 sec' },
-  ],
-};
+// Days of the week
+const DAYS = [
+  'Monday',
+  'Tuesday',
+  'Wednesday',
+  'Thursday',
+  'Friday',
+  'Saturday',
+  'Sunday',
+];
 
-interface WorkoutDetailsModalProps {
-  visible: boolean;
-  onClose: () => void;
-  onStartWorkout: () => void;
-}
-
-export function WorkoutDetailsModal({ visible, onClose, onStartWorkout }: WorkoutDetailsModalProps) {
-  const [selectedDay, setSelectedDay] = useState(0);
-  const [overviewExpanded, setOverviewExpanded] = useState(false);
-  const [exercisesExpanded, setExercisesExpanded] = useState(false);
-  const router = useRouter();
-
-  const handlePreviousDay = () => {
-    setSelectedDay(selectedDay - 1);
-  };
-
-  const handleNextDay = () => {
-    setSelectedDay(selectedDay + 1);
-  };
+// Mock workout data for each day
+const WORKOUT_DATA: any = {
+  'Monday': {
+    title: 'Upper Body Push',
+    date: 'Monday, Oct 21',
+    duration: '45 min',
+    exercises: 8,
+    difficulty: 'Intermediate',
+    caloriesBurn: 420,
+    targetMuscles: 'Chest, Shoulders, Triceps',
+    overview: 'Progressive overload focused session targeting the pushing muscles. We\'ll start with compound movements and finish with isolation work to maximize muscle growth and strength gains.',
+    exerciseList: [
+      { name: 'Bench Press', sets: 4, reps: '8-10', rest: '2 min' },
+      { name: 'Incline Dumbbell Press', sets: 3, reps: '10-12', rest: '90 sec' },
+      { name: 'Overhead Press', sets: 4, reps: '6-8', rest: '2 min' },
+      { name: 'Lateral Raises', sets: 3, reps: '12-15', rest: '60 sec' },
+      { name: 'Tricep Dips', sets: 3, reps: '10-12', rest: '90 sec' },
+      { name: 'Cable Flyes', sets: 3, reps: '12-15', rest: '60 sec' },
+      { name: 'Tricep Pushdowns', sets: 3, reps: '12-15', rest: '60 sec' },
+      { name: 'Face Pulls', sets: 3, reps: '15-20', rest: '60 sec' },
+    ],
+  },
+  'Tuesday': {
+    title: 'Lower Body Power',
+    date: 'Tuesday, Oct 22',
+    duration: '50 min',
+    exercises: 7,
+    difficulty: 'Advanced',
+    caloriesBurn: 480,
+    targetMuscles: 'Quads, Glutes, Hamstrings',
+    overview: 'Heavy compound leg movements focusing on building strength and power in the lower body.',
+    exerciseList: [
+      { name: 'Squats', sets: 5, reps: '5-8', rest: '3 min' },
+      { name: 'Romanian Deadlifts', sets: 4, reps: '8-10', rest: '2 min' },
+      { name: 'Leg Press', sets: 3, reps: '10-12', rest: '90 sec' },
+      { name: 'Walking Lunges', sets: 3, reps: '12 each', rest: '90 sec' },
+      { name: 'Leg Curls', sets: 3, reps: '12-15', rest: '60 sec' },
+      { name: 'Calf Raises', sets: 4, reps: '15-20', rest: '60 sec' },
+      { name: 'Core Planks', sets: 3, reps: '60 sec', rest: '60 sec' },\n    ],\n  },\n  'Wednesday': {\n    title: 'Upper Body Pull',\n    date: 'Wednesday, Oct 23',\n    duration: '45 min',\n    exercises: 8,\n    difficulty: 'Intermediate',\n    caloriesBurn: 400,\n    targetMuscles: 'Back, Biceps, Rear Delts',\n    overview: 'Pull-focused workout targeting back thickness and width with bicep isolation.',\n    exerciseList: [\n      { name: 'Pull-ups', sets: 4, reps: '8-12', rest: '2 min' },\n      { name: 'Barbell Rows', sets: 4, reps: '8-10', rest: '2 min' },\n      { name: 'Lat Pulldowns', sets: 3, reps: '10-12', rest: '90 sec' },\n      { name: 'Face Pulls', sets: 3, reps: '15-20', rest: '60 sec' },\n      { name: 'Barbell Curls', sets: 3, reps: '10-12', rest: '90 sec' },\n      { name: 'Hammer Curls', sets: 3, reps: '12-15', rest: '60 sec' },\n      { name: 'Cable Curls', sets: 3, reps: '12-15', rest: '60 sec' },\n      { name: 'Shrugs', sets: 3, reps: '12-15', rest: '60 sec' },\n    ],\n  },\n  'Thursday': {\n    title: 'Active Recovery',\n    date: 'Thursday, Oct 24',\n    duration: '30 min',\n    exercises: 5,\n    difficulty: 'Beginner',\n    caloriesBurn: 200,\n    targetMuscles: 'Full Body Mobility',\n    overview: 'Light mobility work and stretching to promote recovery and reduce soreness.',\n    exerciseList: [\n      { name: 'Dynamic Stretching', sets: 1, reps: '10 min', rest: 'None' },\n      { name: 'Foam Rolling', sets: 1, reps: '10 min', rest: 'None' },\n      { name: 'Yoga Flow', sets: 1, reps: '10 min', rest: 'None' },\n      { name: 'Light Cardio', sets: 1, reps: '15 min', rest: 'None' },\n      { name: 'Cool Down Stretch', sets: 1, reps: '5 min', rest: 'None' },\n    ],\n  },\n  'Friday': {\n    title: 'Full Body Strength',\n    date: 'Friday, Oct 25',\n    duration: '55 min',\n    exercises: 9,\n    difficulty: 'Advanced',\n    caloriesBurn: 500,\n    targetMuscles: 'Full Body',\n    overview: 'Complete full-body workout hitting all major muscle groups with compound movements.',\n    exerciseList: [\n      { name: 'Deadlifts', sets: 4, reps: '5-8', rest: '3 min' },\n      { name: 'Bench Press', sets: 4, reps: '8-10', rest: '2 min' },\n      { name: 'Squats', sets: 4, reps: '8-10', rest: '2 min' },\n      { name: 'Overhead Press', sets: 3, reps: '8-10', rest: '90 sec' },\n      { name: 'Pull-ups', sets: 3, reps: '10-12', rest: '90 sec' },\n      { name: 'Dips', sets: 3, reps: '10-12', rest: '90 sec' },\n      { name: 'Barbell Rows', sets: 3, reps: '10-12', rest: '90 sec' },\n      { name: 'Leg Curls', sets: 3, reps: '12-15', rest: '60 sec' },\n      { name: 'Core Work', sets: 3, reps: '15-20', rest: '60 sec' },\n    ],\n  },\n  'Saturday': {\n    title: 'HIIT Cardio',\n    date: 'Saturday, Oct 26',\n    duration: '30 min',\n    exercises: 6,\n    difficulty: 'Intermediate',\n    caloriesBurn: 350,\n    targetMuscles: 'Cardiovascular System',\n    overview: 'High-intensity interval training to boost metabolism and burn calories.',\n    exerciseList: [\n      { name: 'Warm-up Jog', sets: 1, reps: '5 min', rest: 'None' },\n      { name: 'Sprint Intervals', sets: 8, reps: '30 sec', rest: '60 sec' },\n      { name: 'Burpees', sets: 4, reps: '15', rest: '60 sec' },\n      { name: 'Jump Rope', sets: 4, reps: '60 sec', rest: '60 sec' },\n      { name: 'Mountain Climbers', sets: 4, reps: '30 sec', rest: '30 sec' },\n      { name: 'Cool Down Walk', sets: 1, reps: '5 min', rest: 'None' },\n    ],\n  },\n  'Sunday': {\n    title: 'Rest Day',\n    date: 'Sunday, Oct 27',\n    duration: '0 min',\n    exercises: 0,\n    difficulty: 'Rest',\n    caloriesBurn: 0,\n    targetMuscles: 'Recovery',\n    overview: 'Complete rest day for muscle recovery and growth. Stay hydrated and eat well.',\n    exerciseList: [],\n  },\n};\n\ninterface WorkoutDetailsModalProps {\n  visible: boolean;\n  onClose: () => void;\n  onStartWorkout: () => void;\n  selectedDate?: number;\n}\n\nexport function WorkoutDetailsModal({ visible, onClose, onStartWorkout, selectedDate = 23 }: WorkoutDetailsModalProps) {\n  // Map date to day of week (21=Mon, 22=Tue, 23=Wed, etc.)\n  const getDayIndexFromDate = (date: number) => {\n    const baseDate = 21; // Monday is 21\n    return (date - baseDate) % 7;\n  };\n  \n  const initialDayIndex = getDayIndexFromDate(selectedDate);\n  const [currentDayIndex, setCurrentDayIndex] = useState(initialDayIndex);\n  const [overviewExpanded, setOverviewExpanded] = useState(false);\n  const [exercisesExpanded, setExercisesExpanded] = useState(false);\n  const router = useRouter();\n  const swipeX = useRef(new Animated.Value(0)).current;\n\n  // Update day when modal opens with new selectedDate\n  React.useEffect(() => {\n    if (visible) {\n      const newDayIndex = getDayIndexFromDate(selectedDate);\n      setCurrentDayIndex(newDayIndex);\n    }\n  }, [visible, selectedDate]);\n\n  const currentDay = DAYS[currentDayIndex];\n  const currentWorkout = WORKOUT_DATA[currentDay];\n\n  const handlePreviousDay = () => {\n    setCurrentDayIndex((prev) => (prev === 0 ? 6 : prev - 1));\n  };\n\n  const handleNextDay = () => {\n    setCurrentDayIndex((prev) => (prev === 6 ? 0 : prev + 1));\n  };\n\n  // Swipe gesture handler\n  const panResponder = useRef(\n    PanResponder.create({\n      onMoveShouldSetPanResponder: (_, gestureState) => {\n        return Math.abs(gestureState.dx) > 10;\n      },\n      onPanResponderMove: (_, gestureState) => {\n        swipeX.setValue(gestureState.dx);\n      },\n      onPanResponderRelease: (_, gestureState) => {\n        if (gestureState.dx > 100) {\n          // Swipe right - previous day\n          handlePreviousDay();\n        } else if (gestureState.dx < -100) {\n          // Swipe left - next day\n          handleNextDay();\n        }\n        Animated.spring(swipeX, {\n          toValue: 0,\n          useNativeDriver: true,\n        }).start();\n      },\n    })\n  ).current;
 
   return (
     <Modal
