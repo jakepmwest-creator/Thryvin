@@ -273,7 +273,7 @@ export default function HomeScreen() {
               onPress={() => router.push('/(tabs)/stats')}
             >
               <View style={[styles.quickActionIcon, { backgroundColor: `${COLORS.blue}15` }]}>
-                <Ionicons name=\"analytics\" size={24} color={COLORS.blue} />
+                <Ionicons name="analytics" size={24} color={COLORS.blue} />
               </View>
               <Text style={styles.quickActionText}>Analytics</Text>
             </TouchableOpacity>
@@ -283,7 +283,7 @@ export default function HomeScreen() {
               onPress={() => router.push('/(tabs)/profile')}
             >
               <View style={[styles.quickActionIcon, { backgroundColor: `${COLORS.green}15` }]}>
-                <Ionicons name=\"settings\" size={24} color={COLORS.green} />
+                <Ionicons name="settings" size={24} color={COLORS.green} />
               </View>
               <Text style={styles.quickActionText}>Settings</Text>
             </TouchableOpacity>
@@ -293,7 +293,7 @@ export default function HomeScreen() {
               onPress={() => router.push('/(tabs)/awards')}
             >
               <View style={[styles.quickActionIcon, { backgroundColor: `${COLORS.orange}15` }]}>
-                <Ionicons name=\"trophy\" size={24} color={COLORS.orange} />
+                <Ionicons name="trophy" size={24} color={COLORS.orange} />
               </View>
               <Text style={styles.quickActionText}>Awards</Text>
             </TouchableOpacity>
