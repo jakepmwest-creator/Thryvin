@@ -342,9 +342,9 @@ export default function OnboardingScreen() {
     const coachPool = COACH_NAMES[gender]?.[style] || COACH_NAMES.other.balanced;
     const coachName = coachPool[Math.floor(Math.random() * coachPool.length)];
 
-    // Navigate to coach reveal screen
+    // Navigate to analyzing screen first
     router.push({
-      pathname: '/(auth)/coach-reveal',
+      pathname: '/(auth)/analyzing',
       params: {
         coachName,
         onboardingData: JSON.stringify(formData),
