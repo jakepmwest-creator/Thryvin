@@ -727,6 +727,7 @@ export default function OnboardingScreen() {
                 {/* Content */}
                 {renderFields()}
                 {renderSelectOptions()}
+                {renderMultiSelectOptions()}
               </ScrollView>
 
               {/* Navigation Buttons - Always Visible */}
