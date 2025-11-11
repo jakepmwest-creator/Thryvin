@@ -188,10 +188,13 @@ const ONBOARDING_STEPS = [
     field: 'trainingDays',
     icon: 'calendar-outline',
     options: [
+      { value: '1', label: '1 Day/Week', subtitle: 'Just getting started', emoji: '1️⃣' },
+      { value: '2', label: '2 Days/Week', subtitle: 'Building consistency', emoji: '2️⃣' },
       { value: '3', label: '3 Days/Week', subtitle: 'Great for beginners', emoji: '3️⃣' },
       { value: '4', label: '4 Days/Week', subtitle: 'Balanced approach', emoji: '4️⃣' },
       { value: '5', label: '5 Days/Week', subtitle: 'Dedicated training', emoji: '5️⃣' },
       { value: '6', label: '6 Days/Week', subtitle: 'High commitment', emoji: '6️⃣' },
+      { value: '7', label: '7 Days/Week', subtitle: 'Maximum dedication', emoji: '7️⃣' },
     ],
   },
   {
