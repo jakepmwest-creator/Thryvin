@@ -174,10 +174,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    flex: 1,
+    gap: 12,
   },
   answerText: {
-    fontSize: 15,
+    fontSize: 16,
     fontWeight: '600',
     color: COLORS.white,
     flex: 1,
