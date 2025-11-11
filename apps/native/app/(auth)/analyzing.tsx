@@ -102,22 +102,29 @@ export default function AnalyzingScreen() {
                 ]}
               >
                 <View style={styles.answerLeft}>
-                  <View style={[
+                  {index === currentIndex ? (
+                  <Animated.View style={[
                     styles.checkmark,
-                    index < currentIndex && styles.checkmarkComplete,
-                    index === currentIndex && { 
+                    styles.checkmarkComplete,
+                    { 
                       opacity: fadeAnim,
                       transform: [{ scale: scaleAnim }],
                     }
                   ]}>
+                    <Ionicons name="checkmark" size={16} color={COLORS.white} />
+                  </Animated.View>
+                ) : (
+                  <View style={[
+                    styles.checkmark,
+                    index < currentIndex && styles.checkmarkComplete,
+                  ]}>
                     {index < currentIndex ? (
-                      <Ionicons name="checkmark" size={16} color={COLORS.white} />
-                    ) : index === currentIndex ? (
                       <Ionicons name="checkmark" size={16} color={COLORS.white} />
                     ) : (
                       <View style={styles.checkmarkEmpty} />
                     )}
                   </View>
+                )}
                   <View style={styles.answerText}>
                     <Text style={styles.answerLabel}>{answer.label}</Text>
                     <Text style={styles.answerValue}>{answer.value}</Text>
