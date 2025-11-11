@@ -385,7 +385,16 @@ export default function OnboardingScreen() {
       }
     } else if (currentStepData.fields) {
       const requiredFields = currentStepData.fields.filter(f => f.key !== 'injuries');
-      const allFilled = requiredFields.every(field => formData[field.key]);
+      
+      // Check if all fields are filled
+      const allFilled = requiredFields.every(field => {
+        if (field.unit === 'height' && formData.heightUnit === 'ft') {
+          // For feet, check both feet and inches
+          return formData.feet && formData.inches;
+        }
+        return formData[field.key];
+      });
+      
       if (!allFilled) {
         Alert.alert('Required', 'Please fill in all fields to continue');
         return;
