@@ -1162,8 +1162,7 @@ const styles = StyleSheet.create({
   nextButton: {
     flex: 1,
     borderRadius: 16,
-    overflow: 'hidden',
-    marginBottom: 2,
+    overflow: 'visible',
   },
   nextButtonFull: {
     flex: 2,
