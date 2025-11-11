@@ -168,11 +168,7 @@ const styles = StyleSheet.create({
     gap: 16,
   },
   answerItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.15)',
-    borderRadius: 16,
-    padding: 16,
+    marginBottom: 16,
   },
   answerRow: {
     flexDirection: 'row',
