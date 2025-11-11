@@ -955,9 +955,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: COLORS.lightGray,
-    borderRadius: 16,
-    paddingHorizontal: 16,
-    marginBottom: 8,
+    borderRadius: 12,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
   },
   unitLabel: {
     fontSize: 16,
