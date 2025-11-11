@@ -1079,13 +1079,13 @@ const styles = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: COLORS.white,
+    backgroundColor: `${COLORS.accent}15`,
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 8,
   },
-  optionEmoji: {
-    fontSize: 16,
+  optionIconSelected: {
+    backgroundColor: COLORS.accent,
   },
   optionText: {
     flex: 1,
