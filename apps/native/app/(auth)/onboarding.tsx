@@ -113,6 +113,35 @@ const OPTION_ICONS: any = {
   hip: 'shapes-outline',
   neck: 'resize-outline',
   other: 'create-outline',
+  // Training frequency
+  '1': 'calendar-outline',
+  '2': 'calendar-outline',
+  '3': 'calendar-outline',
+  '4': 'calendar-outline',
+  '5': 'calendar-outline',
+  '6': 'calendar-outline',
+  '7': 'calendar-outline',
+  // Session duration
+  '15': 'time-outline',
+  '30': 'time-outline',
+  '45': 'time-outline',
+  '60': 'time-outline',
+  '60+': 'timer-outline',
+  // Experience
+  never_exercised: 'help-circle-outline',
+  beginner: 'leaf-outline',
+  intermediate: 'fitness-outline',
+  advanced: 'flame-outline',
+  athlete: 'trophy-outline',
+  // Coaching styles
+  motivational: 'megaphone-outline',
+  technical: 'construct-outline',
+  balanced: 'scale-outline',
+  disciplined: 'shield-outline',
+  data_driven: 'analytics-outline',
+  supportive: 'heart-outline',
+  aggressive: 'flash-outline',
+  fun: 'happy-outline',
 };
 
 // Onboarding steps configuration - SPLIT FOR NO SCROLLING
