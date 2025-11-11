@@ -856,9 +856,11 @@ const styles = StyleSheet.create({
   scrollableContent: {
     flex: 1,
     marginBottom: 16,
+    minHeight: 200,
   },
   scrollableContentInner: {
     paddingBottom: 8,
+    flexGrow: 1,
   },
   fieldsContainer: {
     marginBottom: 24,
