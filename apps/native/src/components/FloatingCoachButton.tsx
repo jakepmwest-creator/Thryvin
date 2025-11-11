@@ -109,6 +109,12 @@ export function FloatingCoachButton() {
   };
 
   const callOpenAI = async (userMessage: string) => {
+    // Check if API key exists
+    if (!OPENAI_API_KEY) {
+      console.error('Missing OpenAI API key');
+      return "🔑 OpenAI API key not configured. Please add EXPO_PUBLIC_OPENAI_API_KEY to your .env file.";
+    }
+
     try {
       const response = await fetch('https://api.openai.com/v1/chat/completions', {
         method: 'POST',
@@ -134,13 +140,14 @@ export function FloatingCoachButton() {
       const data = await response.json();
       
       if (data.error) {
+        console.error('OpenAI API Error:', data.error);
         throw new Error(data.error.message);
       }
 
       return data.choices[0].message.content;
-    } catch (error) {
+    } catch (error: any) {
       console.error('OpenAI Error:', error);
-      return "I'm having trouble connecting right now. Please try again in a moment! 💪";
+      return `I'm having trouble connecting right now. ${error?.message || 'Please try again in a moment!'} 💪`;
     }
   };
 
