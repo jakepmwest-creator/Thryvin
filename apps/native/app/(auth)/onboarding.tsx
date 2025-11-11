@@ -680,7 +680,7 @@ export default function OnboardingScreen() {
                   </Text>
                 </View>
                 {isSelected && (
-                  <Ionicons name="checkmark-circle" size={20} color={COLORS.accent} />
+                  <Ionicons name="checkmark-circle" size={18} color={COLORS.accent} />
                 )}
               </View>
             </TouchableOpacity>
