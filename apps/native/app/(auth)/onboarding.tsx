@@ -855,11 +855,10 @@ const styles = StyleSheet.create({
   },
   scrollableContent: {
     flex: 1,
-    marginBottom: 20,
+    marginBottom: 16,
   },
   scrollableContentInner: {
-    flexGrow: 1,
-    paddingBottom: 10,
+    paddingBottom: 8,
   },
   fieldsContainer: {
     marginBottom: 24,
