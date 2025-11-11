@@ -91,47 +91,36 @@ export default function AnalyzingScreen() {
           <Text style={styles.subtitle}>Creating your personalized plan...</Text>
 
           <View style={styles.answersContainer}>
-            {answers.map((answer, index) => (
-              <Animated.View
-                key={index}
-                style={[
-                  styles.answerItem,
-                  {
-                    opacity: index <= currentIndex ? 1 : 0.3,
-                  },
-                ]}
-              >
-                <View style={styles.answerLeft}>
-                  {index === currentIndex ? (
-                  <Animated.View style={[
-                    styles.checkmark,
-                    styles.checkmarkComplete,
-                    { 
+            {answers.map((answer, index) => {
+              if (index > currentIndex) return null;
+              
+              return (
+                <Animated.View
+                  key={index}
+                  style={[
+                    styles.answerItem,
+                    index === currentIndex && {
                       opacity: fadeAnim,
                       transform: [{ scale: scaleAnim }],
-                    }
-                  ]}>
-                    <Ionicons name="checkmark" size={16} color={COLORS.white} />
-                  </Animated.View>
-                ) : (
-                  <View style={[
-                    styles.checkmark,
-                    index < currentIndex && styles.checkmarkComplete,
-                  ]}>
-                    {index < currentIndex ? (
-                      <Ionicons name="checkmark" size={16} color={COLORS.white} />
-                    ) : (
-                      <View style={styles.checkmarkEmpty} />
+                    },
+                  ]}
+                >
+                  <View style={styles.answerRow}>
+                    <Text style={styles.answerText}>
+                      {answer.label}: {answer.value}
+                    </Text>
+                    {index < currentIndex && (
+                      <Ionicons name="checkmark-circle" size={24} color={COLORS.green} />
+                    )}
+                    {index === currentIndex && (
+                      <Animated.View style={{ opacity: fadeAnim }}>
+                        <Ionicons name="checkmark-circle" size={24} color={COLORS.green} />
+                      </Animated.View>
                     )}
                   </View>
-                )}
-                  <View style={styles.answerText}>
-                    <Text style={styles.answerLabel}>{answer.label}</Text>
-                    <Text style={styles.answerValue}>{answer.value}</Text>
-                  </View>
-                </View>
-              </Animated.View>
-            ))}
+                </Animated.View>
+              );
+            })}
           </View>
 
           <View style={styles.loadingContainer}>
