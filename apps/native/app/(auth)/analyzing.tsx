@@ -174,42 +174,17 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     padding: 16,
   },
-  answerLeft: {
+  answerRow: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-between',
     flex: 1,
-  },
-  checkmark: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 16,
-  },
-  checkmarkComplete: {
-    backgroundColor: COLORS.green,
-  },
-  checkmarkEmpty: {
-    width: 12,
-    height: 12,
-    borderRadius: 6,
-    backgroundColor: 'rgba(255, 255, 255, 0.3)',
   },
   answerText: {
-    flex: 1,
-  },
-  answerLabel: {
-    fontSize: 12,
-    color: COLORS.white,
-    opacity: 0.8,
-    marginBottom: 2,
-  },
-  answerValue: {
     fontSize: 15,
     fontWeight: '600',
     color: COLORS.white,
+    flex: 1,
   },
   loadingContainer: {
     alignItems: 'center',
