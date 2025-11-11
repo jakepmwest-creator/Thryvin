@@ -101,9 +101,11 @@ const ONBOARDING_STEPS = [
     field: 'experience',
     icon: 'barbell-outline',
     options: [
-      { value: 'beginner', label: 'Beginner', subtitle: 'New to working out', emoji: '🌱' },
-      { value: 'intermediate', label: 'Intermediate', subtitle: '6+ months experience', emoji: '💪' },
-      { value: 'advanced', label: 'Advanced', subtitle: '2+ years experience', emoji: '🔥' },
+      { value: 'never_exercised', label: 'Never Exercised', subtitle: 'Complete beginner', emoji: '🆕' },
+      { value: 'beginner', label: 'Beginner', subtitle: '0-6 months', emoji: '🌱' },
+      { value: 'intermediate', label: 'Intermediate', subtitle: '6 months - 2 years', emoji: '💪' },
+      { value: 'advanced', label: 'Advanced', subtitle: '2-5 years', emoji: '🔥' },
+      { value: 'athlete', label: 'Athlete', subtitle: '5+ years or competitive', emoji: '🏆' },
     ],
   },
   {
