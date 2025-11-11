@@ -664,8 +664,12 @@ export default function OnboardingScreen() {
               onPress={() => handleToggle(option.value)}
             >
               <View style={styles.optionContent}>
-                <View style={styles.optionIcon}>
-                  <Text style={styles.optionEmoji}>{option.emoji}</Text>
+                <View style={[styles.optionIcon, isSelected && styles.optionIconSelected]}>
+                  <Ionicons 
+                    name={OPTION_ICONS[option.value] || 'ellipse-outline'} 
+                    size={18} 
+                    color={isSelected ? COLORS.white : COLORS.accent} 
+                  />
                 </View>
                 <View style={styles.optionText}>
                   <Text style={[
@@ -676,7 +680,7 @@ export default function OnboardingScreen() {
                   </Text>
                 </View>
                 {isSelected && (
-                  <Ionicons name="checkmark-circle" size={28} color={COLORS.accent} />
+                  <Ionicons name="checkmark-circle" size={20} color={COLORS.accent} />
                 )}
               </View>
             </TouchableOpacity>
