@@ -1075,15 +1075,15 @@ const styles = StyleSheet.create({
   optionContent: {
     flexDirection: 'row',
     alignItems: 'center',
+    gap: 6,
   },
   optionIcon: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
+    width: 26,
+    height: 26,
+    borderRadius: 13,
     backgroundColor: `${COLORS.accent}15`,
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: 8,
   },
   optionIconSelected: {
     backgroundColor: COLORS.accent,
@@ -1092,7 +1092,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   optionLabel: {
-    fontSize: 13,
+    fontSize: 11,
     fontWeight: '600',
     color: COLORS.text,
   },
