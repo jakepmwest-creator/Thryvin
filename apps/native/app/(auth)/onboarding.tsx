@@ -756,34 +756,43 @@ export default function OnboardingScreen() {
 
     return (
       <View style={styles.optionsContainer}>
-        {currentStepData.options.map((option: any) => (
-          <TouchableOpacity
-            key={option.value}
-            style={[
-              styles.optionCard,
-              formData[currentStepData.field] === option.value && styles.optionCardSelected,
-            ]}
-            onPress={() => setFormData({ ...formData, [currentStepData.field]: option.value })}
-          >
-            <View style={styles.optionContent}>
-              <View style={styles.optionIcon}>
-                <Text style={styles.optionEmoji}>{option.emoji}</Text>
+        {currentStepData.options.map((option: any) => {
+          const isSelected = formData[currentStepData.field] === option.value;
+          return (
+            <TouchableOpacity
+              key={option.value}
+              style={[
+                styles.optionCard,
+                isSelected && styles.optionCardSelected,
+              ]}
+              onPress={() => setFormData({ ...formData, [currentStepData.field]: option.value })}
+            >
+              <View style={styles.optionContent}>
+                <View style={[styles.optionIcon, isSelected && styles.optionIconSelected]}>
+                  <Ionicons 
+                    name={OPTION_ICONS[option.value] || 'ellipse-outline'} 
+                    size={14} 
+                    color={isSelected ? COLORS.white : COLORS.accent} 
+                  />
+                </View>
+                <View style={styles.optionText}>
+                  <Text style={[
+                    styles.optionLabel,
+                    isSelected && styles.optionLabelSelected
+                  ]}>
+                    {option.label}
+                  </Text>
+                  {option.subtitle && (
+                    <Text style={styles.optionSubtitle}>{option.subtitle}</Text>
+                  )}
+                </View>
+                {isSelected && (
+                  <Ionicons name="checkmark-circle" size={18} color={COLORS.accent} />
+                )}
               </View>
-              <View style={styles.optionText}>
-                <Text style={[
-                  styles.optionLabel,
-                  formData[currentStepData.field] === option.value && styles.optionLabelSelected
-                ]}>
-                  {option.label}
-                </Text>
-                <Text style={styles.optionSubtitle}>{option.subtitle}</Text>
-              </View>
-              {formData[currentStepData.field] === option.value && (
-                <Ionicons name="checkmark-circle" size={28} color={COLORS.accent} />
-              )}
-            </View>
-          </TouchableOpacity>
-        ))}
+            </TouchableOpacity>
+          );
+        })}
       </View>
     );
   };
