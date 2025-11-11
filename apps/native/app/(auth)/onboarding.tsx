@@ -306,6 +306,11 @@ export default function OnboardingScreen() {
         Alert.alert('Required', 'Please select an option to continue');
         return;
       }
+    } else if (currentStepData.type === 'multiselect') {
+      if (!formData[currentStepData.field] || formData[currentStepData.field].length === 0) {
+        Alert.alert('Required', 'Please select at least one option to continue');
+        return;
+      }
     } else if (currentStepData.fields) {
       const requiredFields = currentStepData.fields.filter(f => f.key !== 'injuries');
       const allFilled = requiredFields.every(field => formData[field.key]);
