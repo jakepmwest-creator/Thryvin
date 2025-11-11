@@ -840,7 +840,7 @@ const styles = StyleSheet.create({
     marginBottom: 6,
   },
   subtitle: {
-    fontSize: 14,
+    fontSize: 13,
     color: COLORS.mediumGray,
     textAlign: 'center',
     marginBottom: 20,
