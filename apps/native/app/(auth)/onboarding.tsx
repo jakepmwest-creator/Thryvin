@@ -946,7 +946,7 @@ const styles = StyleSheet.create({
     paddingBottom: 20,
   },
   fieldsContainer: {
-    marginBottom: 24,
+    marginBottom: 16,
   },
   fieldWrapper: {
     marginBottom: 20,
