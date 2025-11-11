@@ -1140,7 +1140,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
-    paddingVertical: 16,
+    paddingVertical: 15,
   },
   nextButtonText: {
     fontSize: 16,
