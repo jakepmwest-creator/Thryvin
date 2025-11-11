@@ -1090,11 +1090,11 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   optionCard: {
-    width: (SCREEN_WIDTH - 80) / 2,
+    width: (SCREEN_WIDTH - 72) / 2,
     backgroundColor: COLORS.lightGray,
     borderRadius: 16,
     padding: 8,
-    paddingHorizontal: 10,
+    paddingHorizontal: 8,
     borderWidth: 2,
     borderColor: 'transparent',
     minHeight: 50,
