@@ -206,10 +206,11 @@ const ONBOARDING_STEPS = [
     field: 'sessionDuration',
     icon: 'time-outline',
     options: [
-      { value: '30', label: '30 Minutes', subtitle: 'Quick sessions', emoji: '⚡' },
+      { value: '15', label: '15 Minutes', subtitle: 'Quick & efficient', emoji: '⚡' },
+      { value: '30', label: '30 Minutes', subtitle: 'Perfect for busy schedules', emoji: '⏰' },
       { value: '45', label: '45 Minutes', subtitle: 'Standard length', emoji: '✨' },
       { value: '60', label: '60 Minutes', subtitle: 'Extended training', emoji: '💪' },
-      { value: '60+', label: '60+ Minutes', subtitle: 'Marathon sessions', emoji: '🔥' },
+      { value: '60+', label: '60+ Minutes', subtitle: 'Maximum dedication', emoji: '🔥' },
     ],
   },
   {
