@@ -112,6 +112,7 @@ const OPTION_ICONS: any = {
   elbow: 'swap-horizontal-outline',
   hip: 'shapes-outline',
   neck: 'resize-outline',
+  other: 'create-outline',
 };
 
 // Onboarding steps configuration - SPLIT FOR NO SCROLLING
