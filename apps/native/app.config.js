@@ -1,0 +1,41 @@
+import 'dotenv/config';
+
+export default {
+  expo: {
+    name: 'native',
+    slug: 'native',
+    version: '1.0.0',
+    orientation: 'portrait',
+    icon: './assets/icon.png',
+    userInterfaceStyle: 'light',
+    newArchEnabled: false,
+    scheme: 'thryvin',
+    splash: {
+      image: './assets/splash-icon.png',
+      resizeMode: 'contain',
+      backgroundColor: '#ffffff',
+    },
+    ios: {
+      supportsTablet: true,
+    },
+    android: {
+      adaptiveIcon: {
+        foregroundImage: './assets/adaptive-icon.png',
+        backgroundColor: '#ffffff',
+      },
+      edgeToEdgeEnabled: true,
+      predictiveBackGestureEnabled: false,
+    },
+    web: {
+      favicon: './assets/favicon.png',
+    },
+    plugins: ['expo-router'],
+    experiments: {
+      bridgeless: false,
+      turboModules: false,
+    },
+    extra: {
+      openaiApiKey: process.env.EXPO_PUBLIC_OPENAI_API_KEY,
+    },
+  },
+};
