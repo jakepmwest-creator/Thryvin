@@ -944,7 +944,8 @@ const styles = StyleSheet.create({
     color: COLORS.mediumGray,
   },
   measurementContainer: {
-    marginBottom: 12,
+    marginBottom: 16,
+    position: 'relative',
   },
   feetInchesRow: {
     flexDirection: 'row',
