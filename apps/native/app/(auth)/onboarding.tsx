@@ -963,7 +963,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.lightGray,
     borderRadius: 16,
     paddingHorizontal: 16,
-    marginBottom: 14,
+    marginBottom: 12,
   },
   iconContainer: {
     width: 40,
