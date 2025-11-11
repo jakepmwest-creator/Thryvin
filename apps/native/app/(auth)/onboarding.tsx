@@ -264,11 +264,12 @@ export default function OnboardingScreen() {
     heightUnit: 'cm',
     weightUnit: 'kg',
     experience: '',
-    goal: '',
-    equipment: '',
+    fitnessGoals: [],
+    nutritionGoals: [],
+    equipment: [],
     trainingDays: '',
     sessionDuration: '',
-    injuries: '',
+    injuries: [],
     coachingStyle: '',
   });
 
