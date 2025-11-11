@@ -1130,6 +1130,7 @@ const styles = StyleSheet.create({
     flex: 1,
     borderRadius: 16,
     overflow: 'hidden',
+    marginBottom: 2,
   },
   nextButtonFull: {
     flex: 2,
