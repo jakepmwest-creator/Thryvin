@@ -828,7 +828,7 @@ const styles = StyleSheet.create({
     maxHeight: '82%',
   },
   heroEmoji: {
-    fontSize: 48,
+    fontSize: 40,
     textAlign: 'center',
     marginBottom: 12,
   },
