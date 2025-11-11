@@ -577,6 +577,66 @@ export default function OnboardingScreen() {
     );
   };
 
+  const renderMultiSelectOptions = () => {
+    if (currentStepData.type !== 'multiselect' || !currentStepData.options) return null;
+
+    const handleToggle = (value: string) => {
+      const currentValues = formData[currentStepData.field] || [];
+      const maxSelect = currentStepData.maxSelect || 999;
+      
+      if (currentValues.includes(value)) {
+        setFormData({
+          ...formData,
+          [currentStepData.field]: currentValues.filter((v: string) => v !== value),
+        });
+      } else {
+        if (currentValues.length < maxSelect) {
+          setFormData({
+            ...formData,
+            [currentStepData.field]: [...currentValues, value],
+          });
+        } else {
+          Alert.alert('Limit Reached', `You can select up to ${maxSelect} options`);
+        }
+      }
+    };
+
+    return (
+      <View style={styles.optionsContainer}>
+        {currentStepData.options.map((option: any) => {
+          const isSelected = (formData[currentStepData.field] || []).includes(option.value);
+          return (
+            <TouchableOpacity
+              key={option.value}
+              style={[
+                styles.optionCard,
+                isSelected && styles.optionCardSelected,
+              ]}
+              onPress={() => handleToggle(option.value)}
+            >
+              <View style={styles.optionContent}>
+                <View style={styles.optionIcon}>
+                  <Text style={styles.optionEmoji}>{option.emoji}</Text>
+                </View>
+                <View style={styles.optionText}>
+                  <Text style={[
+                    styles.optionLabel,
+                    isSelected && styles.optionLabelSelected
+                  ]}>
+                    {option.label}
+                  </Text>
+                </View>
+                {isSelected && (
+                  <Ionicons name="checkmark-circle" size={28} color={COLORS.accent} />
+                )}
+              </View>
+            </TouchableOpacity>
+          );
+        })}
+      </View>
+    );
+  };
+
   const renderSelectOptions = () => {
     if (currentStepData.type !== 'select' || !currentStepData.options) return null;
 
