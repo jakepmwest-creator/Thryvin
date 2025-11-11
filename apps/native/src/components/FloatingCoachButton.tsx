@@ -16,6 +16,7 @@ import {
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
+import Constants from 'expo-constants';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
@@ -31,7 +32,13 @@ const COLORS = {
 const BUTTON_SIZE = 60;
 const EDGE_PADDING = 20;
 
-const OPENAI_API_KEY = process.env.EXPO_PUBLIC_OPENAI_API_KEY;
+// Get OpenAI API key from expo-constants
+const OPENAI_API_KEY = Constants.expoConfig?.extra?.openaiApiKey;
+
+// Log error if key is missing
+if (!OPENAI_API_KEY) {
+  console.error('Missing OpenAI API key. Please set EXPO_PUBLIC_OPENAI_API_KEY in .env file');
+}
 
 export function FloatingCoachButton() {
   const [chatVisible, setChatVisible] = useState(false);
