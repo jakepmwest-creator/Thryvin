@@ -667,7 +667,7 @@ export default function OnboardingScreen() {
                 <View style={[styles.optionIcon, isSelected && styles.optionIconSelected]}>
                   <Ionicons 
                     name={OPTION_ICONS[option.value] || 'ellipse-outline'} 
-                    size={18} 
+                    size={14} 
                     color={isSelected ? COLORS.white : COLORS.accent} 
                   />
                 </View>
