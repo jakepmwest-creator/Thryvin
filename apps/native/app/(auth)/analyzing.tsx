@@ -132,9 +132,10 @@ export default function AnalyzingScreen() {
               {currentIndex < answers.length ? 'Processing...' : 'Almost ready!'}
             </Text>
           </View>
-        </View>
+          </View>
+        </SafeAreaView>
       </LinearGradient>
-    </SafeAreaView>
+    </View>
   );
 }
 
