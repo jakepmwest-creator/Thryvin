@@ -36,12 +36,12 @@ export default function AnalyzingScreen() {
   const answers = [
     { label: 'Name', value: onboardingData.name },
     { label: 'Goals', value: onboardingData.fitnessGoals?.join(', ') || onboardingData.goal },
-    { label: 'Nutrition Goals', value: onboardingData.nutritionGoals?.join(', ') },
+    { label: 'Nutrition', value: onboardingData.nutritionGoals?.join(', ') },
     { label: 'Experience', value: onboardingData.experience },
     { label: 'Equipment', value: onboardingData.equipment?.join(', ') || onboardingData.equipment },
-    { label: 'Training Days', value: `${onboardingData.trainingDays} days/week` },
-    { label: 'Session Duration', value: `${onboardingData.sessionDuration} minutes` },
-    { label: 'Coaching Style', value: onboardingData.coachingStyle },
+    { label: 'Frequency', value: `${onboardingData.trainingDays} days/week` },
+    { label: 'Duration', value: `${onboardingData.sessionDuration} min` },
+    { label: 'Style', value: onboardingData.coachingStyle },
   ].filter(item => item.value);
 
   useEffect(() => {
