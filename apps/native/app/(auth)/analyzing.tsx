@@ -184,13 +184,14 @@ const styles = StyleSheet.create({
   },
   loadingContainer: {
     alignItems: 'center',
-    paddingVertical: 40,
+    paddingVertical: 24,
+    marginTop: 24,
   },
   spinner: {
-    marginBottom: 16,
+    marginBottom: 12,
   },
   loadingText: {
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: '600',
     color: COLORS.white,
     opacity: 0.9,
