@@ -142,15 +142,20 @@ export default function AnalyzingScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: COLORS.accent,
   },
   gradient: {
     flex: 1,
   },
+  safeArea: {
+    flex: 1,
+  },
   content: {
     flex: 1,
-    justifyContent: 'center',
+    justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 24,
+    paddingVertical: 40,
   },
   title: {
     fontSize: 24,
