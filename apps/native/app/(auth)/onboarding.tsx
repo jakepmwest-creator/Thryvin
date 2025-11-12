@@ -1128,7 +1128,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   optionCard: {
-    width: (SCREEN_WIDTH - 72) / 2,
+    width: '48%',
     backgroundColor: COLORS.lightGray,
     borderRadius: 16,
     padding: 8,
