@@ -146,26 +146,28 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
     paddingHorizontal: 24,
-    paddingTop: 60,
   },
   title: {
-    fontSize: 32,
+    fontSize: 24,
     fontWeight: '700',
     color: COLORS.white,
     marginBottom: 8,
     textAlign: 'center',
   },
   subtitle: {
-    fontSize: 16,
+    fontSize: 14,
     color: COLORS.white,
     opacity: 0.9,
     textAlign: 'center',
     marginBottom: 40,
   },
   answersContainer: {
-    flex: 1,
-    gap: 16,
+    alignItems: 'center',
+    gap: 12,
+    maxWidth: '90%',
   },
   answerItem: {
     marginBottom: 16,
