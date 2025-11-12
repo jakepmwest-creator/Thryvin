@@ -170,19 +170,17 @@ const styles = StyleSheet.create({
     maxWidth: '90%',
   },
   answerItem: {
-    marginBottom: 16,
+    marginBottom: 8,
   },
   answerRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: 12,
+    gap: 8,
   },
   answerText: {
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: '600',
     color: COLORS.white,
-    flex: 1,
   },
   loadingContainer: {
     alignItems: 'center',
