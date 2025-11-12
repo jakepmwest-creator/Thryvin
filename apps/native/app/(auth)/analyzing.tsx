@@ -124,16 +124,16 @@ export default function AnalyzingScreen() {
                 </Animated.View>
               );
             })}
-          </View>
-
-          <View style={styles.loadingContainer}>
-            <View style={styles.spinner}>
-              <Ionicons name="fitness" size={32} color={COLORS.white} />
             </View>
-            <Text style={styles.loadingText}>
-              {currentIndex < answers.length ? 'Processing...' : 'Almost ready!'}
-            </Text>
-          </View>
+
+            <View style={styles.loadingContainer}>
+              <View style={styles.spinner}>
+                <Ionicons name="fitness" size={32} color={COLORS.white} />
+              </View>
+              <Text style={styles.loadingText}>
+                {currentIndex < answers.length ? 'Processing...' : 'Almost ready!'}
+              </Text>
+            </View>
           </View>
         </SafeAreaView>
       </LinearGradient>
