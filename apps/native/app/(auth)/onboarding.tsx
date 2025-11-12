@@ -307,24 +307,10 @@ const ONBOARDING_STEPS = [
   {
     id: 'injuries',
     title: 'Injuries or Limitations',
-    subtitle: 'Help us keep you safe (Select all that apply)',
+    subtitle: 'Help us keep you safe',
     emoji: '🩹',
-    type: 'multiselect',
-    field: 'injuries',
-    icon: 'medical-outline',
-    hasOtherOption: true,
-    otherField: 'injuriesOther',
-    options: [
-      { value: 'none', label: 'No Injuries' },
-      { value: 'knee', label: 'Knee Issues' },
-      { value: 'back', label: 'Back Issues' },
-      { value: 'shoulder', label: 'Shoulder' },
-      { value: 'ankle', label: 'Ankle Issues' },
-      { value: 'wrist', label: 'Wrist Issues' },
-      { value: 'elbow', label: 'Elbow Issues' },
-      { value: 'hip', label: 'Hip Issues' },
-      { value: 'neck', label: 'Neck Issues' },
-      { value: 'other', label: 'Other' },
+    fields: [
+      { key: 'injuries', label: 'Any injuries or concerns?', icon: 'medical-outline', type: 'text', placeholder: 'e.g., Bad knee, or type "None"' },
     ],
   },
   {
