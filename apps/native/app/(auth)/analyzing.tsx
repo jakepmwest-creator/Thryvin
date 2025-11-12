@@ -110,11 +110,11 @@ export default function AnalyzingScreen() {
                       {answer.label}: {answer.value}
                     </Text>
                     {index < currentIndex && (
-                      <Ionicons name="checkmark-circle" size={24} color={COLORS.green} />
+                      <Ionicons name="checkmark-circle" size={20} color={COLORS.green} />
                     )}
                     {index === currentIndex && (
                       <Animated.View style={{ opacity: fadeAnim }}>
-                        <Ionicons name="checkmark-circle" size={24} color={COLORS.green} />
+                        <Ionicons name="checkmark-circle" size={20} color={COLORS.green} />
                       </Animated.View>
                     )}
                   </View>
