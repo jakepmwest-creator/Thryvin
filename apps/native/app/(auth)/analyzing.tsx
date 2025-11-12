@@ -159,6 +159,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     paddingVertical: 40,
   },
+  topSection: {
+    alignItems: 'center',
+  },
   title: {
     fontSize: 24,
     fontWeight: '700',
