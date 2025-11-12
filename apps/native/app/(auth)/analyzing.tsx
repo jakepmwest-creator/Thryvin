@@ -88,10 +88,12 @@ export default function AnalyzingScreen() {
       >
         <SafeAreaView style={styles.safeArea}>
           <View style={styles.content}>
-          <Text style={styles.title}>Analyzing Your Profile</Text>
-          <Text style={styles.subtitle}>Creating your personalized plan...</Text>
+            <View style={styles.topSection}>
+              <Text style={styles.title}>Analyzing Your Profile</Text>
+              <Text style={styles.subtitle}>Creating your personalized plan...</Text>
+            </View>
 
-          <View style={styles.answersContainer}>
+            <View style={styles.answersContainer}>
             {answers.map((answer, index) => {
               if (index > currentIndex) return null;
               
