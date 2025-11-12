@@ -1124,7 +1124,8 @@ const styles = StyleSheet.create({
   optionsContainer: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 6,
+    justifyContent: 'space-between',
+    gap: 8,
     marginBottom: 16,
   },
   optionCard: {
