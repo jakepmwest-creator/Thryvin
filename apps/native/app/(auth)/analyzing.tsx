@@ -79,14 +79,15 @@ export default function AnalyzingScreen() {
   }, [currentIndex]);
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={styles.container}>
       <LinearGradient
         colors={[COLORS.accent, COLORS.accentSecondary]}
         style={styles.gradient}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
       >
-        <View style={styles.content}>
+        <SafeAreaView style={styles.safeArea}>
+          <View style={styles.content}>
           <Text style={styles.title}>Analyzing Your Profile</Text>
           <Text style={styles.subtitle}>Creating your personalized plan...</Text>
 
