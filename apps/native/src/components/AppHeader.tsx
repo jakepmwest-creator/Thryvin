@@ -38,7 +38,10 @@ export function AppHeader({ mode = 'fitness' }: AppHeaderProps) {
         {/* Social Button */}
         <TouchableOpacity
           style={[styles.iconButton, { backgroundColor: COLORS.lightGray }]}
-          onPress={() => console.log('Social pressed')}
+          onPress={() => {
+            console.log('NAVIGATING TO SOCIAL');
+            router.push('/(tabs)/social');
+          }}
         >
           <Ionicons name="people-outline" size={22} color={accentColor} />
         </TouchableOpacity>
