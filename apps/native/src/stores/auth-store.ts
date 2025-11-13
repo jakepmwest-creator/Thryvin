@@ -31,36 +31,53 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   login: async (credentials: { email: string; password: string }) => {
     set({ isLoading: true, error: null });
     try {
-      // Validate credentials against stored test user
-      // In production, this would be an API call
+      await new Promise(resolve => setTimeout(resolve, 800)); // Simulate network delay
+      
+      // First check if there's a registered user with this email
+      const storedEmail = await SecureStore.getItemAsync('user_email');
+      const storedPassword = await SecureStore.getItemAsync('user_password');
+      const storedUser = await SecureStore.getItemAsync('auth_user');
+      
+      // Check if credentials match a registered user
+      if (storedEmail && storedPassword && storedUser) {
+        if (credentials.email === storedEmail && credentials.password === storedPassword) {
+          const userData = JSON.parse(storedUser);
+          set({ user: userData, isLoading: false });
+          console.log('Login successful (registered user):', userData.name);
+          return;
+        }
+      }
+      
+      // If not found in storage, check against test account
       const validEmail = 'test@example.com';
       const validPassword = 'password123';
       
-      await new Promise(resolve => setTimeout(resolve, 800)); // Simulate network delay
-      
-      if (credentials.email !== validEmail || credentials.password !== validPassword) {
-        throw new Error('Invalid email or password');
+      if (credentials.email === validEmail && credentials.password === validPassword) {
+        const userData = {
+          id: 1,
+          name: 'Test User',
+          email: credentials.email,
+          trainingType: 'general-fitness',
+          goal: 'improve-health',
+          coachingStyle: 'encouraging-positive',
+          selectedCoach: 'nate-green',
+          hasCompletedOnboarding: true,
+        };
+        
+        set({ user: userData, isLoading: false });
+        
+        // Save credentials securely
+        await SecureStore.setItemAsync('user_email', credentials.email);
+        await SecureStore.setItemAsync('user_password', credentials.password);
+        await SecureStore.setItemAsync('auth_user', JSON.stringify(userData));
+        
+        console.log('Login successful (test account):', userData.name);
+        return;
       }
       
-      const userData = {
-        id: 1,
-        name: 'Test User',
-        email: credentials.email,
-        trainingType: 'general-fitness',
-        goal: 'improve-health',
-        coachingStyle: 'encouraging-positive',
-        selectedCoach: 'nate-green',
-        hasCompletedOnboarding: true,
-      };
+      // If we get here, credentials don't match anything
+      throw new Error('Invalid email or password');
       
-      set({ user: userData, isLoading: false });
-      
-      // Save credentials securely for biometric login
-      await SecureStore.setItemAsync('user_email', credentials.email);
-      await SecureStore.setItemAsync('user_password', credentials.password);
-      await SecureStore.setItemAsync('auth_user', JSON.stringify(userData));
-      
-      console.log('Login successful:', userData.name);
     } catch (error) {
       console.error('Login failed:', error);
       set({ 
