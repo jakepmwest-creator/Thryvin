@@ -39,75 +39,102 @@ export async function sendEmail(params: EmailParams): Promise<boolean> {
   }
 }
 
-export async function sendPasswordResetEmail(email: string, resetToken: string): Promise<boolean> {
-  const resetUrl = `${process.env.REPLIT_DOMAINS || 'http://localhost:5000'}/reset-password?token=${resetToken}`;
+export async function sendPasswordResetEmail(email: string, resetToken: string, userName: string = 'User'): Promise<boolean> {
+  const FROM_EMAIL = process.env.SENDGRID_FROM_EMAIL || 'noreply@thryvin.com';
   
   const htmlContent = `
-    <!DOCTYPE html>
-    <html>
-    <head>
-      <meta charset="utf-8">
-      <title>Password Reset - Thryvin' AI Coaching</title>
-      <style>
-        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
-        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-        .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }
-        .content { background: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px; }
-        .button { display: inline-block; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; text-decoration: none; padding: 12px 30px; border-radius: 6px; font-weight: bold; margin: 20px 0; }
-        .footer { text-align: center; margin-top: 30px; font-size: 12px; color: #666; }
-      </style>
-    </head>
-    <body>
-      <div class="container">
-        <div class="header">
-          <h1>🏋️ Thryvin' AI Coaching</h1>
-          <h2>Password Reset Request</h2>
-        </div>
-        <div class="content">
-          <p>Hi there,</p>
-          <p>We received a request to reset your password for your Thryvin' AI Coaching account.</p>
-          <p>Click the button below to reset your password:</p>
-          <p style="text-align: center;">
-            <a href="${resetUrl}" class="button">Reset My Password</a>
-          </p>
-          <p>Or copy and paste this link into your browser:</p>
-          <p style="word-break: break-all; background: #e9e9e9; padding: 10px; border-radius: 4px;">${resetUrl}</p>
-          <p><strong>This link will expire in 1 hour for security reasons.</strong></p>
-          <p>If you didn't request this password reset, you can safely ignore this email. Your password will remain unchanged.</p>
-          <p>Keep thriving!<br>The Thryvin' Team</p>
-        </div>
-        <div class="footer">
-          <p>© 2025 Thryvin' AI Coaching. All rights reserved.</p>
-          <p>This is an automated message, please do not reply to this email.</p>
-        </div>
-      </div>
-    </body>
-    </html>
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Reset Your Thryvin Password</title>
+</head>
+<body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh;">
+  <table role="presentation" style="width: 100%; border-collapse: collapse; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 40px 20px;">
+    <tr>
+      <td align="center">
+        <!-- Main Card -->
+        <table role="presentation" style="max-width: 600px; width: 100%; background: #ffffff; border-radius: 16px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); overflow: hidden;">
+          
+          <!-- Header with Gradient -->
+          <tr>
+            <td style="background: linear-gradient(135deg, #a259ff 0%, #3a86ff 100%); padding: 40px 30px; text-align: center;">
+              <h1 style="margin: 0; color: #ffffff; font-size: 32px; font-weight: 700; letter-spacing: -0.5px;">
+                THRYVIN
+              </h1>
+              <p style="margin: 10px 0 0 0; color: rgba(255,255,255,0.9); font-size: 14px; font-weight: 500;">
+                YOUR FITNESS JOURNEY
+              </p>
+            </td>
+          </tr>
+          
+          <!-- Content -->
+          <tr>
+            <td style="padding: 40px 30px;">
+              <h2 style="margin: 0 0 20px 0; color: #222222; font-size: 24px; font-weight: 700;">
+                Reset Your Password
+              </h2>
+              
+              <p style="margin: 0 0 20px 0; color: #555555; font-size: 16px; line-height: 1.6;">
+                Hi ${userName},
+              </p>
+              
+              <p style="margin: 0 0 30px 0; color: #555555; font-size: 16px; line-height: 1.6;">
+                We received a request to reset your password for your Thryvin account. If you didn't make this request, you can safely ignore this email.
+              </p>
+              
+              <!-- Reset Token Box -->
+              <table role="presentation" style="width: 100%; background: #F8F9FA; border-radius: 12px; padding: 20px; margin: 0 0 30px 0;">
+                <tr>
+                  <td>
+                    <p style="margin: 0 0 10px 0; color: #666666; font-size: 14px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">
+                      Your Reset Code:
+                    </p>
+                    <p style="margin: 0; color: #a259ff; font-size: 28px; font-weight: 700; letter-spacing: 2px; font-family: 'Courier New', monospace;">
+                      ${resetToken}
+                    </p>
+                  </td>
+                </tr>
+              </table>
+              
+              <p style="margin: 0 0 30px 0; color: #555555; font-size: 16px; line-height: 1.6;">
+                Enter this code in the app to reset your password. This code will expire in <strong>15 minutes</strong> for your security.
+              </p>
+              
+              <p style="margin: 0 0 10px 0; color: #999999; font-size: 14px; line-height: 1.6;">
+                If you're having trouble, you can also manually open the Thryvin app and go to the password reset screen.
+              </p>
+            </td>
+          </tr>
+          
+          <!-- Footer -->
+          <tr>
+            <td style="background: #F8F9FA; padding: 30px; text-align: center; border-top: 1px solid #E8E8E8;">
+              <p style="margin: 0 0 10px 0; color: #999999; font-size: 14px;">
+                Questions? Contact us at <a href="mailto:support@thryvin.com" style="color: #a259ff; text-decoration: none;">support@thryvin.com</a>
+              </p>
+              <p style="margin: 0; color: #CCCCCC; font-size: 12px;">
+                © ${new Date().getFullYear()} Thryvin. All rights reserved.
+              </p>
+            </td>
+          </tr>
+          
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
   `;
 
-  const textContent = `
-    Password Reset - Thryvin' AI Coaching
-    
-    Hi there,
-    
-    We received a request to reset your password for your Thryvin' AI Coaching account.
-    
-    To reset your password, click on this link or copy and paste it into your browser:
-    ${resetUrl}
-    
-    This link will expire in 1 hour for security reasons.
-    
-    If you didn't request this password reset, you can safely ignore this email. Your password will remain unchanged.
-    
-    Keep thriving!
-    The Thryvin' Team
-  `;
+  const textContent = `Hi ${userName},\n\nWe received a request to reset your password for your Thryvin account.\n\nYour reset code: ${resetToken}\n\nEnter this code in the app to reset your password. This code will expire in 15 minutes.\n\nIf you didn't request this, you can safely ignore this email.\n\nThanks,\nThe Thryvin Team`;
 
-  return await sendEmail({
+  return sendEmail({
     to: email,
-    from: 'noreply@thryvin.app',
-    subject: 'Reset Your Thryvin\' Password',
-    text: textContent,
+    from: FROM_EMAIL,
+    subject: '🔐 Reset Your Thryvin Password',
     html: htmlContent,
+    text: textContent,
   });
 }
