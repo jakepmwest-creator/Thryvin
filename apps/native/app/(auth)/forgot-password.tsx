@@ -47,7 +47,7 @@ export default function ForgotPasswordScreen() {
 
     setIsLoading(true);
     try {
-      const API_URL = 'http://localhost:5000';
+      const API_URL = 'https://28d88a1d-a878-4deb-9ffc-532c0d6fbf3a.preview.emergentagent.com';
       const response = await fetch(`${API_URL}/api/auth/forgot-password`, {
         method: 'POST',
         headers: {

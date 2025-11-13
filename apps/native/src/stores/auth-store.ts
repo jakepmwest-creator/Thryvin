@@ -31,8 +31,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   login: async (credentials: { email: string; password: string }) => {
     set({ isLoading: true, error: null });
     try {
-      // Always try real API first (backend is running on localhost:5000)
-      const API_URL = 'http://localhost:5000';
+      // Use the preview URL for Emergent platform
+      const API_URL = 'https://28d88a1d-a878-4deb-9ffc-532c0d6fbf3a.preview.emergentagent.com';
       
       const response = await fetch(`${API_URL}/api/auth/login`, {
         method: 'POST',
@@ -120,7 +120,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   logout: async () => {
     set({ isLoading: true });
     try {
-      const API_URL = 'http://localhost:5000';
+      const API_URL = 'https://28d88a1d-a878-4deb-9ffc-532c0d6fbf3a.preview.emergentagent.com';
       await fetch(`${API_URL}/api/auth/logout`, {
         method: 'POST',
         credentials: 'include',
@@ -152,7 +152,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       }
 
       // Try API check
-      const API_URL = 'http://localhost:5000';
+      const API_URL = 'https://28d88a1d-a878-4deb-9ffc-532c0d6fbf3a.preview.emergentagent.com';
       const response = await fetch(`${API_URL}/api/auth/user`, {
         credentials: 'include',
       });
