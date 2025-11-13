@@ -31,32 +31,10 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   login: async (credentials: { email: string; password: string }) => {
     set({ isLoading: true, error: null });
     try {
-      // Demo mode: Accept test@example.com / password123 or any credentials
-      if (!API_BASE_URL || API_BASE_URL.includes('localhost')) {
-        // Offline/Demo mode
-        await new Promise(resolve => setTimeout(resolve, 800)); // Simulate network delay
-        
-        const demoUser = {
-          id: 1,
-          name: 'Jake',
-          email: credentials.email,
-          trainingType: 'Aesthetics',
-          goal: 'Build Muscle',
-          coachingStyle: 'Motivational',
-        };
-        
-        set({ user: demoUser, isLoading: false });
-        
-        // Save credentials securely for biometric login
-        await SecureStore.setItemAsync('user_email', credentials.email);
-        await SecureStore.setItemAsync('user_password', credentials.password);
-        await SecureStore.setItemAsync('demo_user', JSON.stringify(demoUser));
-        
-        console.log('Login successful (Demo Mode):', demoUser.name);
-        return;
-      }
-
-      const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
+      // Always try real API first (backend is running on localhost:5000)
+      const API_URL = 'http://localhost:5000';
+      
+      const response = await fetch(`${API_URL}/api/auth/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -66,18 +44,19 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       });
 
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Login failed');
+        const errorData = await response.json().catch(() => ({ error: 'Invalid credentials' }));
+        throw new Error(errorData.error || 'Invalid email or password');
       }
 
       const userData = await response.json();
-      set({ user: userData, isLoading: false });
+      set({ user: userData.user || userData, isLoading: false });
       
       // Save credentials securely for biometric login
       await SecureStore.setItemAsync('user_email', credentials.email);
       await SecureStore.setItemAsync('user_password', credentials.password);
+      await SecureStore.setItemAsync('auth_user', JSON.stringify(userData.user || userData));
       
-      console.log('Login successful:', userData.name);
+      console.log('Login successful:', userData.user?.name || userData.name);
     } catch (error) {
       console.error('Login failed:', error);
       set({ 
@@ -141,10 +120,17 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   logout: async () => {
     set({ isLoading: true });
     try {
-      await fetch(`${API_BASE_URL}/api/auth/logout`, {
+      const API_URL = 'http://localhost:5000';
+      await fetch(`${API_URL}/api/auth/logout`, {
         method: 'POST',
         credentials: 'include',
       });
+      
+      // Clear stored user data
+      await SecureStore.deleteItemAsync('auth_user');
+      await SecureStore.deleteItemAsync('user_email');
+      await SecureStore.deleteItemAsync('user_password');
+      
       set({ user: null, isLoading: false });
       console.log('Logout successful');
     } catch (error) {
@@ -156,27 +142,26 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   checkAuth: async () => {
     set({ isLoading: true });
     try {
-      // Demo mode: Check for stored demo user
-      if (!API_BASE_URL || API_BASE_URL.includes('localhost')) {
-        const storedUser = await SecureStore.getItemAsync('demo_user');
-        if (storedUser) {
-          const userData = JSON.parse(storedUser);
-          set({ user: userData, isLoading: false });
-          console.log('User authenticated (Demo Mode):', userData.name);
-        } else {
-          set({ user: null, isLoading: false });
-        }
+      // Check for stored authenticated user
+      const storedUser = await SecureStore.getItemAsync('auth_user');
+      if (storedUser) {
+        const userData = JSON.parse(storedUser);
+        set({ user: userData, isLoading: false });
+        console.log('User authenticated from storage:', userData.name);
         return;
       }
 
-      const response = await fetch(`${API_BASE_URL}/api/auth/user`, {
+      // Try API check
+      const API_URL = 'http://localhost:5000';
+      const response = await fetch(`${API_URL}/api/auth/user`, {
         credentials: 'include',
       });
 
       if (response.ok) {
         const userData = await response.json();
         set({ user: userData, isLoading: false });
-        console.log('User authenticated:', userData.name);
+        await SecureStore.setItemAsync('auth_user', JSON.stringify(userData));
+        console.log('User authenticated from API:', userData.name);
       } else {
         set({ user: null, isLoading: false });
       }

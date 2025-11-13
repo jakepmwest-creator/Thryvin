@@ -260,6 +260,14 @@ export default function LoginScreen() {
                     </LinearGradient>
                   </TouchableOpacity>
 
+                  {/* Forgot Password Link */}
+                  <TouchableOpacity 
+                    style={styles.forgotPasswordLink}
+                    onPress={() => router.push('/(auth)/forgot-password')}
+                  >
+                    <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
+                  </TouchableOpacity>
+
                   {/* Biometric Login */}
                   {biometricAvailable && biometricEnabled && (
                     <TouchableOpacity style={styles.biometricButton} onPress={handleBiometricLogin}>
@@ -457,6 +465,16 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: COLORS.white,
     letterSpacing: 0.5,
+  },
+  forgotPasswordLink: {
+    alignItems: 'center',
+    paddingVertical: 8,
+    marginBottom: 12,
+  },
+  forgotPasswordText: {
+    fontSize: 14,
+    color: COLORS.accent,
+    fontWeight: '600',
   },
   biometricButton: {
     flexDirection: 'row',
