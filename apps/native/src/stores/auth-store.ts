@@ -124,12 +124,6 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   logout: async () => {
     set({ isLoading: true });
     try {
-      const API_URL = 'https://28d88a1d-a878-4deb-9ffc-532c0d6fbf3a.preview.emergentagent.com';
-      await fetch(`${API_URL}/api/auth/logout`, {
-        method: 'POST',
-        credentials: 'include',
-      });
-      
       // Clear stored user data
       await SecureStore.deleteItemAsync('auth_user');
       await SecureStore.deleteItemAsync('user_email');
