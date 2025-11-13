@@ -74,43 +74,33 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   register: async (userData: any) => {
     set({ isLoading: true, error: null });
     try {
-      // Demo mode: Accept any registration
-      if (!API_BASE_URL || API_BASE_URL.includes('localhost')) {
-        // Offline/Demo mode
-        await new Promise(resolve => setTimeout(resolve, 800)); // Simulate network delay
-        
-        const newUser = {
-          id: Date.now(),
-          name: userData.name || 'User',
-          email: userData.email,
-          trainingType: userData.trainingType,
-          goal: userData.goal,
-          coachingStyle: userData.coachingStyle,
-        };
-        
-        set({ user: newUser, isLoading: false });
-        await SecureStore.setItemAsync('demo_user', JSON.stringify(newUser));
-        console.log('Registration successful (Demo Mode):', newUser.name);
-        return;
-      }
-
-      const response = await fetch(`${API_BASE_URL}/api/auth/register`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include',
-        body: JSON.stringify(userData),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Registration failed');
-      }
-
-      const newUser = await response.json();
+      // Simulate registration with local storage
+      await new Promise(resolve => setTimeout(resolve, 800)); // Simulate network delay
+      
+      const newUser = {
+        id: Date.now(),
+        name: userData.name || 'User',
+        email: userData.email,
+        // Save all onboarding data
+        ...userData,
+        hasCompletedOnboarding: true,
+        createdAt: new Date().toISOString(),
+      };
+      
+      // Remove password from user object (keep secure)
+      delete newUser.password;
+      
       set({ user: newUser, isLoading: false });
+      
+      // Save user and credentials
+      await SecureStore.setItemAsync('auth_user', JSON.stringify(newUser));
+      await SecureStore.setItemAsync('user_email', userData.email);
+      if (userData.password) {
+        await SecureStore.setItemAsync('user_password', userData.password);
+      }
+      
       console.log('Registration successful:', newUser.name);
+      console.log('Onboarding data saved:', Object.keys(newUser).join(', '));
     } catch (error) {
       console.error('Registration failed:', error);
       set({ 
