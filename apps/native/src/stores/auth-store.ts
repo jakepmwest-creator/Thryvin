@@ -152,20 +152,6 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         const userData = JSON.parse(storedUser);
         set({ user: userData, isLoading: false });
         console.log('User authenticated from storage:', userData.name);
-        return;
-      }
-
-      // Try API check
-      const API_URL = 'https://28d88a1d-a878-4deb-9ffc-532c0d6fbf3a.preview.emergentagent.com';
-      const response = await fetch(`${API_URL}/api/auth/user`, {
-        credentials: 'include',
-      });
-
-      if (response.ok) {
-        const userData = await response.json();
-        set({ user: userData, isLoading: false });
-        await SecureStore.setItemAsync('auth_user', JSON.stringify(userData));
-        console.log('User authenticated from API:', userData.name);
       } else {
         set({ user: null, isLoading: false });
       }
