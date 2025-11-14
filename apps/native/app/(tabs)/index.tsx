@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   View,
   Text,
@@ -7,6 +7,8 @@ import {
   TouchableOpacity,
   Dimensions,
   Animated,
+  ActivityIndicator,
+  RefreshControl,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -15,6 +17,8 @@ import { router } from 'expo-router';
 import { AppHeader } from '../../src/components/AppHeader';
 import { WorkoutDetailsModal } from '../../src/components/WorkoutDetailsModal';
 import { PersonalBestChart } from '../../src/components/PersonalBestChart';
+import { useWorkoutStore } from '../../src/stores/workout-store';
+import { useAuthStore } from '../../src/stores/auth-store';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
