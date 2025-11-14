@@ -345,13 +345,13 @@ export function WorkoutDetailsModal({
                 </View>
                 {exercisesExpanded && (
                   <View style={styles.dropdownContent}>
-                    {currentWorkout.exerciseList.map((exercise: any, index: number) => (
+                    {(currentWorkout.exerciseList || currentWorkout.exercises || []).map((exercise: any, index: number) => (
                       <View key={index} style={styles.exerciseItem}>
                         <Text style={styles.exerciseNumber}>{index + 1}</Text>
                         <View style={styles.exerciseInfo}>
                           <Text style={styles.exerciseName}>{exercise.name}</Text>
                           <Text style={styles.exerciseDetails}>
-                            {exercise.sets} sets × {exercise.reps} reps • {exercise.rest} rest
+                            {exercise.sets} sets × {exercise.reps} {exercise.rest ? `• ${exercise.restTime || exercise.rest}s rest` : ''}
                           </Text>
                         </View>
                       </View>
