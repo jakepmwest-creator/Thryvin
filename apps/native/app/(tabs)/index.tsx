@@ -208,16 +208,31 @@ export default function HomeScreen() {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Weekly Progress</Text>
           <View style={styles.ringsContainer}>
-            <ProgressRing label="Workouts" progress={0.8} color={COLORS.accent} onPress={() => showRingDetails('Workouts')} />
-            <ProgressRing label="Calories" progress={0.65} color={COLORS.red} onPress={() => showRingDetails('Calories')} />
-            <ProgressRing label="Active Days" progress={0.75} color={COLORS.green} onPress={() => showRingDetails('Active Days')} />
+            <ProgressRing 
+              label="Workouts" 
+              progress={stats ? stats.weeklyWorkouts / stats.weeklyGoal : 0} 
+              color={COLORS.accent} 
+              onPress={() => showRingDetails('Workouts')} 
+            />
+            <ProgressRing 
+              label="Minutes" 
+              progress={stats ? stats.weeklyMinutes / stats.weeklyMinutesGoal : 0} 
+              color={COLORS.red} 
+              onPress={() => showRingDetails('Minutes')} 
+            />
+            <ProgressRing 
+              label="Streak" 
+              progress={stats ? Math.min(stats.currentStreak / 7, 1) : 0} 
+              color={COLORS.green} 
+              onPress={() => showRingDetails('Streak')} 
+            />
           </View>
-          {ringDetailsVisible && (
+          {ringDetailsVisible && stats && (
             <View style={styles.ringDetails}>
               <Text style={styles.ringDetailsText}>
-                {ringDetailsVisible === 'Workouts' && '4 of 5 workouts completed this week'}
-                {ringDetailsVisible === 'Calories' && '1,950 of 3,000 calories burned'}
-                {ringDetailsVisible === 'Active Days' && '5 of 7 active days this week'}
+                {ringDetailsVisible === 'Workouts' && `${stats.weeklyWorkouts} of ${stats.weeklyGoal} workouts completed this week`}
+                {ringDetailsVisible === 'Minutes' && `${stats.weeklyMinutes} of ${stats.weeklyMinutesGoal} minutes completed`}
+                {ringDetailsVisible === 'Streak' && `${stats.currentStreak} day streak 🔥`}
               </Text>
             </View>
           )}
