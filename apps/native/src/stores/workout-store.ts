@@ -328,16 +328,20 @@ function generateExercises(user: any, dayIndex: number = 0): Exercise[] {
 }
 
 function getWorkoutTitle(dayIndex: number, user: any): string {
+  const goal = user.fitnessGoals?.[0] || user.goal || 'fitness';
+  const experience = user.experience || 'beginner';
+  
   const titles = [
-    'Upper Body Power',
-    'Lower Body Strength',
-    'Full Body Conditioning',
-    'Cardio & Core',
-    'Active Recovery',
-    'Strength & Hypertrophy',
-    'HIIT Challenge',
+    `Upper Body Power ${experience === 'advanced' ? '- Heavy' : ''}`,
+    `Lower Body Strength ${goal.includes('muscle') ? '& Hypertrophy' : ''}`,
+    `Full Body Circuit ${goal.includes('weight-loss') ? 'HIIT' : ''}`,
+    `Cardio & Conditioning ${experience === 'beginner' ? 'Basics' : 'Challenge'}`,
+    `Active Recovery & Mobility`,
+    `Strength Focus ${goal.includes('strength') ? '- PR Day' : ''}`,
+    `HIIT & Core Blast`,
   ];
-  return titles[dayIndex % titles.length];
+  
+  return titles[dayIndex % titles.length].trim();
 }
 
 function calculateStreak(workouts: Workout[]): number {
