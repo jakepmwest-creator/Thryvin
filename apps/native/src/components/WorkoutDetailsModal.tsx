@@ -197,7 +197,8 @@ export function WorkoutDetailsModal({
   }, [visible, selectedDate]);
 
   const currentDay = DAYS[currentDayIndex];
-  const currentWorkout = WORKOUT_DATA[currentDay];
+  // Use provided workout data or fallback to hardcoded data
+  const currentWorkout = workout || WORKOUT_DATA[currentDay];
 
   const handlePreviousDay = () => {
     setCurrentDayIndex((prev) => (prev === 0 ? 6 : prev - 1));
