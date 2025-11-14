@@ -181,24 +181,24 @@ export default function HomeScreen() {
           >
             <View style={styles.bannerContent}>
               <View style={styles.bannerLeft}>
-                <Text style={styles.bannerGreeting}>Hi Jake! 👋</Text>
+                <Text style={styles.bannerGreeting}>Hi {user?.name || 'there'}! 👋</Text>
                 <Text style={styles.bannerQuote}>
-                  {AI_QUOTES[Math.floor(Math.random() * AI_QUOTES.length)]}
+                  {stats ? `${stats.totalWorkouts} workouts completed! 💪` : 'Ready to crush your workout today?'}
                 </Text>
                 <View style={styles.bannerStats}>
                   <View style={styles.statChip}>
                     <Ionicons name="flame" size={14} color={COLORS.white} />
-                    <Text style={styles.statText}>7-day streak</Text>
+                    <Text style={styles.statText}>{stats?.currentStreak || 0}-day streak</Text>
                   </View>
                   <View style={styles.statChip}>
                     <Ionicons name="barbell" size={14} color={COLORS.white} />
-                    <Text style={styles.statText}>8 workouts</Text>
+                    <Text style={styles.statText}>{stats?.weeklyWorkouts || 0} workouts</Text>
                   </View>
                 </View>
               </View>
               <View style={styles.achievementBadge}>
                 <Ionicons name="trophy" size={36} color="#FFD700" />
-                <Text style={styles.badgeText}>+3</Text>
+                <Text style={styles.badgeText}>{stats?.level || 'Bronze'}</Text>
               </View>
             </View>
           </LinearGradient>
