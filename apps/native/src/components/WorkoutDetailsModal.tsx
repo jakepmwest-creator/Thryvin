@@ -279,7 +279,7 @@ export function WorkoutDetailsModal({
 
               <View style={styles.statBox}>
                 <Ionicons name="list-outline" size={20} color={COLORS.accent} />
-                <Text style={styles.statValue}>{currentWorkout.exercises}</Text>
+                <Text style={styles.statValue}>{currentWorkout.exercises?.length || currentWorkout.exercises || 0}</Text>
                 <Text style={styles.statLabel}>Exercises</Text>
               </View>
 
@@ -296,7 +296,7 @@ export function WorkoutDetailsModal({
                   start={{ x: 0, y: 0 }}
                   end={{ x: 1, y: 1 }}
                 >
-                  <Text style={styles.circularValue}>{currentWorkout.caloriesBurn}</Text>
+                  <Text style={styles.circularValue}>{currentWorkout.caloriesBurn || Math.round(currentWorkout.duration * 8)}</Text>
                   <Text style={styles.circularLabel}>cal</Text>
                 </LinearGradient>
               </View>
@@ -304,7 +304,7 @@ export function WorkoutDetailsModal({
 
             <View style={styles.titleSection}>
               <Text style={styles.workoutTitle}>{currentWorkout.title}</Text>
-              <Text style={styles.targetText}>Target: {currentWorkout.targetMuscles}</Text>
+              <Text style={styles.targetText}>Target: {currentWorkout.targetMuscles || currentWorkout.type}</Text>
             </View>
 
             {currentWorkout.overview && (
