@@ -94,14 +94,15 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
       const user = JSON.parse(storedUser);
       
       // Generate AI workout based on user's onboarding data
+      const dayOfWeek = new Date().getDay(); // 0-6
       const workout: Workout = {
         id: `workout_${Date.now()}`,
-        title: `${user.goal || 'Fitness'} Day`,
+        title: getWorkoutTitle(dayOfWeek, user),
         type: user.trainingType || 'General Fitness',
         difficulty: user.experience || 'Intermediate',
         duration: parseInt(user.sessionDuration) || 45,
         date: new Date().toISOString(),
-        exercises: generateExercises(user),
+        exercises: generateExercises(user, dayOfWeek),
       };
       
       set({ todayWorkout: workout, isLoading: false });
