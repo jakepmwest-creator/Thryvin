@@ -78,10 +78,46 @@ export default function HomeScreen() {
   const [ringDetailsVisible, setRingDetailsVisible] = useState<string | null>(null);
   const [chartModalVisible, setChartModalVisible] = useState(false);
   const [selectedExercise, setSelectedExercise] = useState<any>(null);
+  const [refreshing, setRefreshing] = useState(false);
   const scrollX = useRef(new Animated.Value(0)).current;
 
+  // Get data from stores
+  const { user } = useAuthStore();
+  const {
+    todayWorkout,
+    stats,
+    personalBests,
+    isLoading,
+    fetchTodayWorkout,
+    fetchStats,
+    fetchPersonalBests,
+    fetchCompletedWorkouts,
+  } = useWorkoutStore();
+
+  // Load data on mount
+  useEffect(() => {
+    loadAllData();
+  }, []);
+
+  const loadAllData = async () => {
+    await Promise.all([
+      fetchTodayWorkout(),
+      fetchCompletedWorkouts(),
+      fetchStats(),
+      fetchPersonalBests(),
+    ]);
+  };
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await loadAllData();
+    setRefreshing(false);
+  };
+
   const handleStartWorkout = () => {
-    router.push('/active-workout');
+    if (todayWorkout) {
+      router.push('/active-workout');
+    }
     setModalVisible(false);
   };
 
