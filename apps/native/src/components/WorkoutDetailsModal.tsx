@@ -168,13 +168,15 @@ interface WorkoutDetailsModalProps {
   onClose: () => void;
   onStartWorkout: () => void;
   selectedDate?: number;
+  workout?: any; // The actual workout data from store
 }
 
 export function WorkoutDetailsModal({ 
   visible, 
   onClose, 
   onStartWorkout, 
-  selectedDate = 23 
+  selectedDate = 23,
+  workout 
 }: WorkoutDetailsModalProps) {
   const getDayIndexFromDate = (date: number) => {
     const baseDate = 21;
