@@ -226,41 +226,58 @@ export default function HomeScreen() {
         {/* Today's Workout */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Today's Workout</Text>
-          <View style={styles.todayWorkoutCard}>
-            <LinearGradient
-              colors={[`${COLORS.accent}15`, `${COLORS.accentSecondary}15`]}
-              style={styles.workoutGradient}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-            >
-              <View style={styles.workoutHeader}>
-                <View style={{ flex: 1 }}>
-                  <Text style={styles.workoutTitle}>Upper Body Push</Text>
-                  <Text style={styles.workoutMeta}>45 min • 8 exercises • Intermediate</Text>
-                  <Text style={styles.workoutDescription}>
-                    Focus on chest, shoulders, and triceps. Build strength and muscle with progressive overload techniques.
-                  </Text>
-                </View>
-                <View style={styles.workoutBadge}>
-                  <Ionicons name="barbell" size={24} color={COLORS.accent} />
-                </View>
-              </View>
-              <TouchableOpacity 
-                style={styles.startButton}
-                onPress={() => setModalVisible(true)}
+          
+          {isLoading && !todayWorkout ? (
+            <View style={[styles.todayWorkoutCard, { padding: 40, alignItems: 'center' }]}>
+              <ActivityIndicator size="large" color={COLORS.accent} />
+              <Text style={{ marginTop: 12, color: COLORS.mediumGray }}>Loading workout...</Text>
+            </View>
+          ) : todayWorkout ? (
+            <View style={styles.todayWorkoutCard}>
+              <LinearGradient
+                colors={[`${COLORS.accent}15`, `${COLORS.accentSecondary}15`]}
+                style={styles.workoutGradient}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
               >
-                <LinearGradient
-                  colors={[COLORS.accent, COLORS.accentSecondary]}
-                  style={styles.startGradient}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 1 }}
+                <View style={styles.workoutHeader}>
+                  <View style={{ flex: 1 }}>
+                    <Text style={styles.workoutTitle}>{todayWorkout.title}</Text>
+                    <Text style={styles.workoutMeta}>
+                      {todayWorkout.duration} min • {todayWorkout.exercises.length} exercises • {todayWorkout.difficulty}
+                    </Text>
+                    <Text style={styles.workoutDescription}>
+                      AI-personalized workout based on your goals and experience level. Let's crush it!
+                    </Text>
+                  </View>
+                  <View style={styles.workoutBadge}>
+                    <Ionicons name="barbell" size={24} color={COLORS.accent} />
+                  </View>
+                </View>
+                <TouchableOpacity 
+                  style={styles.startButton}
+                  onPress={() => setModalVisible(true)}
                 >
-                  <Ionicons name="play" size={20} color={COLORS.white} />
-                  <Text style={styles.startText}>Start Workout</Text>
-                </LinearGradient>
-              </TouchableOpacity>
-            </LinearGradient>
-          </View>
+                  <LinearGradient
+                    colors={[COLORS.accent, COLORS.accentSecondary]}
+                    style={styles.startGradient}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 1 }}
+                  >
+                    <Ionicons name="play" size={20} color={COLORS.white} />
+                    <Text style={styles.startText}>Start Workout</Text>
+                  </LinearGradient>
+                </TouchableOpacity>
+              </LinearGradient>
+            </View>
+          ) : (
+            <View style={[styles.todayWorkoutCard, { padding: 30, alignItems: 'center' }]}>
+              <Ionicons name="alert-circle-outline" size={48} color={COLORS.mediumGray} />
+              <Text style={{ marginTop: 12, color: COLORS.mediumGray, textAlign: 'center' }}>
+                No workout available. Pull to refresh!
+              </Text>
+            </View>
+          )}
         </View>
 
         {/* Recent Activity - VIBRANT GRADIENTS */}
