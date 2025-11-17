@@ -173,6 +173,8 @@ interface WorkoutDetailsModalProps {
   workout?: any; // The actual workout data from store
 }
 
+const API_URL = 'https://workout-buddy-622.preview.emergentagent.com';
+
 export function WorkoutDetailsModal({ 
   visible, 
   onClose, 
@@ -189,6 +191,9 @@ export function WorkoutDetailsModal({
   const [currentDayIndex, setCurrentDayIndex] = useState(initialDayIndex);
   const [overviewExpanded, setOverviewExpanded] = useState(false);
   const [exercisesExpanded, setExercisesExpanded] = useState(false);
+  const [expandedExerciseIndex, setExpandedExerciseIndex] = useState<number | null>(null);
+  const [exerciseVideos, setExerciseVideos] = useState<Map<string, string>>(new Map());
+  const [loadingVideos, setLoadingVideos] = useState(false);
   const swipeX = useRef(new Animated.Value(0)).current;
 
   React.useEffect(() => {
