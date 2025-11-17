@@ -203,6 +203,44 @@ export function WorkoutDetailsModal({
     }
   }, [visible, selectedDate]);
 
+  // Fetch exercise videos when exercises are expanded
+  useEffect(() => {
+    const fetchExerciseVideos = async () => {
+      if (exercisesExpanded && currentWorkout?.exerciseList?.length > 0) {
+        setLoadingVideos(true);
+        try {
+          const exerciseNames = currentWorkout.exerciseList
+            .map((ex: any) => ex.name)
+            .join(',');
+          
+          const response = await fetch(
+            `${API_URL}/api/exercises?names=${encodeURIComponent(exerciseNames)}`
+          );
+          
+          if (response.ok) {
+            const data = await response.json();
+            const videoMap = new Map<string, string>();
+            
+            data.exercises.forEach((ex: any) => {
+              if (ex && ex.videoUrl) {
+                videoMap.set(ex.name, ex.videoUrl);
+              }
+            });
+            
+            setExerciseVideos(videoMap);
+            console.log(`Fetched ${videoMap.size} exercise videos`);
+          }
+        } catch (error) {
+          console.error('Error fetching exercise videos:', error);
+        } finally {
+          setLoadingVideos(false);
+        }
+      }
+    };
+
+    fetchExerciseVideos();
+  }, [exercisesExpanded, currentDayIndex]);
+
   const currentDay = DAYS[currentDayIndex];
   // Use provided workout data or fallback to hardcoded data
   const currentWorkout = workout || WORKOUT_DATA[currentDay];
