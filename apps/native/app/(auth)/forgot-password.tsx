@@ -49,7 +49,7 @@ export default function ForgotPasswordScreen() {
     setIsLoading(true);
     try {
       // Call the backend API
-      const API_URL = 'https://28d88a1d-a878-4deb-9ffc-532c0d6fbf3a.preview.emergentagent.com';
+      const API_URL = 'https://workout-buddy-622.preview.emergentagent.com';
       const response = await fetch(`${API_URL}/api/auth/forgot-password`, {
         method: 'POST',
         headers: {
