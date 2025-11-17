@@ -633,9 +633,24 @@ const styles = StyleSheet.create({
     color: COLORS.text,
     lineHeight: 22,
   },
+  loadingContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 12,
+    gap: 8,
+  },
+  loadingText: {
+    fontSize: 13,
+    color: COLORS.mediumGray,
+  },
+  exerciseItemContainer: {
+    marginBottom: 12,
+  },
   exerciseItem: {
     flexDirection: 'row',
-    marginBottom: 16,
+    alignItems: 'center',
+    paddingVertical: 8,
   },
   exerciseNumber: {
     width: 28,
@@ -652,15 +667,42 @@ const styles = StyleSheet.create({
   exerciseInfo: {
     flex: 1,
   },
+  exerciseHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginBottom: 4,
+  },
   exerciseName: {
     fontSize: 15,
     fontWeight: '600',
     color: COLORS.text,
-    marginBottom: 4,
   },
   exerciseDetails: {
     fontSize: 13,
     color: COLORS.mediumGray,
+  },
+  videoPlayerContainer: {
+    marginTop: 12,
+    marginBottom: 8,
+  },
+  videoHint: {
+    fontSize: 11,
+    color: COLORS.mediumGray,
+    textAlign: 'center',
+    marginTop: 8,
+    fontStyle: 'italic',
+  },
+  noVideoContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 24,
+    gap: 8,
+  },
+  noVideoText: {
+    fontSize: 13,
+    color: COLORS.mediumGray,
+    textAlign: 'center',
   },
   actionButtons: {
     flexDirection: 'row',
