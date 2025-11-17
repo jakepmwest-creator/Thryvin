@@ -160,6 +160,18 @@ backend:
           agent: "testing"
           comment: "AI integration working correctly. POST /api/ai/chat endpoint functional, POST /api/ai/workout/adjust working for workout modifications. OpenAI integration active and generating personalized workouts."
 
+  - task: "Exercise Video API Endpoints"
+    implemented: true
+    working: "NA"
+    file: "/app/server/routes.ts"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: "NA"
+          agent: "main"
+          comment: "Created two new API endpoints: GET /api/exercises (fetch exercises by names with query param) and GET /api/exercises/:slug (fetch single exercise by slug). Both endpoints return exercise data including videoUrl, thumbnailUrl, description, instructions, tips, and other metadata from the exercises table. Backend server running on port 5000."
+
 frontend:
   - task: "GitHub Workflow Configuration"
     implemented: true
