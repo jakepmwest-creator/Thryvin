@@ -390,17 +390,73 @@ export function WorkoutDetailsModal({
                 </View>
                 {exercisesExpanded && (
                   <View style={styles.dropdownContent}>
-                    {(currentWorkout.exerciseList || currentWorkout.exercises || []).map((exercise: any, index: number) => (
-                      <View key={index} style={styles.exerciseItem}>
-                        <Text style={styles.exerciseNumber}>{index + 1}</Text>
-                        <View style={styles.exerciseInfo}>
-                          <Text style={styles.exerciseName}>{exercise.name}</Text>
-                          <Text style={styles.exerciseDetails}>
-                            {exercise.sets} sets × {exercise.reps} {exercise.rest ? `• ${exercise.restTime || exercise.rest}s rest` : ''}
-                          </Text>
-                        </View>
+                    {loadingVideos && (
+                      <View style={styles.loadingContainer}>
+                        <ActivityIndicator size="small" color={COLORS.accent} />
+                        <Text style={styles.loadingText}>Loading videos...</Text>
                       </View>
-                    ))}
+                    )}
+                    {(currentWorkout.exerciseList || currentWorkout.exercises || []).map((exercise: any, index: number) => {
+                      const videoUrl = exerciseVideos.get(exercise.name);
+                      const isExpanded = expandedExerciseIndex === index;
+                      
+                      return (
+                        <View key={index} style={styles.exerciseItemContainer}>
+                          <TouchableOpacity
+                            style={styles.exerciseItem}
+                            onPress={() => setExpandedExerciseIndex(isExpanded ? null : index)}
+                          >
+                            <Text style={styles.exerciseNumber}>{index + 1}</Text>
+                            <View style={styles.exerciseInfo}>
+                              <View style={styles.exerciseHeader}>
+                                <Text style={styles.exerciseName}>{exercise.name}</Text>
+                                {videoUrl && (
+                                  <Ionicons
+                                    name="play-circle"
+                                    size={20}
+                                    color={COLORS.accent}
+                                  />
+                                )}
+                              </View>
+                              <Text style={styles.exerciseDetails}>
+                                {exercise.sets} sets × {exercise.reps} {exercise.rest ? `• ${exercise.restTime || exercise.rest}s rest` : ''}
+                              </Text>
+                            </View>
+                            <Ionicons
+                              name={isExpanded ? "chevron-up" : "chevron-down"}
+                              size={20}
+                              color={COLORS.mediumGray}
+                            />
+                          </TouchableOpacity>
+                          
+                          {isExpanded && videoUrl && (
+                            <View style={styles.videoPlayerContainer}>
+                              <ExerciseVideoPlayer
+                                videoUrl={videoUrl}
+                                exerciseName={exercise.name}
+                                autoPlay={false}
+                              />
+                              <Text style={styles.videoHint}>
+                                Tap for controls • Full screen available
+                              </Text>
+                            </View>
+                          )}
+
+                          {isExpanded && !videoUrl && (
+                            <View style={styles.noVideoContainer}>
+                              <Ionicons
+                                name="videocam-off-outline"
+                                size={32}
+                                color={COLORS.mediumGray}
+                              />
+                              <Text style={styles.noVideoText}>
+                                Video not available for this exercise
+                              </Text>
+                            </View>
+                          )}
+                        </View>
+                      );
+                    })}
                   </View>
                 )}
               </TouchableOpacity>
