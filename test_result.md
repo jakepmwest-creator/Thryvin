@@ -224,6 +224,18 @@ frontend:
           agent: "main"
           comment: "Navigation from WorkoutDetailsModal to active-workout.tsx screen implemented. Screen already has warm-up/main/recovery tabs, exercise tracking, and AI feedback collection ready."
 
+  - task: "Exercise Video Integration"
+    implemented: true
+    working: "NA"
+    file: "/app/apps/native/src/components/WorkoutDetailsModal.tsx, /app/apps/native/src/components/ExerciseVideoPlayer.tsx, /app/server/routes.ts"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: "NA"
+          agent: "main"
+          comment: "Phase 2.5 complete: Implemented full video player integration for exercises. Created ExerciseVideoPlayer component with all features (fullscreen, playback speed 0.5x-2x, loop, play/pause, seek, mute). Added backend API endpoints GET /api/exercises and GET /api/exercises/:slug to fetch exercise data with video URLs from Cloudinary. Updated WorkoutDetailsModal to fetch and display videos when exercises are expanded. Videos are loaded from the 150 exercises already in database with Cloudinary URLs. Ready for device testing with Expo Go."
+
 metadata:
   created_by: "main_agent"
   version: "1.0"
