@@ -244,15 +244,13 @@ metadata:
 
 test_plan:
   current_focus:
+    - "Exercise Video Integration"
     - "Workout Details Modal Integration"
     - "Active Workout Navigation"
-    - "Fix Workouts Page Error"
-    - "Logo Integration"
-    - "GitHub Workflow Configuration"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
-  backend_testing_complete: true
+  backend_testing_complete: false
 
 agent_communication:
     - agent: "main"
