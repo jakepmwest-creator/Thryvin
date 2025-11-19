@@ -206,12 +206,20 @@ export function WorkoutDetailsModal({
   // Fetch exercise videos when exercises are expanded
   useEffect(() => {
     const fetchExerciseVideos = async () => {
-      if (exercisesExpanded && currentWorkout?.exerciseList?.length > 0) {
+      const safeExerciseList = currentWorkout?.exerciseList || [];
+      
+      if (exercisesExpanded && safeExerciseList.length > 0) {
         setLoadingVideos(true);
         try {
-          const exerciseNames = currentWorkout.exerciseList
-            .map((ex: any) => ex.name)
+          const exerciseNames = safeExerciseList
+            .map((ex: any) => ex?.name)
+            .filter(Boolean)
             .join(',');
+          
+          if (!exerciseNames) {
+            setLoadingVideos(false);
+            return;
+          }
           
           const response = await fetch(
             `${API_URL}/api/exercises?names=${encodeURIComponent(exerciseNames)}`
@@ -221,11 +229,13 @@ export function WorkoutDetailsModal({
             const data = await response.json();
             const videoMap = new Map<string, string>();
             
-            data.exercises.forEach((ex: any) => {
-              if (ex && ex.videoUrl) {
-                videoMap.set(ex.name, ex.videoUrl);
-              }
-            });
+            if (data?.exercises) {
+              data.exercises.forEach((ex: any) => {
+                if (ex && ex.videoUrl) {
+                  videoMap.set(ex.name, ex.videoUrl);
+                }
+              });
+            }
             
             setExerciseVideos(videoMap);
             console.log(`Fetched ${videoMap.size} exercise videos`);
@@ -239,11 +249,22 @@ export function WorkoutDetailsModal({
     };
 
     fetchExerciseVideos();
-  }, [exercisesExpanded, currentDayIndex]);
+  }, [exercisesExpanded, currentDayIndex, currentWorkout]);
 
   const currentDay = DAYS[currentDayIndex];
   // Use provided workout data or fallback to hardcoded data
   const currentWorkout = workout || WORKOUT_DATA[currentDay];
+  
+  // Safe access to workout properties with defaults
+  const exerciseList = currentWorkout?.exerciseList || [];
+  const workoutTitle = currentWorkout?.title || 'Workout';
+  const workoutDate = currentWorkout?.date || currentDay;
+  const workoutDuration = currentWorkout?.duration || '30 min';
+  const workoutDifficulty = currentWorkout?.difficulty || 'Moderate';
+  const workoutOverview = currentWorkout?.overview || '';
+  const targetMuscles = currentWorkout?.targetMuscles || currentWorkout?.type || 'Full Body';
+  const exerciseCount = exerciseList.length || currentWorkout?.exercises || 0;
+  const caloriesBurn = currentWorkout?.caloriesBurn || (typeof currentWorkout?.duration === 'number' ? Math.round(currentWorkout.duration * 8) : 240);
 
   const handlePreviousDay = () => {
     setCurrentDayIndex((prev) => (prev === 0 ? 6 : prev - 1));
@@ -306,7 +327,7 @@ export function WorkoutDetailsModal({
               </TouchableOpacity>
               
               <View style={styles.dateContainer}>
-                <Text style={styles.dateText}>{currentWorkout.date}</Text>
+                <Text style={styles.dateText}>{workoutDate}</Text>
                 <Text style={styles.dayText}>{currentDay}</Text>
               </View>
               
@@ -318,19 +339,19 @@ export function WorkoutDetailsModal({
             <View style={styles.statsRow}>
               <View style={styles.statBox}>
                 <Ionicons name="time-outline" size={20} color={COLORS.accent} />
-                <Text style={styles.statValue}>{currentWorkout.duration}</Text>
+                <Text style={styles.statValue}>{workoutDuration}</Text>
                 <Text style={styles.statLabel}>Duration</Text>
               </View>
 
               <View style={styles.statBox}>
                 <Ionicons name="list-outline" size={20} color={COLORS.accent} />
-                <Text style={styles.statValue}>{currentWorkout.exercises?.length || currentWorkout.exercises || 0}</Text>
+                <Text style={styles.statValue}>{exerciseCount}</Text>
                 <Text style={styles.statLabel}>Exercises</Text>
               </View>
 
               <View style={styles.statBox}>
                 <Ionicons name="speedometer-outline" size={20} color={COLORS.accent} />
-                <Text style={styles.statValue}>{currentWorkout.difficulty}</Text>
+                <Text style={styles.statValue}>{workoutDifficulty}</Text>
                 <Text style={styles.statLabel}>Level</Text>
               </View>
 
@@ -341,18 +362,18 @@ export function WorkoutDetailsModal({
                   start={{ x: 0, y: 0 }}
                   end={{ x: 1, y: 1 }}
                 >
-                  <Text style={styles.circularValue}>{currentWorkout.caloriesBurn || Math.round(currentWorkout.duration * 8)}</Text>
+                  <Text style={styles.circularValue}>{caloriesBurn}</Text>
                   <Text style={styles.circularLabel}>cal</Text>
                 </LinearGradient>
               </View>
             </View>
 
             <View style={styles.titleSection}>
-              <Text style={styles.workoutTitle}>{currentWorkout.title}</Text>
-              <Text style={styles.targetText}>Target: {currentWorkout.targetMuscles || currentWorkout.type}</Text>
+              <Text style={styles.workoutTitle}>{workoutTitle}</Text>
+              <Text style={styles.targetText}>Target: {targetMuscles}</Text>
             </View>
 
-            {currentWorkout.overview && (
+            {workoutOverview && (
               <TouchableOpacity
                 style={styles.dropdown}
                 onPress={() => setOverviewExpanded(!overviewExpanded)}
@@ -368,20 +389,20 @@ export function WorkoutDetailsModal({
                 </View>
                 {overviewExpanded && (
                   <View style={styles.dropdownContent}>
-                    <Text style={styles.overviewText}>{currentWorkout.overview}</Text>
+                    <Text style={styles.overviewText}>{workoutOverview}</Text>
                   </View>
                 )}
               </TouchableOpacity>
             )}
 
-            {currentWorkout.exerciseList.length > 0 && (
+            {exerciseList.length > 0 && (
               <TouchableOpacity
                 style={styles.dropdown}
                 onPress={() => setExercisesExpanded(!exercisesExpanded)}
               >
                 <View style={styles.dropdownHeader}>
                   <Ionicons name="barbell-outline" size={22} color={COLORS.accent} />
-                  <Text style={styles.dropdownTitle}>All Exercises ({currentWorkout.exercises})</Text>
+                  <Text style={styles.dropdownTitle}>All Exercises ({exerciseCount})</Text>
                   <Ionicons 
                     name={exercisesExpanded ? "chevron-up" : "chevron-down"} 
                     size={20} 
@@ -396,9 +417,14 @@ export function WorkoutDetailsModal({
                         <Text style={styles.loadingText}>Loading videos...</Text>
                       </View>
                     )}
-                    {(currentWorkout.exerciseList || currentWorkout.exercises || []).map((exercise: any, index: number) => {
-                      const videoUrl = exerciseVideos.get(exercise.name);
+                    {exerciseList.map((exercise: any, index: number) => {
+                      // Safe access to exercise properties
+                      const exerciseName = exercise?.name || 'Exercise';
+                      const videoUrl = exerciseVideos.get(exerciseName);
                       const isExpanded = expandedExerciseIndex === index;
+                      const sets = exercise?.sets || 3;
+                      const reps = exercise?.reps || '10-12';
+                      const restTime = exercise?.restTime || exercise?.rest || '';
                       
                       return (
                         <View key={index} style={styles.exerciseItemContainer}>
@@ -409,7 +435,7 @@ export function WorkoutDetailsModal({
                             <Text style={styles.exerciseNumber}>{index + 1}</Text>
                             <View style={styles.exerciseInfo}>
                               <View style={styles.exerciseHeader}>
-                                <Text style={styles.exerciseName}>{exercise.name}</Text>
+                                <Text style={styles.exerciseName}>{exerciseName}</Text>
                                 {videoUrl && (
                                   <Ionicons
                                     name="play-circle"
@@ -419,7 +445,7 @@ export function WorkoutDetailsModal({
                                 )}
                               </View>
                               <Text style={styles.exerciseDetails}>
-                                {exercise.sets} sets × {exercise.reps} {exercise.rest ? `• ${exercise.restTime || exercise.rest}s rest` : ''}
+                                {sets} sets × {reps} {restTime ? `• ${restTime}s rest` : ''}
                               </Text>
                             </View>
                             <Ionicons
@@ -433,7 +459,7 @@ export function WorkoutDetailsModal({
                             <View style={styles.videoPlayerContainer}>
                               <ExerciseVideoPlayer
                                 videoUrl={videoUrl}
-                                exerciseName={exercise.name}
+                                exerciseName={exerciseName}
                                 autoPlay={false}
                               />
                               <Text style={styles.videoHint}>
