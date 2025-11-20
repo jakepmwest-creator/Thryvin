@@ -301,6 +301,18 @@ export default function LoginScreen() {
                     <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
                   </TouchableOpacity>
 
+                  {/* Test Account Button - Development Only */}
+                  <TouchableOpacity 
+                    style={styles.testAccountButton}
+                    onPress={createTestAccount}
+                  >
+                    <View style={styles.testAccountContent}>
+                      <Ionicons name="flask" size={18} color={COLORS.accent} />
+                      <Text style={styles.testAccountText}>Quick Test Login</Text>
+                    </View>
+                    <Text style={styles.testAccountSubtext}>Creates random test account</Text>
+                  </TouchableOpacity>
+
                   {/* Biometric Login */}
                   {biometricAvailable && biometricEnabled && (
                     <TouchableOpacity style={styles.biometricButton} onPress={handleBiometricLogin}>
