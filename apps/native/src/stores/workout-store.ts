@@ -148,7 +148,7 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
         exerciseList: exerciseList, // For compatibility with modal
       };
       
-      set({ todayWorkout: workout, isLoading: false });
+      set({ todayWorkout: workout, currentWorkout: workout, isLoading: false });
       console.log('Today\'s workout loaded:', workout.title);
     } catch (error) {
       console.error('Error fetching today\'s workout:', error);
