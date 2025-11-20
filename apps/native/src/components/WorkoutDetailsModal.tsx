@@ -263,7 +263,7 @@ export function WorkoutDetailsModal({
   const workoutDifficulty = currentWorkout?.difficulty || 'Moderate';
   const workoutOverview = currentWorkout?.overview || '';
   const targetMuscles = currentWorkout?.targetMuscles || currentWorkout?.type || 'Full Body';
-  const exerciseCount = exerciseList.length || currentWorkout?.exercises || 0;
+  const exerciseCount = exerciseList.length > 0 ? exerciseList.length : (currentWorkout?.exercises?.length || 0);
   const caloriesBurn = currentWorkout?.caloriesBurn || (typeof currentWorkout?.duration === 'number' ? Math.round(currentWorkout.duration * 8) : 240);
 
   const handlePreviousDay = () => {
