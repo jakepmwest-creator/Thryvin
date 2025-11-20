@@ -328,6 +328,135 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
     }
   },
 
+  // Generate today's workout
+  generateTodayWorkout: async () => {
+    await get().fetchTodayWorkout();
+    const todayWorkout = get().todayWorkout;
+    if (todayWorkout) {
+      set({ currentWorkout: todayWorkout });
+    }
+  },
+
+  // Update personal best
+  updatePersonalBest: async (exerciseName: string, weight: number, reps: number, date?: string) => {
+    try {
+      const stored = await SecureStore.getItemAsync('personal_bests');
+      const personalBests: PersonalBest[] = stored ? JSON.parse(stored) : [];
+      
+      const existingBest = personalBests.find(pb => pb.exercise === exerciseName);
+      
+      if (!existingBest || weight > existingBest.value) {
+        const newBest: PersonalBest = {
+          exercise: exerciseName,
+          value: weight,
+          unit: 'lbs',
+          date: date || new Date().toISOString(),
+        };
+        
+        if (existingBest) {
+          const index = personalBests.indexOf(existingBest);
+          personalBests[index] = newBest;
+        } else {
+          personalBests.push(newBest);
+        }
+        
+        await SecureStore.setItemAsync('personal_bests', JSON.stringify(personalBests));
+        set({ personalBests });
+      }
+    } catch (error) {
+      console.error('Error updating personal best:', error);
+    }
+  },
+
+  // Start workout session
+  startWorkoutSession: (workoutId: string) => {
+    const workout = get().currentWorkout || get().todayWorkout;
+    if (!workout || workout.id !== workoutId) return;
+
+    const session: WorkoutSession = {
+      workoutId,
+      startTime: new Date().toISOString(),
+      currentBlockIndex: 0,
+      currentExerciseIndex: 0,
+      completedExercises: new Set(),
+      exerciseData: new Map(),
+    };
+
+    set({ activeSession: session });
+  },
+
+  // Complete a set
+  completeSet: (exerciseIndex: number, setIndex: number, reps: number, weight: number | undefined, effort: string) => {
+    const session = get().activeSession;
+    if (!session) return;
+
+    const exerciseData = session.exerciseData.get(exerciseIndex) || { completedSets: [] };
+    
+    exerciseData.completedSets.push({
+      setIndex,
+      reps,
+      weight,
+      effort,
+    });
+
+    session.exerciseData.set(exerciseIndex, exerciseData);
+    set({ activeSession: { ...session } });
+  },
+
+  // Add exercise note
+  addExerciseNote: (exerciseIndex: number, note: string) => {
+    const session = get().activeSession;
+    if (!session) return;
+
+    const exerciseData = session.exerciseData.get(exerciseIndex) || { completedSets: [] };
+    exerciseData.notes = note;
+
+    session.exerciseData.set(exerciseIndex, exerciseData);
+    set({ activeSession: { ...session } });
+  },
+
+  // Navigate to exercise
+  navigateToExercise: (exerciseIndex: number) => {
+    const session = get().activeSession;
+    if (!session) return;
+
+    set({ 
+      activeSession: { 
+        ...session, 
+        currentExerciseIndex: exerciseIndex 
+      } 
+    });
+  },
+
+  // Finish workout session
+  finishWorkoutSession: async () => {
+    const session = get().activeSession;
+    const workout = get().currentWorkout || get().todayWorkout;
+    
+    if (!session || !workout) return;
+
+    try {
+      // Convert session data to exercise format for completion
+      const exercises = workout.exercises.map((exercise, index) => {
+        const exerciseData = session.exerciseData.get(index);
+        return {
+          ...exercise,
+          completedSets: exerciseData?.completedSets || [],
+          notes: exerciseData?.notes,
+        };
+      });
+
+      // Complete the workout
+      await get().completeWorkout(workout.id, exercises);
+
+      // Clear active session
+      set({ activeSession: null });
+    } catch (error) {
+      console.error('Error finishing workout session:', error);
+      throw error;
+    }
+  },
+
   clearError: () => set({ error: null }),
 }));
 
