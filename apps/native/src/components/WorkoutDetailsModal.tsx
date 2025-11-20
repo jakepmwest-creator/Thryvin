@@ -26,6 +26,7 @@ const COLORS = {
   lightGray: '#F8F9FA',
   mediumGray: '#8E8E93',
   shadow: 'rgba(162, 89, 255, 0.1)',
+  success: '#34C759',
 };
 
 const DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
