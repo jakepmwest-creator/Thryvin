@@ -116,7 +116,8 @@ export default function HomeScreen() {
 
   const handleStartWorkout = () => {
     if (todayWorkout) {
-      router.push('/active-workout');
+      // Navigate to new active workout screen
+      router.push('/active-workout-new');
     }
     setModalVisible(false);
   };
