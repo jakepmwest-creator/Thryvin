@@ -11,10 +11,12 @@ import {
   Animated,
   ActivityIndicator,
   TextInput,
+  Alert,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { ExerciseVideoPlayer } from './ExerciseVideoPlayer';
+import { useWorkoutStore } from '../stores/workout-store';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
