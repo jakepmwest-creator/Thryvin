@@ -268,7 +268,7 @@ export default function HomeScreen() {
                   <View style={{ flex: 1 }}>
                     <Text style={styles.workoutTitle}>{todayWorkout.title}</Text>
                     <Text style={styles.workoutMeta}>
-                      {todayWorkout.duration} min • {todayWorkout.exercises.length} exercises • {todayWorkout.difficulty}
+                      {todayWorkout?.duration || 30} min • {todayWorkout?.exercises?.length || 0} exercises • {todayWorkout?.difficulty || 'Moderate'}
                     </Text>
                     <Text style={styles.workoutDescription}>
                       AI-personalized workout based on your goals and experience level. Let's crush it!
