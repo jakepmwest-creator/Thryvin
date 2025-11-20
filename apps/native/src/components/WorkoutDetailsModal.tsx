@@ -626,7 +626,7 @@ export function WorkoutDetailsModal({
                   end={{ x: 1, y: 1 }}
                 >
                   <Ionicons name="play" size={20} color={COLORS.white} />
-                  <Text style={styles.startButtonText}>Start Workout</Text>
+                  <Text style={styles.startButtonText}>Complete Workout</Text>
                 </LinearGradient>
               </TouchableOpacity>
             </View>
