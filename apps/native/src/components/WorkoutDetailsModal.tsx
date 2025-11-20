@@ -186,6 +186,8 @@ export function WorkoutDetailsModal({
   selectedDate = 23,
   workout 
 }: WorkoutDetailsModalProps) {
+  const { completeWorkout } = useWorkoutStore();
+  
   const getDayIndexFromDate = (date: number) => {
     const baseDate = 21;
     return (date - baseDate) % 7;
