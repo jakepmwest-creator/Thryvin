@@ -103,6 +103,7 @@ export default function LoginScreen() {
     try {
       // Create a fake test account with random onboarding data
       const testAccount = {
+        id: Math.floor(Math.random() * 10000),
         email: 'test@thryvin.com',
         password: 'test123',
         name: 'Test User',
@@ -117,15 +118,16 @@ export default function LoginScreen() {
         preferredTime: ['morning', 'afternoon', 'evening'][Math.floor(Math.random() * 3)],
       };
 
-      // Save to SecureStore
+      // Save to SecureStore (this is what register does)
+      await SecureStore.setItemAsync('user_email', testAccount.email);
+      await SecureStore.setItemAsync('user_password', testAccount.password);
       await SecureStore.setItemAsync('auth_user', JSON.stringify(testAccount));
+      
       console.log('Test account created with random selections:', testAccount);
       
-      // Auto-login
-      const success = await login(testAccount.email, testAccount.password);
-      if (success) {
-        router.replace('/(tabs)');
-      }
+      // Auto-login with correct credentials format
+      await login({ email: testAccount.email, password: testAccount.password });
+      router.replace('/(tabs)');
     } catch (error) {
       console.error('Error creating test account:', error);
       Alert.alert('Error', 'Failed to create test account');
