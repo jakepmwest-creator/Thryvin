@@ -69,11 +69,20 @@ const WORKOUT_CATEGORIES = [
 export default function WorkoutsScreen() {
   const router = useRouter();
   const [calendarView, setCalendarView] = useState<'week' | 'month'>('week');
-  const [selectedDate, setSelectedDate] = useState(23);
+  const [selectedDate, setSelectedDate] = useState(new Date().getDate());
   const [modalVisible, setModalVisible] = useState(false);
+  
+  // Connect to workout store
+  const { todayWorkout, weekWorkouts, isLoading, fetchTodayWorkout, fetchWeekWorkouts } = useWorkoutStore();
+
+  // Load workouts on mount
+  useEffect(() => {
+    fetchTodayWorkout();
+    fetchWeekWorkouts();
+  }, []);
 
   const handleStartWorkout = () => {
-    router.push('/active-workout');
+    // Modal stays open for set tracking
     setModalVisible(false);
   };
 
