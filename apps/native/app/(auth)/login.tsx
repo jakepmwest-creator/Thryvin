@@ -99,6 +99,39 @@ export default function LoginScreen() {
     }
   };
 
+  const createTestAccount = async () => {
+    try {
+      // Create a fake test account with random onboarding data
+      const testAccount = {
+        email: 'test@thryvin.com',
+        password: 'test123',
+        name: 'Test User',
+        // Random onboarding selections
+        fitnessGoals: [['build-muscle', 'get-stronger', 'lose-weight', 'improve-endurance'][Math.floor(Math.random() * 4)]],
+        experience: ['beginner', 'intermediate', 'advanced'][Math.floor(Math.random() * 3)],
+        trainingType: ['Strength Training', 'Calisthenics', 'Bodybuilding', 'Powerlifting'][Math.floor(Math.random() * 4)],
+        trainingDays: (Math.floor(Math.random() * 4) + 3).toString(), // 3-6 days
+        sessionDuration: ['30', '45', '60', '90'][Math.floor(Math.random() * 4)],
+        equipment: ['gym', 'home', 'minimal'],
+        injuries: [],
+        preferredTime: ['morning', 'afternoon', 'evening'][Math.floor(Math.random() * 3)],
+      };
+
+      // Save to SecureStore
+      await SecureStore.setItemAsync('auth_user', JSON.stringify(testAccount));
+      console.log('Test account created with random selections:', testAccount);
+      
+      // Auto-login
+      const success = await login(testAccount.email, testAccount.password);
+      if (success) {
+        router.replace('/(tabs)');
+      }
+    } catch (error) {
+      console.error('Error creating test account:', error);
+      Alert.alert('Error', 'Failed to create test account');
+    }
+  };
+
   const handleLogin = async () => {
     if (!email || !password) {
       Alert.alert('Error', 'Please enter email and password');
