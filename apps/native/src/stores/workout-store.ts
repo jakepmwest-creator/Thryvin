@@ -78,24 +78,29 @@ interface WorkoutSession {
 }
 
 interface WorkoutStore {
-  // State
-  todayWorkout: Workout | null;
-  weekWorkouts: Workout[] | null;
+  currentWorkout: Workout | null; // Single source of truth
+  todayWorkout: Workout | null; // Deprecated, use currentWorkout
+  weekWorkouts: Workout[];
   completedWorkouts: Workout[];
   stats: WorkoutStats | null;
   personalBests: PersonalBest[];
+  activeSession: WorkoutSession | null;
   isLoading: boolean;
   error: string | null;
-
-  // Actions
+  generateTodayWorkout: () => Promise<void>;
   fetchTodayWorkout: () => Promise<void>;
   fetchWeekWorkouts: () => Promise<void>;
   fetchCompletedWorkouts: () => Promise<void>;
   fetchStats: () => Promise<void>;
   fetchPersonalBests: () => Promise<void>;
+  updatePersonalBest: (exerciseName: string, weight: number, reps: number, date?: string) => Promise<void>;
+  startWorkoutSession: (workoutId: string) => void;
+  completeSet: (exerciseIndex: number, setIndex: number, reps: number, weight: number | undefined, effort: string) => void;
+  addExerciseNote: (exerciseIndex: number, note: string) => void;
+  navigateToExercise: (exerciseIndex: number) => void;
+  finishWorkoutSession: () => Promise<void>;
   completeWorkout: (workoutId: string, exercises: any[]) => Promise<void>;
-  logManualWorkout: (workout: Partial<Workout>) => Promise<void>;
-  clearError: () => void;
+  logManualWorkout: (workoutData: Partial<Workout>) => Promise<void>;
 }
 
 export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
