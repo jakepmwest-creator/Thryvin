@@ -269,15 +269,44 @@ export function WorkoutDetailsModal({
   // Use provided workout data or fallback to hardcoded data
   const currentWorkout = workout || WORKOUT_DATA[currentDay];
   
+  // Format date nicely (e.g., "Tuesday the 20th")
+  const formatDate = (date: any) => {
+    if (!date) return selectedDate.toString();
+    
+    // If it's just a day name, use that
+    if (typeof date === 'string' && DAYS.includes(date)) {
+      return date;
+    }
+    
+    // If it's an ISO string or Date object
+    try {
+      const dateObj = typeof date === 'string' ? new Date(date) : date;
+      if (dateObj instanceof Date && !isNaN(dateObj.getTime())) {
+        const dayName = DAYS[dateObj.getDay() === 0 ? 6 : dateObj.getDay() - 1]; // Monday = 0
+        const dayNum = dateObj.getDate();
+        const suffix = dayNum === 1 || dayNum === 21 || dayNum === 31 ? 'st' 
+                      : dayNum === 2 || dayNum === 22 ? 'nd'
+                      : dayNum === 3 || dayNum === 23 ? 'rd' : 'th';
+        return `${dayName} the ${dayNum}${suffix}`;
+      }
+    } catch (e) {
+      console.error('Date format error:', e);
+    }
+    
+    return selectedDate.toString();
+  };
+  
   // Safe access to workout properties with defaults
-  const exerciseList = currentWorkout?.exerciseList || [];
+  const exerciseList = currentWorkout?.exerciseList || currentWorkout?.exercises || [];
   const workoutTitle = currentWorkout?.title || 'Workout';
-  const workoutDate = currentWorkout?.date || currentDay;
-  const workoutDuration = currentWorkout?.duration || '30 min';
+  const workoutDate = formatDate(currentWorkout?.date || currentDay);
+  const workoutDuration = typeof currentWorkout?.duration === 'number' 
+    ? `${currentWorkout.duration} min` 
+    : (currentWorkout?.duration || '30 min');
   const workoutDifficulty = currentWorkout?.difficulty || 'Moderate';
   const workoutOverview = currentWorkout?.overview || '';
   const targetMuscles = currentWorkout?.targetMuscles || currentWorkout?.type || 'Full Body';
-  const exerciseCount = exerciseList.length > 0 ? exerciseList.length : (currentWorkout?.exercises?.length || 0);
+  const exerciseCount = exerciseList.length;
   const caloriesBurn = currentWorkout?.caloriesBurn || (typeof currentWorkout?.duration === 'number' ? Math.round(currentWorkout.duration * 8) : 240);
 
   const handlePreviousDay = () => {
