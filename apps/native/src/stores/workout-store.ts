@@ -95,14 +95,21 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
       
       // Generate AI workout based on user's onboarding data
       const dayOfWeek = new Date().getDay(); // 0-6
+      const workoutTitle = getWorkoutTitle(dayOfWeek, user);
+      const exerciseList = generateExercises(user, dayOfWeek);
+      
       const workout: Workout = {
         id: `workout_${Date.now()}`,
-        title: getWorkoutTitle(dayOfWeek, user),
+        title: workoutTitle,
         type: user.trainingType || 'General Fitness',
         difficulty: user.experience || 'Intermediate',
         duration: parseInt(user.sessionDuration) || 45,
         date: new Date().toISOString(),
-        exercises: generateExercises(user, dayOfWeek),
+        exercises: exerciseList,
+        overview: `${exerciseList.length} exercises focusing on ${user.trainingType || 'general fitness'}. This ${(parseInt(user.sessionDuration) || 45)}-minute session is tailored to your ${user.experience || 'intermediate'} level. Perfect for building strength and muscle.`,
+        targetMuscles: user.trainingType || 'Full Body',
+        caloriesBurn: Math.round((parseInt(user.sessionDuration) || 45) * 8),
+        exerciseList: exerciseList, // For compatibility with modal
       };
       
       set({ todayWorkout: workout, isLoading: false });
