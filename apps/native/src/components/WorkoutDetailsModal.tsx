@@ -194,6 +194,14 @@ export function WorkoutDetailsModal({
   const [expandedExerciseIndex, setExpandedExerciseIndex] = useState<number | null>(null);
   const [exerciseVideos, setExerciseVideos] = useState<Map<string, string>>(new Map());
   const [loadingVideos, setLoadingVideos] = useState(false);
+  
+  // Set tracking state: exerciseIndex -> setIndex -> {weight, reps, feeling}
+  const [setData, setSetData] = useState<Map<number, Map<number, {weight: string, reps: string, feeling: string}>>>(new Map());
+  const [completedSets, setCompletedSets] = useState<Map<number, Set<number>>>(new Map());
+  const [activeSet, setActiveSet] = useState<{exerciseIndex: number, setIndex: number} | null>(null);
+  const [restTimerActive, setRestTimerActive] = useState(false);
+  const [restTimeRemaining, setRestTimeRemaining] = useState(0);
+  
   const swipeX = useRef(new Animated.Value(0)).current;
 
   React.useEffect(() => {
