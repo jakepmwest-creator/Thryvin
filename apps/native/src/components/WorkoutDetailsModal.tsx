@@ -617,7 +617,29 @@ export function WorkoutDetailsModal({
 
               <TouchableOpacity 
                 style={styles.startButton}
-                onPress={onStartWorkout}
+                onPress={() => {
+                  // Check if any sets were completed
+                  let totalCompletedSets = 0;
+                  completedSets.forEach((sets) => {
+                    totalCompletedSets += sets.size;
+                  });
+                  
+                  if (totalCompletedSets === 0) {
+                    // No sets completed - just call onStartWorkout
+                    onStartWorkout();
+                  } else {
+                    // Save workout data
+                    console.log('Saving workout with set data:', {
+                      setData: Array.from(setData.entries()),
+                      completedSets: Array.from(completedSets.entries()).map(([k, v]) => [k, Array.from(v)]),
+                    });
+                    
+                    // TODO: Call workout store to save completion
+                    // useWorkoutStore.getState().completeWorkout(workoutData);
+                    
+                    onStartWorkout();
+                  }
+                }}
               >
                 <LinearGradient
                   colors={[COLORS.accent, COLORS.accentSecondary]}
