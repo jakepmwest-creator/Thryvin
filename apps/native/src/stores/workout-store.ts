@@ -139,15 +139,21 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
       for (let i = 0; i < 7; i++) {
         const date = new Date();
         date.setDate(date.getDate() + i);
+        const workoutTitle = getWorkoutTitle(i, user);
+        const exerciseList = generateExercises(user, i);
         
         weekWorkouts.push({
           id: `workout_${date.getTime()}`,
-          title: `Day ${i + 1}: ${getWorkoutTitle(i, user)}`,
+          title: `Day ${i + 1}: ${workoutTitle}`,
           type: user.trainingType || 'General Fitness',
           difficulty: user.experience || 'Intermediate',
           duration: parseInt(user.sessionDuration) || 45,
           date: date.toISOString(),
-          exercises: generateExercises(user, i),
+          exercises: exerciseList,
+          overview: `${exerciseList.length} exercises focusing on ${user.trainingType || 'general fitness'}. This ${(parseInt(user.sessionDuration) || 45)}-minute session is tailored to your ${user.experience || 'intermediate'} level.`,
+          targetMuscles: user.trainingType || 'Full Body',
+          caloriesBurn: Math.round((parseInt(user.sessionDuration) || 45) * 8),
+          exerciseList: exerciseList,
         });
       }
       
