@@ -621,7 +621,7 @@ export function WorkoutDetailsModal({
 
               <TouchableOpacity 
                 style={styles.startButton}
-                onPress={() => {
+                onPress={async () => {
                   // Check if any sets were completed
                   let totalCompletedSets = 0;
                   completedSets.forEach((sets) => {
@@ -629,19 +629,68 @@ export function WorkoutDetailsModal({
                   });
                   
                   if (totalCompletedSets === 0) {
-                    // No sets completed - just call onStartWorkout
-                    onStartWorkout();
-                  } else {
-                    // Save workout data
-                    console.log('Saving workout with set data:', {
-                      setData: Array.from(setData.entries()),
-                      completedSets: Array.from(completedSets.entries()).map(([k, v]) => [k, Array.from(v)]),
+                    Alert.alert(
+                      'No Sets Completed',
+                      'You haven\'t logged any sets. Are you sure you want to mark this workout as complete?',
+                      [
+                        { text: 'Cancel', style: 'cancel' },
+                        {
+                          text: 'Mark Complete',
+                          onPress: () => onStartWorkout(),
+                        },
+                      ]
+                    );
+                    return;
+                  }
+                  
+                  try {
+                    // Build exercises array with set data
+                    const exercisesWithSets = exerciseList.map((exercise: any, index: number) => {
+                      const exerciseSetData = setData.get(index);
+                      const exerciseCompletedSets = completedSets.get(index);
+                      
+                      const sets = [];
+                      if (exerciseSetData && exerciseCompletedSets) {
+                        exerciseCompletedSets.forEach((setIndex) => {
+                          const setInfo = exerciseSetData.get(setIndex);
+                          if (setInfo) {
+                            sets.push({
+                              setNumber: setIndex + 1,
+                              weight: parseFloat(setInfo.weight) || 0,
+                              reps: parseInt(setInfo.reps) || 0,
+                              feeling: setInfo.feeling || 'Good',
+                            });
+                          }
+                        });
+                      }
+                      
+                      return {
+                        ...exercise,
+                        completedSets: sets,
+                      };
                     });
                     
-                    // TODO: Call workout store to save completion
-                    // useWorkoutStore.getState().completeWorkout(workoutData);
-                    
-                    onStartWorkout();
+                    // Save workout
+                    if (currentWorkout?.id) {
+                      await completeWorkout(currentWorkout.id, exercisesWithSets);
+                      
+                      Alert.alert(
+                        'Workout Complete! 🎉',
+                        `Great job! You completed ${totalCompletedSets} sets.`,
+                        [
+                          {
+                            text: 'Done',
+                            onPress: () => {
+                              onClose();
+                              onStartWorkout();
+                            },
+                          },
+                        ]
+                      );
+                    }
+                  } catch (error) {
+                    console.error('Error saving workout:', error);
+                    Alert.alert('Error', 'Failed to save workout. Please try again.');
                   }
                 }}
               >
