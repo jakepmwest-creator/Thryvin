@@ -105,11 +105,13 @@ interface WorkoutStore {
 
 export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
   // Initial State
+  currentWorkout: null,
   todayWorkout: null,
-  weekWorkouts: null,
+  weekWorkouts: [],
   completedWorkouts: [],
   stats: null,
   personalBests: [],
+  activeSession: null,
   isLoading: false,
   error: null,
 
