@@ -115,10 +115,7 @@ export default function HomeScreen() {
   };
 
   const handleStartWorkout = () => {
-    if (todayWorkout) {
-      // Navigate to new active workout screen
-      router.push('/active-workout-new');
-    }
+    // Just close the modal - user can interact with exercises directly in modal
     setModalVisible(false);
   };
 
