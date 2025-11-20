@@ -25,6 +25,10 @@ interface Workout {
   completed?: boolean;
   completedAt?: string;
   date: string;
+  overview?: string;
+  targetMuscles?: string;
+  caloriesBurn?: number;
+  exerciseList?: Exercise[]; // Alias for modal compatibility
 }
 
 interface WorkoutStats {
