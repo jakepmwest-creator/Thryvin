@@ -521,6 +521,32 @@ const styles = StyleSheet.create({
     color: COLORS.accent,
     fontWeight: '600',
   },
+  testAccountButton: {
+    backgroundColor: `${COLORS.accent}10`,
+    borderRadius: 12,
+    borderWidth: 1.5,
+    borderColor: `${COLORS.accent}30`,
+    borderStyle: 'dashed',
+    padding: 14,
+    marginTop: 20,
+    alignItems: 'center',
+  },
+  testAccountContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 4,
+  },
+  testAccountText: {
+    fontSize: 15,
+    color: COLORS.accent,
+    fontWeight: '600',
+  },
+  testAccountSubtext: {
+    fontSize: 11,
+    color: COLORS.mediumGray,
+    fontStyle: 'italic',
+  },
   biometricButton: {
     flexDirection: 'row',
     alignItems: 'center',
