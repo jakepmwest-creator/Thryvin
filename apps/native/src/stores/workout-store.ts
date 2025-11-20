@@ -52,6 +52,31 @@ interface PersonalBest {
   workoutId?: string;
 }
 
+interface WorkoutBlock {
+  id: string;
+  name: string;
+  type: 'warmup' | 'main' | 'cooldown';
+  exercises: Exercise[];
+}
+
+interface WorkoutSession {
+  workoutId: string;
+  startTime: string;
+  endTime?: string;
+  currentBlockIndex: number;
+  currentExerciseIndex: number;
+  completedExercises: Set<number>;
+  exerciseData: Map<number, {
+    completedSets: Array<{
+      setIndex: number;
+      reps: number;
+      weight?: number;
+      effort: string; // "Easy" | "Medium" | "Hard"
+    }>;
+    notes?: string;
+  }>;
+}
+
 interface WorkoutStore {
   // State
   todayWorkout: Workout | null;
