@@ -18,15 +18,12 @@ import { useWorkoutStore } from '../../src/stores/workout-store';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
-const COLORS = {
-  accent: '#a259ff',
-  accentSecondary: '#3a86ff',
-  white: '#ffffff',
-  text: '#222222',
-  lightGray: '#F8F9FA',
-  mediumGray: '#8E8E93',
-  shadow: 'rgba(162, 89, 255, 0.1)',
-  success: '#34C759',
+import { COLORS, CARD_SHADOW } from '../../src/constants/colors';
+
+// Additional colors for compatibility
+const EXTRA_COLORS = {
+  shadow: COLORS.cardShadow,
+  success: COLORS.success,
   incomplete: '#D1D1D6',
 };
 
