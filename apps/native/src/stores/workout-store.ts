@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import * as SecureStore from 'expo-secure-store';
 
-const API_URL = 'https://workout-buddy-622.preview.emergentagent.com';
+const API_URL = 'https://thryvin-hub.preview.emergentagent.com';
 
 interface Exercise {
   id: string;

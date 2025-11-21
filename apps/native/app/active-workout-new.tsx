@@ -16,7 +16,7 @@ import { useRouter, useLocalSearchParams } from 'expo-router';
 import { ExerciseVideoPlayer } from '../src/components/ExerciseVideoPlayer';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
-const API_URL = 'https://workout-buddy-622.preview.emergentagent.com';
+const API_URL = 'https://thryvin-hub.preview.emergentagent.com';
 
 const COLORS = {
   accent: '#a259ff',
