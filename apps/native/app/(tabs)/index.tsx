@@ -249,7 +249,7 @@ export default function HomeScreen() {
           
           {isLoading && !todayWorkout ? (
             <View style={[styles.todayWorkoutCard, { padding: 40, alignItems: 'center' }]}>
-              <ActivityIndicator size="large" color={COLORS.accent} />
+              <ActivityIndicator size="large" color={COLORS.primary} />
               <Text style={{ marginTop: 12, color: COLORS.mediumGray }}>Loading workout...</Text>
             </View>
           ) : todayWorkout ? (
