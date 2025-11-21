@@ -42,6 +42,13 @@ export default function WorkoutHubScreen() {
   
   const scrollX = useRef(new Animated.Value(0)).current;
 
+  // Start workout session when component mounts
+  useEffect(() => {
+    if (currentWorkout && !activeSession) {
+      startWorkoutSession(currentWorkout.id);
+    }
+  }, [currentWorkout, activeSession, startWorkoutSession]);
+
   // Mock exercise data with blocks
   const exercises = currentWorkout?.exercises || [];
   
