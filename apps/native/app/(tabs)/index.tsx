@@ -24,17 +24,8 @@ const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 import { COLORS, CARD_SHADOW } from '../../src/constants/colors';
 
-// Keeping for compatibility
-const COLORS_OLD = {
-  accent: COLORS.primary,
-  accentSecondary: COLORS.accentSecondary,
-  white: COLORS.white,
-  text: COLORS.text,
-  lightGray: COLORS.lightGray,
-  mediumGray: COLORS.mediumGray,
-  background: COLORS.background,
-  success: COLORS.success,
-  danger: COLORS.danger,
+// Additional colors for compatibility
+const EXTRA_COLORS = {
   yellow: '#FFD700',
   green: '#4CAF50',
   orange: '#FF9800',
