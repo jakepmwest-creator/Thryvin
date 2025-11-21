@@ -356,14 +356,15 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   workoutName: {
-    fontSize: 20,
+    fontSize: 22,
     fontWeight: '700',
     color: COLORS.text,
-    marginBottom: 4,
+    marginBottom: 8,
   },
   workoutMeta: {
-    fontSize: 13,
+    fontSize: 14,
     color: COLORS.mediumGray,
+    marginBottom: 16,
   },
   workoutDescription: {
     fontSize: 14,
