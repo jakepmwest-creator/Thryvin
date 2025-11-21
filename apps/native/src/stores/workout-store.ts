@@ -192,6 +192,10 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
       const user = JSON.parse(storedUser);
       const weekWorkouts: Workout[] = [];
       
+      // Collect all exercise names for batch fetching
+      const allExerciseNames = new Set<string>();
+      const tempWorkouts: { exerciseList: Exercise[]; [key: string]: any }[] = [];
+      
       // Generate 7 days of workouts
       for (let i = 0; i < 7; i++) {
         const date = new Date();
@@ -199,7 +203,9 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
         const workoutTitle = getWorkoutTitle(i, user);
         const exerciseList = generateExercises(user, i);
         
-        weekWorkouts.push({
+        exerciseList.forEach(ex => allExerciseNames.add(ex.name));
+        
+        tempWorkouts.push({
           id: `workout_${date.getTime()}`,
           title: `Day ${i + 1}: ${workoutTitle}`,
           type: user.trainingType || 'General Fitness',
@@ -214,8 +220,31 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
         });
       }
       
-      set({ weekWorkouts, isLoading: false });
-      console.log('Week workouts loaded:', weekWorkouts.length);
+      // Fetch video URLs in one batch
+      try {
+        const exerciseNames = Array.from(allExerciseNames).join(',');
+        const response = await fetch(`${API_URL}/api/exercises?names=${encodeURIComponent(exerciseNames)}`);
+        if (response.ok) {
+          const data = await response.json();
+          const exerciseMap = new Map(data.exercises.map((ex: any) => [ex.name, ex]));
+          
+          // Populate video URLs for all workouts
+          tempWorkouts.forEach(workout => {
+            workout.exercises.forEach((exercise: Exercise) => {
+              const apiExercise = exerciseMap.get(exercise.name);
+              if (apiExercise) {
+                exercise.videoUrl = apiExercise.videoUrl;
+              }
+            });
+          });
+        }
+      } catch (error) {
+        console.log('Could not fetch video URLs:', error);
+        // Continue without videos
+      }
+      
+      set({ weekWorkouts: tempWorkouts, isLoading: false });
+      console.log('Week workouts loaded:', tempWorkouts.length);
     } catch (error) {
       console.error('Error fetching week workouts:', error);
       set({ 
