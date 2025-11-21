@@ -20,13 +20,15 @@ import Constants from 'expo-constants';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
+import { COLORS as THEME_COLORS } from '../constants/colors';
+
 const COLORS = {
-  accent: '#a259ff',
-  accentSecondary: '#3a86ff',
-  white: '#ffffff',
-  text: '#222222',
-  lightGray: '#F8F9FA',
-  mediumGray: '#8E8E93',
+  accent: THEME_COLORS.gradientStart, // #A22BF6
+  accentSecondary: THEME_COLORS.gradientEnd, // #FF4EC7
+  white: THEME_COLORS.white,
+  text: THEME_COLORS.text,
+  lightGray: THEME_COLORS.lightGray,
+  mediumGray: THEME_COLORS.mediumGray,
 };
 
 const BUTTON_SIZE = 60;
