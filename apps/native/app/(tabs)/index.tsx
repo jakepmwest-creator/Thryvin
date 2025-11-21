@@ -254,24 +254,14 @@ export default function HomeScreen() {
             </View>
           ) : todayWorkout ? (
             <View style={styles.todayWorkoutCard}>
-              <LinearGradient
-                colors={[`${COLORS.primary}15`, `${COLORS.accentSecondary}15`]}
-                style={styles.workoutGradient}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 1 }}
-              >
+              <View style={styles.workoutContent}>
                 <View style={styles.workoutHeader}>
                   <View style={{ flex: 1 }}>
+                    <Text style={styles.sectionLabel}>TODAY'S WORKOUT</Text>
                     <Text style={styles.workoutTitle}>{todayWorkout.title}</Text>
                     <Text style={styles.workoutMeta}>
                       {todayWorkout?.duration || 30} min • {todayWorkout?.exercises?.length || 0} exercises • {todayWorkout?.difficulty || 'Moderate'}
                     </Text>
-                    <Text style={styles.workoutDescription}>
-                      AI-personalized workout based on your goals and experience level. Let's crush it!
-                    </Text>
-                  </View>
-                  <View style={styles.workoutBadge}>
-                    <Ionicons name="barbell" size={24} color={COLORS.primary} />
                   </View>
                 </View>
                 <TouchableOpacity 
@@ -279,7 +269,7 @@ export default function HomeScreen() {
                   onPress={() => setModalVisible(true)}
                 >
                   <LinearGradient
-                    colors={[COLORS.primary, COLORS.accentSecondary]}
+                    colors={[COLORS.gradientStart, COLORS.gradientEnd]}
                     style={styles.startGradient}
                     start={{ x: 0, y: 0 }}
                     end={{ x: 1, y: 1 }}
@@ -288,7 +278,7 @@ export default function HomeScreen() {
                     <Text style={styles.startText}>Start Workout</Text>
                   </LinearGradient>
                 </TouchableOpacity>
-              </LinearGradient>
+              </View>
             </View>
           ) : (
             <View style={[styles.todayWorkoutCard, { padding: 30, alignItems: 'center' }]}>
