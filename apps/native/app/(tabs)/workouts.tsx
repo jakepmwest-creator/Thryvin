@@ -121,30 +121,18 @@ export default function WorkoutsScreen() {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Today's Workout</Text>
           <View style={styles.workoutCard}>
-            <LinearGradient
-              colors={[`${COLORS.accent}15`, `${COLORS.accentSecondary}15`]}
-              style={styles.workoutCardGradient}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-            >
-              <View style={styles.workoutHeader}>
-                <View style={styles.workoutIconCircle}>
-                  <Ionicons name="barbell" size={32} color={COLORS.accent} />
-                </View>
-                <View style={styles.workoutInfo}>
-                  <Text style={styles.workoutName}>Upper Body Push</Text>
-                  <Text style={styles.workoutMeta}>45 min • 8 exercises • Intermediate</Text>
-                </View>
-              </View>
-              <Text style={styles.workoutDescription}>
-                Focus on chest, shoulders, and triceps with compound movements.
+            <View style={styles.workoutCardContent}>
+              <Text style={styles.sectionLabel}>TODAY'S WORKOUT</Text>
+              <Text style={styles.workoutName}>{currentWorkout?.title || 'Upper Body Push'}</Text>
+              <Text style={styles.workoutMeta}>
+                {currentWorkout?.duration || 45} min • {currentWorkout?.exercises?.length || 8} exercises • {currentWorkout?.difficulty || 'Intermediate'}
               </Text>
               <TouchableOpacity 
                 style={styles.startButton}
                 onPress={() => setModalVisible(true)}
               >
                 <LinearGradient
-                  colors={[COLORS.accent, COLORS.accentSecondary]}
+                  colors={[COLORS.gradientStart, COLORS.gradientEnd]}
                   style={styles.startGradient}
                   start={{ x: 0, y: 0 }}
                   end={{ x: 1, y: 1 }}
@@ -153,7 +141,7 @@ export default function WorkoutsScreen() {
                   <Text style={styles.startText}>Start Workout</Text>
                 </LinearGradient>
               </TouchableOpacity>
-            </LinearGradient>
+            </View>
           </View>
         </View>
 
