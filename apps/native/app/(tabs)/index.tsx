@@ -271,7 +271,7 @@ export default function HomeScreen() {
                     </Text>
                   </View>
                   <View style={styles.workoutBadge}>
-                    <Ionicons name="barbell" size={24} color={COLORS.accent} />
+                    <Ionicons name="barbell" size={24} color={COLORS.primary} />
                   </View>
                 </View>
                 <TouchableOpacity 
