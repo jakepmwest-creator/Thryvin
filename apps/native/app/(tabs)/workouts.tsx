@@ -317,18 +317,18 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   
-  // Today's Workout Card
+  // Today's Workout Card - 3D White Card
   workoutCard: {
-    borderRadius: 20,
+    backgroundColor: COLORS.white,
+    borderRadius: 24,
     overflow: 'hidden',
-    shadowColor: COLORS.shadow,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
-    elevation: 4,
+    ...CARD_SHADOW,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.9)',
+    marginBottom: 20,
   },
   workoutCardGradient: {
-    padding: 20,
+    padding: 24,
   },
   workoutHeader: {
     flexDirection: 'row',
