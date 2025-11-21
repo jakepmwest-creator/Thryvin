@@ -230,7 +230,11 @@ export default function WorkoutHubScreen() {
         <View style={styles.exercisesGrid}>
           {currentExercises.map((exercise, index) => {
             const isExpanded = expandedExercise === index;
-            const exerciseSetData = activeSession?.exerciseData.get(index);
+            // Calculate actual index in the full exercise list
+            const actualIndex = activeTab === 'warmup' ? index : 
+                                activeTab === 'workout' ? index + warmupExercises.length :
+                                index + warmupExercises.length + mainExercises.length;
+            const exerciseSetData = activeSession?.exerciseData.get(actualIndex);
             const completedSets = exerciseSetData?.completedSets || [];
 
             return (
