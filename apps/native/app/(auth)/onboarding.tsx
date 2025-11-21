@@ -1049,6 +1049,15 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.accent,
     borderColor: COLORS.accent,
   },
+  genderOptionGradient: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    paddingVertical: 16,
+    borderRadius: 14,
+  },
   genderText: {
     fontSize: 15,
     fontWeight: '600',
