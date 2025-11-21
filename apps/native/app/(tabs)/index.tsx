@@ -22,13 +22,19 @@ import { useAuthStore } from '../../src/stores/auth-store';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
-const COLORS = {
-  accent: '#a259ff',
-  accentSecondary: '#3a86ff',
-  white: '#ffffff',
-  text: '#222222',
-  lightGray: '#F8F9FA',
-  mediumGray: '#8E8E93',
+import { COLORS, CARD_SHADOW } from '../../src/constants/colors';
+
+// Keeping for compatibility
+const COLORS_OLD = {
+  accent: COLORS.primary,
+  accentSecondary: COLORS.accentSecondary,
+  white: COLORS.white,
+  text: COLORS.text,
+  lightGray: COLORS.lightGray,
+  mediumGray: COLORS.mediumGray,
+  background: COLORS.background,
+  success: COLORS.success,
+  danger: COLORS.danger,
   yellow: '#FFD700',
   green: '#4CAF50',
   orange: '#FF9800',
