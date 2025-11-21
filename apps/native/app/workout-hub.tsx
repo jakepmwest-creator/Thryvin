@@ -49,13 +49,28 @@ export default function WorkoutHubScreen() {
     }
   }, [currentWorkout, activeSession, startWorkoutSession]);
 
-  // Mock exercise data with blocks
+  // Split exercises into blocks intelligently
   const exercises = currentWorkout?.exercises || [];
   
-  // Split exercises into blocks
-  const warmupExercises = exercises.slice(0, 2);
-  const mainExercises = exercises.slice(2, -2);
-  const recoveryExercises = exercises.slice(-2);
+  let warmupExercises: any[] = [];
+  let mainExercises: any[] = [];
+  let recoveryExercises: any[] = [];
+  
+  // Smart splitting based on exercise count
+  if (exercises.length <= 3) {
+    // Too few exercises, put all in main workout
+    mainExercises = exercises;
+  } else if (exercises.length === 4) {
+    // Split: 1 warmup, 2 main, 1 recovery
+    warmupExercises = exercises.slice(0, 1);
+    mainExercises = exercises.slice(1, 3);
+    recoveryExercises = exercises.slice(3);
+  } else {
+    // Standard split: first 2 for warmup, last 2 for recovery, rest for main
+    warmupExercises = exercises.slice(0, 2);
+    mainExercises = exercises.slice(2, -2);
+    recoveryExercises = exercises.slice(-2);
+  }
 
   const getExercisesForTab = (tab: TabType) => {
     switch (tab) {
