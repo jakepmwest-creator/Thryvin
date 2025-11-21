@@ -1,15 +1,14 @@
-// Thryvin Color Palette - Pink to Blue Gradient Theme
+// Thryvin Color Palette - Purple to Pink Gradient Theme
 export const COLORS = {
-  // Primary gradients
-  primary: '#FF3B8E', // Hot pink
-  primaryLight: '#FF5CA3',
-  accent: '#A259FF', // Purple
-  accentSecondary: '#5B8DEF', // Blue
+  // Primary gradients - THE CORRECT GRADIENT
+  primary: '#A22BF6', // Purple
+  primaryLight: '#C84BF8',
+  accent: '#A22BF6', // Purple
+  accentSecondary: '#FF4EC7', // Hot Pink
   
-  // Gradient stops for pink-to-blue
-  gradientStart: '#FF3B8E', // Pink
-  gradientMid: '#A259FF', // Purple
-  gradientEnd: '#5B8DEF', // Blue
+  // Gradient stops for purple-to-pink
+  gradientStart: '#A22BF6', // Purple
+  gradientEnd: '#FF4EC7', // Hot Pink
   
   // UI colors
   white: '#ffffff',
