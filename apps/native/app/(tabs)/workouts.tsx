@@ -318,6 +318,16 @@ const styles = StyleSheet.create({
   workoutCardGradient: {
     padding: 24,
   },
+  workoutCardContent: {
+    padding: 24,
+  },
+  sectionLabel: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: COLORS.mediumGray,
+    letterSpacing: 1,
+    marginBottom: 8,
+  },
   workoutHeader: {
     flexDirection: 'row',
     alignItems: 'center',
