@@ -336,10 +336,10 @@ export default function HomeScreen() {
           <Text style={styles.sectionTitle}>Personal Bests</Text>
           <View style={styles.pbGrid}>
             {[
-              { name: 'Bench Press', weight: '225 lbs', icon: 'fitness', color: COLORS.purple },
-              { name: 'Squat', weight: '315 lbs', icon: 'barbell', color: COLORS.blue },
-              { name: 'Deadlift', weight: '405 lbs', icon: 'flame', color: COLORS.red },
-              { name: 'Pull Ups', weight: '15 reps', icon: 'arrow-up', color: COLORS.green },
+              { name: 'Bench Press', weight: '225 lbs', icon: 'fitness', color: EXTRA_COLORS.purple },
+              { name: 'Squat', weight: '315 lbs', icon: 'barbell', color: EXTRA_COLORS.blue },
+              { name: 'Deadlift', weight: '405 lbs', icon: 'flame', color: EXTRA_COLORS.red },
+              { name: 'Pull Ups', weight: '15 reps', icon: 'arrow-up', color: EXTRA_COLORS.green },
             ].map((pb, i) => (
               <TouchableOpacity
                 key={i}
