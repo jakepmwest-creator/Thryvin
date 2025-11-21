@@ -452,32 +452,53 @@ export default function OnboardingScreen() {
 
   const renderGenderSelect = () => (
     <View style={styles.genderContainer}>
-      {['Male', 'Female', 'Other'].map((option) => (
-        <TouchableOpacity
-          key={option}
-          style={[
-            styles.genderOption,
-            formData.gender === option.toLowerCase() && styles.genderOptionSelected,
-          ]}
-          onPress={() => setFormData({ ...formData, gender: option.toLowerCase() })}
-        >
-          <Ionicons 
-            name={
-              option === 'Male' ? 'male' : 
-              option === 'Female' ? 'female' : 
-              'transgender'
-            }
-            size={24}
-            color={formData.gender === option.toLowerCase() ? COLORS.white : COLORS.accent}
-          />
-          <Text style={[
-            styles.genderText,
-            formData.gender === option.toLowerCase() && styles.genderTextSelected
-          ]}>
-            {option}
-          </Text>
-        </TouchableOpacity>
-      ))}
+      {['Male', 'Female', 'Other'].map((option) => {
+        const isSelected = formData.gender === option.toLowerCase();
+        return (
+          <TouchableOpacity
+            key={option}
+            style={styles.genderOption}
+            onPress={() => setFormData({ ...formData, gender: option.toLowerCase() })}
+          >
+            {isSelected ? (
+              <LinearGradient
+                colors={[COLORS.accent, COLORS.accentSecondary]}
+                style={styles.genderOptionGradient}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+              >
+                <Ionicons 
+                  name={
+                    option === 'Male' ? 'male' : 
+                    option === 'Female' ? 'female' : 
+                    'transgender'
+                  }
+                  size={24}
+                  color={COLORS.white}
+                />
+                <Text style={[styles.genderText, styles.genderTextSelected]}>
+                  {option}
+                </Text>
+              </LinearGradient>
+            ) : (
+              <>
+                <Ionicons 
+                  name={
+                    option === 'Male' ? 'male' : 
+                    option === 'Female' ? 'female' : 
+                    'transgender'
+                  }
+                  size={24}
+                  color={COLORS.accent}
+                />
+                <Text style={styles.genderText}>
+                  {option}
+                </Text>
+              </>
+            )}
+          </TouchableOpacity>
+        );
+      })}
     </View>
   );
 
