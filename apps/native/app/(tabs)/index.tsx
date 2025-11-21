@@ -216,19 +216,19 @@ export default function HomeScreen() {
             <ProgressRing 
               label="Workouts" 
               progress={stats ? stats.weeklyWorkouts / stats.weeklyGoal : 0} 
-              color={COLORS.accent} 
+              color={COLORS.primary} 
               onPress={() => showRingDetails('Workouts')} 
             />
             <ProgressRing 
               label="Minutes" 
               progress={stats ? stats.weeklyMinutes / stats.weeklyMinutesGoal : 0} 
-              color={COLORS.red} 
+              color={EXTRA_COLORS.red} 
               onPress={() => showRingDetails('Minutes')} 
             />
             <ProgressRing 
               label="Streak" 
               progress={stats ? Math.min(stats.currentStreak / 7, 1) : 0} 
-              color={COLORS.green} 
+              color={EXTRA_COLORS.green} 
               onPress={() => showRingDetails('Streak')} 
             />
           </View>
