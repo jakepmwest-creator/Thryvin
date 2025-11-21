@@ -23,17 +23,19 @@ import { useAuthStore } from '../../src/stores/auth-store';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
+import { COLORS as THEME_COLORS } from '../../src/constants/colors';
+
 const COLORS = {
-  accent: '#a259ff',
-  accentSecondary: '#3a86ff',
-  white: '#ffffff',
-  text: '#222222',
-  lightGray: '#F8F9FA',
-  mediumGray: '#8E8E93',
-  shadow: 'rgba(162, 89, 255, 0.1)',
-  error: '#FF3B30',
-  gradientStart: '#f5f0ff',
-  gradientEnd: '#e6f2ff',
+  accent: THEME_COLORS.gradientStart, // #A22BF6
+  accentSecondary: THEME_COLORS.gradientEnd, // #FF4EC7
+  white: THEME_COLORS.white,
+  text: THEME_COLORS.text,
+  lightGray: THEME_COLORS.lightGray,
+  mediumGray: THEME_COLORS.mediumGray,
+  shadow: THEME_COLORS.cardShadow,
+  error: THEME_COLORS.danger,
+  gradientStart: THEME_COLORS.gradientStart, // Purple
+  gradientEnd: THEME_COLORS.gradientEnd, // Pink
 };
 
 export default function LoginScreen() {
