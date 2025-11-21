@@ -113,8 +113,8 @@ export default function HomeScreen() {
 
   const handleStartWorkout = () => {
     setModalVisible(false);
-    // Navigate to workout session screen
-    router.push('/workout-session');
+    // Navigate to workout hub screen
+    router.push('/workout-hub');
   };
 
   const showRingDetails = (label: string) => {
