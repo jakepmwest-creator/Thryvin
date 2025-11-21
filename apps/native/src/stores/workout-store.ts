@@ -134,6 +134,27 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
       const workoutTitle = getWorkoutTitle(dayOfWeek, user);
       const exerciseList = generateExercises(user, dayOfWeek);
       
+      // Fetch video URLs for exercises
+      const exerciseNames = exerciseList.map(ex => ex.name).join(',');
+      try {
+        const response = await fetch(`${API_URL}/api/exercises?names=${encodeURIComponent(exerciseNames)}`);
+        if (response.ok) {
+          const data = await response.json();
+          const exerciseMap = new Map(data.exercises.map((ex: any) => [ex.name, ex]));
+          
+          // Populate video URLs
+          exerciseList.forEach(exercise => {
+            const apiExercise = exerciseMap.get(exercise.name);
+            if (apiExercise) {
+              exercise.videoUrl = apiExercise.videoUrl;
+            }
+          });
+        }
+      } catch (error) {
+        console.log('Could not fetch video URLs:', error);
+        // Continue without videos
+      }
+      
       const workout: Workout = {
         id: `workout_${Date.now()}`,
         title: workoutTitle,
