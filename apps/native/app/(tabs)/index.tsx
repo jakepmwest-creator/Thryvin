@@ -523,11 +523,16 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   todayWorkoutCard: {
+    backgroundColor: COLORS.white,
     borderRadius: 20,
     overflow: 'hidden',
+    marginBottom: 20,
+    ...CARD_SHADOW,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.8)',
   },
   workoutGradient: {
-    padding: 20,
+    padding: 24,
     minHeight: 180,
   },
   workoutHeader: {
