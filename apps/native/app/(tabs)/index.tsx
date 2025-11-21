@@ -179,7 +179,7 @@ export default function HomeScreen() {
         {/* Banner */}
         <View style={styles.bannerContainer}>
           <LinearGradient
-            colors={[COLORS.primary, COLORS.accentSecondary]}
+            colors={[COLORS.gradientStart, COLORS.gradientEnd]}
             style={styles.bannerGradient}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
