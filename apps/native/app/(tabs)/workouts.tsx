@@ -73,7 +73,7 @@ export default function WorkoutsScreen() {
   const [modalVisible, setModalVisible] = useState(false);
   
   // Connect to workout store
-  const { todayWorkout, weekWorkouts, isLoading, fetchTodayWorkout, fetchWeekWorkouts } = useWorkoutStore();
+  const { currentWorkout, todayWorkout, weekWorkouts, isLoading, fetchTodayWorkout, fetchWeekWorkouts } = useWorkoutStore();
 
   // Load workouts on mount
   useEffect(() => {
@@ -82,8 +82,9 @@ export default function WorkoutsScreen() {
   }, []);
 
   const handleStartWorkout = () => {
-    // Modal stays open for set tracking
     setModalVisible(false);
+    // Navigate to workout session screen
+    router.push('/workout-session');
   };
 
   const handleDayPress = (date: number) => {
