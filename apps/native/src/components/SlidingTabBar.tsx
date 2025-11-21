@@ -15,10 +15,12 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
+import { COLORS as THEME_COLORS } from '../constants/colors';
+
 const COLORS = {
-  // Fitness theme
-  fitnessAccent: '#a259ff',
-  fitnessSecondary: '#3a86ff',
+  // Fitness theme - PURPLE TO PINK GRADIENT
+  fitnessAccent: THEME_COLORS.gradientStart, // #A22BF6
+  fitnessSecondary: THEME_COLORS.gradientEnd, // #FF4EC7
   
   // Nutrition theme
   nutritionAccent: '#4CAF50',
