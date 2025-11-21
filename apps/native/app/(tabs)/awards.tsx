@@ -11,22 +11,9 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { AppHeader } from '../../src/components/AppHeader';
+import { COLORS, CARD_SHADOW } from '../../src/constants/colors';
 
 const { width } = Dimensions.get('window');
-
-const COLORS = {
-  accent: '#a259ff',
-  accentSecondary: '#3a86ff',
-  white: '#ffffff',
-  text: '#222222',
-  lightGray: '#F8F9FA',
-  mediumGray: '#8E8E93',
-  shadow: 'rgba(162, 89, 255, 0.1)',
-  gold: '#FFD700',
-  silver: '#C0C0C0',
-  bronze: '#CD7F32',
-  success: '#34C759',
-};
 
 const awards = [
   {
@@ -36,7 +23,7 @@ const awards = [
     earned: true,
     earnedDate: 'Jan 15, 2024',
     icon: 'walk',
-    tier: 'bronze',
+    color: '#FFD700',
   },
   {
     id: 2,
@@ -45,218 +32,153 @@ const awards = [
     earned: true,
     earnedDate: 'Jan 22, 2024',
     icon: 'trophy',
-    tier: 'gold',
+    color: '#FF4EC7',
   },
   {
     id: 3,
-    title: 'Strength Builder',
-    description: 'Complete 10 strength workouts',
+    title: 'Consistency King',
+    description: 'Train for 30 days straight',
     earned: false,
-    progress: 7,
-    total: 10,
-    icon: 'barbell',
-    tier: 'silver',
+    progress: 15,
+    total: 30,
+    icon: 'flame',
+    color: '#FF6B35',
   },
   {
     id: 4,
-    title: 'Consistency King',
-    description: 'Maintain a 30-day streak',
+    title: 'Strength Master',
+    description: 'Bench press 2x bodyweight',
     earned: false,
-    progress: 12,
-    total: 30,
-    icon: 'flash',
-    tier: 'gold',
+    progress: 80,
+    total: 100,
+    icon: 'barbell',
+    color: '#A22BF6',
+  },
+  {
+    id: 5,
+    title: 'Early Bird',
+    description: 'Complete 10 morning workouts',
+    earned: true,
+    earnedDate: 'Feb 1, 2024',
+    icon: 'sunny',
+    color: '#FFD60A',
+  },
+  {
+    id: 6,
+    title: 'Social Star',
+    description: 'Get 100 likes on posts',
+    earned: false,
+    progress: 45,
+    total: 100,
+    icon: 'heart',
+    color: '#FF4EC7',
   },
 ];
 
-const milestones = [
-  { label: 'Workouts Completed', value: 25, target: 50, icon: 'fitness' },
-  { label: 'Days Active', value: 18, target: 30, icon: 'calendar' },
-  { label: 'Minutes Exercised', value: 720, target: 1000, icon: 'time' },
+const stats = [
+  { label: 'Total XP', value: '2,450', icon: 'star', gradient: [COLORS.gradientStart, COLORS.gradientEnd] },
+  { label: 'Awards', value: '12', icon: 'trophy', gradient: ['#FFD700', '#FFA500'] },
+  { label: 'Streak', value: '15 days', icon: 'flame', gradient: ['#FF6B35', '#FF4500'] },
 ];
 
-const getTierColor = (tier: string) => {
-  switch (tier) {
-    case 'gold': return COLORS.gold;
-    case 'silver': return COLORS.silver;
-    case 'bronze': return COLORS.bronze;
-    default: return COLORS.mediumGray;
-  }
-};
-
-const AwardCard = ({ award }: { award: any }) => {
-  const tierColor = getTierColor(award.tier);
-  
-  if (award.earned) {
-    return (
-      <View style={styles.awardCard}>
-        <LinearGradient
-          colors={[COLORS.accent, COLORS.accentSecondary]}
-          style={styles.earnedAwardGradient}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-        >
-          <View style={styles.awardIconContainer}>
-            <View style={[styles.awardIcon, { backgroundColor: tierColor }]}>
-              <Ionicons name={award.icon as any} size={24} color={COLORS.white} />
-            </View>
-          </View>
-          
-          <View style={styles.awardContent}>
-            <Text style={styles.earnedAwardTitle}>{award.title}</Text>
-            <Text style={styles.earnedAwardDescription}>{award.description}</Text>
-            <Text style={styles.earnedDate}>Earned {award.earnedDate}</Text>
-          </View>
-        </LinearGradient>
-      </View>
-    );
-  }
-
-  return (
-    <View style={styles.awardCard}>
-      <View style={styles.progressAwardCard}>
-        <View style={styles.awardIconContainer}>
-          <View style={[styles.awardIconProgress, { borderColor: tierColor }]}>
-            <Ionicons name={award.icon as any} size={24} color={tierColor} />
-          </View>
-        </View>
-        
-        <View style={styles.awardContent}>
-          <Text style={styles.progressAwardTitle}>{award.title}</Text>
-          <Text style={styles.progressAwardDescription}>{award.description}</Text>
-          
-          <View style={styles.progressContainer}>
-            <View style={styles.progressBar}>
-              <LinearGradient
-                colors={[COLORS.accent, COLORS.accentSecondary]}
-                style={[
-                  styles.progressFill, 
-                  { width: `${(award.progress / award.total) * 100}%` }
-                ]}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 0 }}
-              />
-            </View>
-            <Text style={styles.progressText}>
-              {award.progress}/{award.total}
-            </Text>
-          </View>
-        </View>
-      </View>
-    </View>
-  );
-};
-
-const MilestoneCard = ({ milestone }: { milestone: any }) => (
-  <View style={styles.milestoneCard}>
-    <View style={styles.milestoneHeader}>
-      <View style={styles.milestoneIconContainer}>
-        <Ionicons name={milestone.icon as any} size={20} color={COLORS.accent} />
-      </View>
-      <Text style={styles.milestoneLabel}>{milestone.label}</Text>
-    </View>
-    
-    <View style={styles.milestoneStats}>
-      <Text style={styles.milestoneValue}>{milestone.value}</Text>
-      <Text style={styles.milestoneTarget}>/ {milestone.target}</Text>
-    </View>
-    
-    <View style={styles.progressBarContainer}>
-      <View style={styles.progressBarBackground}>
-        <LinearGradient
-          colors={[COLORS.accent, COLORS.accentSecondary]}
-          style={[
-            styles.progressBarFill, 
-            { width: `${Math.min((milestone.value / milestone.target) * 100, 100)}%` }
-          ]}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 0 }}
-        />
-      </View>
-    </View>
-  </View>
-);
-
 export default function AwardsScreen() {
-  const earnedAwards = awards.filter(award => award.earned);
-  const pendingAwards = awards.filter(award => !award.earned);
-
   return (
-    <SafeAreaView style={styles.container}>
-      <AppHeader mode="fitness" />
-
-      <ScrollView 
-        style={styles.scrollView}
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.scrollContent}
-      >
-        {/* Stats Overview */}
-        <View style={styles.statsOverview}>
-          <View style={styles.statItem}>
-            <Text style={styles.statValue}>{earnedAwards.length}</Text>
-            <Text style={styles.statLabel}>Earned</Text>
-          </View>
-          <View style={styles.statDivider} />
-          <View style={styles.statItem}>
-            <Text style={styles.statValue}>{pendingAwards.length}</Text>
-            <Text style={styles.statLabel}>In Progress</Text>
-          </View>
-          <View style={styles.statDivider} />
-          <View style={styles.statItem}>
-            <Text style={styles.statValue}>{awards.length}</Text>
-            <Text style={styles.statLabel}>Total</Text>
-          </View>
+    <SafeAreaView style={styles.container} edges={['top']}>
+      <AppHeader title="Awards & Achievements" showProfile />
+      
+      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+        {/* Stats Cards */}
+        <View style={styles.statsContainer}>
+          {stats.map((stat, index) => (
+            <TouchableOpacity key={index} style={styles.statCard} activeOpacity={0.8}>
+              <LinearGradient
+                colors={stat.gradient}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={styles.statGradient}
+              >
+                <Ionicons name={stat.icon as any} size={28} color={COLORS.white} />
+                <Text style={styles.statValue}>{stat.value}</Text>
+                <Text style={styles.statLabel}>{stat.label}</Text>
+              </LinearGradient>
+            </TouchableOpacity>
+          ))}
         </View>
 
-        {/* Earned Awards */}
-        {earnedAwards.length > 0 && (
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>
-              🏆 Earned Awards ({earnedAwards.length})
-            </Text>
-            {earnedAwards.map((award) => (
-              <AwardCard key={award.id} award={award} />
-            ))}
-          </View>
-        )}
+        {/* Awards Section */}
+        <Text style={styles.sectionTitle}>Your Achievements</Text>
+        
+        <View style={styles.awardsGrid}>
+          {awards.map((award) => (
+            <TouchableOpacity 
+              key={award.id} 
+              style={styles.awardCard}
+              activeOpacity={0.8}
+            >
+              <View style={[
+                styles.awardCardInner,
+                !award.earned && styles.awardCardLocked
+              ]}>
+                {/* Icon Circle */}
+                <View style={[
+                  styles.iconCircle,
+                  { backgroundColor: award.earned ? award.color : COLORS.lightGray }
+                ]}>
+                  <Ionicons 
+                    name={award.icon as any} 
+                    size={32} 
+                    color={award.earned ? COLORS.white : COLORS.mediumGray} 
+                  />
+                </View>
 
-        {/* In Progress */}
-        {pendingAwards.length > 0 && (
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>
-              🎯 In Progress ({pendingAwards.length})
-            </Text>
-            {pendingAwards.map((award) => (
-              <AwardCard key={award.id} award={award} />
-            ))}
-          </View>
-        )}
+                {/* Award Info */}
+                <Text style={[
+                  styles.awardTitle,
+                  !award.earned && styles.awardTitleLocked
+                ]}>
+                  {award.title}
+                </Text>
+                <Text style={styles.awardDescription}>
+                  {award.description}
+                </Text>
 
-        {/* Milestones */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>📈 Milestones</Text>
-          <View style={styles.milestonesGrid}>
-            {milestones.map((milestone, index) => (
-              <MilestoneCard key={index} milestone={milestone} />
-            ))}
-          </View>
+                {/* Progress or Date */}
+                {award.earned ? (
+                  <View style={styles.earnedBadge}>
+                    <Ionicons name="checkmark-circle" size={16} color={COLORS.success} />
+                    <Text style={styles.earnedText}>{award.earnedDate}</Text>
+                  </View>
+                ) : (
+                  <View style={styles.progressContainer}>
+                    <View style={styles.progressBar}>
+                      <View 
+                        style={[
+                          styles.progressFill,
+                          { 
+                            width: `${(award.progress! / award.total!) * 100}%`,
+                            backgroundColor: award.color
+                          }
+                        ]} 
+                      />
+                    </View>
+                    <Text style={styles.progressText}>
+                      {award.progress}/{award.total}
+                    </Text>
+                  </View>
+                )}
+
+                {/* Locked Overlay */}
+                {!award.earned && (
+                  <View style={styles.lockedOverlay}>
+                    <Ionicons name="lock-closed" size={20} color={COLORS.mediumGray} />
+                  </View>
+                )}
+              </View>
+            </TouchableOpacity>
+          ))}
         </View>
 
-        {/* Motivation */}
-        <View style={styles.motivationCard}>
-          <LinearGradient
-            colors={[`${COLORS.accent}10`, `${COLORS.accentSecondary}10`]}
-            style={styles.motivationGradient}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-          >
-            <Ionicons name="star" size={32} color={COLORS.accent} />
-            <Text style={styles.motivationTitle}>Keep Going!</Text>
-            <Text style={styles.motivationText}>
-              You're doing great! Complete your next workout to unlock new achievements.
-            </Text>
-          </LinearGradient>
-        </View>
+        <View style={{ height: 30 }} />
       </ScrollView>
     </SafeAreaView>
   );
@@ -265,141 +187,114 @@ export default function AwardsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.white,
+    backgroundColor: COLORS.background,
   },
   scrollView: {
     flex: 1,
+    paddingHorizontal: 16,
   },
-  scrollContent: {
-    paddingBottom: 32,
-  },
-  statsOverview: {
+  statsContainer: {
     flexDirection: 'row',
-    marginHorizontal: 24,
-    marginBottom: 32,
-    backgroundColor: COLORS.white,
-    borderRadius: 16,
-    padding: 20,
-    borderWidth: 1,
-    borderColor: COLORS.lightGray,
-    shadowColor: COLORS.shadow,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 3,
+    justifyContent: 'space-between',
+    marginTop: 20,
+    marginBottom: 30,
+    gap: 12,
   },
-  statItem: {
+  statCard: {
     flex: 1,
+    borderRadius: 20,
+    overflow: 'hidden',
+    ...CARD_SHADOW,
+  },
+  statGradient: {
+    padding: 20,
     alignItems: 'center',
+    gap: 8,
   },
   statValue: {
     fontSize: 24,
     fontWeight: '700',
-    color: COLORS.accent,
-    marginBottom: 4,
+    color: COLORS.white,
+    marginTop: 4,
   },
   statLabel: {
-    fontSize: 14,
-    color: COLORS.mediumGray,
-    fontWeight: '500',
-  },
-  statDivider: {
-    width: 1,
-    backgroundColor: COLORS.lightGray,
-    marginHorizontal: 16,
-  },
-  section: {
-    paddingHorizontal: 24,
-    marginBottom: 32,
-  },
-  sectionTitle: {
-    fontSize: 20,
-    fontWeight: '600',
-    color: COLORS.text,
-    marginBottom: 16,
-  },
-  awardCard: {
-    marginBottom: 16,
-    borderRadius: 16,
-    overflow: 'hidden',
-    shadowColor: COLORS.shadow,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 4,
-  },
-  earnedAwardGradient: {
-    flexDirection: 'row',
-    padding: 20,
-    alignItems: 'center',
-  },
-  progressAwardCard: {
-    flexDirection: 'row',
-    padding: 20,
-    alignItems: 'center',
-    backgroundColor: COLORS.white,
-    borderWidth: 1,
-    borderColor: COLORS.lightGray,
-  },
-  awardIconContainer: {
-    marginRight: 16,
-  },
-  awardIcon: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  awardIconProgress: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 2,
-    backgroundColor: COLORS.white,
-  },
-  awardContent: {
-    flex: 1,
-  },
-  earnedAwardTitle: {
-    fontSize: 18,
+    fontSize: 12,
     fontWeight: '600',
     color: COLORS.white,
-    marginBottom: 4,
+    opacity: 0.9,
   },
-  earnedAwardDescription: {
-    fontSize: 14,
-    color: 'rgba(255, 255, 255, 0.8)',
-    marginBottom: 8,
-  },
-  earnedDate: {
-    fontSize: 12,
-    color: 'rgba(255, 255, 255, 0.7)',
-    fontWeight: '500',
-  },
-  progressAwardTitle: {
-    fontSize: 18,
-    fontWeight: '600',
+  sectionTitle: {
+    fontSize: 22,
+    fontWeight: '700',
     color: COLORS.text,
-    marginBottom: 4,
+    marginBottom: 16,
   },
-  progressAwardDescription: {
-    fontSize: 14,
+  awardsGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 16,
+  },
+  awardCard: {
+    width: (width - 48) / 2,
+    marginBottom: 0,
+  },
+  awardCardInner: {
+    backgroundColor: COLORS.white,
+    borderRadius: 20,
+    padding: 16,
+    alignItems: 'center',
+    ...CARD_SHADOW,
+    minHeight: 200,
+  },
+  awardCardLocked: {
+    opacity: 0.6,
+  },
+  iconCircle: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  awardTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: COLORS.text,
+    textAlign: 'center',
+    marginBottom: 6,
+  },
+  awardTitleLocked: {
     color: COLORS.mediumGray,
+  },
+  awardDescription: {
+    fontSize: 12,
+    color: COLORS.textSecondary,
+    textAlign: 'center',
     marginBottom: 12,
   },
-  progressContainer: {
+  earnedBadge: {
     flexDirection: 'row',
     alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    backgroundColor: `${COLORS.success}20`,
+    borderRadius: 12,
+  },
+  earnedText: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: COLORS.success,
+  },
+  progressContainer: {
+    width: '100%',
+    gap: 6,
   },
   progressBar: {
-    flex: 1,
     height: 6,
     backgroundColor: COLORS.lightGray,
     borderRadius: 3,
-    marginRight: 12,
     overflow: 'hidden',
   },
   progressFill: {
@@ -407,93 +302,20 @@ const styles = StyleSheet.create({
     borderRadius: 3,
   },
   progressText: {
-    fontSize: 12,
-    fontWeight: '500',
-    color: COLORS.accent,
-    minWidth: 30,
+    fontSize: 11,
+    fontWeight: '600',
+    color: COLORS.textSecondary,
+    textAlign: 'center',
   },
-  milestonesGrid: {
-    gap: 16,
-  },
-  milestoneCard: {
-    backgroundColor: COLORS.white,
-    borderRadius: 12,
-    padding: 16,
-    borderWidth: 1,
-    borderColor: COLORS.lightGray,
-    shadowColor: COLORS.shadow,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  milestoneHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  milestoneIconContainer: {
+  lockedOverlay: {
+    position: 'absolute',
+    top: 16,
+    right: 16,
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: `${COLORS.accent}15`,
+    backgroundColor: COLORS.lightGray,
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 12,
-  },
-  milestoneLabel: {
-    fontSize: 16,
-    fontWeight: '500',
-    color: COLORS.text,
-  },
-  milestoneStats: {
-    flexDirection: 'row',
-    alignItems: 'baseline',
-    marginBottom: 12,
-  },
-  milestoneValue: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: COLORS.accent,
-  },
-  milestoneTarget: {
-    fontSize: 16,
-    color: COLORS.mediumGray,
-    marginLeft: 4,
-  },
-  progressBarContainer: {
-    height: 6,
-  },
-  progressBarBackground: {
-    height: '100%',
-    backgroundColor: COLORS.lightGray,
-    borderRadius: 3,
-    overflow: 'hidden',
-  },
-  progressBarFill: {
-    height: '100%',
-    borderRadius: 3,
-  },
-  motivationCard: {
-    marginHorizontal: 24,
-    borderRadius: 16,
-    overflow: 'hidden',
-  },
-  motivationGradient: {
-    padding: 24,
-    alignItems: 'center',
-  },
-  motivationTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: COLORS.text,
-    marginTop: 12,
-    marginBottom: 8,
-  },
-  motivationText: {
-    fontSize: 14,
-    color: COLORS.mediumGray,
-    textAlign: 'center',
-    lineHeight: 20,
   },
 });
