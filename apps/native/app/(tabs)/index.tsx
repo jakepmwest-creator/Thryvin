@@ -481,14 +481,14 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
   },
   ringDetails: {
-    backgroundColor: `${COLORS.accent}10`,
+    backgroundColor: `${COLORS.primary}10`,
     padding: 12,
     borderRadius: 12,
     marginTop: 12,
   },
   ringDetailsText: {
     fontSize: 13,
-    color: COLORS.accent,
+    color: COLORS.primary,
     fontWeight: '600',
     textAlign: 'center',
   },
