@@ -115,8 +115,9 @@ export default function HomeScreen() {
   };
 
   const handleStartWorkout = () => {
-    // Just close the modal - user can interact with exercises directly in modal
     setModalVisible(false);
+    // Navigate to workout session screen
+    router.push('/workout-session');
   };
 
   const showRingDetails = (label: string) => {
