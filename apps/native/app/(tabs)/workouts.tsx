@@ -322,6 +322,16 @@ const styles = StyleSheet.create({
     padding: 24,
   },
   sectionLabel: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: COLORS.gradientStart,
+    letterSpacing: 1,
+    marginBottom: 8,
+  },
+  workoutCardContent: {
+    padding: 24,
+  },
+  sectionLabel: {
     fontSize: 12,
     fontWeight: '600',
     color: COLORS.mediumGray,
