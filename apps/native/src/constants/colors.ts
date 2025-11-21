@@ -29,13 +29,13 @@ export const COLORS = {
   cardShadow: 'rgba(255, 59, 142, 0.15)',
   cardBorder: 'rgba(255, 255, 255, 0.8)',
   
-  // Explore category gradients - ALL PURPLE TO PINK
-  strength: ['#A22BF6', '#FF4EC7'],
-  cardio: ['#A22BF6', '#FF4EC7'],
-  flexibility: ['#A22BF6', '#FF4EC7'],
-  hiit: ['#A22BF6', '#FF4EC7'],
-  mobility: ['#A22BF6', '#FF4EC7'],
-  conditioning: ['#A22BF6', '#FF4EC7'],
+  // Explore category gradients - VIBRANT DIFFERENT COLORS
+  strength: ['#5B8DEF', '#34C4E5'], // Blue to cyan
+  cardio: ['#FF6B35', '#FFD60A'], // Orange to yellow
+  flexibility: ['#A22BF6', '#FF4EC7'], // Purple to pink
+  hiit: ['#FF3B30', '#FF9500'], // Red to orange
+  mobility: ['#34C759', '#00C7BE'], // Green to teal
+  conditioning: ['#FFD60A', '#FFED4E'], // Yellow to light yellow
 };
 
 // 3D Card Shadow preset - Purple shadow
