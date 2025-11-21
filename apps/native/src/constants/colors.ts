@@ -38,14 +38,14 @@ export const COLORS = {
   conditioning: ['#A22BF6', '#FF4EC7'],
 };
 
-// 3D Card Shadow preset
+// 3D Card Shadow preset - Purple shadow
 export const CARD_SHADOW = {
-  shadowColor: COLORS.primary,
+  shadowColor: '#A22BF6',
   shadowOffset: {
     width: 0,
     height: 8,
   },
-  shadowOpacity: 0.15,
+  shadowOpacity: 0.2,
   shadowRadius: 12,
   elevation: 8,
 };
