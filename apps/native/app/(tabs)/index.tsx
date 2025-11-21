@@ -279,7 +279,7 @@ export default function HomeScreen() {
                   onPress={() => setModalVisible(true)}
                 >
                   <LinearGradient
-                    colors={[COLORS.accent, COLORS.accentSecondary]}
+                    colors={[COLORS.primary, COLORS.accentSecondary]}
                     style={styles.startGradient}
                     start={{ x: 0, y: 0 }}
                     end={{ x: 1, y: 1 }}
