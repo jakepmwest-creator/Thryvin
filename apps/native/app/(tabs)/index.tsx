@@ -525,6 +525,17 @@ const styles = StyleSheet.create({
     padding: 24,
     minHeight: 180,
   },
+  workoutContent: {
+    padding: 24,
+    minHeight: 180,
+  },
+  sectionLabel: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: COLORS.primary,
+    letterSpacing: 0.5,
+    marginBottom: 8,
+  },
   workoutHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
