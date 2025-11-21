@@ -539,9 +539,9 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   categoryGradient: {
-    padding: 20,
+    padding: 16,
     alignItems: 'center',
-    minHeight: 120,
+    minHeight: 90,
     justifyContent: 'center',
   },
   categoryIcon: {
