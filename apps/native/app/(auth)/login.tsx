@@ -181,7 +181,7 @@ export default function LoginScreen() {
     <View style={styles.container}>
       {/* Full Gradient Background */}
       <LinearGradient
-        colors={[COLORS.accent, COLORS.accentSecondary, COLORS.white]}
+        colors={[COLORS.gradientStart, COLORS.gradientEnd]}
         style={styles.gradientBackground}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
