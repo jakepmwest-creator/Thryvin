@@ -255,7 +255,7 @@ export default function HomeScreen() {
           ) : todayWorkout ? (
             <View style={styles.todayWorkoutCard}>
               <LinearGradient
-                colors={[`${COLORS.accent}15`, `${COLORS.accentSecondary}15`]}
+                colors={[`${COLORS.primary}15`, `${COLORS.accentSecondary}15`]}
                 style={styles.workoutGradient}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 1 }}
