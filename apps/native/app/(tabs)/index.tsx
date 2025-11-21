@@ -50,7 +50,7 @@ const AI_QUOTES = [
   "3 PRs this week!\nYou're unstoppable! 🔥",
 ];
 
-const ProgressRing = ({ label, progress, color, size = 90, onPress }: any) => {
+const ProgressRing = ({ label, progress, color, size = 70, onPress }: any) => {
   return (
     <TouchableOpacity style={styles.ringContainer} onPress={onPress}>
       <View style={[styles.ring, { borderColor: `${color}20`, width: size, height: size }]}>
@@ -58,11 +58,11 @@ const ProgressRing = ({ label, progress, color, size = 90, onPress }: any) => {
           borderColor: color,
           width: size,
           height: size,
-          borderWidth: 8,
+          borderWidth: 6,
           transform: [{ rotate: `${progress * 360}deg` }]
         }]} />
         <View style={styles.ringInner}>
-          <Text style={styles.ringPercentage}>{Math.round(progress * 100)}%</Text>
+          <Text style={[styles.ringPercentage, { fontSize: 16 }]}>{Math.round(progress * 100)}%</Text>
         </View>
       </View>
       <Text style={styles.ringLabel}>{label}</Text>
