@@ -337,6 +337,17 @@ export default function WorkoutHubScreen() {
                           </View>
                         )}
 
+                        {/* Video Player */}
+                        {exercise.videoUrl && (
+                          <View style={styles.videoContainer}>
+                            <ExerciseVideoPlayer
+                              videoUrl={exercise.videoUrl}
+                              exerciseName={exercise.name}
+                              autoPlay={false}
+                            />
+                          </View>
+                        )}
+
                         {/* Exercise Info */}
                         <View style={styles.exerciseDetailCard}>
                           <Text style={styles.exerciseDetailTitle}>Exercise Details</Text>
