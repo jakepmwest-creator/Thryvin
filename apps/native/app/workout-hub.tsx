@@ -561,7 +561,8 @@ export default function WorkoutHubScreen() {
               </View>
             </LinearGradient>
           </Animated.View>
-        </View>
+          </TouchableOpacity>
+        </TouchableOpacity>
       </Modal>
     </SafeAreaView>
   );
