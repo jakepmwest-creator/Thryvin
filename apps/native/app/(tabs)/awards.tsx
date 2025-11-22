@@ -279,8 +279,10 @@ export default function AwardsScreen() {
           style={styles.categoriesScroll}
           contentContainerStyle={styles.categoriesContainer}
         >
-          {CATEGORIES.map((category) => {\n            const isActive = selectedCategory === category.id;
-            return (\n              <TouchableOpacity
+          {CATEGORIES.map((category) => {
+            const isActive = selectedCategory === category.id;
+            return (
+              <TouchableOpacity
                 key={category.id}
                 onPress={() => handleCategoryPress(category.id)}
                 activeOpacity={0.8}
