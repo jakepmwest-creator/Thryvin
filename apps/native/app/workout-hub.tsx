@@ -458,13 +458,14 @@ export default function WorkoutHubScreen() {
         animationType="fade"
       >
         <View style={styles.celebrationOverlay}>
-          <ConfettiCannon
-            ref={confettiRef}
-            count={200}
-            origin={{ x: SCREEN_WIDTH / 2, y: -10 }}
-            autoStart={false}
-            fadeOut
-          />
+          {showCelebration && (
+            <ConfettiCannon
+              count={200}
+              origin={{ x: SCREEN_WIDTH / 2, y: -10 }}
+              autoStart={true}
+              fadeOut
+            />
+          )}
           <Animated.View style={styles.celebrationCard}>
             <LinearGradient
               colors={[COLORS.gradientStart, COLORS.gradientEnd]}
