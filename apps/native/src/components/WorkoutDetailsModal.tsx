@@ -375,33 +375,27 @@ export function WorkoutDetailsModal({
 
             <View style={styles.statsRow}>
               <View style={styles.statBox}>
-                <Ionicons name="time-outline" size={20} color={COLORS.gradientStart} />
+                <Ionicons name="time-outline" size={24} color={COLORS.gradientStart} />
                 <Text style={styles.statValue}>{workoutDuration}</Text>
                 <Text style={styles.statLabel}>Duration</Text>
               </View>
 
               <View style={styles.statBox}>
-                <Ionicons name="list-outline" size={20} color={COLORS.gradientStart} />
+                <Ionicons name="list-outline" size={24} color={COLORS.gradientStart} />
                 <Text style={styles.statValue}>{exerciseCount}</Text>
                 <Text style={styles.statLabel}>Exercises</Text>
               </View>
 
               <View style={styles.statBox}>
-                <Ionicons name="speedometer-outline" size={20} color={COLORS.gradientStart} />
+                <Ionicons name="speedometer-outline" size={24} color={COLORS.gradientStart} />
                 <Text style={styles.statValue}>{workoutDifficulty}</Text>
                 <Text style={styles.statLabel}>Level</Text>
               </View>
 
-              <View style={styles.circularStat}>
-                <LinearGradient
-                  colors={[COLORS.gradientStart, COLORS.gradientEnd]}
-                  style={styles.circularGradient}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 1 }}
-                >
-                  <Text style={styles.circularValue}>{caloriesBurn}</Text>
-                  <Text style={styles.circularLabel}>cal</Text>
-                </LinearGradient>
+              <View style={styles.statBox}>
+                <Ionicons name="flame-outline" size={24} color={COLORS.gradientStart} />
+                <Text style={styles.statValue}>{caloriesBurn}</Text>
+                <Text style={styles.statLabel}>Calories</Text>
               </View>
             </View>
 
