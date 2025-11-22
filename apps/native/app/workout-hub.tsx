@@ -844,7 +844,8 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255, 255, 255, 0.2)',
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 24,  },
+    marginBottom: 24,
+  },
   celebrationTitle: {
     fontSize: 32,
     fontWeight: '800',
