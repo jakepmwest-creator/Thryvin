@@ -269,37 +269,31 @@ export function WorkoutDetailsModal({
   // Use provided workout data or fallback to hardcoded data
   const currentWorkout = workout || WORKOUT_DATA[currentDay];
   
-  // Format date nicely (e.g., "Tuesday the 20th")
-  const formatDate = (date: any) => {
-    if (!date) return selectedDate.toString();
+  // Format date nicely based on current day
+  const formatDate = () => {
+    const dayName = DAYS[currentDay];
     
-    // If it's just a day name, use that
-    if (typeof date === 'string' && DAYS.includes(date)) {
-      return date;
-    }
+    // Calculate actual date based on current day index
+    const today = new Date();
+    const currentDayOfWeek = today.getDay(); // 0 = Sunday, 1 = Monday, etc.
+    const mondayIndex = currentDayOfWeek === 0 ? -6 : 1 - currentDayOfWeek;
+    const dayOffset = currentDay; // currentDay is already 0-based (Monday = 0)
     
-    // If it's an ISO string or Date object
-    try {
-      const dateObj = typeof date === 'string' ? new Date(date) : date;
-      if (dateObj instanceof Date && !isNaN(dateObj.getTime())) {
-        const dayName = DAYS[dateObj.getDay() === 0 ? 6 : dateObj.getDay() - 1]; // Monday = 0
-        const dayNum = dateObj.getDate();
-        const suffix = dayNum === 1 || dayNum === 21 || dayNum === 31 ? 'st' 
-                      : dayNum === 2 || dayNum === 22 ? 'nd'
-                      : dayNum === 3 || dayNum === 23 ? 'rd' : 'th';
-        return `${dayName} the ${dayNum}${suffix}`;
-      }
-    } catch (e) {
-      console.error('Date format error:', e);
-    }
+    const targetDate = new Date(today);
+    targetDate.setDate(today.getDate() + mondayIndex + dayOffset);
     
-    return selectedDate.toString();
+    const dayNum = targetDate.getDate();
+    const suffix = dayNum === 1 || dayNum === 21 || dayNum === 31 ? 'st' 
+                  : dayNum === 2 || dayNum === 22 ? 'nd'
+                  : dayNum === 3 || dayNum === 23 ? 'rd' : 'th';
+    
+    return `${dayName} the ${dayNum}${suffix}`;
   };
   
   // Safe access to workout properties with defaults
   const exerciseList = currentWorkout?.exerciseList || currentWorkout?.exercises || [];
   const workoutTitle = currentWorkout?.title || 'Workout';
-  const workoutDate = formatDate(currentWorkout?.date || currentDay);
+  const workoutDate = formatDate();
   const workoutDuration = typeof currentWorkout?.duration === 'number' 
     ? `${currentWorkout.duration} min` 
     : (currentWorkout?.duration || '30 min');
