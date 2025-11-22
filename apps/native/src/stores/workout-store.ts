@@ -119,60 +119,63 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
   fetchTodayWorkout: async () => {
     set({ isLoading: true, error: null });
     try {
-      // For now, use local storage until backend is accessible
-      // In production, this would be: const response = await fetch(`${API_URL}/api/workouts/today`);
-      
       const storedUser = await SecureStore.getItemAsync('auth_user');
       if (!storedUser) {
         throw new Error('User not authenticated');
       }
       
       const user = JSON.parse(storedUser);
+      const dayOfWeek = new Date().getDay(); // 0 = Sunday, 1 = Monday, etc.
       
-      // Generate AI workout based on user's onboarding data
-      const dayOfWeek = new Date().getDay(); // 0-6
-      const workoutTitle = getWorkoutTitle(dayOfWeek, user);
-      const exerciseList = generateExercises(user, dayOfWeek);
+      // Call AI workout generation API
+      console.log('Calling AI workout generation API...');
+      const response = await fetch(`${API_URL}/api/workouts/generate`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          userProfile: {
+            fitnessGoals: user.fitnessGoals || [user.goal],
+            goal: user.goal,
+            experience: user.experience,
+            trainingType: user.trainingType,
+            sessionDuration: user.sessionDuration,
+            trainingDays: user.trainingDays,
+            equipment: user.equipment || [],
+            injuries: user.injuries || [],
+          },
+          dayOfWeek: dayOfWeek === 0 ? 6 : dayOfWeek - 1, // Convert to 0=Monday
+        }),
+      });
       
-      // Fetch video URLs for exercises
-      const exerciseNames = exerciseList.map(ex => ex.name).join(',');
-      try {
-        const response = await fetch(`${API_URL}/api/exercises?names=${encodeURIComponent(exerciseNames)}`);
-        if (response.ok) {
-          const data = await response.json();
-          const exerciseMap = new Map(data.exercises.map((ex: any) => [ex.name, ex]));
-          
-          // Populate video URLs
-          exerciseList.forEach(exercise => {
-            const apiExercise = exerciseMap.get(exercise.name);
-            if (apiExercise) {
-              exercise.videoUrl = apiExercise.videoUrl;
-            }
-          });
-        }
-      } catch (error) {
-        console.log('Could not fetch video URLs:', error);
-        // Continue without videos
+      if (!response.ok) {
+        throw new Error('Failed to generate workout');
       }
       
+      const aiWorkout = await response.json();
+      console.log('AI workout generated:', aiWorkout.title);
+      console.log('Exercises with videos:', aiWorkout.exercises.filter((e: any) => e.videoUrl).length);
+      
+      // Format for app
       const workout: Workout = {
         id: `workout_${Date.now()}`,
-        title: workoutTitle,
-        type: user.trainingType || 'General Fitness',
-        difficulty: user.experience || 'Intermediate',
-        duration: parseInt(user.sessionDuration) || 45,
+        title: aiWorkout.title,
+        type: aiWorkout.type,
+        difficulty: aiWorkout.difficulty,
+        duration: aiWorkout.duration,
         date: new Date().toISOString(),
-        exercises: exerciseList,
-        overview: `${exerciseList.length} exercises focusing on ${user.trainingType || 'general fitness'}. This ${(parseInt(user.sessionDuration) || 45)}-minute session is tailored to your ${user.experience || 'intermediate'} level. Perfect for building strength and muscle.`,
-        targetMuscles: user.trainingType || 'Full Body',
-        caloriesBurn: Math.round((parseInt(user.sessionDuration) || 45) * 8),
-        exerciseList: exerciseList, // For compatibility with modal
+        exercises: aiWorkout.exercises,
+        overview: aiWorkout.overview,
+        targetMuscles: aiWorkout.targetMuscles,
+        caloriesBurn: aiWorkout.caloriesBurn,
+        exerciseList: aiWorkout.exercises, // For compatibility
       };
       
       set({ todayWorkout: workout, currentWorkout: workout, isLoading: false });
-      console.log('Today\'s workout loaded:', workout.title);
+      console.log('✅ Today\\'s AI workout loaded:', workout.title);
     } catch (error) {
-      console.error('Error fetching today\'s workout:', error);
+      console.error('Error fetching AI workout:', error);
       set({ 
         error: error instanceof Error ? error.message : 'Failed to load workout',
         isLoading: false 
