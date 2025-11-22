@@ -40,8 +40,10 @@ export default function WorkoutHubScreen() {
   const [weight, setWeight] = useState('');
   const [reps, setReps] = useState('');
   const [showTips, setShowTips] = useState(false);
+  const [showCelebration, setShowCelebration] = useState(false);
   
   const scrollX = useRef(new Animated.Value(0)).current;
+  const confettiRef = useRef<any>(null);
 
   // Start workout session when component mounts
   useEffect(() => {
