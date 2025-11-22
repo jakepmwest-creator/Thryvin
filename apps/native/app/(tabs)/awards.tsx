@@ -253,19 +253,19 @@ export default function AwardsScreen() {
         >
           <View style={styles.statsRow}>
             <View style={styles.statItem}>
-              <Ionicons name=\"star\" size={32} color={COLORS.white} />
+              <Ionicons name="star" size={32} color={COLORS.white} />
               <Text style={styles.statValue}>{totalXP.toLocaleString()}</Text>
               <Text style={styles.statLabel}>Total XP</Text>
             </View>
             <View style={styles.statDivider} />
             <View style={styles.statItem}>
-              <Ionicons name=\"trophy\" size={32} color={COLORS.white} />
+              <Ionicons name="trophy" size={32} color={COLORS.white} />
               <Text style={styles.statValue}>{earnedCount}/{ACHIEVEMENTS.length}</Text>
               <Text style={styles.statLabel}>Unlocked</Text>
             </View>
             <View style={styles.statDivider} />
             <View style={styles.statItem}>
-              <Ionicons name=\"flame\" size={32} color={COLORS.white} />
+              <Ionicons name="flame" size={32} color={COLORS.white} />
               <Text style={styles.statValue}>{currentStreak}</Text>
               <Text style={styles.statLabel}>Day Streak</Text>
             </View>
@@ -388,7 +388,7 @@ const AchievementCard = ({ achievement, index }: any) => {
           {/* Progress Bar or Earned Date */}
           {achievement.earned ? (
             <View style={styles.earnedBadge}>
-              <Ionicons name=\"checkmark-circle\" size={16} color={COLORS.white} />
+              <Ionicons name="checkmark-circle" size={16} color={COLORS.white} />
               <Text style={styles.earnedText}>Earned {achievement.earnedDate}</Text>
             </View>
           ) : achievement.progress !== undefined ? (
@@ -409,7 +409,7 @@ const AchievementCard = ({ achievement, index }: any) => {
 
           {/* XP Badge */}
           <View style={styles.xpBadge}>
-            <Ionicons name=\"star\" size={12} color=\"#FFD700\" />
+            <Ionicons name="star" size={12} color="#FFD700" />
             <Text style={styles.xpText}>{achievement.xp} XP</Text>
           </View>
         </LinearGradient>
