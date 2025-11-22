@@ -407,6 +407,50 @@ export default function WorkoutHubScreen() {
                             </View>
                           </View>
 
+                          {/* Effort Rating */}
+                          <View style={styles.effortSection}>
+                            <Text style={styles.inputLabel}>How did it feel?</Text>
+                            <View style={styles.ratingRow}>
+                              {[1, 2, 3, 4, 5].map((rating) => (
+                                <TouchableOpacity
+                                  key={rating}
+                                  style={[
+                                    styles.ratingButton,
+                                    effortRating === rating && styles.ratingButtonActive,
+                                  ]}
+                                  onPress={() => setEffortRating(rating)}
+                                >
+                                  <Text
+                                    style={[
+                                      styles.ratingText,
+                                      effortRating === rating && styles.ratingTextActive,
+                                    ]}
+                                  >
+                                    {rating}
+                                  </Text>
+                                </TouchableOpacity>
+                              ))}
+                            </View>
+                            <View style={styles.ratingLabels}>
+                              <Text style={styles.ratingLabelText}>Too Easy</Text>
+                              <Text style={styles.ratingLabelText}>Perfect</Text>
+                              <Text style={styles.ratingLabelText}>Too Hard</Text>
+                            </View>
+                          </View>
+
+                          {/* Optional Notes */}
+                          <View style={styles.notesSection}>
+                            <Text style={styles.inputLabel}>Notes (optional)</Text>
+                            <TextInput
+                              style={styles.notesInput}
+                              placeholder="How did this set feel? Any adjustments needed?"
+                              multiline
+                              numberOfLines={2}
+                              value={setNotes}
+                              onChangeText={setSetNotes}
+                            />
+                          </View>
+
                           <TouchableOpacity
                             style={styles.completeButton}
                             onPress={() => handleCompleteSet(index)}
