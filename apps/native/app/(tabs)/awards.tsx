@@ -321,7 +321,8 @@ export default function AwardsScreen() {
   );
 }
 
-// Achievement Card Component\nconst AchievementCard = ({ achievement, index }: any) => {
+// Achievement Card Component
+const AchievementCard = ({ achievement, index }: any) => {
   const [scaleAnim] = useState(new Animated.Value(0));
 
   useEffect(() => {
