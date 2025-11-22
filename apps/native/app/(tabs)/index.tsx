@@ -19,12 +19,13 @@ import { WorkoutDetailsModal } from '../../src/components/WorkoutDetailsModal';
 import { PersonalBestChart } from '../../src/components/PersonalBestChart';
 import { useWorkoutStore } from '../../src/stores/workout-store';
 import { useAuthStore } from '../../src/stores/auth-store';
+import Svg, { Circle } from 'react-native-svg';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 import { COLORS, CARD_SHADOW } from '../../src/constants/colors';
 
-// Activity cards with vibrant gradients matching Explore Workout boxes
+// Activity cards with vibrant gradients
 const ACTIVITY_CARDS = [
   { id: 1, icon: 'trophy', title: 'New PR!', subtitle: 'Bench: 225 lbs', gradient: ['#5B8DEF', '#34C4E5'], action: 'stats' },
   { id: 2, icon: 'people', title: '3 Followers', subtitle: 'Sarah, Mike, Alex', gradient: ['#34C759', '#00C7BE'], action: 'profile' },
@@ -41,30 +42,48 @@ const AI_QUOTES = [
   "3 PRs this week!\nYou're unstoppable! 🔥",
 ];
 
-// Enhanced Progress Ring with gradient
+// Progress Ring with SVG for proper arc rendering
 const ProgressRing = ({ label, progress, colors, size = 70, onPress }: any) => {
+  const strokeWidth = 8;
+  const radius = (size - strokeWidth) / 2;
+  const circumference = radius * 2 * Math.PI;
+  const strokeDashoffset = circumference - (progress * circumference);
+
   return (
     <TouchableOpacity style={styles.ringContainer} onPress={onPress}>
-      <View style={[styles.ring, { width: size, height: size }]}>
-        <LinearGradient
-          colors={colors}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          style={[
-            styles.ringProgress,
-            {
-              width: size,
-              height: size,
-            },
-          ]}
-        >
-          <View style={[styles.ringProgressMask, { 
-            width: size - 12, 
-            height: size - 12,
-            transform: [{ rotate: `${(1 - progress) * 360}deg` }]
-          }]} />
-        </LinearGradient>
-        <View style={[styles.ringInner, { width: size - 16, height: size - 16 }]}>
+      <View style={{ width: size, height: size }}>
+        <Svg width={size} height={size} style={styles.svg}>
+          {/* Background circle */}
+          <Circle
+            cx={size / 2}
+            cy={size / 2}
+            r={radius}
+            stroke={COLORS.lightGray}
+            strokeWidth={strokeWidth}
+            fill="transparent"
+          />
+          {/* Progress circle */}
+          <Circle
+            cx={size / 2}
+            cy={size / 2}
+            r={radius}
+            stroke="url(#grad)"
+            strokeWidth={strokeWidth}
+            fill="transparent"
+            strokeDasharray={circumference}
+            strokeDashoffset={strokeDashoffset}
+            strokeLinecap="round"
+            rotation="-90"
+            origin={`${size / 2}, ${size / 2}`}
+          />
+          <defs>
+            <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor={colors[0]} />
+              <stop offset="100%" stopColor={colors[1]} />
+            </linearGradient>
+          </defs>
+        </Svg>
+        <View style={[styles.ringCenter, { width: size, height: size }]}>
           <Text style={[styles.ringPercentage, { fontSize: size > 80 ? 20 : 16 }]}>
             {Math.round(progress * 100)}%
           </Text>
@@ -83,7 +102,6 @@ export default function HomeScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const scrollX = useRef(new Animated.Value(0)).current;
 
-  // Get data from stores
   const { user } = useAuthStore();
   const {
     todayWorkout,
@@ -173,7 +191,7 @@ export default function HomeScreen() {
           />
         }
       >
-        {/* Welcome Banner with gradient */}
+        {/* Welcome Banner */}
         <LinearGradient
           colors={[COLORS.gradientStart, COLORS.gradientEnd]}
           start={{ x: 0, y: 0 }}
@@ -198,7 +216,7 @@ export default function HomeScreen() {
           </View>
         </LinearGradient>
 
-        {/* Progress Rings with gradients */}
+        {/* Progress Rings */}
         <View style={styles.progressSection}>
           <View style={styles.progressHeader}>
             <Text style={styles.sectionTitle}>Your Progress</Text>
@@ -240,52 +258,49 @@ export default function HomeScreen() {
           )}
         </View>
 
-        {/* Today's Workout */}
+        {/* Today's Workout - WHITE CARD */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Today's Workout</Text>
           {isLoading ? (
             <ActivityIndicator size="large" color={COLORS.gradientStart} style={{ marginTop: 20 }} />
           ) : (
-            <TouchableOpacity
-              style={styles.todayWorkoutCard}
-              activeOpacity={0.9}
-              onPress={() => setModalVisible(true)}
-            >
-              <LinearGradient
-                colors={[COLORS.gradientStart, COLORS.gradientEnd]}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 1 }}
-                style={styles.workoutGradient}
-              >
-                <View style={styles.workoutCardContent}>
-                  <View style={styles.workoutIconContainer}>
-                    <Ionicons name="barbell" size={32} color={COLORS.white} />
-                  </View>
-                  <View style={styles.workoutInfo}>
+            <View style={styles.todayWorkoutCard}>
+              <View style={styles.workoutContent}>
+                <View style={styles.workoutHeader}>
+                  <View style={{ flex: 1 }}>
+                    <Text style={styles.sectionLabel}>TODAY'S WORKOUT</Text>
                     <Text style={styles.workoutTitle}>{todayWorkout?.title || 'Loading...'}</Text>
-                    <Text style={styles.workoutSubtitle}>
-                      {todayWorkout?.duration || 45} min • {todayWorkout?.difficulty || 'Intermediate'}
+                    <Text style={styles.workoutMeta}>
+                      {todayWorkout?.duration || 45} min • {todayWorkout?.exercises?.length || 0} exercises • {todayWorkout?.difficulty || 'Intermediate'}
                     </Text>
-                    <Text style={styles.workoutDescription} numberOfLines={2}>
-                      {todayWorkout?.overview || 'Your personalized workout for today'}
-                    </Text>
-                  </View>
-                  <View style={styles.startButtonSmall}>
-                    <Ionicons name="play" size={24} color={COLORS.white} />
                   </View>
                 </View>
-              </LinearGradient>
-            </TouchableOpacity>
+                <TouchableOpacity 
+                  style={styles.startButton}
+                  onPress={() => setModalVisible(true)}
+                >
+                  <LinearGradient
+                    colors={[COLORS.gradientStart, COLORS.gradientEnd]}
+                    style={styles.startGradient}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 1 }}
+                  >
+                    <Ionicons name="play" size={20} color={COLORS.white} />
+                    <Text style={styles.startText}>Start Workout</Text>
+                  </LinearGradient>
+                </TouchableOpacity>
+              </View>
+            </View>
           )}
         </View>
 
-        {/* Recent Activity with vibrant gradients */}
+        {/* Recent Activity - LARGER CARDS */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Recent Activity</Text>
           <Animated.ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
-            snapToInterval={SCREEN_WIDTH * 0.85}
+            snapToInterval={SCREEN_WIDTH * 0.7}
             decelerationRate="fast"
             contentContainerStyle={styles.activityScrollContainer}
             onScroll={Animated.event(
@@ -306,7 +321,7 @@ export default function HomeScreen() {
                   end={{ x: 1, y: 1 }}
                   style={styles.activityGradient}
                 >
-                  <Ionicons name={card.icon as any} size={32} color={COLORS.white} />
+                  <Ionicons name={card.icon as any} size={40} color={COLORS.white} />
                   <Text style={styles.activityTitle}>{card.title}</Text>
                   <Text style={styles.activitySubtitle}>{card.subtitle}</Text>
                 </LinearGradient>
@@ -315,7 +330,7 @@ export default function HomeScreen() {
           </Animated.ScrollView>
         </View>
 
-        {/* Today's Nutrition with green gradient */}
+        {/* Today's Nutrition - GREEN GRADIENT */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>Today's Nutrition</Text>
@@ -329,7 +344,7 @@ export default function HomeScreen() {
             onPress={() => router.push('/(tabs)/nutrition')}
           >
             <LinearGradient
-              colors={['#34C759', '#00C7BE']}
+              colors={['#4CAF50', '#8BC34A']}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 1 }}
               style={styles.nutritionGradient}
@@ -463,27 +478,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 12,
   },
-  ring: {
-    position: 'relative',
-    justifyContent: 'center',
-    alignItems: 'center',
+  svg: {
+    transform: [{ rotate: '-90deg' }],
   },
-  ringProgress: {
+  ringCenter: {
     position: 'absolute',
-    borderRadius: 1000,
-    overflow: 'hidden',
-  },
-  ringProgressMask: {
-    position: 'absolute',
-    backgroundColor: COLORS.background,
-    borderRadius: 1000,
-    top: 6,
-    left: 6,
-  },
-  ringInner: {
-    position: 'absolute',
-    backgroundColor: COLORS.white,
-    borderRadius: 1000,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -520,81 +519,79 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 16,
   },
+  // WHITE CARD for today's workout
   todayWorkoutCard: {
     marginTop: 12,
+    backgroundColor: COLORS.white,
     borderRadius: 20,
-    overflow: 'hidden',
+    padding: 20,
     ...CARD_SHADOW,
   },
-  workoutGradient: {
-    padding: 20,
-  },
-  workoutCardContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
+  workoutContent: {
     gap: 16,
   },
-  workoutIconContainer: {
-    width: 56,
-    height: 56,
-    borderRadius: 16,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    justifyContent: 'center',
+  workoutHeader: {
+    flexDirection: 'row',
     alignItems: 'center',
   },
-  workoutInfo: {
-    flex: 1,
+  sectionLabel: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: COLORS.mediumGray,
+    letterSpacing: 0.5,
+    marginBottom: 8,
   },
   workoutTitle: {
-    fontSize: 18,
+    fontSize: 22,
     fontWeight: '700',
-    color: COLORS.white,
-    marginBottom: 4,
+    color: COLORS.text,
+    marginBottom: 8,
   },
-  workoutSubtitle: {
-    fontSize: 13,
-    color: COLORS.white,
-    opacity: 0.9,
-    marginBottom: 6,
+  workoutMeta: {
+    fontSize: 14,
+    color: COLORS.mediumGray,
   },
-  workoutDescription: {
-    fontSize: 13,
-    color: COLORS.white,
-    opacity: 0.8,
-    lineHeight: 18,
+  startButton: {
+    borderRadius: 14,
+    overflow: 'hidden',
   },
-  startButtonSmall: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: 'rgba(255, 255, 255, 0.3)',
-    justifyContent: 'center',
+  startGradient: {
+    flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 16,
+    gap: 8,
+  },
+  startText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: COLORS.white,
   },
   activityScrollContainer: {
     paddingRight: 16,
   },
+  // LARGER activity cards
   activityCard: {
-    width: SCREEN_WIDTH * 0.4,
+    width: SCREEN_WIDTH * 0.65,
     marginRight: 12,
     borderRadius: 16,
     overflow: 'hidden',
     ...CARD_SHADOW,
   },
   activityGradient: {
-    padding: 20,
-    minHeight: 140,
+    padding: 24,
+    minHeight: 160,
     justifyContent: 'center',
     alignItems: 'flex-start',
   },
   activityTitle: {
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: '700',
     color: COLORS.white,
     marginTop: 12,
   },
   activitySubtitle: {
-    fontSize: 13,
+    fontSize: 14,
     color: COLORS.white,
     opacity: 0.9,
     marginTop: 4,
