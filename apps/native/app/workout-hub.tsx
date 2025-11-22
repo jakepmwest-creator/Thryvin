@@ -502,7 +502,14 @@ export default function WorkoutHubScreen() {
         transparent
         animationType="fade"
       >
-        <View style={styles.celebrationOverlay}>
+        <TouchableOpacity 
+          style={styles.celebrationOverlay}
+          activeOpacity={1}
+          onPress={() => {
+            setShowCelebration(false);
+            router.replace('/(tabs)');
+          }}
+        >
           {showCelebration && (
             <ConfettiCannon
               count={200}
@@ -511,7 +518,20 @@ export default function WorkoutHubScreen() {
               fadeOut
             />
           )}
-          <Animated.View style={styles.celebrationCard}>
+          <TouchableOpacity 
+            activeOpacity={1}
+            onPress={(e) => e.stopPropagation()}
+          >
+            <Animated.View style={styles.celebrationCard}>
+              <TouchableOpacity 
+                style={styles.celebrationClose}
+                onPress={() => {
+                  setShowCelebration(false);
+                  router.replace('/(tabs)');
+                }}
+              >
+                <Ionicons name="close-circle" size={32} color={COLORS.white} />
+              </TouchableOpacity>
             <LinearGradient
               colors={[COLORS.gradientStart, COLORS.gradientEnd]}
               start={{ x: 0, y: 0 }}
