@@ -147,6 +147,29 @@ Day ${dayOfWeek + 1}/7. Design a balanced workout with warmup, main exercises, a
     
     return {
       id: dbExercise?.slug || `exercise-${index}`,
+
+
+// Test
+if (require.main === module) {
+  const testProfile = {
+    fitnessGoals: ['muscle-gain'],
+    experience: 'intermediate',
+    trainingType: 'Strength Training',
+    sessionDuration: 45,
+  };
+  
+  generateAIWorkout(testProfile, 0)
+    .then(workout => {
+      console.log('\n✅ Generated Workout:');
+      console.log(JSON.stringify(workout, null, 2));
+      process.exit(0);
+    })
+    .catch(error => {
+      console.error('\n❌ Error:', error);
+      process.exit(1);
+    });
+}
+
       name: ex.name,
       sets: ex.sets || 3,
       reps: ex.reps || '10-12',
