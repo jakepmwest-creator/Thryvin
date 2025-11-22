@@ -512,113 +512,24 @@ export function WorkoutDetailsModal({
                             </View>
                           )}
                           
-                          {/* Set Tracking UI */}
+                          {/* Form Tips */}
                           {isExpanded && (
-                            <View style={styles.setTrackingContainer}>
-                              <View style={styles.setTrackingHeader}>
-                                <Ionicons name="checkmark-circle" size={22} color={COLORS.gradientStart} />
-                                <Text style={styles.setTrackingTitle}>Track Your Sets</Text>
+                            <View style={styles.tipsContainer}>
+                              <View style={styles.tipsHeader}>
+                                <Ionicons name="information-circle" size={22} color={COLORS.gradientStart} />
+                                <Text style={styles.tipsTitle}>Form Tips</Text>
                               </View>
-                              
-                              {Array.from({ length: sets }).map((_, setIndex) => {
-                                const isCompleted = completedSets.get(index)?.has(setIndex) || false;
-                                const setInfo = setData.get(index)?.get(setIndex);
-                                
-                                return (
-                                  <View key={setIndex} style={styles.setRow}>
-                                    <View style={styles.setNumber}>
-                                      {isCompleted ? (
-                                        <Ionicons name="checkmark-circle" size={24} color={COLORS.success} />
-                                      ) : (
-                                        <Text style={styles.setNumberText}>{setIndex + 1}</Text>
-                                      )}
-                                    </View>
-                                    
-                                    <TextInput
-                                      style={styles.setInput}
-                                      placeholder="Weight"
-                                      placeholderTextColor={COLORS.mediumGray}
-                                      keyboardType="numeric"
-                                      value={setInfo?.weight || ''}
-                                      onChangeText={(text) => {
-                                        const newData = new Map(setData);
-                                        if (!newData.has(index)) newData.set(index, new Map());
-                                        const exerciseData = newData.get(index)!;
-                                        exerciseData.set(setIndex, { ...setInfo, weight: text, reps: setInfo?.reps || '', feeling: setInfo?.feeling || '' });
-                                        setSetData(newData);
-                                      }}
-                                    />
-                                    
-                                    <TextInput
-                                      style={styles.setInput}
-                                      placeholder="Reps"
-                                      placeholderTextColor={COLORS.mediumGray}
-                                      keyboardType="numeric"
-                                      value={setInfo?.reps || ''}
-                                      onChangeText={(text) => {
-                                        const newData = new Map(setData);
-                                        if (!newData.has(index)) newData.set(index, new Map());
-                                        const exerciseData = newData.get(index)!;
-                                        exerciseData.set(setIndex, { ...setInfo, weight: setInfo?.weight || '', reps: text, feeling: setInfo?.feeling || '' });
-                                        setSetData(newData);
-                                      }}
-                                    />
-                                    
-                                    <TouchableOpacity
-                                      style={[styles.completeSetButton, isCompleted && styles.completeSetButtonDone]}
-                                      onPress={() => {
-                                        const newCompleted = new Map(completedSets);
-                                        if (!newCompleted.has(index)) newCompleted.set(index, new Set());
-                                        const exerciseCompleted = newCompleted.get(index)!;
-                                        
-                                        if (isCompleted) {
-                                          exerciseCompleted.delete(setIndex);
-                                        } else {
-                                          exerciseCompleted.add(setIndex);
-                                        }
-                                        setCompletedSets(newCompleted);
-                                      }}
-                                    >
-                                      <Ionicons 
-                                        name={isCompleted ? "checkmark" : "checkmark-outline"} 
-                                        size={18} 
-                                        color={isCompleted ? COLORS.white : COLORS.gradientStart} 
-                                      />
-                                    </TouchableOpacity>
-                                  </View>
-                                );
-                              })}
-                              
-                              {/* Feeling Selector */}
-                              <View style={styles.feelingContainer}>
-                                <Text style={styles.feelingLabel}>How did it feel?</Text>
-                                <View style={styles.feelingButtons}>
-                                  {['Easy', 'Good', 'Hard'].map((feeling) => {
-                                    const exerciseData = setData.get(index)?.get(0);
-                                    const selected = exerciseData?.feeling === feeling;
-                                    return (
-                                      <TouchableOpacity
-                                        key={feeling}
-                                        style={[styles.feelingButton, selected && styles.feelingButtonSelected]}
-                                        onPress={() => {
-                                          const newData = new Map(setData);
-                                          if (!newData.has(index)) newData.set(index, new Map());
-                                          const exerciseData = newData.get(index)!;
-                                          // Apply feeling to all sets of this exercise
-                                          for (let i = 0; i < sets; i++) {
-                                            const currentSet = exerciseData.get(i) || { weight: '', reps: '', feeling: '' };
-                                            exerciseData.set(i, { ...currentSet, feeling });
-                                          }
-                                          setSetData(newData);
-                                        }}
-                                      >
-                                        <Text style={[styles.feelingButtonText, selected && styles.feelingButtonTextSelected]}>
-                                          {feeling}
-                                        </Text>
-                                      </TouchableOpacity>
-                                    );
-                                  })}
-                                </View>
+                              <Text style={styles.tipsText}>
+                                • Maintain proper form throughout the movement{'\n'}
+                                • Control the weight on both concentric and eccentric phases{'\n'}
+                                • Breathe steadily - exhale on exertion{'\n'}
+                                • Rest {restTime || '60'}s between sets
+                              </Text>
+                              <View style={styles.startWorkoutHint}>
+                                <Ionicons name="play-circle" size={20} color={COLORS.gradientStart} />
+                                <Text style={styles.startWorkoutHintText}>
+                                  Start the workout to log sets and track progress
+                                </Text>
                               </View>
                             </View>
                           )}
