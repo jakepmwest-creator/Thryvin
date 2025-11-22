@@ -24,23 +24,14 @@ const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 import { COLORS, CARD_SHADOW } from '../../src/constants/colors';
 
-// Additional colors for compatibility
-const EXTRA_COLORS = {
-  yellow: '#FFD700',
-  green: '#4CAF50',
-  orange: '#FF9800',
-  red: '#FF5252',
-  purple: '#9C27B0',
-  blue: '#2196F3',
-};
-
+// Activity cards with vibrant gradients matching Explore Workout boxes
 const ACTIVITY_CARDS = [
-  { id: 1, icon: 'trophy', title: 'New PR!', subtitle: 'Bench: 225 lbs', gradient: ['#FFD700', '#FFA000'], action: 'stats' },
-  { id: 2, icon: 'people', title: '3 Followers', subtitle: 'Sarah, Mike, Alex', gradient: ['#4CAF50', '#00C853'], action: 'profile' },
-  { id: 3, icon: 'flame', title: '7 Day Streak', subtitle: 'Keep it going!', gradient: ['#FF5252', '#FF1744'], action: 'stats' },
-  { id: 4, icon: 'barbell', title: 'Last Workout', subtitle: 'Upper Body', gradient: ['#9C27B0', '#AA00FF'], action: 'workouts' },
-  { id: 5, icon: 'star', title: 'Achievement', subtitle: '100 Workouts', gradient: ['#2196F3', '#00B0FF'], action: 'awards' },
-  { id: 6, icon: 'timer', title: 'Best Time', subtitle: '45 min', gradient: ['#FF9800', '#FF6D00'], action: 'stats' },
+  { id: 1, icon: 'trophy', title: 'New PR!', subtitle: 'Bench: 225 lbs', gradient: ['#5B8DEF', '#34C4E5'], action: 'stats' },
+  { id: 2, icon: 'people', title: '3 Followers', subtitle: 'Sarah, Mike, Alex', gradient: ['#34C759', '#00C7BE'], action: 'profile' },
+  { id: 3, icon: 'flame', title: '7 Day Streak', subtitle: 'Keep it going!', gradient: ['#FF3B30', '#FF9500'], action: 'stats' },
+  { id: 4, icon: 'barbell', title: 'Last Workout', subtitle: 'Upper Body', gradient: ['#A22BF6', '#FF4EC7'], action: 'workouts' },
+  { id: 5, icon: 'star', title: 'Achievement', subtitle: '100 Workouts', gradient: ['#FFD60A', '#FFED4E'], action: 'awards' },
+  { id: 6, icon: 'timer', title: 'Best Time', subtitle: '45 min', gradient: ['#FF6B35', '#FFD60A'], action: 'stats' },
 ];
 
 const AI_QUOTES = [
@@ -50,19 +41,33 @@ const AI_QUOTES = [
   "3 PRs this week!\nYou're unstoppable! 🔥",
 ];
 
-const ProgressRing = ({ label, progress, color, size = 70, onPress }: any) => {
+// Enhanced Progress Ring with gradient
+const ProgressRing = ({ label, progress, colors, size = 70, onPress }: any) => {
   return (
     <TouchableOpacity style={styles.ringContainer} onPress={onPress}>
-      <View style={[styles.ring, { borderColor: `${color}20`, width: size, height: size }]}>
-        <View style={[styles.ringProgress, { 
-          borderColor: color,
-          width: size,
-          height: size,
-          borderWidth: 6,
-          transform: [{ rotate: `${progress * 360}deg` }]
-        }]} />
-        <View style={styles.ringInner}>
-          <Text style={[styles.ringPercentage, { fontSize: 16 }]}>{Math.round(progress * 100)}%</Text>
+      <View style={[styles.ring, { width: size, height: size }]}>
+        <LinearGradient
+          colors={colors}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={[
+            styles.ringProgress,
+            {
+              width: size,
+              height: size,
+            },
+          ]}
+        >
+          <View style={[styles.ringProgressMask, { 
+            width: size - 12, 
+            height: size - 12,
+            transform: [{ rotate: `${(1 - progress) * 360}deg` }]
+          }]} />
+        </LinearGradient>
+        <View style={[styles.ringInner, { width: size - 16, height: size - 16 }]}>
+          <Text style={[styles.ringPercentage, { fontSize: size > 80 ? 20 : 16 }]}>
+            {Math.round(progress * 100)}%
+          </Text>
         </View>
       </View>
       <Text style={styles.ringLabel}>{label}</Text>
@@ -88,22 +93,19 @@ export default function HomeScreen() {
     fetchTodayWorkout,
     fetchStats,
     fetchPersonalBests,
-    fetchCompletedWorkouts,
   } = useWorkoutStore();
-
-  // Load data on mount
-  useEffect(() => {
-    loadAllData();
-  }, []);
 
   const loadAllData = async () => {
     await Promise.all([
       fetchTodayWorkout(),
-      fetchCompletedWorkouts(),
       fetchStats(),
       fetchPersonalBests(),
     ]);
   };
+
+  useEffect(() => {
+    loadAllData();
+  }, []);
 
   const onRefresh = async () => {
     setRefreshing(true);
@@ -113,7 +115,6 @@ export default function HomeScreen() {
 
   const handleStartWorkout = () => {
     setModalVisible(false);
-    // Navigate to workout hub screen
     router.push('/workout-hub');
   };
 
@@ -139,15 +140,12 @@ export default function HomeScreen() {
     }
   };
 
-  const handlePersonalBestPress = (pb: any) => {
-    setSelectedExercise(pb);
-    setChartModalVisible(true);
-  };
+  const currentQuote = AI_QUOTES[Math.floor(Math.random() * AI_QUOTES.length)];
 
   return (
     <SafeAreaView style={styles.container}>
       <AppHeader mode="fitness" />
-      
+
       <WorkoutDetailsModal
         visible={modalVisible}
         onClose={() => setModalVisible(false)}
@@ -158,86 +156,85 @@ export default function HomeScreen() {
 
       {selectedExercise && (
         <PersonalBestChart
-          visible={chartModalVisible}
-          onClose={() => setChartModalVisible(false)}
+          visible={!!selectedExercise}
+          onClose={() => setSelectedExercise(null)}
           exercise={selectedExercise}
         />
       )}
-      
-      <ScrollView 
-        style={styles.scrollView} 
+
+      <ScrollView
+        style={styles.scrollView}
         showsVerticalScrollIndicator={false}
         refreshControl={
           <RefreshControl
             refreshing={refreshing}
             onRefresh={onRefresh}
-            tintColor={COLORS.primary}
-            colors={[COLORS.primary]}
+            tintColor={COLORS.gradientStart}
           />
         }
       >
-        {/* Banner */}
-        <View style={styles.bannerContainer}>
-          <LinearGradient
-            colors={[COLORS.gradientStart, COLORS.gradientEnd]}
-            style={styles.bannerGradient}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-          >
-            <View style={styles.bannerContent}>
-              <View style={styles.bannerLeft}>
-                <Text style={styles.bannerGreeting}>Hi {user?.name || 'there'}! 👋</Text>
-                <Text style={styles.bannerQuote}>
-                  {stats ? `${stats.totalWorkouts} workouts completed! 💪` : 'Ready to crush your workout today?'}
-                </Text>
-                <View style={styles.bannerStats}>
-                  <View style={styles.statChip}>
-                    <Ionicons name="flame" size={14} color={COLORS.white} />
-                    <Text style={styles.statText}>{stats?.currentStreak || 0}-day streak</Text>
-                  </View>
-                  <View style={styles.statChip}>
-                    <Ionicons name="barbell" size={14} color={COLORS.white} />
-                    <Text style={styles.statText}>{stats?.weeklyWorkouts || 0} workouts</Text>
-                  </View>
-                </View>
+        {/* Welcome Banner with gradient */}
+        <LinearGradient
+          colors={[COLORS.gradientStart, COLORS.gradientEnd]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={styles.welcomeBanner}
+        >
+          <View style={styles.bannerContent}>
+            <View>
+              <Text style={styles.welcomeText}>Welcome back,</Text>
+              <Text style={styles.userName}>{user?.name || 'Champion'}! 💪</Text>
+            </View>
+            <View style={styles.streakChips}>
+              <View style={styles.streakChip}>
+                <Ionicons name="flame" size={14} color={COLORS.white} />
+                <Text style={styles.streakText}>{stats?.currentStreak || 7} day streak</Text>
               </View>
-              <View style={styles.achievementBadge}>
-                <Ionicons name="trophy" size={36} color="#FFD700" />
-                <Text style={styles.badgeText}>{stats?.level || 'Bronze'}</Text>
+              <View style={styles.streakChip}>
+                <Ionicons name="checkmark-circle" size={14} color={COLORS.white} />
+                <Text style={styles.streakText}>{stats?.weeklyWorkouts || 8} workouts</Text>
               </View>
             </View>
-          </LinearGradient>
-        </View>
+          </View>
+        </LinearGradient>
 
-        {/* Weekly Progress Rings */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Weekly Progress</Text>
+        {/* Progress Rings with gradients */}
+        <View style={styles.progressSection}>
+          <View style={styles.progressHeader}>
+            <Text style={styles.sectionTitle}>Your Progress</Text>
+            <TouchableOpacity>
+              <Text style={[styles.seeAllText, { color: COLORS.gradientStart }]}>Details</Text>
+            </TouchableOpacity>
+          </View>
           <View style={styles.ringsContainer}>
-            <ProgressRing 
-              label="Workouts" 
-              progress={stats ? stats.weeklyWorkouts / stats.weeklyGoal : 0} 
-              color={COLORS.primary} 
-              onPress={() => showRingDetails('Workouts')} 
+            <ProgressRing
+              label="Weekly Goal"
+              progress={(stats?.weeklyWorkouts || 0) / (stats?.weeklyGoal || 5)}
+              colors={[COLORS.gradientStart, COLORS.gradientEnd]}
+              size={85}
+              onPress={() => showRingDetails('Weekly Goal')}
             />
-            <ProgressRing 
-              label="Minutes" 
-              progress={stats ? stats.weeklyMinutes / stats.weeklyMinutesGoal : 0} 
-              color={EXTRA_COLORS.red} 
-              onPress={() => showRingDetails('Minutes')} 
+            <ProgressRing
+              label="Minutes"
+              progress={(stats?.weeklyMinutes || 0) / (stats?.weeklyMinutesGoal || 225)}
+              colors={['#5B8DEF', '#34C4E5']}
+              size={85}
+              onPress={() => showRingDetails('Minutes')}
             />
-            <ProgressRing 
-              label="Streak" 
-              progress={stats ? Math.min(stats.currentStreak / 7, 1) : 0} 
-              color={EXTRA_COLORS.green} 
-              onPress={() => showRingDetails('Streak')} 
+            <ProgressRing
+              label="Calories"
+              progress={0.78}
+              colors={['#FF6B35', '#FFD60A']}
+              size={85}
+              onPress={() => showRingDetails('Calories')}
             />
           </View>
-          {ringDetailsVisible && stats && (
-            <View style={styles.ringDetails}>
+          {ringDetailsVisible && (
+            <View style={styles.ringDetailsPopup}>
               <Text style={styles.ringDetailsText}>
-                {ringDetailsVisible === 'Workouts' && `${stats.weeklyWorkouts} of ${stats.weeklyGoal} workouts completed this week`}
-                {ringDetailsVisible === 'Minutes' && `${stats.weeklyMinutes} of ${stats.weeklyMinutesGoal} minutes completed`}
-                {ringDetailsVisible === 'Streak' && `${stats.currentStreak} day streak 🔥`}
+                {ringDetailsVisible === 'Weekly Goal' && `${stats?.weeklyWorkouts || 0} of ${stats?.weeklyGoal || 5} workouts`}
+                {ringDetailsVisible === 'Minutes' && `${stats?.weeklyMinutes || 0} of ${stats?.weeklyMinutesGoal || 225} mins`}
+                {ringDetailsVisible === 'Calories' && '1,820 of 2,500 kcal'}
               </Text>
             </View>
           )}
@@ -246,73 +243,70 @@ export default function HomeScreen() {
         {/* Today's Workout */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Today's Workout</Text>
-          
-          {isLoading && !todayWorkout ? (
-            <View style={[styles.todayWorkoutCard, { padding: 40, alignItems: 'center' }]}>
-              <ActivityIndicator size="large" color={COLORS.primary} />
-              <Text style={{ marginTop: 12, color: COLORS.mediumGray }}>Loading workout...</Text>
-            </View>
-          ) : todayWorkout ? (
-            <View style={styles.todayWorkoutCard}>
-              <View style={styles.workoutContent}>
-                <View style={styles.workoutHeader}>
-                  <View style={{ flex: 1 }}>
-                    <Text style={styles.sectionLabel}>TODAY'S WORKOUT</Text>
-                    <Text style={styles.workoutTitle}>{todayWorkout.title}</Text>
-                    <Text style={styles.workoutMeta}>
-                      {todayWorkout?.duration || 30} min • {todayWorkout?.exercises?.length || 0} exercises • {todayWorkout?.difficulty || 'Moderate'}
+          {isLoading ? (
+            <ActivityIndicator size="large" color={COLORS.gradientStart} style={{ marginTop: 20 }} />
+          ) : (
+            <TouchableOpacity
+              style={styles.todayWorkoutCard}
+              activeOpacity={0.9}
+              onPress={() => setModalVisible(true)}
+            >
+              <LinearGradient
+                colors={[COLORS.gradientStart, COLORS.gradientEnd]}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={styles.workoutGradient}
+              >
+                <View style={styles.workoutCardContent}>
+                  <View style={styles.workoutIconContainer}>
+                    <Ionicons name="barbell" size={32} color={COLORS.white} />
+                  </View>
+                  <View style={styles.workoutInfo}>
+                    <Text style={styles.workoutTitle}>{todayWorkout?.title || 'Loading...'}</Text>
+                    <Text style={styles.workoutSubtitle}>
+                      {todayWorkout?.duration || 45} min • {todayWorkout?.difficulty || 'Intermediate'}
+                    </Text>
+                    <Text style={styles.workoutDescription} numberOfLines={2}>
+                      {todayWorkout?.overview || 'Your personalized workout for today'}
                     </Text>
                   </View>
+                  <View style={styles.startButtonSmall}>
+                    <Ionicons name="play" size={24} color={COLORS.white} />
+                  </View>
                 </View>
-                <TouchableOpacity 
-                  style={styles.startButton}
-                  onPress={() => setModalVisible(true)}
-                >
-                  <LinearGradient
-                    colors={[COLORS.gradientStart, COLORS.gradientEnd]}
-                    style={styles.startGradient}
-                    start={{ x: 0, y: 0 }}
-                    end={{ x: 1, y: 1 }}
-                  >
-                    <Ionicons name="play" size={20} color={COLORS.white} />
-                    <Text style={styles.startText}>Start Workout</Text>
-                  </LinearGradient>
-                </TouchableOpacity>
-              </View>
-            </View>
-          ) : (
-            <View style={[styles.todayWorkoutCard, { padding: 30, alignItems: 'center' }]}>
-              <Ionicons name="alert-circle-outline" size={48} color={COLORS.mediumGray} />
-              <Text style={{ marginTop: 12, color: COLORS.mediumGray, textAlign: 'center' }}>
-                No workout available. Pull to refresh!
-              </Text>
-            </View>
+              </LinearGradient>
+            </TouchableOpacity>
           )}
         </View>
 
-        {/* Recent Activity - VIBRANT GRADIENTS */}
+        {/* Recent Activity with vibrant gradients */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Recent Activity</Text>
           <Animated.ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.activityScroll}
-            snapToInterval={SCREEN_WIDTH * 0.38 + 8}
+            snapToInterval={SCREEN_WIDTH * 0.85}
             decelerationRate="fast"
+            contentContainerStyle={styles.activityScrollContainer}
+            onScroll={Animated.event(
+              [{ nativeEvent: { contentOffset: { x: scrollX } } }],
+              { useNativeDriver: false }
+            )}
           >
             {ACTIVITY_CARDS.map((card) => (
               <TouchableOpacity
                 key={card.id}
-                style={styles.activityCardWrapper}
+                style={styles.activityCard}
                 onPress={() => handleActivityCardPress(card.action)}
+                activeOpacity={0.9}
               >
                 <LinearGradient
                   colors={card.gradient}
-                  style={styles.activityCard}
                   start={{ x: 0, y: 0 }}
-                  end={{ x: 1.2, y: 1.2 }}
+                  end={{ x: 1, y: 1 }}
+                  style={styles.activityGradient}
                 >
-                  <Ionicons name={card.icon as any} size={28} color={COLORS.white} />
+                  <Ionicons name={card.icon as any} size={32} color={COLORS.white} />
                   <Text style={styles.activityTitle}>{card.title}</Text>
                   <Text style={styles.activitySubtitle}>{card.subtitle}</Text>
                 </LinearGradient>
@@ -321,66 +315,73 @@ export default function HomeScreen() {
           </Animated.ScrollView>
         </View>
 
-        {/* Personal Bests */}
+        {/* Today's Nutrition with green gradient */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Personal Bests</Text>
-          <View style={styles.pbGrid}>
-            {[
-              { name: 'Bench Press', weight: '225 lbs', icon: 'fitness', color: EXTRA_COLORS.purple },
-              { name: 'Squat', weight: '315 lbs', icon: 'barbell', color: EXTRA_COLORS.blue },
-              { name: 'Deadlift', weight: '405 lbs', icon: 'flame', color: EXTRA_COLORS.red },
-              { name: 'Pull Ups', weight: '15 reps', icon: 'arrow-up', color: EXTRA_COLORS.green },
-            ].map((pb, i) => (
-              <TouchableOpacity
-                key={i}
-                onPress={() => handlePersonalBestPress(pb)}
-              >
-                <LinearGradient
-                  colors={[`${pb.color}08`, `${pb.color}05`]}
-                  style={styles.pbCard}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 1 }}
-                >
-                  <View style={[styles.pbIcon, { backgroundColor: `${pb.color}20` }]}>
-                    <Ionicons name={pb.icon as any} size={18} color={pb.color} />
-                  </View>
-                  <Text style={styles.pbName}>{pb.name}</Text>
-                  <Text style={[styles.pbWeight, { color: pb.color }]}>{pb.weight}</Text>
-                </LinearGradient>
-              </TouchableOpacity>
-            ))}
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>Today's Nutrition</Text>
+            <TouchableOpacity onPress={() => router.push('/(tabs)/nutrition')}>
+              <Text style={[styles.seeAllText, { color: COLORS.gradientStart }]}>View All</Text>
+            </TouchableOpacity>
           </View>
+          <TouchableOpacity
+            style={styles.nutritionCard}
+            activeOpacity={0.9}
+            onPress={() => router.push('/(tabs)/nutrition')}
+          >
+            <LinearGradient
+              colors={['#34C759', '#00C7BE']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={styles.nutritionGradient}
+            >
+              <View style={styles.nutritionContent}>
+                <View style={styles.nutritionIconContainer}>
+                  <Ionicons name="nutrition" size={28} color={COLORS.white} />
+                </View>
+                <View style={styles.nutritionInfo}>
+                  <Text style={styles.nutritionTitle}>1,820 / 2,500 kcal</Text>
+                  <Text style={styles.nutritionSubtitle}>2 of 3 meals logged</Text>
+                </View>
+                <Ionicons name="chevron-forward" size={24} color={COLORS.white} />
+              </View>
+            </LinearGradient>
+          </TouchableOpacity>
         </View>
 
-        {/* Today's Nutrition - VIBRANT GRADIENT */}
-        <View style={[styles.section, { marginBottom: 100 }]}>
-          <Text style={styles.sectionTitle}>Today's Nutrition</Text>
-          <View style={styles.nutritionCard}>
-            <LinearGradient
-              colors={['#00C853', '#69F0AE']}
-              style={styles.nutritionGradient}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1.2, y: 1.2 }}
-            >
-              <View style={styles.nutritionRow}>
-                <View style={styles.nutritionStat}>
-                  <Text style={styles.nutritionValue}>1,850</Text>
-                  <Text style={styles.nutritionLabel}>Calories</Text>
-                </View>
-                <View style={styles.nutritionDivider} />
-                <View style={styles.nutritionStat}>
-                  <Text style={styles.nutritionValue}>120g</Text>
-                  <Text style={styles.nutritionLabel}>Protein</Text>
-                </View>
-                <View style={styles.nutritionDivider} />
-                <View style={styles.nutritionStat}>
-                  <Text style={styles.nutritionValue}>85g</Text>
-                  <Text style={styles.nutritionLabel}>Carbs</Text>
-                </View>
-              </View>
-              <Text style={styles.nutritionSubtext}>62% of daily goal</Text>
-            </LinearGradient>
+        {/* Personal Bests */}
+        <View style={[styles.section, { paddingBottom: 100 }]}>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>Personal Bests</Text>
+            <TouchableOpacity>
+              <Text style={[styles.seeAllText, { color: COLORS.gradientStart }]}>See All</Text>
+            </TouchableOpacity>
           </View>
+          {personalBests.length > 0 ? (
+            <View style={styles.personalBestsGrid}>
+              {personalBests.slice(0, 4).map((best, index) => (
+                <TouchableOpacity
+                  key={index}
+                  style={styles.personalBestCard}
+                  onPress={() => setSelectedExercise(best)}
+                  activeOpacity={0.8}
+                >
+                  <Ionicons name="trophy" size={24} color={COLORS.gradientStart} />
+                  <Text style={styles.personalBestExercise} numberOfLines={1}>
+                    {best.exercise}
+                  </Text>
+                  <Text style={styles.personalBestValue}>
+                    {best.value} {best.unit}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          ) : (
+            <View style={styles.emptyState}>
+              <Ionicons name="trophy-outline" size={48} color={COLORS.mediumGray} />
+              <Text style={styles.emptyStateText}>No personal bests yet</Text>
+              <Text style={styles.emptyStateSubtext}>Complete a workout to track your PRs</Text>
+            </View>
+          )}
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -390,119 +391,103 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.white,
+    backgroundColor: COLORS.background,
   },
   scrollView: {
     flex: 1,
   },
-  section: {
-    paddingHorizontal: 20,
-    marginBottom: 24,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: COLORS.text,
-    marginBottom: 14,
-  },
-  bannerContainer: {
-    marginHorizontal: 20,
-    marginTop: 16,
-    marginBottom: 24,
-    borderRadius: 24,
-    overflow: 'hidden',
-  },
-  bannerGradient: {
-    padding: 24,
-    minHeight: 160,
+  welcomeBanner: {
+    margin: 16,
+    padding: 20,
+    borderRadius: 20,
+    ...CARD_SHADOW,
   },
   bannerContent: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'flex-start',
+    alignItems: 'center',
   },
-  bannerLeft: {
-    flex: 1,
-  },
-  bannerGreeting: {
-    fontSize: 26,
-    fontWeight: '700',
-    color: COLORS.white,
-    marginBottom: 8,
-  },
-  bannerQuote: {
+  welcomeText: {
     fontSize: 14,
     color: COLORS.white,
-    lineHeight: 20,
-    marginBottom: 16,
-    opacity: 0.95,
+    opacity: 0.9,
+    marginBottom: 4,
   },
-  bannerStats: {
-    flexDirection: 'row',
+  userName: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: COLORS.white,
+  },
+  streakChips: {
     gap: 8,
   },
-  statChip: {
+  streakChip: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
     backgroundColor: 'rgba(255, 255, 255, 0.25)',
-    paddingHorizontal: 10,
+    paddingHorizontal: 12,
     paddingVertical: 6,
-    borderRadius: 12,
+    borderRadius: 16,
+    gap: 6,
   },
-  statText: {
+  streakText: {
     fontSize: 12,
     fontWeight: '600',
     color: COLORS.white,
   },
-  achievementBadge: {
-    alignItems: 'center',
-    justifyContent: 'center',
+  progressSection: {
+    paddingHorizontal: 16,
+    marginTop: 8,
   },
-  badgeText: {
-    fontSize: 14,
+  progressHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  sectionTitle: {
+    fontSize: 20,
     fontWeight: '700',
-    color: COLORS.white,
-    marginTop: 4,
+    color: COLORS.text,
+  },
+  seeAllText: {
+    fontSize: 14,
+    fontWeight: '600',
   },
   ringsContainer: {
     flexDirection: 'row',
     justifyContent: 'space-around',
-    paddingVertical: 10,
-  },
-  ringDetails: {
-    backgroundColor: `${COLORS.primary}10`,
-    padding: 12,
-    borderRadius: 12,
-    marginTop: 12,
-  },
-  ringDetailsText: {
-    fontSize: 13,
-    color: COLORS.primary,
-    fontWeight: '600',
-    textAlign: 'center',
+    paddingVertical: 16,
   },
   ringContainer: {
     alignItems: 'center',
+    gap: 12,
   },
   ring: {
-    borderWidth: 8,
-    borderRadius: 100,
+    position: 'relative',
     justifyContent: 'center',
     alignItems: 'center',
-    position: 'relative',
   },
   ringProgress: {
     position: 'absolute',
-    borderRadius: 100,
-    borderTopColor: 'transparent',
-    borderRightColor: 'transparent',
+    borderRadius: 1000,
+    overflow: 'hidden',
+  },
+  ringProgressMask: {
+    position: 'absolute',
+    backgroundColor: COLORS.background,
+    borderRadius: 1000,
+    top: 6,
+    left: 6,
   },
   ringInner: {
     position: 'absolute',
+    backgroundColor: COLORS.white,
+    borderRadius: 1000,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   ringPercentage: {
-    fontSize: 18,
     fontWeight: '700',
     color: COLORS.text,
   },
@@ -510,180 +495,186 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '600',
     color: COLORS.mediumGray,
-    marginTop: 8,
+    textAlign: 'center',
   },
-  todayWorkoutCard: {
+  ringDetailsPopup: {
     backgroundColor: COLORS.white,
-    borderRadius: 20,
-    overflow: 'hidden',
-    marginBottom: 20,
+    padding: 12,
+    borderRadius: 12,
+    marginTop: 8,
+    alignItems: 'center',
     ...CARD_SHADOW,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.8)',
   },
-  workoutGradient: {
-    padding: 24,
-    minHeight: 180,
-  },
-  workoutContent: {
-    padding: 24,
-    minHeight: 180,
-  },
-  sectionLabel: {
-    fontSize: 12,
+  ringDetailsText: {
+    fontSize: 14,
     fontWeight: '600',
-    color: COLORS.primary,
-    letterSpacing: 0.5,
-    marginBottom: 8,
+    color: COLORS.text,
   },
-  workoutHeader: {
+  section: {
+    paddingHorizontal: 16,
+    marginTop: 24,
+  },
+  sectionHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: 18,
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  todayWorkoutCard: {
+    marginTop: 12,
+    borderRadius: 20,
+    overflow: 'hidden',
+    ...CARD_SHADOW,
+  },
+  workoutGradient: {
+    padding: 20,
+  },
+  workoutCardContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 16,
+  },
+  workoutIconContainer: {
+    width: 56,
+    height: 56,
+    borderRadius: 16,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  workoutInfo: {
+    flex: 1,
   },
   workoutTitle: {
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: '700',
-    color: COLORS.text,
-    marginBottom: 6,
+    color: COLORS.white,
+    marginBottom: 4,
   },
-  workoutMeta: {
-    fontSize: 14,
-    color: COLORS.mediumGray,
-    fontWeight: '500',
-    marginBottom: 8,
+  workoutSubtitle: {
+    fontSize: 13,
+    color: COLORS.white,
+    opacity: 0.9,
+    marginBottom: 6,
   },
   workoutDescription: {
     fontSize: 13,
-    color: COLORS.mediumGray,
+    color: COLORS.white,
+    opacity: 0.8,
     lineHeight: 18,
-    marginTop: 4,
   },
-  workoutBadge: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-    backgroundColor: COLORS.white,
+  startButtonSmall: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: 'rgba(255, 255, 255, 0.3)',
     justifyContent: 'center',
     alignItems: 'center',
   },
-  startButton: {
-    borderRadius: 14,
+  activityScrollContainer: {
+    paddingRight: 16,
+  },
+  activityCard: {
+    width: SCREEN_WIDTH * 0.4,
+    marginRight: 12,
+    borderRadius: 16,
     overflow: 'hidden',
+    ...CARD_SHADOW,
   },
-  startGradient: {
-    flexDirection: 'row',
-    alignItems: 'center',
+  activityGradient: {
+    padding: 20,
+    minHeight: 140,
     justifyContent: 'center',
-    paddingVertical: 14,
-    gap: 8,
+    alignItems: 'flex-start',
   },
-  startText: {
+  activityTitle: {
     fontSize: 16,
     fontWeight: '700',
     color: COLORS.white,
-  },
-  activityScroll: {
-    paddingRight: 20,
-    gap: 8,
-    paddingBottom: 4,
-  },
-  activityCardWrapper: {
-    width: SCREEN_WIDTH * 0.38,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.25,
-    shadowRadius: 14,
-    elevation: 6,
-  },
-  activityCard: {
-    borderRadius: 18,
-    padding: 16,
-    height: 110,
-    justifyContent: 'space-between',
-  },
-  activityTitle: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: COLORS.white,
-    marginBottom: 4,
-    marginTop: 4,
+    marginTop: 12,
   },
   activitySubtitle: {
-    fontSize: 11,
-    color: COLORS.white,
-    fontWeight: '500',
-    opacity: 0.95,
-  },
-  pbGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 10,
-  },
-  pbCard: {
-    width: (SCREEN_WIDTH - 50) / 2,
-    borderRadius: 18,
-    padding: 16,
-  },
-  pbIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 10,
-  },
-  pbName: {
     fontSize: 13,
-    fontWeight: '600',
-    color: COLORS.text,
-    marginBottom: 4,
-  },
-  pbWeight: {
-    fontSize: 18,
-    fontWeight: '700',
+    color: COLORS.white,
+    opacity: 0.9,
+    marginTop: 4,
   },
   nutritionCard: {
-    borderRadius: 20,
+    marginTop: 12,
+    borderRadius: 16,
     overflow: 'hidden',
-    shadowColor: '#00C853',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.3,
-    shadowRadius: 14,
-    elevation: 6,
+    ...CARD_SHADOW,
   },
   nutritionGradient: {
-    padding: 20,
+    padding: 16,
   },
-  nutritionRow: {
+  nutritionContent: {
     flexDirection: 'row',
-    justifyContent: 'space-around',
-    marginBottom: 12,
+    alignItems: 'center',
+    gap: 16,
   },
-  nutritionStat: {
+  nutritionIconContainer: {
+    width: 48,
+    height: 48,
+    borderRadius: 12,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    justifyContent: 'center',
     alignItems: 'center',
   },
-  nutritionValue: {
-    fontSize: 24,
+  nutritionInfo: {
+    flex: 1,
+  },
+  nutritionTitle: {
+    fontSize: 18,
     fontWeight: '700',
     color: COLORS.white,
-    marginBottom: 4,
+    marginBottom: 2,
   },
-  nutritionLabel: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: COLORS.white,
-    opacity: 0.95,
-  },
-  nutritionDivider: {
-    width: 1,
-    backgroundColor: 'rgba(255, 255, 255, 0.3)',
-  },
-  nutritionSubtext: {
+  nutritionSubtitle: {
     fontSize: 13,
     color: COLORS.white,
-    textAlign: 'center',
     opacity: 0.9,
+  },
+  personalBestsGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 12,
+    marginTop: 12,
+  },
+  personalBestCard: {
+    width: (SCREEN_WIDTH - 44) / 2,
+    backgroundColor: COLORS.white,
+    padding: 16,
+    borderRadius: 16,
+    alignItems: 'center',
+    ...CARD_SHADOW,
+  },
+  personalBestExercise: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: COLORS.text,
+    marginTop: 8,
+    marginBottom: 4,
+    textAlign: 'center',
+  },
+  personalBestValue: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: COLORS.gradientStart,
+  },
+  emptyState: {
+    alignItems: 'center',
+    paddingVertical: 32,
+  },
+  emptyStateText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: COLORS.text,
+    marginTop: 12,
+  },
+  emptyStateSubtext: {
+    fontSize: 13,
+    color: COLORS.mediumGray,
+    marginTop: 4,
   },
 });
