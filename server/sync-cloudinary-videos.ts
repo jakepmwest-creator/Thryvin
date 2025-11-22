@@ -47,7 +47,7 @@ async function fetchAllCloudinaryVideos(): Promise<CloudinaryResource[]> {
       const result = await cloudinary.api.resources({
         type: 'upload',
         resource_type: 'video',
-        prefix: process.env.CLOUDINARY_FOLDER || 'Workout-Vids',
+        // Don't use prefix - get ALL videos
         max_results: 500,
         next_cursor: nextCursor,
       });
