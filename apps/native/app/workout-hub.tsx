@@ -866,6 +866,34 @@ const styles = StyleSheet.create({
     color: COLORS.text,
     marginBottom: 8,
   },
+  weightLabelRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 6,
+  },
+  unitSwitcher: {
+    flexDirection: 'row',
+    backgroundColor: COLORS.lightGray,
+    borderRadius: 8,
+    padding: 2,
+  },
+  unitButton: {
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    borderRadius: 6,
+  },
+  unitButtonActive: {
+    backgroundColor: COLORS.gradientStart,
+  },
+  unitText: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: COLORS.mediumGray,
+  },
+  unitTextActive: {
+    color: COLORS.white,
+  },
   input: {
     height: 50,
     borderWidth: 2,
