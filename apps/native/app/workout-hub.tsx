@@ -450,6 +450,52 @@ export default function WorkoutHubScreen() {
 
         <View style={{ height: 100 }} />
       </ScrollView>
+
+      {/* Celebration Modal */}
+      <Modal
+        visible={showCelebration}
+        transparent
+        animationType="fade"
+      >
+        <View style={styles.celebrationOverlay}>
+          <ConfettiCannon
+            ref={confettiRef}
+            count={200}
+            origin={{ x: SCREEN_WIDTH / 2, y: -10 }}
+            autoStart={false}
+            fadeOut
+          />
+          <Animated.View style={styles.celebrationCard}>
+            <LinearGradient
+              colors={[COLORS.gradientStart, COLORS.gradientEnd]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={styles.celebrationGradient}
+            >
+              <View style={styles.celebrationIcon}>
+                <Ionicons name="trophy" size={64} color={COLORS.white} />
+              </View>
+              <Text style={styles.celebrationTitle}>Workout Complete! 🎉</Text>
+              <Text style={styles.celebrationSubtitle}>
+                Amazing work! You crushed it today!
+              </Text>
+              <View style={styles.celebrationStats}>
+                <View style={styles.celebrationStat}>
+                  <Text style={styles.celebrationStatValue}>{exercises.length}</Text>
+                  <Text style={styles.celebrationStatLabel}>Exercises</Text>
+                </View>
+                <View style={styles.celebrationStat}>
+                  <Text style={styles.celebrationStatValue}>{currentWorkout?.duration || 45}</Text>
+                  <Text style={styles.celebrationStatLabel}>Minutes</Text>
+                </View>
+                <View style={styles.celebrationStat}>
+                  <Text style={styles.celebrationStatValue}>{completedCount}</Text>
+                  <Text style={styles.celebrationStatLabel}>Completed</Text>
+                </View>
+              </View>
+            </LinearGradient>\n          </Animated.View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
