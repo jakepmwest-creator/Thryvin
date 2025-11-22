@@ -10,8 +10,9 @@ import sys
 import time
 from typing import Dict, List, Any, Optional
 
-# Configuration
-BASE_URL = "http://localhost:5000"
+# Configuration - Use environment variable or default to localhost
+import os
+BASE_URL = os.environ.get('EXPO_PUBLIC_API_URL', 'http://localhost:5000')
 API_BASE = f"{BASE_URL}/api"
 
 # Test credentials

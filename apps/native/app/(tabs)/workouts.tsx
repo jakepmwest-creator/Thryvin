@@ -80,8 +80,8 @@ export default function WorkoutsScreen() {
 
   const handleStartWorkout = () => {
     setModalVisible(false);
-    // Navigate to workout session screen
-    router.push('/workout-session');
+    // Navigate to workout hub screen
+    router.push('/workout-hub');
   };
 
   const handleDayPress = (date: number) => {
@@ -92,9 +92,9 @@ export default function WorkoutsScreen() {
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'completed': return COLORS.success;
-      case 'upcoming': return COLORS.accent;
-      case 'incomplete': return COLORS.incomplete;
-      case 'today': return COLORS.accentSecondary;
+      case 'upcoming': return COLORS.gradientStart;
+      case 'incomplete': return EXTRA_COLORS.incomplete;
+      case 'today': return COLORS.gradientEnd;
       default: return COLORS.mediumGray;
     }
   };

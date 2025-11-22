@@ -168,6 +168,40 @@ export default function WorkoutHubScreen() {
     );
   };
 
+  // Safety check: if no workout, show message
+  if (!currentWorkout || exercises.length === 0) {
+    return (
+      <SafeAreaView style={styles.container} edges={['top']}>
+        <View style={styles.header}>
+          <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
+            <Ionicons name="close" size={28} color={COLORS.text} />
+          </TouchableOpacity>
+          <View style={styles.headerCenter}>
+            <Text style={styles.headerTitle}>Workout Hub</Text>
+          </View>
+          <View style={styles.finishButton} />
+        </View>
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20 }}>
+          <Ionicons name="barbell-outline" size={64} color={COLORS.mediumGray} />
+          <Text style={{ fontSize: 18, fontWeight: '600', color: COLORS.text, marginTop: 16 }}>
+            No Workout Available
+          </Text>
+          <Text style={{ fontSize: 14, color: COLORS.mediumGray, marginTop: 8, textAlign: 'center' }}>
+            Please select a workout from the Home or Workouts tab to begin.
+          </Text>
+          <TouchableOpacity 
+            style={{ marginTop: 24, backgroundColor: COLORS.lightGray, paddingHorizontal: 24, paddingVertical: 12, borderRadius: 12 }}
+            onPress={() => router.back()}
+          >
+            <Text style={{ fontSize: 16, fontWeight: '600', color: COLORS.gradientStart }}>
+              Go Back
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       {/* Header */}

@@ -21,13 +21,13 @@ import { useWorkoutStore } from '../stores/workout-store';
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 const COLORS = {
-  accent: '#a259ff',
-  accentSecondary: '#3a86ff',
+  gradientStart: '#A22BF6', // Purple
+  gradientEnd: '#FF4EC7', // Hot Pink
   white: '#ffffff',
   text: '#222222',
   lightGray: '#F8F9FA',
   mediumGray: '#8E8E93',
-  shadow: 'rgba(162, 89, 255, 0.1)',
+  shadow: 'rgba(162, 43, 246, 0.1)',
   success: '#34C759',
 };
 
@@ -366,7 +366,7 @@ export function WorkoutDetailsModal({
           >
             <View style={styles.dateNav}>
               <TouchableOpacity style={styles.navButton} onPress={handlePreviousDay}>
-                <Ionicons name="chevron-back" size={24} color={COLORS.accent} />
+                <Ionicons name="chevron-back" size={24} color={COLORS.gradientStart} />
               </TouchableOpacity>
               
               <View style={styles.dateContainer}>
@@ -375,32 +375,32 @@ export function WorkoutDetailsModal({
               </View>
               
               <TouchableOpacity style={styles.navButton} onPress={handleNextDay}>
-                <Ionicons name="chevron-forward" size={24} color={COLORS.accent} />
+                <Ionicons name="chevron-forward" size={24} color={COLORS.gradientStart} />
               </TouchableOpacity>
             </View>
 
             <View style={styles.statsRow}>
               <View style={styles.statBox}>
-                <Ionicons name="time-outline" size={20} color={COLORS.accent} />
+                <Ionicons name="time-outline" size={20} color={COLORS.gradientStart} />
                 <Text style={styles.statValue}>{workoutDuration}</Text>
                 <Text style={styles.statLabel}>Duration</Text>
               </View>
 
               <View style={styles.statBox}>
-                <Ionicons name="list-outline" size={20} color={COLORS.accent} />
+                <Ionicons name="list-outline" size={20} color={COLORS.gradientStart} />
                 <Text style={styles.statValue}>{exerciseCount}</Text>
                 <Text style={styles.statLabel}>Exercises</Text>
               </View>
 
               <View style={styles.statBox}>
-                <Ionicons name="speedometer-outline" size={20} color={COLORS.accent} />
+                <Ionicons name="speedometer-outline" size={20} color={COLORS.gradientStart} />
                 <Text style={styles.statValue}>{workoutDifficulty}</Text>
                 <Text style={styles.statLabel}>Level</Text>
               </View>
 
               <View style={styles.circularStat}>
                 <LinearGradient
-                  colors={[COLORS.accent, COLORS.accentSecondary]}
+                  colors={[COLORS.gradientStart, COLORS.gradientEnd]}
                   style={styles.circularGradient}
                   start={{ x: 0, y: 0 }}
                   end={{ x: 1, y: 1 }}
@@ -422,7 +422,7 @@ export function WorkoutDetailsModal({
                 onPress={() => setOverviewExpanded(!overviewExpanded)}
               >
                 <View style={styles.dropdownHeader}>
-                  <Ionicons name="document-text-outline" size={22} color={COLORS.accent} />
+                  <Ionicons name="document-text-outline" size={22} color={COLORS.gradientStart} />
                   <Text style={styles.dropdownTitle}>Overview</Text>
                   <Ionicons 
                     name={overviewExpanded ? "chevron-up" : "chevron-down"} 
@@ -444,7 +444,7 @@ export function WorkoutDetailsModal({
                 onPress={() => setExercisesExpanded(!exercisesExpanded)}
               >
                 <View style={styles.dropdownHeader}>
-                  <Ionicons name="barbell-outline" size={22} color={COLORS.accent} />
+                  <Ionicons name="barbell-outline" size={22} color={COLORS.gradientStart} />
                   <Text style={styles.dropdownTitle}>All Exercises ({exerciseCount})</Text>
                   <Ionicons 
                     name={exercisesExpanded ? "chevron-up" : "chevron-down"} 
@@ -456,7 +456,7 @@ export function WorkoutDetailsModal({
                   <View style={styles.dropdownContent}>
                     {loadingVideos && (
                       <View style={styles.loadingContainer}>
-                        <ActivityIndicator size="small" color={COLORS.accent} />
+                        <ActivityIndicator size="small" color={COLORS.gradientStart} />
                         <Text style={styles.loadingText}>Loading videos...</Text>
                       </View>
                     )}
@@ -483,7 +483,7 @@ export function WorkoutDetailsModal({
                                   <Ionicons
                                     name="play-circle"
                                     size={20}
-                                    color={COLORS.accent}
+                                    color={COLORS.gradientStart}
                                   />
                                 )}
                               </View>
@@ -528,7 +528,7 @@ export function WorkoutDetailsModal({
                           {isExpanded && (
                             <View style={styles.setTrackingContainer}>
                               <View style={styles.setTrackingHeader}>
-                                <Ionicons name="checkmark-circle" size={22} color={COLORS.accent} />
+                                <Ionicons name="checkmark-circle" size={22} color={COLORS.gradientStart} />
                                 <Text style={styles.setTrackingTitle}>Track Your Sets</Text>
                               </View>
                               
@@ -594,7 +594,7 @@ export function WorkoutDetailsModal({
                                       <Ionicons 
                                         name={isCompleted ? "checkmark" : "checkmark-outline"} 
                                         size={18} 
-                                        color={isCompleted ? COLORS.white : COLORS.accent} 
+                                        color={isCompleted ? COLORS.white : COLORS.gradientStart} 
                                       />
                                     </TouchableOpacity>
                                   </View>
@@ -644,87 +644,20 @@ export function WorkoutDetailsModal({
 
             <View style={styles.actionButtons}>
               <TouchableOpacity style={styles.editButton}>
-                <Ionicons name="create-outline" size={20} color={COLORS.accent} />
+                <Ionicons name="create-outline" size={20} color={COLORS.gradientStart} />
                 <Text style={styles.editButtonText}>Edit Workout</Text>
               </TouchableOpacity>
 
               <TouchableOpacity 
                 style={styles.startButton}
-                onPress={async () => {
-                  // Check if any sets were completed
-                  let totalCompletedSets = 0;
-                  completedSets.forEach((sets) => {
-                    totalCompletedSets += sets.size;
-                  });
-                  
-                  if (totalCompletedSets === 0) {
-                    Alert.alert(
-                      'No Sets Completed',
-                      'You haven\'t logged any sets. Are you sure you want to mark this workout as complete?',
-                      [
-                        { text: 'Cancel', style: 'cancel' },
-                        {
-                          text: 'Mark Complete',
-                          onPress: () => onStartWorkout(),
-                        },
-                      ]
-                    );
-                    return;
-                  }
-                  
-                  try {
-                    // Build exercises array with set data
-                    const exercisesWithSets = exerciseList.map((exercise: any, index: number) => {
-                      const exerciseSetData = setData.get(index);
-                      const exerciseCompletedSets = completedSets.get(index);
-                      
-                      const sets = [];
-                      if (exerciseSetData && exerciseCompletedSets) {
-                        exerciseCompletedSets.forEach((setIndex) => {
-                          const setInfo = exerciseSetData.get(setIndex);
-                          if (setInfo) {
-                            sets.push({
-                              setNumber: setIndex + 1,
-                              weight: parseFloat(setInfo.weight) || 0,
-                              reps: parseInt(setInfo.reps) || 0,
-                              feeling: setInfo.feeling || 'Good',
-                            });
-                          }
-                        });
-                      }
-                      
-                      return {
-                        ...exercise,
-                        completedSets: sets,
-                      };
-                    });
-                    
-                    // Save workout
-                    if (currentWorkout?.id) {
-                      await completeWorkout(currentWorkout.id, exercisesWithSets);
-                      
-                      Alert.alert(
-                        'Workout Complete! 🎉',
-                        `Great job! You completed ${totalCompletedSets} sets.`,
-                        [
-                          {
-                            text: 'Done',
-                            onPress: () => {
-                              onClose();
-                              onStartWorkout();
-                            },
-                          },
-                        ]
-                      );
-                    }
-                  } catch (error) {
-                    console.error('Error saving workout:', error);
-                    Alert.alert('Error', 'Failed to save workout. Please try again.');
-                  }
+                onPress={() => {
+                  // Close modal and navigate to workout hub
+                  onClose();
+                  onStartWorkout();
                 }}
               >
                 <LinearGradient
-                  colors={[COLORS.accent, COLORS.accentSecondary]}
+                  colors={[COLORS.gradientStart, COLORS.gradientEnd]}
                   style={styles.startGradient}
                   start={{ x: 0, y: 0 }}
                   end={{ x: 1, y: 1 }}
@@ -907,8 +840,8 @@ const styles = StyleSheet.create({
     width: 28,
     height: 28,
     borderRadius: 14,
-    backgroundColor: `${COLORS.accent}20`,
-    color: COLORS.accent,
+    backgroundColor: `${COLORS.gradientStart}20`,
+    color: COLORS.gradientStart,
     fontSize: 14,
     fontWeight: '600',
     textAlign: 'center',
@@ -968,14 +901,14 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
     borderRadius: 16,
     borderWidth: 2,
-    borderColor: COLORS.accent,
+    borderColor: COLORS.gradientStart,
     backgroundColor: COLORS.white,
     gap: 8,
   },
   editButtonText: {
     fontSize: 15,
     fontWeight: '600',
-    color: COLORS.accent,
+    color: COLORS.gradientStart,
   },
   startButton: {
     flex: 1,
@@ -1000,7 +933,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.white,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: `${COLORS.accent}20`,
+    borderColor: `${COLORS.gradientStart}20`,
   },
   setTrackingHeader: {
     flexDirection: 'row',
@@ -1023,14 +956,14 @@ const styles = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: `${COLORS.accent}15`,
+    backgroundColor: `${COLORS.gradientStart}15`,
     justifyContent: 'center',
     alignItems: 'center',
   },
   setNumberText: {
     fontSize: 14,
     fontWeight: '600',
-    color: COLORS.accent,
+    color: COLORS.gradientStart,
   },
   setInput: {
     flex: 1,
@@ -1047,11 +980,11 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: `${COLORS.accent}15`,
+    backgroundColor: `${COLORS.gradientStart}15`,
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: COLORS.accent,
+    borderColor: COLORS.gradientStart,
   },
   completeSetButtonDone: {
     backgroundColor: COLORS.success,
@@ -1084,8 +1017,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   feelingButtonSelected: {
-    backgroundColor: COLORS.accent,
-    borderColor: COLORS.accent,
+    backgroundColor: COLORS.gradientStart,
+    borderColor: COLORS.gradientStart,
   },
   feelingButtonText: {
     fontSize: 13,
