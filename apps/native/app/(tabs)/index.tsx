@@ -570,28 +570,28 @@ const styles = StyleSheet.create({
   activityScrollContainer: {
     paddingRight: 16,
   },
-  // LARGER activity cards
+  // Activity cards - smaller size
   activityCard: {
-    width: SCREEN_WIDTH * 0.65,
+    width: SCREEN_WIDTH * 0.42,
     marginRight: 12,
     borderRadius: 16,
     overflow: 'hidden',
     ...CARD_SHADOW,
   },
   activityGradient: {
-    padding: 24,
-    minHeight: 160,
+    padding: 20,
+    minHeight: 140,
     justifyContent: 'center',
     alignItems: 'flex-start',
   },
   activityTitle: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: '700',
     color: COLORS.white,
     marginTop: 12,
   },
   activitySubtitle: {
-    fontSize: 14,
+    fontSize: 13,
     color: COLORS.white,
     opacity: 0.9,
     marginTop: 4,
