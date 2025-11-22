@@ -1,8 +1,8 @@
 import 'dotenv/config';
 import { v2 as cloudinary } from 'cloudinary';
 import { db } from './db';
-import { exercises } from './db/schema';
-import { eq, sql } from 'drizzle-orm';
+import { exercises } from '../shared/schema';
+import { eq } from 'drizzle-orm';
 
 // Configure Cloudinary
 cloudinary.config({
