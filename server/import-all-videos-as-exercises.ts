@@ -126,9 +126,10 @@ async function importAllVideos() {
   // Get existing exercises to avoid duplicates
   console.log('🔍 Checking existing exercises...');
   const existingExercises = await db
-    .select({ slug: exercises.slug })
+    .select({ slug: exercises.slug, name: exercises.name })
     .from(exercises);
   const existingSlugs = new Set(existingExercises.map(e => e.slug));
+  const existingNames = new Set(existingExercises.map(e => e.name.toLowerCase()));
   console.log(`  Found ${existingSlugs.size} existing exercises\n`);
   
   // Process videos
