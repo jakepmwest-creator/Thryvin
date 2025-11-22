@@ -18,8 +18,9 @@ import { useRouter } from 'expo-router';
 import { ExerciseVideoPlayer } from '../src/components/ExerciseVideoPlayer';
 import { useWorkoutStore } from '../src/stores/workout-store';
 import { COLORS } from '../src/constants/colors';
+import ConfettiCannon from 'react-native-confetti-cannon';
 
-const { width: SCREEN_WIDTH } = Dimensions.get('window');
+const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 type TabType = 'warmup' | 'workout' | 'recovery';
 
