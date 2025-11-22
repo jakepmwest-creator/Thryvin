@@ -1301,6 +1301,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // AI Workout Generation
+  app.post("/api/workouts/generate", async (req, res) => {
+    try {
+      const { userProfile, dayOfWeek } = req.body;
+      
+      if (!userProfile) {
+        return res.status(400).json({ error: 'User profile is required' });
+      }
+      
+      // Import the AI generator
+      const { generateAIWorkout } = await import('./ai-workout-generator');
+      
+      console.log('Generating AI workout for:', userProfile);
+      
+      const workout = await generateAIWorkout(userProfile, dayOfWeek || 0);
+      
+      console.log('AI workout generated:', workout.title);
+      
+      res.json(workout);
+    } catch (error: any) {
+      console.error('AI workout generation error:', error);
+      res.status(500).json({ 
+        error: 'Failed to generate workout',
+        details: error.message 
+      });
+    }
+  });
+
+
   app.get("/api/user-stats/:userId", async (req, res) => {
     try {
       const userId = parseInt(req.params.userId);
