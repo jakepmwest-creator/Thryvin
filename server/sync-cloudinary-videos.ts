@@ -24,16 +24,25 @@ function normalizeExerciseName(name: string): string {
   return name
     .toLowerCase()
     .replace(/[^a-z0-9\s]/g, '') // Remove special chars
-    .replace(/\s+/g, '_') // Replace spaces with underscores
+    .replace(/\s+/g, '') // Remove all spaces
     .trim();
 }
 
 // Extract exercise name from Cloudinary public_id
 function extractExerciseName(publicId: string): string {
-  // Example: "Workout-Vids/Chest/Bench_Press" -> "bench_press"
+  // Example: "Wrist_Extensor_Stretch_female_hk2rqb" -> "wristextensorstretch"
+  // Remove folder paths
   const parts = publicId.split('/');
   const fileName = parts[parts.length - 1];
-  return normalizeExerciseName(fileName);
+  
+  // Remove file extension and random IDs at the end
+  // Pattern: word_word_randomid or word_word_female/male_randomid
+  let cleanName = fileName
+    .replace(/_(female|male)_[a-z0-9]+$/i, '') // Remove gender and ID
+    .replace(/_[a-z0-9]{6,8}$/i, '') // Remove random ID at end
+    .replace(/\d{8,}$/i, ''); // Remove long numbers at end
+  
+  return normalizeExerciseName(cleanName);
 }
 
 async function fetchAllCloudinaryVideos(): Promise<CloudinaryResource[]> {
