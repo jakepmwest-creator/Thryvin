@@ -398,7 +398,23 @@ export default function WorkoutHubScreen() {
 
                           <View style={styles.inputRow}>
                             <View style={styles.inputWrapper}>
-                              <Text style={styles.inputLabel}>Weight (lbs)</Text>
+                              <View style={styles.weightLabelRow}>
+                                <Text style={styles.inputLabel}>Weight</Text>
+                                <View style={styles.unitSwitcher}>
+                                  <TouchableOpacity
+                                    style={[styles.unitButton, weightUnit === 'lbs' && styles.unitButtonActive]}
+                                    onPress={() => setWeightUnit('lbs')}
+                                  >
+                                    <Text style={[styles.unitText, weightUnit === 'lbs' && styles.unitTextActive]}>lbs</Text>
+                                  </TouchableOpacity>
+                                  <TouchableOpacity
+                                    style={[styles.unitButton, weightUnit === 'kg' && styles.unitButtonActive]}
+                                    onPress={() => setWeightUnit('kg')}
+                                  >
+                                    <Text style={[styles.unitText, weightUnit === 'kg' && styles.unitTextActive]}>kg</Text>
+                                  </TouchableOpacity>
+                                </View>
+                              </View>
                               <TextInput
                                 style={styles.input}
                                 placeholder="0"
