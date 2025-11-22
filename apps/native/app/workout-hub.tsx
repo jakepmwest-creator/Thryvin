@@ -43,6 +43,7 @@ export default function WorkoutHubScreen() {
   const [setNotes, setSetNotes] = useState('');
   const [showTips, setShowTips] = useState(false);
   const [showCelebration, setShowCelebration] = useState(false);
+  const [weightUnit, setWeightUnit] = useState<'lbs' | 'kg'>('lbs');
   
   const scrollX = useRef(new Animated.Value(0)).current;
 
