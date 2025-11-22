@@ -771,6 +771,43 @@ const styles = StyleSheet.create({
     color: COLORS.mediumGray,
     textAlign: 'center',
   },
+  tipsContainer: {
+    marginTop: 12,
+    padding: 16,
+    backgroundColor: COLORS.lightGray,
+    borderRadius: 12,
+  },
+  tipsHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 12,
+  },
+  tipsTitle: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: COLORS.text,
+  },
+  tipsText: {
+    fontSize: 13,
+    lineHeight: 20,
+    color: COLORS.text,
+  },
+  startWorkoutHint: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginTop: 12,
+    padding: 12,
+    backgroundColor: COLORS.white,
+    borderRadius: 8,
+  },
+  startWorkoutHintText: {
+    flex: 1,
+    fontSize: 12,
+    fontWeight: '600',
+    color: COLORS.gradientStart,
+  },
   actionButtons: {
     flexDirection: 'row',
     gap: 12,
