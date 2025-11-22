@@ -450,6 +450,17 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
     });
 
     session.exerciseData.set(exerciseIndex, exerciseData);
+    
+    // Check if exercise is complete (all sets done)
+    const workout = get().currentWorkout;
+    if (workout && workout.exercises[exerciseIndex]) {
+      const exercise = workout.exercises[exerciseIndex];
+      const targetSets = exercise.sets || 3;
+      if (exerciseData.completedSets.length >= targetSets) {
+        session.completedExercises.add(exerciseIndex);
+      }
+    }
+    
     set({ activeSession: { ...session } });
   },
 
