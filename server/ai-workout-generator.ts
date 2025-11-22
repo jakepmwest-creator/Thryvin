@@ -103,15 +103,16 @@ Day ${dayOfWeek + 1}/7. Design a balanced workout with warmup, main exercises, a
   // Step 3: Call AI
   console.log('  Calling GPT-5...');
   
-  const chat = new LlmChat({
-    api_key: EMERGENT_LLM_KEY,
-    session_id: `workout-${Date.now()}`,
-    system_message: systemMessage,
-  }).with_model('openai', 'gpt-5');
+  const completion = await openai.chat.completions.create({
+    model: 'gpt-5',
+    messages: [
+      { role: 'system', content: systemMessage },
+      { role: 'user', content: userMessage },
+    ],
+    temperature: 0.7,
+  });
   
-  const aiResponse = await chat.send_message(
-    new UserMessage({ text: userMessage })
-  );
+  const aiResponse = completion.choices[0].message.content || '';
   
   // Step 4: Parse JSON
   let workoutPlan: any;
