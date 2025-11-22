@@ -19,7 +19,7 @@ import { WorkoutDetailsModal } from '../../src/components/WorkoutDetailsModal';
 import { PersonalBestChart } from '../../src/components/PersonalBestChart';
 import { useWorkoutStore } from '../../src/stores/workout-store';
 import { useAuthStore } from '../../src/stores/auth-store';
-import Svg, { Circle } from 'react-native-svg';
+import Svg, { Circle, Defs, LinearGradient as SvgLinearGradient, Stop } from 'react-native-svg';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
