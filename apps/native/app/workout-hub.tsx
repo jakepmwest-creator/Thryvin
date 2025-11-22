@@ -493,7 +493,8 @@ export default function WorkoutHubScreen() {
                   <Text style={styles.celebrationStatLabel}>Completed</Text>
                 </View>
               </View>
-            </LinearGradient>          </Animated.View>
+            </LinearGradient>
+          </Animated.View>
         </View>
       </Modal>
     </SafeAreaView>
