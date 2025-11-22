@@ -239,8 +239,9 @@ export default function AwardsScreen() {
     setSelectedCategory(categoryId);
   };
 
-  return (\n    <SafeAreaView style={styles.container} edges={['top']}>
-      <AppHeader title=\"Awards & Achievements\" showProfile />
+  return (
+    <SafeAreaView style={styles.container} edges={['top']}>
+      <AppHeader title="Awards & Achievements" showProfile />
       
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
         {/* Stats Banner */}
