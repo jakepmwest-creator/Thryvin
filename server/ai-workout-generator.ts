@@ -2,11 +2,14 @@ import 'dotenv/config';
 import { db } from './db';
 import { exercises } from '../shared/schema';
 import { inArray } from 'drizzle-orm';
-
-// @ts-ignore
-import { LlmChat, UserMessage } from 'emergentintegrations/llm/chat';
+import OpenAI from 'openai';
 
 const EMERGENT_LLM_KEY = process.env.EMERGENT_LLM_KEY || 'sk-emergent-d5e1f232821660fBdD';
+
+const openai = new OpenAI({
+  apiKey: EMERGENT_LLM_KEY,
+  baseURL: 'https://llm.emergent.systems/v1',
+});
 
 interface UserProfile {
   fitnessGoals?: string[];
