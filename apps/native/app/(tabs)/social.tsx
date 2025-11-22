@@ -20,8 +20,8 @@ import { AppHeader } from '../../src/components/AppHeader';
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 const COLORS = {
-  accent: '#a259ff',
-  accentSecondary: '#3a86ff',
+  accent: '#A22BF6',
+  accentSecondary: '#FF4EC7',
   white: '#ffffff',
   text: '#222222',
   lightGray: '#F8F9FA',
