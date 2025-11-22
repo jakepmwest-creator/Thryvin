@@ -522,6 +522,13 @@ function generateExercises(user: any, dayIndex: number = 0): Exercise[] {
   
   const exercises: Exercise[] = [];
   
+  // Always add warm-up exercises first (dynamic movements)
+  exercises.push(
+    { id: 'warmup-1', name: 'Arm Circles', sets: 2, reps: '30 sec', restTime: 15 },
+    { id: 'warmup-2', name: 'Leg Swings', sets: 2, reps: '20 each', restTime: 15 },
+  );
+  
+  // Main workout exercises
   if (workoutType === 'upper') {
     exercises.push(
       { id: '1', name: 'Bench Press', sets: 4, reps: '8-10', restTime: 90 },
@@ -548,10 +555,16 @@ function generateExercises(user: any, dayIndex: number = 0): Exercise[] {
     exercises.push(
       { id: '1', name: 'Push-ups', sets: 4, reps: '12-15', restTime: 60 },
       { id: '2', name: 'Pull-ups', sets: 4, reps: '6-8', restTime: 90 },
-      { id: '3', name: 'Squats', sets: 4, reps: '15-20', restTime: 60 },
+      { id: '3', name: 'Bodyweight Squats', sets: 4, reps: '15-20', restTime: 60 },
       { id: '4', name: 'Plank', sets: 3, reps: '60 sec', duration: 60, restTime: 45 },
     );
   }
+  
+  // Always add recovery exercises last (static stretches)
+  exercises.push(
+    { id: 'recovery-1', name: 'Hamstring Stretch', sets: 1, reps: '60 sec', restTime: 0 },
+    { id: 'recovery-2', name: 'Quad Stretch', sets: 1, reps: '60 sec', restTime: 0 },
+  );
   
   return exercises;
 }
