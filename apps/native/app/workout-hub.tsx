@@ -493,7 +493,7 @@ export default function WorkoutHubScreen() {
                   <Text style={styles.celebrationStatLabel}>Completed</Text>
                 </View>
               </View>
-            </LinearGradient>\n          </Animated.View>
+            </LinearGradient>          </Animated.View>
         </View>
       </Modal>
     </SafeAreaView>
@@ -843,7 +843,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255, 255, 255, 0.2)',
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 24,\n  },
+    marginBottom: 24,  },
   celebrationTitle: {
     fontSize: 32,
     fontWeight: '800',
