@@ -860,6 +860,65 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: COLORS.text,
   },
+  // Effort Rating
+  effortSection: {
+    marginTop: 16,
+  },
+  ratingRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    gap: 8,
+    marginTop: 8,
+  },
+  ratingButton: {
+    flex: 1,
+    height: 48,
+    borderRadius: 12,
+    backgroundColor: COLORS.lightGray,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: 'transparent',
+  },
+  ratingButtonActive: {
+    backgroundColor: COLORS.gradientStart,
+    borderColor: COLORS.gradientStart,
+  },
+  ratingText: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: COLORS.mediumGray,
+  },
+  ratingTextActive: {
+    color: COLORS.white,
+  },
+  ratingLabels: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 8,
+  },
+  ratingLabelText: {
+    fontSize: 11,
+    color: COLORS.mediumGray,
+    fontWeight: '600',
+  },
+  // Notes Section
+  notesSection: {
+    marginTop: 16,
+  },
+  notesInput: {
+    marginTop: 8,
+    minHeight: 60,
+    borderWidth: 2,
+    borderColor: COLORS.lightGray,
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    fontSize: 14,
+    color: COLORS.text,
+    backgroundColor: COLORS.lightGray,
+    textAlignVertical: 'top',
+  },
   // Celebration Modal
   celebrationOverlay: {
     flex: 1,
