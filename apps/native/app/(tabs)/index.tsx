@@ -76,12 +76,12 @@ const ProgressRing = ({ label, progress, colors, size = 70, onPress }: any) => {
             rotation="-90"
             origin={`${size / 2}, ${size / 2}`}
           />
-          <defs>
-            <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stopColor={colors[0]} />
-              <stop offset="100%" stopColor={colors[1]} />
-            </linearGradient>
-          </defs>
+          <Defs>
+            <SvgLinearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
+              <Stop offset="0%" stopColor={colors[0]} />
+              <Stop offset="100%" stopColor={colors[1]} />
+            </SvgLinearGradient>
+          </Defs>
         </Svg>
         <View style={[styles.ringCenter, { width: size, height: size }]}>
           <Text style={[styles.ringPercentage, { fontSize: size > 80 ? 20 : 16 }]}>
