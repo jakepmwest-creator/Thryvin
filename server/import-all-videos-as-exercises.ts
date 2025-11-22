@@ -142,13 +142,30 @@ async function importAllVideos() {
   
   for (const video of allVideos) {
     const name = cleanExerciseName(video.public_id);
-    const slug = createSlug(name);
     
     // Skip if name is too short or looks like garbage
     if (name.length < 3 || /^\d+$/.test(name)) {
       skipped++;
       continue;
     }
+    
+    // Skip if we already have this exact name
+    if (existingNames.has(name.toLowerCase())) {
+      skipped++;
+      continue;
+    }
+    
+    let slug = createSlug(name);
+    let slugAttempt = 1;
+    
+    // Handle duplicate slugs by adding numbers
+    while (existingSlugs.has(slug)) {
+      slug = `${createSlug(name)}-${slugAttempt}`;
+      slugAttempt++;
+    }
+    
+    existingSlugs.add(slug);
+    existingNames.add(name.toLowerCase());
     
     const { bodyPart, category, muscleGroups, difficulty } = categorizeExercise(name);
     
@@ -167,7 +184,7 @@ async function importAllVideos() {
       safetyNotes: 'Warm up properly before attempting this exercise',
     };
     
-    if (existingSlugs.has(slug)) {
+    if (false) { // Never enter this block now - we skip duplicates above
       // Update existing exercise with video URL if it doesn't have one
       const existing = await db
         .select({ id: exercises.id, videoUrl: exercises.videoUrl })
