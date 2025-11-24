@@ -227,6 +227,10 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
         exerciseList: aiWorkout.exercises, // For compatibility
       };
       
+      // Cache the workout
+      await setStorageItem('today_workout', JSON.stringify(workout));
+      await setStorageItem('today_workout_date', today);
+      
       set({ todayWorkout: workout, currentWorkout: workout, isLoading: false });
       console.log('✅ [WORKOUT] Store updated with:', workout.title, workout.exercises.length, 'exercises');
     } catch (error) {
