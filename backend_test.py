@@ -564,6 +564,7 @@ class AIWorkoutTester:
             self.test_profile_with_injuries,
             self.test_different_days_of_week,
             self.test_video_urls_validation,
+            self.test_response_time,
             self.test_error_handling,
         ]
         
