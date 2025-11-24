@@ -27,16 +27,35 @@ const EXTRA_COLORS = {
   incomplete: '#D1D1D6',
 };
 
-// Mock calendar data with workout status
-const WEEK_DAYS = [
-  { day: 'Mon', date: 21, status: 'completed' },
-  { day: 'Tue', date: 22, status: 'completed' },
-  { day: 'Wed', date: 23, status: 'today' },
-  { day: 'Thu', date: 24, status: 'upcoming' },
-  { day: 'Fri', date: 25, status: 'upcoming' },
-  { day: 'Sat', date: 26, status: 'upcoming' },
-  { day: 'Sun', date: 27, status: 'upcoming' },
-];
+// Generate current week dates dynamically
+const getCurrentWeekDays = () => {
+  const today = new Date();
+  const currentDay = today.getDay(); // 0 = Sunday, 1 = Monday
+  const mondayOffset = currentDay === 0 ? -6 : 1 - currentDay; // Get to Monday
+  
+  const weekDays = [];
+  const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+  
+  for (let i = 0; i < 7; i++) {
+    const date = new Date(today);
+    date.setDate(today.getDate() + mondayOffset + i);
+    
+    const dayIndex = date.getDay();
+    const isToday = date.toDateString() === today.toDateString();
+    const isPast = date < today && !isToday;
+    
+    weekDays.push({
+      day: dayNames[dayIndex],
+      date: date.getDate(),
+      fullDate: date,
+      status: isPast ? 'completed' : isToday ? 'today' : 'upcoming'
+    });
+  }
+  
+  return weekDays;
+};
+
+const WEEK_DAYS = getCurrentWeekDays();
 
 // Mock month data (October 2024)
 const MONTH_DATA = [
