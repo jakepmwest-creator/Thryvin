@@ -101,7 +101,7 @@ Day ${dayOfWeek + 1}/7. Design a balanced workout with warmup, main exercises, a
   console.log('  Calling GPT-5...');
   
   const completion = await openai.chat.completions.create({
-    model: 'gpt-5',
+    model: 'gpt-4o',
     messages: [
       { role: 'system', content: systemMessage },
       { role: 'user', content: userMessage },
