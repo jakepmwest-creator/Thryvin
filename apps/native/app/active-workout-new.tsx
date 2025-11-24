@@ -16,7 +16,7 @@ import { useRouter, useLocalSearchParams } from 'expo-router';
 import { ExerciseVideoPlayer } from '../src/components/ExerciseVideoPlayer';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
-const API_URL = 'https://gymbuddy-ai-8.preview.emergentagent.com';
+const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL || 'https://28d88a1d-a878-4deb-9ffc-532c0d6fbf3a.preview.emergentagent.com';
 
 const COLORS = {
   accent: '#a259ff',

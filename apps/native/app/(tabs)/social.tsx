@@ -28,7 +28,7 @@ const COLORS = {
   mediumGray: '#8E8E93',
 };
 
-const API_URL = 'http://localhost:5000/api';
+const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL || 'https://28d88a1d-a878-4deb-9ffc-532c0d6fbf3a.preview.emergentagent.com';
 
 // BeReal-style reactions
 const REACTION_TYPES = [
@@ -84,7 +84,7 @@ export default function SocialScreen() {
 
   const loadPosts = async () => {
     try {
-      const response = await fetch(`${API_URL}/social/posts`);
+      const response = await fetch(`${API_BASE_URL}/api/social/posts`);
       if (response.ok) {
         const data = await response.json();
         setPosts(data);
@@ -99,7 +99,7 @@ export default function SocialScreen() {
 
   const loadCommunities = async () => {
     try {
-      const response = await fetch(`${API_URL}/social/communities`);
+      const response = await fetch(`${API_BASE_URL}/api/social/communities`);
       if (response.ok) {
         const data = await response.json();
         setCommunities(data);
@@ -147,11 +147,11 @@ export default function SocialScreen() {
       );
 
       if (post.userReaction === reactionType) {
-        await fetch(`${API_URL}/social/posts/${postId}/react`, {
+        await fetch(`${API_BASE_URL}/api/social/posts/${postId}/react`, {
           method: 'DELETE',
         });
       } else {
-        await fetch(`${API_URL}/social/posts/${postId}/react`, {
+        await fetch(`${API_BASE_URL}/api/social/posts/${postId}/react`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ reactionType }),
@@ -168,7 +168,7 @@ export default function SocialScreen() {
 
     setSubmitting(true);
     try {
-      const response = await fetch(`${API_URL}/social/posts`, {
+      const response = await fetch(`${API_BASE_URL}/api/social/posts`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ content: postContent }),
@@ -205,11 +205,11 @@ export default function SocialScreen() {
       );
 
       if (community.isMember) {
-        await fetch(`${API_URL}/social/communities/${communityId}/leave`, {
+        await fetch(`${API_BASE_URL}/api/social/communities/${communityId}/leave`, {
           method: 'DELETE',
         });
       } else {
-        await fetch(`${API_URL}/social/communities/${communityId}/join`, {
+        await fetch(`${API_BASE_URL}/api/social/communities/${communityId}/join`, {
           method: 'POST',
         });
       }

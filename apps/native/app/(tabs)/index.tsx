@@ -122,6 +122,8 @@ export default function HomeScreen() {
   };
 
   useEffect(() => {
+    console.log('📱 [HOME] App starting...');
+    console.log('📱 [HOME] EXPO_PUBLIC_API_BASE_URL:', process.env.EXPO_PUBLIC_API_BASE_URL);
     loadAllData();
   }, []);
 

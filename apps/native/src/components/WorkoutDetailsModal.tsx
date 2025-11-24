@@ -177,7 +177,7 @@ interface WorkoutDetailsModalProps {
   workout?: any; // The actual workout data from store
 }
 
-const API_URL = 'https://gymbuddy-ai-8.preview.emergentagent.com';
+const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL || 'https://28d88a1d-a878-4deb-9ffc-532c0d6fbf3a.preview.emergentagent.com';
 
 export function WorkoutDetailsModal({ 
   visible, 
@@ -193,7 +193,14 @@ export function WorkoutDetailsModal({
     return (date - baseDate) % 7;
   };
   
-  const initialDayIndex = getDayIndexFromDate(selectedDate);
+  // If we have a workout from the store, use today's day index, otherwise use selectedDate
+  const getTodayDayIndex = () => {
+    const today = new Date();
+    const dayOfWeek = today.getDay(); // 0 = Sunday, 1 = Monday
+    return dayOfWeek === 0 ? 6 : dayOfWeek - 1; // Convert to 0 = Monday
+  };
+  
+  const initialDayIndex = workout ? getTodayDayIndex() : getDayIndexFromDate(selectedDate);
   const [currentDayIndex, setCurrentDayIndex] = useState(initialDayIndex);
   const [overviewExpanded, setOverviewExpanded] = useState(false);
   const [exercisesExpanded, setExercisesExpanded] = useState(false);
@@ -212,10 +219,10 @@ export function WorkoutDetailsModal({
 
   React.useEffect(() => {
     if (visible) {
-      const newDayIndex = getDayIndexFromDate(selectedDate);
+      const newDayIndex = workout ? getTodayDayIndex() : getDayIndexFromDate(selectedDate);
       setCurrentDayIndex(newDayIndex);
     }
-  }, [visible, selectedDate]);
+  }, [visible, selectedDate, workout]);
 
   // Fetch exercise videos when exercises are expanded
   useEffect(() => {
@@ -236,7 +243,7 @@ export function WorkoutDetailsModal({
           }
           
           const response = await fetch(
-            `${API_URL}/api/exercises?names=${encodeURIComponent(exerciseNames)}`
+            `${API_BASE_URL}/api/exercises?names=${encodeURIComponent(exerciseNames)}`
           );
           
           if (response.ok) {

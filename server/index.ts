@@ -85,10 +85,9 @@ app.use((req, res, next) => {
     serveStatic(app);
   }
 
-  // ALWAYS serve the app on port 5000
-  // this serves both the API and the client.
-  // It is the only port that is not firewalled.
-  const port = 5000;
+  // Serve on port 8001 for Kubernetes ingress routing
+  // Kubernetes routes /api requests to port 8001
+  const port = 8001;
   server.listen(
     {
       port,

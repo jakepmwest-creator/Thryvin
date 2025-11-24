@@ -111,6 +111,7 @@ export default function LoginScreen() {
         name: 'Test User',
         // Random onboarding selections
         fitnessGoals: [['build-muscle', 'get-stronger', 'lose-weight', 'improve-endurance'][Math.floor(Math.random() * 4)]],
+        goal: ['build-muscle', 'get-stronger', 'lose-weight', 'improve-endurance'][Math.floor(Math.random() * 4)],
         experience: ['beginner', 'intermediate', 'advanced'][Math.floor(Math.random() * 3)],
         trainingType: ['Strength Training', 'Calisthenics', 'Bodybuilding', 'Powerlifting'][Math.floor(Math.random() * 4)],
         trainingDays: (Math.floor(Math.random() * 4) + 3).toString(), // 3-6 days
@@ -120,10 +121,22 @@ export default function LoginScreen() {
         preferredTime: ['morning', 'afternoon', 'evening'][Math.floor(Math.random() * 3)],
       };
 
-      // Save to SecureStore (this is what register does)
-      await SecureStore.setItemAsync('user_email', testAccount.email);
-      await SecureStore.setItemAsync('user_password', testAccount.password);
-      await SecureStore.setItemAsync('auth_user', JSON.stringify(testAccount));
+      // Web-compatible storage fallback
+      const setStorageItem = async (key: string, value: string) => {
+        try {
+          await SecureStore.setItemAsync(key, value);
+        } catch (error) {
+          // Fallback to localStorage for web
+          if (typeof window !== 'undefined') {
+            localStorage.setItem(key, value);
+          }
+        }
+      };
+
+      // Save to storage
+      await setStorageItem('user_email', testAccount.email);
+      await setStorageItem('user_password', testAccount.password);
+      await setStorageItem('auth_user', JSON.stringify(testAccount));
       
       console.log('Test account created with random selections:', testAccount);
       

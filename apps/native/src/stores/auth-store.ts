@@ -1,7 +1,42 @@
 import { create } from 'zustand';
 import * as SecureStore from 'expo-secure-store';
 
-const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL || '';
+const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL || 'https://28d88a1d-a878-4deb-9ffc-532c0d6fbf3a.preview.emergentagent.com';
+
+// Web-compatible storage helpers
+const getStorageItem = async (key: string): Promise<string | null> => {
+  try {
+    return await SecureStore.getItemAsync(key);
+  } catch (error) {
+    // Fallback to localStorage for web
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem(key);
+    }
+    return null;
+  }
+};
+
+const setStorageItem = async (key: string, value: string): Promise<void> => {
+  try {
+    await SecureStore.setItemAsync(key, value);
+  } catch (error) {
+    // Fallback to localStorage for web
+    if (typeof window !== 'undefined') {
+      localStorage.setItem(key, value);
+    }
+  }
+};
+
+const deleteStorageItem = async (key: string): Promise<void> => {
+  try {
+    await SecureStore.deleteItemAsync(key);
+  } catch (error) {
+    // Fallback to localStorage for web
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem(key);
+    }
+  }
+};
 
 interface User {
   id: number;
@@ -34,9 +69,9 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       await new Promise(resolve => setTimeout(resolve, 800)); // Simulate network delay
       
       // First check if there's a registered user with this email
-      const storedEmail = await SecureStore.getItemAsync('user_email');
-      const storedPassword = await SecureStore.getItemAsync('user_password');
-      const storedUser = await SecureStore.getItemAsync('auth_user');
+      const storedEmail = await getStorageItem('user_email');
+      const storedPassword = await getStorageItem('user_password');
+      const storedUser = await getStorageItem('auth_user');
       
       // Check if credentials match a registered user
       if (storedEmail && storedPassword && storedUser) {
@@ -67,9 +102,9 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         set({ user: userData, isLoading: false });
         
         // Save credentials securely
-        await SecureStore.setItemAsync('user_email', credentials.email);
-        await SecureStore.setItemAsync('user_password', credentials.password);
-        await SecureStore.setItemAsync('auth_user', JSON.stringify(userData));
+        await setStorageItem('user_email', credentials.email);
+        await setStorageItem('user_password', credentials.password);
+        await setStorageItem('auth_user', JSON.stringify(userData));
         
         console.log('Login successful (test account):', userData.name);
         return;
@@ -110,10 +145,10 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       set({ user: newUser, isLoading: false });
       
       // Save user and credentials
-      await SecureStore.setItemAsync('auth_user', JSON.stringify(newUser));
-      await SecureStore.setItemAsync('user_email', userData.email);
+      await setStorageItem('auth_user', JSON.stringify(newUser));
+      await setStorageItem('user_email', userData.email);
       if (userData.password) {
-        await SecureStore.setItemAsync('user_password', userData.password);
+        await setStorageItem('user_password', userData.password);
       }
       
       console.log('Registration successful:', newUser.name);
@@ -132,9 +167,9 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     set({ isLoading: true });
     try {
       // Clear stored user data
-      await SecureStore.deleteItemAsync('auth_user');
-      await SecureStore.deleteItemAsync('user_email');
-      await SecureStore.deleteItemAsync('user_password');
+      await deleteStorageItem('auth_user');
+      await deleteStorageItem('user_email');
+      await deleteStorageItem('user_password');
       
       set({ user: null, isLoading: false });
       console.log('Logout successful');
@@ -148,7 +183,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     set({ isLoading: true });
     try {
       // Check for stored authenticated user
-      const storedUser = await SecureStore.getItemAsync('auth_user');
+      const storedUser = await getStorageItem('auth_user');
       if (storedUser) {
         const userData = JSON.parse(storedUser);
         set({ user: userData, isLoading: false });

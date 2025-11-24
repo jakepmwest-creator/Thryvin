@@ -17,6 +17,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import * as SecureStore from 'expo-secure-store';
 
+const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL || 'https://28d88a1d-a878-4deb-9ffc-532c0d6fbf3a.preview.emergentagent.com';
+
 const COLORS = {
   accent: '#a259ff',
   accentSecondary: '#3a86ff',
@@ -49,8 +51,7 @@ export default function ForgotPasswordScreen() {
     setIsLoading(true);
     try {
       // Call the backend API
-      const API_URL = 'https://gymbuddy-ai-8.preview.emergentagent.com';
-      const response = await fetch(`${API_URL}/api/auth/forgot-password`, {
+      const response = await fetch(`${API_BASE_URL}/api/auth/forgot-password`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

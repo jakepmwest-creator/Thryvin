@@ -1,7 +1,31 @@
 import { create } from 'zustand';
 import * as SecureStore from 'expo-secure-store';
 
-const API_URL = 'https://gymbuddy-ai-8.preview.emergentagent.com';
+const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL || 'https://28d88a1d-a878-4deb-9ffc-532c0d6fbf3a.preview.emergentagent.com';
+
+// Web-compatible storage helpers
+const getStorageItem = async (key: string): Promise<string | null> => {
+  try {
+    return await getStorageItem(key);
+  } catch (error) {
+    // Fallback to localStorage for web
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem(key);
+    }
+    return null;
+  }
+};
+
+const setStorageItem = async (key: string, value: string): Promise<void> => {
+  try {
+    await setStorageItem(key, value);
+  } catch (error) {
+    // Fallback to localStorage for web
+    if (typeof window !== 'undefined') {
+      localStorage.setItem(key, value);
+    }
+  }
+};
 
 interface Exercise {
   id: string;
@@ -119,17 +143,27 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
   fetchTodayWorkout: async () => {
     set({ isLoading: true, error: null });
     try {
-      const storedUser = await SecureStore.getItemAsync('auth_user');
+      const storedUser = await getStorageItem('auth_user');
       if (!storedUser) {
         throw new Error('User not authenticated');
       }
       
       const user = JSON.parse(storedUser);
       const dayOfWeek = new Date().getDay(); // 0 = Sunday, 1 = Monday, etc.
+      const convertedDay = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
       
       // Call AI workout generation API
-      console.log('Calling AI workout generation API...');
-      const response = await fetch(`${API_URL}/api/workouts/generate`, {
+      console.log('🤖 [WORKOUT] Calling AI API...');
+      console.log(`🤖 [WORKOUT] API BASE URL: ${API_BASE_URL}`);
+      console.log(`🤖 [WORKOUT] Full URL: ${API_BASE_URL}/api/workouts/generate`);
+      console.log(`🤖 [WORKOUT] Day: ${dayOfWeek} (JS) -> ${convertedDay} (Backend)`);
+      console.log(`🤖 [WORKOUT] User profile:`, {
+        goals: user.fitnessGoals || [user.goal],
+        experience: user.experience,
+        duration: user.sessionDuration,
+      });
+      
+      const response = await fetch(`${API_BASE_URL}/api/workouts/generate`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -145,17 +179,25 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
             equipment: user.equipment || [],
             injuries: user.injuries || [],
           },
-          dayOfWeek: dayOfWeek === 0 ? 6 : dayOfWeek - 1, // Convert to 0=Monday
+          dayOfWeek: convertedDay, // Convert to 0=Monday
         }),
       });
       
+      console.log('🔍 [WORKOUT] Response status:', response.status);
+      
       if (!response.ok) {
-        throw new Error('Failed to generate workout');
+        const errorText = await response.text();
+        console.error('❌ [WORKOUT] API Error Response:');
+        console.error('   Status:', response.status);
+        console.error('   Body:', errorText);
+        console.error('   URL:', `${API_BASE_URL}/api/workouts/generate`);
+        throw new Error(`API Error ${response.status}: ${errorText.substring(0, 100)}`);
       }
       
       const aiWorkout = await response.json();
-      console.log('AI workout generated:', aiWorkout.title);
-      console.log('Exercises with videos:', aiWorkout.exercises.filter((e: any) => e.videoUrl).length);
+      console.log('✅ [WORKOUT] AI workout generated:', aiWorkout.title);
+      console.log('✅ [WORKOUT] Exercises:', aiWorkout.exercises.length);
+      console.log('✅ [WORKOUT] With videos:', aiWorkout.exercises.filter((e: any) => e.videoUrl).length);
       
       // Format for app
       const workout: Workout = {
@@ -173,11 +215,23 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
       };
       
       set({ todayWorkout: workout, currentWorkout: workout, isLoading: false });
-      console.log('✅ Today AI workout loaded:', workout.title);
+      console.log('✅ [WORKOUT] Store updated with:', workout.title, workout.exercises.length, 'exercises');
     } catch (error) {
-      console.error('Error fetching AI workout:', error);
+      console.error('❌❌❌ [WORKOUT] FULL ERROR DETAILS:');
+      console.error('   Type:', error instanceof Error ? 'Error' : typeof error);
+      console.error('   Message:', error instanceof Error ? error.message : String(error));
+      console.error('   Stack:', error instanceof Error ? error.stack : 'No stack');
+      
+      // Check if it's a network error
+      if (error instanceof TypeError && error.message.includes('fetch')) {
+        console.error('   🌐 NETWORK ERROR: Cannot reach backend');
+        console.error('   Backend URL:', API_BASE_URL);
+        console.error('   Are you on the same network? Is backend running?');
+      }
+      
+      const errorMessage = error instanceof Error ? error.message : 'Failed to load workout';
       set({ 
-        error: error instanceof Error ? error.message : 'Failed to load workout',
+        error: `ERROR: ${errorMessage}. Check console for details.`,
         isLoading: false 
       });
     }
@@ -187,7 +241,7 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
   fetchWeekWorkouts: async () => {
     set({ isLoading: true, error: null });
     try {
-      const storedUser = await SecureStore.getItemAsync('auth_user');
+      const storedUser = await getStorageItem('auth_user');
       if (!storedUser) {
         throw new Error('User not authenticated');
       }
@@ -226,7 +280,7 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
       // Fetch video URLs in one batch
       try {
         const exerciseNames = Array.from(allExerciseNames).join(',');
-        const response = await fetch(`${API_URL}/api/exercises?names=${encodeURIComponent(exerciseNames)}`);
+        const response = await fetch(`${API_BASE_URL}/api/exercises?names=${encodeURIComponent(exerciseNames)}`);
         if (response.ok) {
           const data = await response.json();
           const exerciseMap = new Map(data.exercises.map((ex: any) => [ex.name, ex]));
@@ -260,7 +314,7 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
   // Fetch completed workouts
   fetchCompletedWorkouts: async () => {
     try {
-      const stored = await SecureStore.getItemAsync('completed_workouts');
+      const stored = await getStorageItem('completed_workouts');
       const completedWorkouts = stored ? JSON.parse(stored) : [];
       set({ completedWorkouts });
       console.log('Completed workouts loaded:', completedWorkouts.length);
@@ -272,8 +326,8 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
   // Fetch user stats
   fetchStats: async () => {
     try {
-      const stored = await SecureStore.getItemAsync('workout_stats');
-      const storedUser = await SecureStore.getItemAsync('auth_user');
+      const stored = await getStorageItem('workout_stats');
+      const storedUser = await getStorageItem('auth_user');
       
       if (storedUser) {
         const user = JSON.parse(storedUser);
@@ -311,7 +365,7 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
   // Fetch personal bests
   fetchPersonalBests: async () => {
     try {
-      const stored = await SecureStore.getItemAsync('personal_bests');
+      const stored = await getStorageItem('personal_bests');
       const personalBests = stored ? JSON.parse(stored) : [];
       set({ personalBests });
       console.log('Personal bests loaded:', personalBests.length);
@@ -335,7 +389,7 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
       
       // Save to completed workouts
       const completedWorkouts = [...get().completedWorkouts, completedWorkout];
-      await SecureStore.setItemAsync('completed_workouts', JSON.stringify(completedWorkouts));
+      await setStorageItem('completed_workouts', JSON.stringify(completedWorkouts));
       set({ completedWorkouts });
       
       // Update personal bests
@@ -368,7 +422,7 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
       };
       
       const completedWorkouts = [...get().completedWorkouts, manualWorkout];
-      await SecureStore.setItemAsync('completed_workouts', JSON.stringify(completedWorkouts));
+      await setStorageItem('completed_workouts', JSON.stringify(completedWorkouts));
       set({ completedWorkouts });
       
       // Update stats
@@ -393,7 +447,7 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
   // Update personal best
   updatePersonalBest: async (exerciseName: string, weight: number, reps: number, date?: string) => {
     try {
-      const stored = await SecureStore.getItemAsync('personal_bests');
+      const stored = await getStorageItem('personal_bests');
       const personalBests: PersonalBest[] = stored ? JSON.parse(stored) : [];
       
       const existingBest = personalBests.find(pb => pb.exercise === exerciseName);
@@ -413,7 +467,7 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
           personalBests.push(newBest);
         }
         
-        await SecureStore.setItemAsync('personal_bests', JSON.stringify(personalBests));
+        await setStorageItem('personal_bests', JSON.stringify(personalBests));
         set({ personalBests });
       }
     } catch (error) {
@@ -628,7 +682,7 @@ function calculateStreak(workouts: Workout[]): number {
 
 async function updatePersonalBests(exercises: any[]) {
   try {
-    const stored = await SecureStore.getItemAsync('personal_bests');
+    const stored = await getStorageItem('personal_bests');
     const personalBests: PersonalBest[] = stored ? JSON.parse(stored) : [];
     
     for (const exercise of exercises) {
@@ -653,7 +707,7 @@ async function updatePersonalBests(exercises: any[]) {
       }
     }
     
-    await SecureStore.setItemAsync('personal_bests', JSON.stringify(personalBests));
+    await setStorageItem('personal_bests', JSON.stringify(personalBests));
     console.log('Personal bests updated');
   } catch (error) {
     console.error('Error updating personal bests:', error);
