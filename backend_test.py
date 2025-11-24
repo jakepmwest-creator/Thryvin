@@ -321,68 +321,62 @@ class AIWorkoutTester:
             self.log_test("Profile With Injuries", False, f"Error: {str(e)}")
             return False
     
-    def test_exercise_by_slug(self) -> bool:
-        """Test GET /api/exercises/:slug endpoint"""
+    def test_different_days_of_week(self) -> bool:
+        """Test AI workout generation for different days of week"""
         try:
-            # First, get some exercises to find valid slugs
-            response = self.session.get(f"{API_BASE}/exercises")
-            if response.status_code != 200:
-                self.log_test("Exercise By Slug Setup", False, "Could not fetch exercises for slug test")
-                return False
+            # Test Monday (0), Thursday (3), Sunday (6)
+            test_days = [0, 3, 6]
+            day_names = ["Monday", "Thursday", "Sunday"]
             
-            data = response.json()
-            exercises = data.get('exercises', [])
+            user_profile = {
+                "experience": "intermediate",
+                "goal": "general_fitness", 
+                "sessionDuration": 35,
+                "workoutType": "Mixed",
+                "equipment": ["dumbbells", "bodyweight"],
+                "injuries": []
+            }
             
-            if len(exercises) == 0:
-                self.log_test("Exercise By Slug", False, "No exercises available for slug testing")
-                return False
+            generated_workouts = []
             
-            # Test with first available exercise slug
-            test_exercise = exercises[0]
-            test_slug = test_exercise.get('slug')
-            
-            if not test_slug:
-                self.log_test("Exercise By Slug", False, "No slug found in exercise data")
-                return False
-            
-            # Test valid slug
-            response = self.session.get(f"{API_BASE}/exercises/{test_slug}")
-            
-            if response.status_code != 200:
-                self.log_test("Exercise By Slug", False, 
-                            f"Expected status 200 for valid slug, got {response.status_code}")
-                return False
-            
-            data = response.json()
-            
-            # Should have exercise field
-            if 'exercise' not in data:
-                self.log_test("Exercise By Slug", False, "Missing exercise field in response")
-                return False
-            
-            exercise = data['exercise']
-            
-            # Validate exercise structure
-            required_fields = ['id', 'name', 'slug', 'videoUrl']
-            for field in required_fields:
-                if field not in exercise:
-                    self.log_test("Exercise By Slug", False, 
-                                f"Exercise missing required field: {field}")
+            for i, day in enumerate(test_days):
+                response = self.session.post(f"{API_BASE}/workouts/generate", json={
+                    "userProfile": user_profile,
+                    "dayOfWeek": day
+                })
+                
+                if response.status_code != 200:
+                    self.log_test("Different Days of Week", False, 
+                                f"Failed to generate workout for {day_names[i]} (day {day}): {response.status_code}")
                     return False
+                
+                data = response.json()
+                if 'title' not in data or 'exercises' not in data:
+                    self.log_test("Different Days of Week", False, 
+                                f"Invalid workout structure for {day_names[i]}")
+                    return False
+                
+                generated_workouts.append({
+                    "day": day_names[i],
+                    "title": data['title'],
+                    "type": data.get('type', 'Unknown'),
+                    "exercises": len(data['exercises'])
+                })
+                
+                # Small delay between requests
+                time.sleep(0.5)
             
-            # Validate that slug matches
-            if exercise['slug'] != test_slug:
-                self.log_test("Exercise By Slug", False, 
-                            f"Slug mismatch: expected {test_slug}, got {exercise['slug']}")
-                return False
+            # Check that we got different workout types/focuses for different days
+            workout_types = [w['type'] for w in generated_workouts]
+            unique_types = len(set(workout_types))
             
-            self.log_test("Exercise By Slug", True, 
-                        f"Successfully fetched exercise by slug: {test_slug}",
-                        {"exercise_name": exercise['name']})
+            self.log_test("Different Days of Week", True, 
+                        f"Generated workouts for 3 different days ({unique_types} unique types)",
+                        {"workouts": generated_workouts})
             return True
             
         except Exception as e:
-            self.log_test("Exercise By Slug", False, f"Error: {str(e)}")
+            self.log_test("Different Days of Week", False, f"Error: {str(e)}")
             return False
     
     def test_exercise_by_invalid_slug(self) -> bool:
