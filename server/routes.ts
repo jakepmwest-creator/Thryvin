@@ -33,11 +33,7 @@ import {
   type NutritionProfile,
   type LoggedMeal,
 } from "@shared/schema";
-import {
-  generatePersonalizedWorkout,
-  generateWorkoutProgression,
-  generateWeeklySchedule,
-} from "./ai-workout-generator";
+// AI Workout Generator - imported dynamically in endpoint
 import { generateExerciseAlternative } from "./ai-exercise-swap";
 import { db } from "./db";
 import { eq, count, sql, inArray, ilike, and } from "drizzle-orm";
