@@ -19,7 +19,7 @@ API_BASE = f"{BASE_URL}/api"
 TEST_EMAIL = "test@example.com"
 TEST_PASSWORD = "password123"
 
-class ExerciseAPITester:
+class AIWorkoutTester:
     def __init__(self):
         self.session = requests.Session()
         self.session.headers.update({
