@@ -302,59 +302,65 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
       console.log('🤖 [WEEK] Generating week workouts with AI...');
       const weekWorkouts: Workout[] = [];
       
-      // Collect all exercise names for batch fetching
-      const allExerciseNames = new Set<string>();
-      const tempWorkouts: { exerciseList: Exercise[]; [key: string]: any }[] = [];
-      
-      // Generate 7 days of workouts
-      for (let i = 0; i < 7; i++) {
-        const date = new Date();
-        date.setDate(date.getDate() + i);
-        const workoutTitle = getWorkoutTitle(i, user);
-        const exerciseList = generateExercises(user, i);
-        
-        exerciseList.forEach(ex => allExerciseNames.add(ex.name));
-        
-        tempWorkouts.push({
-          id: `workout_${date.getTime()}`,
-          title: `Day ${i + 1}: ${workoutTitle}`,
-          type: user.trainingType || 'General Fitness',
-          difficulty: user.experience || 'Intermediate',
-          duration: parseInt(user.sessionDuration) || 45,
-          date: date.toISOString(),
-          exercises: exerciseList,
-          overview: `${exerciseList.length} exercises focusing on ${user.trainingType || 'general fitness'}. This ${(parseInt(user.sessionDuration) || 45)}-minute session is tailored to your ${user.experience || 'intermediate'} level.`,
-          targetMuscles: user.trainingType || 'Full Body',
-          caloriesBurn: Math.round((parseInt(user.sessionDuration) || 45) * 8),
-          exerciseList: exerciseList,
-        });
-      }
-      
-      // Fetch video URLs in one batch
-      try {
-        const exerciseNames = Array.from(allExerciseNames).join(',');
-        const response = await fetch(`${API_BASE_URL}/api/exercises?names=${encodeURIComponent(exerciseNames)}`);
-        if (response.ok) {
-          const data = await response.json();
-          const exerciseMap = new Map(data.exercises.map((ex: any) => [ex.name, ex]));
+      // Generate AI workouts for each day of the week
+      for (let dayIndex = 0; dayIndex < 7; dayIndex++) {
+        try {
+          const date = new Date(mondayOfThisWeek);
+          date.setDate(mondayOfThisWeek.getDate() + dayIndex);
           
-          // Populate video URLs for all workouts
-          tempWorkouts.forEach(workout => {
-            workout.exercises.forEach((exercise: Exercise) => {
-              const apiExercise = exerciseMap.get(exercise.name);
-              if (apiExercise) {
-                exercise.videoUrl = apiExercise.videoUrl;
-              }
-            });
+          console.log(`🤖 [WEEK] Generating day ${dayIndex + 1}/7...`);
+          
+          const response = await fetch(`${API_BASE_URL}/api/workouts/generate`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              userProfile: {
+                fitnessGoals: user.fitnessGoals || [user.goal],
+                goal: user.goal,
+                experience: user.experience,
+                trainingType: user.trainingType,
+                sessionDuration: user.sessionDuration,
+                trainingDays: user.trainingDays,
+                equipment: user.equipment || [],
+                injuries: user.injuries || [],
+              },
+              dayOfWeek: dayIndex,
+            }),
           });
+          
+          if (response.ok) {
+            const aiWorkout = await response.json();
+            
+            const workout: Workout = {
+              id: `workout_${date.getTime()}`,
+              title: aiWorkout.title,
+              type: aiWorkout.type,
+              difficulty: aiWorkout.difficulty,
+              duration: aiWorkout.duration,
+              date: date.toISOString(),
+              exercises: aiWorkout.exercises,
+              overview: aiWorkout.overview,
+              targetMuscles: aiWorkout.targetMuscles,
+              caloriesBurn: aiWorkout.caloriesBurn,
+              exerciseList: aiWorkout.exercises,
+            };
+            
+            weekWorkouts.push(workout);
+            console.log(`✅ [WEEK] Day ${dayIndex + 1}: ${workout.title} (${workout.exercises.length} exercises)`);
+          }
+        } catch (error) {
+          console.error(`❌ [WEEK] Failed to generate day ${dayIndex + 1}:`, error);
         }
-      } catch (error) {
-        console.log('Could not fetch video URLs:', error);
-        // Continue without videos
       }
       
-      set({ weekWorkouts: tempWorkouts, isLoading: false });
-      console.log('Week workouts loaded:', tempWorkouts.length);
+      // Cache the week workouts
+      await setStorageItem('week_workouts', JSON.stringify(weekWorkouts));
+      await setStorageItem('week_workouts_date', weekKey);
+      
+      set({ weekWorkouts, isLoading: false });
+      console.log(`✅ [WEEK] Complete! Generated ${weekWorkouts.length} workouts for the week`);
     } catch (error) {
       console.error('Error fetching week workouts:', error);
       set({ 
