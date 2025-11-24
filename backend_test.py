@@ -494,8 +494,8 @@ class AIWorkoutTester:
             return False
     
     def run_all_tests(self):
-        """Run all exercise API tests"""
-        print("🏋️ Starting Exercise Video API Testing Suite")
+        """Run all AI workout generation tests"""
+        print("🤖 Starting AI Workout Generation Testing Suite")
         print("=" * 60)
         
         # Test server health first
@@ -503,18 +503,20 @@ class AIWorkoutTester:
             print("❌ Server health check failed. Aborting tests.")
             return False
         
-        # Authentication is optional for exercise endpoints, but let's try it
-        self.authenticate()  # Don't fail if auth fails, exercises might be public
+        # Authentication might be required for workout generation
+        auth_success = self.authenticate()
+        if not auth_success:
+            print("⚠️ Authentication failed, but continuing with tests...")
         
-        # Run all exercise endpoint tests
+        # Run all AI workout generation tests
         tests = [
-            self.test_exercises_bulk_fetch,
-            self.test_exercises_case_insensitive,
-            self.test_exercises_nonexistent,
-            self.test_exercises_no_names_param,
-            self.test_exercise_by_slug,
-            self.test_exercise_by_invalid_slug,
-            self.test_exercise_metadata_validation,
+            self.test_basic_ai_workout_generation,
+            self.test_beginner_weight_loss_profile,
+            self.test_advanced_endurance_profile,
+            self.test_profile_with_injuries,
+            self.test_different_days_of_week,
+            self.test_video_urls_validation,
+            self.test_error_handling,
         ]
         
         passed = 0
@@ -523,13 +525,13 @@ class AIWorkoutTester:
         for test in tests:
             if test():
                 passed += 1
-            time.sleep(0.5)  # Small delay between tests
+            time.sleep(1.0)  # Longer delay between AI generation requests
         
         print("\n" + "=" * 60)
         print(f"🏁 Test Results: {passed}/{total} tests passed")
         
         if passed == total:
-            print("✅ All exercise API tests passed!")
+            print("✅ All AI workout generation tests passed!")
             return True
         else:
             print(f"❌ {total - passed} tests failed")
