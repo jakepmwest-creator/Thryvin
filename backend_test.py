@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-Backend API Testing Suite for Exercise Video Endpoints
-Tests the new exercise API endpoints as requested in the review.
+Backend API Testing Suite for AI Workout Generation
+Tests the AI workout generation feature for the Thryvin fitness app.
 """
 
 import requests
