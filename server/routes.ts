@@ -1306,91 +1306,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: 'User profile is required' });
       }
       
-      console.log('Generating workout for:', userProfile);
+      console.log('🤖 Generating AI workout for:', userProfile);
       
-      // Fallback: Generate workout from database exercises
-      const day = dayOfWeek || 0;
-      const dayNames = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
-      const dayTypes = ['Upper Body', 'Lower Body', 'Push', 'Pull', 'Legs', 'Full Body', 'Core'];
+      // Use AI workout generator
+      const { generateAIWorkout } = await import('./ai-workout-generator');
+      const workout = await generateAIWorkout(userProfile, dayOfWeek || 0);
       
-      const workoutType = dayTypes[day % dayTypes.length];
-      const targetCategory = workoutType.toLowerCase().replace(' ', '-');
-      
-      // Fetch exercises from database
-      const allExercises = await db
-        .select({
-          name: exercises.name,
-          slug: exercises.slug,
-          category: exercises.category,
-          videoUrl: exercises.videoUrl,
-          difficulty: exercises.difficulty,
-        })
-        .from(exercises)
-        .where(eq(exercises.difficulty, userProfile.experience || 'intermediate'))
-        .limit(200);
-      
-      // Filter and select exercises
-      const warmupExs = allExercises.filter(e => 
-        e.name.toLowerCase().includes('stretch') || 
-        e.name.toLowerCase().includes('circle') ||
-        e.name.toLowerCase().includes('swing')
-      ).slice(0, 2);
-      
-      const mainExs = allExercises.filter(e => 
-        !e.name.toLowerCase().includes('stretch') &&
-        e.videoUrl
-      ).slice(0, 6);
-      
-      const cooldownExs = allExercises.filter(e =>
-        e.name.toLowerCase().includes('stretch')
-      ).slice(0, 2);
-      
-      const workoutExercises = [
-        ...warmupExs.map((e, i) => ({
-          id: e.slug,
-          name: e.name,
-          sets: 2,
-          reps: '30 sec',
-          restTime: 15,
-          videoUrl: e.videoUrl,
-          category: 'warmup' as const,
-        })),
-        ...mainExs.map((e, i) => ({
-          id: e.slug,
-          name: e.name,
-          sets: 4,
-          reps: '8-12',
-          restTime: 90,
-          videoUrl: e.videoUrl,
-          category: 'main' as const,
-        })),
-        ...cooldownExs.map((e, i) => ({
-          id: e.slug,
-          name: e.name,
-          sets: 1,
-          reps: '60 sec',
-          restTime: 0,
-          videoUrl: e.videoUrl,
-          category: 'cooldown' as const,
-        })),
-      ];
-      
-      const workout = {
-        title: `${dayNames[day]} ${workoutType} Training`,
-        type: workoutType,
-        difficulty: userProfile.experience || 'intermediate',
-        duration: parseInt(userProfile.sessionDuration as string) || 45,
-        exercises: workoutExercises,
-        overview: `${workoutExercises.length} exercises focusing on ${workoutType.toLowerCase()}. ${userProfile.sessionDuration || 45}-minute session for ${userProfile.experience || 'intermediate'} level.`,
-        targetMuscles: workoutType,
-        caloriesBurn: Math.round((parseInt(userProfile.sessionDuration as string) || 45) * 8),
-      };
-      
-      console.log('✅ Workout generated:', workout.title, `(${workout.exercises.length} exercises)`);
+      console.log('✅ AI Workout generated:', workout.title, `(${workout.exercises.length} exercises)`);
       
       res.json(workout);
     } catch (error: any) {
-      console.error('Workout generation error:', error);
+      console.error('❌ Workout generation error:', error);
       res.status(500).json({ 
         error: 'Failed to generate workout',
         details: error.message 
