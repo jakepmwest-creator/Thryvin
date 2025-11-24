@@ -57,14 +57,47 @@ const getCurrentWeekDays = () => {
 
 const WEEK_DAYS = getCurrentWeekDays();
 
-// Mock month data (October 2024)
-const MONTH_DATA = [
-  [null, 1, 2, 3, 4, 5, 6],
-  [7, 8, 9, 10, 11, 12, 13],
-  [14, 15, 16, 17, 18, 19, 20],
-  [21, 22, 23, 24, 25, 26, 27],
-  [28, 29, 30, 31, null, null, null],
-];
+// Generate current month data dynamically
+const getCurrentMonthData = () => {
+  const today = new Date();
+  const year = today.getFullYear();
+  const month = today.getMonth();
+  
+  const firstDay = new Date(year, month, 1);
+  const lastDay = new Date(year, month + 1, 0);
+  const firstDayOfWeek = firstDay.getDay(); // 0 = Sunday
+  const daysInMonth = lastDay.getDate();
+  
+  const weeks: (number | null)[][] = [];
+  let currentWeek: (number | null)[] = [];
+  
+  // Fill first week with nulls before first day
+  for (let i = 0; i < firstDayOfWeek; i++) {
+    currentWeek.push(null);
+  }
+  
+  // Fill in the days
+  for (let day = 1; day <= daysInMonth; day++) {
+    currentWeek.push(day);
+    
+    if (currentWeek.length === 7) {
+      weeks.push(currentWeek);
+      currentWeek = [];
+    }
+  }
+  
+  // Fill last week with nulls if needed
+  if (currentWeek.length > 0) {
+    while (currentWeek.length < 7) {
+      currentWeek.push(null);
+    }
+    weeks.push(currentWeek);
+  }
+  
+  return weeks;
+};
+
+const MONTH_DATA = getCurrentMonthData();
 
 const MONTH_STATUS: any = {
   21: 'completed', 22: 'completed', 23: 'today',
