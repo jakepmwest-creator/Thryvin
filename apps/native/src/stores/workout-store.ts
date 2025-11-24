@@ -139,7 +139,7 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
   isLoading: false,
   error: null,
 
-  // Fetch today's AI-generated workout
+  // Fetch today's AI-generated workout (with caching)
   fetchTodayWorkout: async () => {
     set({ isLoading: true, error: null });
     try {
@@ -149,6 +149,19 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
       }
       
       const user = JSON.parse(storedUser);
+      const today = new Date().toDateString();
+      
+      // Check if we have today's workout cached
+      const cachedWorkout = await getStorageItem('today_workout');
+      const cachedDate = await getStorageItem('today_workout_date');
+      
+      if (cachedWorkout && cachedDate === today) {
+        console.log('✅ [WORKOUT] Using cached today\'s workout');
+        const workout = JSON.parse(cachedWorkout);
+        set({ todayWorkout: workout, currentWorkout: workout, isLoading: false });
+        return;
+      }
+      
       const dayOfWeek = new Date().getDay(); // 0 = Sunday, 1 = Monday, etc.
       const convertedDay = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
       
