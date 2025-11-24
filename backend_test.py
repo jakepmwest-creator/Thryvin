@@ -169,33 +169,55 @@ class AIWorkoutTester:
             self.log_test("Basic AI Workout Generation", False, f"Error: {str(e)}")
             return False
     
-    def test_exercises_case_insensitive(self) -> bool:
-        """Test case-insensitive matching for exercise names"""
+    def test_beginner_weight_loss_profile(self) -> bool:
+        """Test AI workout generation for beginner with weight-loss goal"""
         try:
-            # Test with mixed case names
-            test_names = ["bench press", "SQUATS", "Push-Ups"]
-            names_param = ",".join(test_names)
+            # Beginner with weight-loss goal, 30 min session
+            user_profile = {
+                "experience": "beginner",
+                "goal": "weight-loss", 
+                "sessionDuration": 30,
+                "workoutType": "Cardio",
+                "equipment": ["bodyweight"],
+                "injuries": []
+            }
             
-            response = self.session.get(f"{API_BASE}/exercises?names={names_param}")
+            response = self.session.post(f"{API_BASE}/workouts/generate", json={
+                "userProfile": user_profile,
+                "dayOfWeek": 2  # Tuesday
+            })
             
             if response.status_code != 200:
-                self.log_test("Case Insensitive Search", False, 
-                            f"Expected status 200, got {response.status_code}")
+                self.log_test("Beginner Weight Loss Profile", False, 
+                            f"Expected status 200, got {response.status_code}",
+                            {"response": response.text})
                 return False
             
             data = response.json()
-            found_exercises = [ex for ex in data['exercises'] if ex is not None]
             
-            if len(found_exercises) > 0:
-                self.log_test("Case Insensitive Search", True, 
-                            f"Case-insensitive search working, found {len(found_exercises)} exercises")
-                return True
-            else:
-                self.log_test("Case Insensitive Search", False, "No exercises found with case-insensitive search")
+            # Validate basic structure
+            if 'title' not in data or 'exercises' not in data:
+                self.log_test("Beginner Weight Loss Profile", False, "Missing basic workout structure")
                 return False
-                
+            
+            exercises = data['exercises']
+            if len(exercises) == 0:
+                self.log_test("Beginner Weight Loss Profile", False, "No exercises generated")
+                return False
+            
+            # Check that workout is appropriate for beginner (reasonable duration and intensity)
+            duration = data.get('duration', 0)
+            if duration > 35:  # Should be around 30 minutes for beginner
+                self.log_test("Beginner Weight Loss Profile", False, 
+                            f"Workout too long for beginner: {duration} minutes")
+                return False
+            
+            self.log_test("Beginner Weight Loss Profile", True, 
+                        f"Generated appropriate beginner workout: '{data['title']}' ({duration} min, {len(exercises)} exercises)")
+            return True
+            
         except Exception as e:
-            self.log_test("Case Insensitive Search", False, f"Error: {str(e)}")
+            self.log_test("Beginner Weight Loss Profile", False, f"Error: {str(e)}")
             return False
     
     def test_exercises_nonexistent(self) -> bool:
