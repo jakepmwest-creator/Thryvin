@@ -449,47 +449,48 @@ class AIWorkoutTester:
             self.log_test("Video URLs Validation", False, f"Error: {str(e)}")
             return False
     
-    def test_exercise_metadata_validation(self) -> bool:
-        """Test that exercise metadata fields are present and valid"""
+    def test_error_handling(self) -> bool:
+        """Test error handling for invalid requests"""
         try:
-            # Get a few exercises to validate metadata
-            response = self.session.get(f"{API_BASE}/exercises")
-            if response.status_code != 200:
-                self.log_test("Exercise Metadata Validation", False, "Could not fetch exercises")
+            # Test 1: Missing userProfile
+            response = self.session.post(f"{API_BASE}/workouts/generate", json={
+                "dayOfWeek": 1
+            })
+            
+            if response.status_code == 200:
+                self.log_test("Error Handling", False, 
+                            "Should have failed with missing userProfile")
                 return False
             
-            data = response.json()
-            exercises = data.get('exercises', [])
+            # Test 2: Invalid data
+            response = self.session.post(f"{API_BASE}/workouts/generate", json={
+                "userProfile": "invalid_string_instead_of_object",
+                "dayOfWeek": 1
+            })
             
-            if len(exercises) == 0:
-                self.log_test("Exercise Metadata Validation", False, "No exercises to validate")
+            if response.status_code == 200:
+                self.log_test("Error Handling", False, 
+                            "Should have failed with invalid userProfile")
                 return False
             
-            # Check metadata fields on first few exercises
-            metadata_fields = ['category', 'muscleGroups', 'difficulty', 'instructions', 'tips']
-            valid_count = 0
+            # Test 3: Empty userProfile
+            response = self.session.post(f"{API_BASE}/workouts/generate", json={
+                "userProfile": {},
+                "dayOfWeek": 1
+            })
             
-            for i, exercise in enumerate(exercises[:5]):  # Check first 5 exercises
-                has_all_metadata = True
-                for field in metadata_fields:
-                    if field not in exercise:
-                        has_all_metadata = False
-                        break
-                
-                if has_all_metadata:
-                    valid_count += 1
-            
-            if valid_count > 0:
-                self.log_test("Exercise Metadata Validation", True, 
-                            f"Found {valid_count}/5 exercises with complete metadata")
-                return True
-            else:
-                self.log_test("Exercise Metadata Validation", False, 
-                            "No exercises found with complete metadata")
+            # This might succeed with defaults, so we just check it doesn't crash
+            if response.status_code >= 500:
+                self.log_test("Error Handling", False, 
+                            f"Server error with empty profile: {response.status_code}")
                 return False
-                
+            
+            self.log_test("Error Handling", True, 
+                        "Error handling working correctly for invalid requests")
+            return True
+            
         except Exception as e:
-            self.log_test("Exercise Metadata Validation", False, f"Error: {str(e)}")
+            self.log_test("Error Handling", False, f"Error: {str(e)}")
             return False
     
     def run_all_tests(self):
