@@ -452,6 +452,46 @@ class AIWorkoutTester:
             self.log_test("Video URLs Validation", False, f"Error: {str(e)}")
             return False
     
+    def test_response_time(self) -> bool:
+        """Test that AI workout generation completes within reasonable time (under 15 seconds)"""
+        try:
+            user_profile = {
+                "experience": "intermediate",
+                "goal": "strength", 
+                "sessionDuration": 45,
+                "workoutType": "Strength Training",
+                "equipment": ["dumbbells", "barbell", "bench"],
+                "injuries": []
+            }
+            
+            start_time = time.time()
+            
+            response = self.session.post(f"{API_BASE}/workouts/generate", json={
+                "userProfile": user_profile,
+                "dayOfWeek": 2
+            })
+            
+            end_time = time.time()
+            response_time = end_time - start_time
+            
+            if response.status_code != 200:
+                self.log_test("Response Time", False, 
+                            f"Request failed: {response.status_code}")
+                return False
+            
+            if response_time > 15.0:
+                self.log_test("Response Time", False, 
+                            f"Response too slow: {response_time:.2f} seconds (limit: 15s)")
+                return False
+            
+            self.log_test("Response Time", True, 
+                        f"Response time acceptable: {response_time:.2f} seconds (under 15s limit)")
+            return True
+            
+        except Exception as e:
+            self.log_test("Response Time", False, f"Error: {str(e)}")
+            return False
+
     def test_error_handling(self) -> bool:
         """Test error handling for invalid requests"""
         try:
