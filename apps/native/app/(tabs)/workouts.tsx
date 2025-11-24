@@ -252,7 +252,9 @@ export default function WorkoutsScreen() {
             /* Monthly Calendar */
             <View style={styles.monthCalendar}>
               <View style={styles.monthHeader}>
-                <Text style={styles.monthTitle}>October 2024</Text>
+                <Text style={styles.monthTitle}>
+                  {new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
+                </Text>
               </View>
               <View style={styles.weekdaysRow}>
                 {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day) => (
