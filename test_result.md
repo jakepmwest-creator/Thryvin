@@ -286,6 +286,18 @@ agent_communication:
       message: "EXERCISE VIDEO API TESTING COMPLETE: Thoroughly tested both new exercise endpoints as requested. GET /api/exercises?names=X,Y,Z working perfectly with comma-separated names, case-insensitive matching, proper error handling for non-existent exercises, and returns up to 100 exercises without names param. GET /api/exercises/:slug working correctly with valid slugs and returns 404 for invalid ones. Database contains 150+ exercises with video URLs (mix of Cloudinary and Thryvin domains), complete metadata (category, muscleGroups, difficulty, instructions, tips). All test scenarios from review request verified. Backend API ready for frontend integration."
     - agent: "testing"
       message: "WORKOUT HUB BACKEND TESTING COMPLETE: Comprehensive testing of all Workout Hub API endpoints successful. All 6 test scenarios from review request verified: (1) Health endpoint returns correct format with ok/aiReady booleans, (2) Exercise batch fetch with specific names (Bench Press,Squats,Push-ups,Pull-ups,Plank) returns 5/5 exercises with required fields, (3) Single exercise fetch by 'bench-press' slug works perfectly, (4) Invalid exercise names handled gracefully, (5) Missing names parameter returns up to 100 exercises, (6) All video URLs are valid HTTPS URLs (mix of Cloudinary and other domains). Backend API fully ready for Workout Hub screen integration. No critical issues found."
+  - task: "AI Workout Generation API"
+    implemented: true
+    working: true
+    file: "/app/server/routes.ts, /app/server/ai-workout-generator.ts"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "AI WORKOUT GENERATION TESTING COMPLETE: Comprehensive testing of POST /api/workouts/generate endpoint successful. ✅ Basic AI workout generation working with intermediate/muscle-gain/45min profile - generates personalized workouts with title, type, difficulty, duration, exercises array, overview, targetMuscles, caloriesBurn. ✅ Different user profiles tested: beginner/weight-loss/30min and advanced/endurance/60min - AI adapts workout appropriately. ✅ Injury handling working - generates safe workouts when injuries specified. ✅ Different days of week (Monday/Thursday/Sunday) generate varied workout types. ✅ Video URLs present - 75-100% of exercises have valid video URLs (mix of Cloudinary and Thryvin domains). ✅ Response time excellent: 5.06 seconds (well under 15s limit). ✅ Error handling robust - no server crashes with invalid requests. All 8 test scenarios passed. AI workout generation fully functional and ready for production use."
+
   - task: "Workout Hub Screen Implementation"
     implemented: true
     working: true
