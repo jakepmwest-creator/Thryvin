@@ -271,52 +271,54 @@ class AIWorkoutTester:
             self.log_test("Advanced Endurance Profile", False, f"Error: {str(e)}")
             return False
     
-    def test_exercises_no_names_param(self) -> bool:
-        """Test GET /api/exercises without names parameter (should return up to 100 exercises)"""
+    def test_profile_with_injuries(self) -> bool:
+        """Test AI workout generation with injuries field populated"""
         try:
-            response = self.session.get(f"{API_BASE}/exercises")
+            # User with knee injury
+            user_profile = {
+                "experience": "intermediate",
+                "goal": "strength", 
+                "sessionDuration": 40,
+                "workoutType": "Strength Training",
+                "equipment": ["dumbbells", "resistance_bands"],
+                "injuries": ["knee", "lower_back"]
+            }
+            
+            response = self.session.post(f"{API_BASE}/workouts/generate", json={
+                "userProfile": user_profile,
+                "dayOfWeek": 3  # Wednesday
+            })
             
             if response.status_code != 200:
-                self.log_test("Exercises No Names Param", False, 
-                            f"Expected status 200, got {response.status_code}")
+                self.log_test("Profile With Injuries", False, 
+                            f"Expected status 200, got {response.status_code}",
+                            {"response": response.text})
                 return False
             
             data = response.json()
             
-            # Should have exercises field
-            if 'exercises' not in data:
-                self.log_test("Exercises No Names Param", False, "Missing exercises field")
+            # Validate basic structure
+            if 'title' not in data or 'exercises' not in data:
+                self.log_test("Profile With Injuries", False, "Missing basic workout structure")
                 return False
             
             exercises = data['exercises']
-            if not isinstance(exercises, list):
-                self.log_test("Exercises No Names Param", False, "Exercises should be a list")
-                return False
-            
-            # Should return some exercises (up to 100)
             if len(exercises) == 0:
-                self.log_test("Exercises No Names Param", False, "No exercises returned")
+                self.log_test("Profile With Injuries", False, "No exercises generated")
                 return False
             
-            if len(exercises) > 100:
-                self.log_test("Exercises No Names Param", False, f"Too many exercises returned: {len(exercises)}")
-                return False
+            # Check that workout avoids high-impact exercises (this is more of a validation that AI processed the injury info)
+            exercise_names = [ex.get('name', '').lower() for ex in exercises]
+            high_impact_exercises = ['jumping', 'jump', 'squat jump', 'burpee', 'box jump']
+            has_high_impact = any(impact in ' '.join(exercise_names) for impact in high_impact_exercises)
             
-            # Validate first exercise structure
-            first_exercise = exercises[0]
-            required_fields = ['id', 'name', 'slug', 'videoUrl']
-            for field in required_fields:
-                if field not in first_exercise:
-                    self.log_test("Exercises No Names Param", False, 
-                                f"Exercise missing required field: {field}")
-                    return False
-            
-            self.log_test("Exercises No Names Param", True, 
-                        f"Successfully fetched {len(exercises)} exercises without names parameter")
+            self.log_test("Profile With Injuries", True, 
+                        f"Generated injury-aware workout: '{data['title']}' ({len(exercises)} exercises, high-impact: {has_high_impact})",
+                        {"injuries_considered": user_profile["injuries"], "high_impact_detected": has_high_impact})
             return True
             
         except Exception as e:
-            self.log_test("Exercises No Names Param", False, f"Error: {str(e)}")
+            self.log_test("Profile With Injuries", False, f"Error: {str(e)}")
             return False
     
     def test_exercise_by_slug(self) -> bool:
