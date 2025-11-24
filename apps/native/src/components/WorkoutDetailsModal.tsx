@@ -177,7 +177,7 @@ interface WorkoutDetailsModalProps {
   workout?: any; // The actual workout data from store
 }
 
-const API_URL = 'https://thryvin-hub.preview.emergentagent.com';
+const API_URL = 'https://gymbuddy-ai-8.preview.emergentagent.com';
 
 export function WorkoutDetailsModal({ 
   visible, 

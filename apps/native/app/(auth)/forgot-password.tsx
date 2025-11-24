@@ -49,7 +49,7 @@ export default function ForgotPasswordScreen() {
     setIsLoading(true);
     try {
       // Call the backend API
-      const API_URL = 'https://thryvin-hub.preview.emergentagent.com';
+      const API_URL = 'https://gymbuddy-ai-8.preview.emergentagent.com';
       const response = await fetch(`${API_URL}/api/auth/forgot-password`, {
         method: 'POST',
         headers: {
