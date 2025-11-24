@@ -220,34 +220,55 @@ class AIWorkoutTester:
             self.log_test("Beginner Weight Loss Profile", False, f"Error: {str(e)}")
             return False
     
-    def test_exercises_nonexistent(self) -> bool:
-        """Test with non-existent exercise names"""
+    def test_advanced_endurance_profile(self) -> bool:
+        """Test AI workout generation for advanced user with endurance goal"""
         try:
-            # Test with completely made-up exercise names
-            test_names = ["NonExistentExercise1", "FakeExercise2", "NotRealExercise3"]
-            names_param = ",".join(test_names)
+            # Advanced with endurance goal, 60 min session
+            user_profile = {
+                "experience": "advanced",
+                "goal": "endurance", 
+                "sessionDuration": 60,
+                "workoutType": "Endurance",
+                "equipment": ["treadmill", "bike", "bodyweight"],
+                "injuries": []
+            }
             
-            response = self.session.get(f"{API_BASE}/exercises?names={names_param}")
+            response = self.session.post(f"{API_BASE}/workouts/generate", json={
+                "userProfile": user_profile,
+                "dayOfWeek": 4  # Thursday
+            })
             
             if response.status_code != 200:
-                self.log_test("Non-existent Exercises", False, 
-                            f"Expected status 200, got {response.status_code}")
+                self.log_test("Advanced Endurance Profile", False, 
+                            f"Expected status 200, got {response.status_code}",
+                            {"response": response.text})
                 return False
             
             data = response.json()
             
-            # Should return null for all exercises
-            if data['found'] == 0 and data['requested'] == len(test_names):
-                self.log_test("Non-existent Exercises", True, 
-                            "Correctly handled non-existent exercise names")
-                return True
-            else:
-                self.log_test("Non-existent Exercises", False, 
-                            f"Unexpected results: found={data['found']}, requested={data['requested']}")
+            # Validate basic structure
+            if 'title' not in data or 'exercises' not in data:
+                self.log_test("Advanced Endurance Profile", False, "Missing basic workout structure")
                 return False
-                
+            
+            exercises = data['exercises']
+            if len(exercises) == 0:
+                self.log_test("Advanced Endurance Profile", False, "No exercises generated")
+                return False
+            
+            # Check that workout is appropriate for advanced user (longer duration, more exercises)
+            duration = data.get('duration', 0)
+            if duration < 45:  # Should be closer to 60 minutes for advanced
+                self.log_test("Advanced Endurance Profile", False, 
+                            f"Workout too short for advanced user: {duration} minutes")
+                return False
+            
+            self.log_test("Advanced Endurance Profile", True, 
+                        f"Generated appropriate advanced workout: '{data['title']}' ({duration} min, {len(exercises)} exercises)")
+            return True
+            
         except Exception as e:
-            self.log_test("Non-existent Exercises", False, f"Error: {str(e)}")
+            self.log_test("Advanced Endurance Profile", False, f"Error: {str(e)}")
             return False
     
     def test_exercises_no_names_param(self) -> bool:
