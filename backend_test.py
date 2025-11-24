@@ -551,7 +551,7 @@ class AIWorkoutTester:
 
 def main():
     """Main test runner"""
-    tester = ExerciseAPITester()
+    tester = AIWorkoutTester()
     
     try:
         success = tester.run_all_tests()
