@@ -173,7 +173,7 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
       };
       
       set({ todayWorkout: workout, currentWorkout: workout, isLoading: false });
-      console.log('✅ Today\\'s AI workout loaded:', workout.title);
+      console.log('✅ Today AI workout loaded:', workout.title);
     } catch (error) {
       console.error('Error fetching AI workout:', error);
       set({ 
