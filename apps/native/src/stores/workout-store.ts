@@ -271,7 +271,7 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
     }
   },
 
-  // Fetch week's workouts
+  // Fetch week's workouts (AI-generated with caching)
   fetchWeekWorkouts: async () => {
     set({ isLoading: true, error: null });
     try {
@@ -281,6 +281,25 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
       }
       
       const user = JSON.parse(storedUser);
+      
+      // Check if we have cached week workouts
+      const cachedWeek = await getStorageItem('week_workouts');
+      const cachedWeekDate = await getStorageItem('week_workouts_date');
+      const today = new Date();
+      const mondayOfThisWeek = new Date(today);
+      const dayOfWeek = today.getDay();
+      const mondayOffset = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
+      mondayOfThisWeek.setDate(today.getDate() + mondayOffset);
+      const weekKey = mondayOfThisWeek.toDateString();
+      
+      if (cachedWeek && cachedWeekDate === weekKey) {
+        console.log('✅ [WEEK] Using cached week workouts');
+        const workouts = JSON.parse(cachedWeek);
+        set({ weekWorkouts: workouts, isLoading: false });
+        return;
+      }
+      
+      console.log('🤖 [WEEK] Generating week workouts with AI...');
       const weekWorkouts: Workout[] = [];
       
       // Collect all exercise names for batch fetching
