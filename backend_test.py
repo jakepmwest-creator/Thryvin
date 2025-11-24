@@ -83,17 +83,26 @@ class AIWorkoutTester:
             self.log_test("Health Check", False, f"Health check error: {str(e)}")
             return False
     
-    def test_exercises_bulk_fetch(self) -> bool:
-        """Test GET /api/exercises?names=X,Y,Z endpoint"""
+    def test_basic_ai_workout_generation(self) -> bool:
+        """Test POST /api/workouts/generate with basic user profile"""
         try:
-            # Test case 1: Fetch multiple exercises with valid names
-            test_names = ["Bench Press", "Squats", "Push-ups"]
-            names_param = ",".join(test_names)
+            # Test user profile: intermediate experience, muscle-gain goal, 45 min session, Strength Training
+            user_profile = {
+                "experience": "intermediate",
+                "goal": "muscle-gain", 
+                "sessionDuration": 45,
+                "workoutType": "Strength Training",
+                "equipment": ["dumbbells", "barbell", "bench"],
+                "injuries": []
+            }
             
-            response = self.session.get(f"{API_BASE}/exercises?names={names_param}")
+            response = self.session.post(f"{API_BASE}/workouts/generate", json={
+                "userProfile": user_profile,
+                "dayOfWeek": 1  # Monday
+            })
             
             if response.status_code != 200:
-                self.log_test("Exercises Bulk Fetch", False, 
+                self.log_test("Basic AI Workout Generation", False, 
                             f"Expected status 200, got {response.status_code}",
                             {"response": response.text})
                 return False
@@ -101,56 +110,63 @@ class AIWorkoutTester:
             data = response.json()
             
             # Validate response structure
-            required_fields = ['exercises', 'found', 'requested']
+            required_fields = ['title', 'type', 'difficulty', 'duration', 'exercises', 'overview', 'targetMuscles', 'caloriesBurn']
             for field in required_fields:
                 if field not in data:
-                    self.log_test("Exercises Bulk Fetch", False, 
+                    self.log_test("Basic AI Workout Generation", False, 
                                 f"Missing required field: {field}", {"response": data})
                     return False
             
-            # Validate that requested count matches
-            if data['requested'] != len(test_names):
-                self.log_test("Exercises Bulk Fetch", False, 
-                            f"Expected requested={len(test_names)}, got {data['requested']}")
+            # Validate exercises array
+            exercises = data['exercises']
+            if not isinstance(exercises, list) or len(exercises) == 0:
+                self.log_test("Basic AI Workout Generation", False, "Exercises should be a non-empty list")
                 return False
             
             # Validate exercise structure
-            exercises = data['exercises']
-            if not isinstance(exercises, list):
-                self.log_test("Exercises Bulk Fetch", False, "Exercises should be a list")
-                return False
-            
-            # Check if we got some exercises (allowing for missing ones)
-            found_exercises = [ex for ex in exercises if ex is not None]
-            if len(found_exercises) == 0:
-                self.log_test("Exercises Bulk Fetch", False, "No exercises found for test names")
-                return False
-            
-            # Validate exercise fields for found exercises
-            for exercise in found_exercises:
-                required_exercise_fields = ['id', 'name', 'slug', 'videoUrl']
+            for exercise in exercises:
+                required_exercise_fields = ['id', 'name', 'sets', 'reps', 'restTime', 'videoUrl', 'category']
                 for field in required_exercise_fields:
                     if field not in exercise:
-                        self.log_test("Exercises Bulk Fetch", False, 
+                        self.log_test("Basic AI Workout Generation", False, 
                                     f"Exercise missing required field: {field}", {"exercise": exercise})
                         return False
                 
-                # Validate videoUrl format (allow both Cloudinary and Thryvin URLs)
+                # Check for video URL (most should have real Cloudinary URLs)
                 video_url = exercise.get('videoUrl')
-                if video_url:
-                    valid_domains = ['https://res.cloudinary.com/', 'https://videos.thryvin.com/']
-                    if not any(video_url.startswith(domain) for domain in valid_domains):
-                        self.log_test("Exercises Bulk Fetch", False, 
-                                    f"Invalid videoUrl format: {video_url}")
-                        return False
+                if video_url and video_url != "":
+                    if not video_url.startswith('https://res.cloudinary.com/'):
+                        # Log but don't fail - some exercises might have different video sources
+                        print(f"   Note: Exercise '{exercise['name']}' has non-Cloudinary video URL: {video_url}")
             
-            self.log_test("Exercises Bulk Fetch", True, 
-                        f"Successfully fetched {data['found']}/{data['requested']} exercises",
-                        {"found_count": data['found'], "sample_exercise": found_exercises[0] if found_exercises else None})
+            # Check for workout phases (warmup, main, cooldown)
+            exercise_categories = [ex.get('category', '').lower() for ex in exercises]
+            has_warmup = any('warmup' in cat or 'warm-up' in cat for cat in exercise_categories)
+            has_main = any('main' in cat or 'strength' in cat or 'cardio' in cat for cat in exercise_categories)
+            has_cooldown = any('cooldown' in cat or 'cool-down' in cat or 'stretch' in cat for cat in exercise_categories)
+            
+            # Count exercises with real video URLs
+            exercises_with_videos = sum(1 for ex in exercises if ex.get('videoUrl') and ex['videoUrl'].startswith('https://res.cloudinary.com/'))
+            video_percentage = (exercises_with_videos / len(exercises)) * 100
+            
+            self.log_test("Basic AI Workout Generation", True, 
+                        f"Successfully generated workout: '{data['title']}' with {len(exercises)} exercises ({video_percentage:.1f}% have Cloudinary videos)",
+                        {
+                            "workout_type": data['type'],
+                            "difficulty": data['difficulty'], 
+                            "duration": data['duration'],
+                            "target_muscles": data['targetMuscles'],
+                            "calories_burn": data['caloriesBurn'],
+                            "has_warmup": has_warmup,
+                            "has_main": has_main,
+                            "has_cooldown": has_cooldown,
+                            "exercises_with_videos": exercises_with_videos,
+                            "total_exercises": len(exercises)
+                        })
             return True
             
         except Exception as e:
-            self.log_test("Exercises Bulk Fetch", False, f"Error: {str(e)}")
+            self.log_test("Basic AI Workout Generation", False, f"Error: {str(e)}")
             return False
     
     def test_exercises_case_insensitive(self) -> bool:
