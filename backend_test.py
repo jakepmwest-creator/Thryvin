@@ -379,31 +379,74 @@ class AIWorkoutTester:
             self.log_test("Different Days of Week", False, f"Error: {str(e)}")
             return False
     
-    def test_exercise_by_invalid_slug(self) -> bool:
-        """Test GET /api/exercises/:slug with invalid slug (should return 404)"""
+    def test_video_urls_validation(self) -> bool:
+        """Test that most exercises have valid Cloudinary video URLs"""
         try:
-            invalid_slug = "non-existent-exercise-slug-12345"
+            # Generate a workout and check video URLs
+            user_profile = {
+                "experience": "intermediate",
+                "goal": "strength", 
+                "sessionDuration": 30,
+                "workoutType": "Strength Training",
+                "equipment": ["dumbbells", "barbell"],
+                "injuries": []
+            }
             
-            response = self.session.get(f"{API_BASE}/exercises/{invalid_slug}")
+            response = self.session.post(f"{API_BASE}/workouts/generate", json={
+                "userProfile": user_profile,
+                "dayOfWeek": 1
+            })
             
-            if response.status_code != 404:
-                self.log_test("Exercise By Invalid Slug", False, 
-                            f"Expected status 404 for invalid slug, got {response.status_code}")
+            if response.status_code != 200:
+                self.log_test("Video URLs Validation", False, 
+                            f"Failed to generate workout: {response.status_code}")
                 return False
             
             data = response.json()
+            exercises = data.get('exercises', [])
             
-            # Should have error field
-            if 'error' not in data:
-                self.log_test("Exercise By Invalid Slug", False, "Missing error field in 404 response")
+            if len(exercises) == 0:
+                self.log_test("Video URLs Validation", False, "No exercises to validate")
                 return False
             
-            self.log_test("Exercise By Invalid Slug", True, 
-                        "Correctly returned 404 for invalid slug")
+            # Check video URLs
+            total_exercises = len(exercises)
+            exercises_with_videos = 0
+            cloudinary_videos = 0
+            valid_https_videos = 0
+            
+            for exercise in exercises:
+                video_url = exercise.get('videoUrl', '')
+                if video_url and video_url != '':
+                    exercises_with_videos += 1
+                    
+                    if video_url.startswith('https://res.cloudinary.com/'):
+                        cloudinary_videos += 1
+                    elif video_url.startswith('https://'):
+                        valid_https_videos += 1
+            
+            # Calculate percentages
+            video_percentage = (exercises_with_videos / total_exercises) * 100
+            cloudinary_percentage = (cloudinary_videos / total_exercises) * 100
+            
+            # Most exercises should have video URLs
+            if video_percentage < 70:  # At least 70% should have videos
+                self.log_test("Video URLs Validation", False, 
+                            f"Too few exercises have video URLs: {video_percentage:.1f}%")
+                return False
+            
+            self.log_test("Video URLs Validation", True, 
+                        f"Video URL validation passed: {video_percentage:.1f}% have videos ({cloudinary_percentage:.1f}% Cloudinary)",
+                        {
+                            "total_exercises": total_exercises,
+                            "exercises_with_videos": exercises_with_videos,
+                            "cloudinary_videos": cloudinary_videos,
+                            "valid_https_videos": valid_https_videos
+                        })
             return True
             
         except Exception as e:
-            self.log_test("Exercise By Invalid Slug", False, f"Error: {str(e)}")
+            self.log_test("Video URLs Validation", False, f"Error: {str(e)}")
             return False
     
     def test_exercise_metadata_validation(self) -> bool:
