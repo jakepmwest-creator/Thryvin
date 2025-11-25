@@ -426,7 +426,7 @@ const styles = StyleSheet.create({
   statText: {
     fontSize: 14,
     fontWeight: '600',
-    color: COLORS.text,
+    color: '#FFFFFF',
   },
   statDivider: {
     width: 1,
