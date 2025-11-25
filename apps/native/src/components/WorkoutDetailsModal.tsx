@@ -398,7 +398,7 @@ const styles = StyleSheet.create({
   dayName: {
     fontSize: 28,
     fontWeight: '700',
-    color: COLORS.text,
+    color: '#FFFFFF',
     marginBottom: 4,
   },
   dateText: {
