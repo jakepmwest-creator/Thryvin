@@ -118,6 +118,8 @@ interface WorkoutStore {
   finishWorkoutSession: () => Promise<void>;
   completeWorkout: (workoutId: string, exercises: any[]) => Promise<void>;
   logManualWorkout: (workoutData: Partial<Workout>) => Promise<void>;
+  clearError: () => void;
+  forceRegenerateWeek: () => Promise<void>;
 }
 
 export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
