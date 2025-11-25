@@ -110,6 +110,7 @@ export default function HomeScreen() {
     isLoading,
     fetchTodayWorkout,
     fetchWeekWorkouts,
+    forceRegenerateWeek,
     fetchStats,
     fetchPersonalBests,
   } = useWorkoutStore();
