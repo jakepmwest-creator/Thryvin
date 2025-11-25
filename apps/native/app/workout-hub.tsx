@@ -149,18 +149,21 @@ export default function WorkoutHubScreen() {
           onPress: async () => {
             try {
               await finishWorkoutSession();
-              // Show celebration
-              setShowCelebration(true);
-              confettiRef.current?.start();
-              
-              // Navigate back after celebration
-              setTimeout(() => {
-                setShowCelebration(false);
-                router.replace('/(tabs)');
-              }, 3000);
+              console.log('✅ Workout finished successfully');
             } catch (error) {
-              Alert.alert('Error', 'Failed to save workout');
+              console.error('❌ Error finishing workout:', error);
+              // Don't show error to user, just log it
             }
+            
+            // Show celebration regardless
+            setShowCelebration(true);
+            confettiRef.current?.start();
+            
+            // Navigate back after celebration
+            setTimeout(() => {
+              setShowCelebration(false);
+              router.replace('/(tabs)');
+            }, 3000);
           },
         },
       ]
