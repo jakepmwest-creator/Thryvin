@@ -48,7 +48,6 @@ async function fetchAllCloudinaryVideos(): Promise<CloudinaryResource[]> {
       const result = await cloudinary.api.resources({
         type: 'upload',
         resource_type: 'video',
-        prefix: process.env.CLOUDINARY_FOLDER || '',
         max_results: 500,
         next_cursor: nextCursor,
       });
