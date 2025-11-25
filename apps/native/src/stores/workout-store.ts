@@ -335,12 +335,16 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
         }
       }
       
-      // Cache the week workouts
-      await setStorageItem('week_workouts', JSON.stringify(weekWorkouts));
-      await setStorageItem('week_workouts_date', weekKey);
+      // Only cache if we generated all 7 workouts
+      if (weekWorkouts.length === 7) {
+        await setStorageItem('week_workouts', JSON.stringify(weekWorkouts));
+        await setStorageItem('week_workouts_date', weekKey);
+        console.log(`✅ [WEEK] Complete! Generated all 7 workouts for the week`);
+      } else {
+        console.warn(`⚠️ [WEEK] Only generated ${weekWorkouts.length}/7 workouts`);
+      }
       
       set({ weekWorkouts, isLoading: false });
-      console.log(`✅ [WEEK] Complete! Generated ${weekWorkouts.length} workouts for the week`);
     } catch (error) {
       console.error('Error fetching week workouts:', error);
       set({ 
