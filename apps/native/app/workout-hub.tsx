@@ -622,9 +622,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   headerTitle: {
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: '700',
     color: COLORS.text,
+  },
+  headerDate: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: COLORS.mediumGray,
+    marginTop: 2,
   },
   finishButton: {
     paddingHorizontal: 16,
