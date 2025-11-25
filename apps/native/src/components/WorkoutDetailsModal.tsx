@@ -61,13 +61,14 @@ export function WorkoutDetailsModal({
   const [expandedExerciseIndex, setExpandedExerciseIndex] = useState<number | null>(null);
   const swipeX = useRef(new Animated.Value(0)).current;
   
-  // Get workout for current day from weekWorkouts or use provided workout
-  const currentWorkout = workout || weekWorkouts[currentDayIndex];
+  // Get workout for current day from weekWorkouts (don't use workout prop)
+  const currentWorkout = weekWorkouts[currentDayIndex] || workout;
   
   // Debug logging
   useEffect(() => {
     console.log('📅 [MODAL] Current day index:', currentDayIndex);
     console.log('📅 [MODAL] Week workouts count:', weekWorkouts?.length || 0);
+    console.log('📅 [MODAL] Week workouts:', weekWorkouts?.map((w: any) => w?.title || 'none'));
     console.log('📅 [MODAL] Current workout:', currentWorkout?.title || 'none');
   }, [currentDayIndex, weekWorkouts, currentWorkout]);
   
