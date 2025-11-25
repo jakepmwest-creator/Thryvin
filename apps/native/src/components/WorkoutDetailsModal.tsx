@@ -176,7 +176,7 @@ export function WorkoutDetailsModal({
             </View>
             <View style={styles.statDivider} />
             <View style={styles.statItem}>
-              <Ionicons name="flame-outline" size={20} color={COLORS.text} />
+              <Ionicons name="flame-outline" size={20} color="#FFFFFF" />
               <Text style={styles.statText}>{currentWorkout?.caloriesBurn || 300} cal</Text>
             </View>
           </View>
