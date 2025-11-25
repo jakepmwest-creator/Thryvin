@@ -147,7 +147,7 @@ export function WorkoutDetailsModal({
           {/* Day Navigation */}
           <View style={styles.dayNavigation}>
             <TouchableOpacity style={styles.navButton} onPress={handlePreviousDay}>
-              <Ionicons name="chevron-back" size={24} color={COLORS.text} />
+              <Ionicons name="chevron-back" size={24} color="#FFFFFF" />
             </TouchableOpacity>
             
             <View style={styles.dayInfo}>
