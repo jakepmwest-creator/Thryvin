@@ -10,326 +10,82 @@ import {
   PanResponder,
   Animated,
   ActivityIndicator,
-  TextInput,
-  Alert,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { ExerciseVideoPlayer } from './ExerciseVideoPlayer';
 import { useWorkoutStore } from '../stores/workout-store';
 
-const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
+const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 const COLORS = {
-  gradientStart: '#A22BF6', // Purple
-  gradientEnd: '#FF4EC7', // Hot Pink
-  white: '#ffffff',
-  text: '#222222',
-  lightGray: '#F8F9FA',
+  primary: '#A22BF6',
+  secondary: '#E94560',
+  gradientStart: '#A22BF6',
+  gradientEnd: '#E94560',
+  background: '#0A0A0A',
+  cardBg: '#1C1C1E',
+  text: '#FFFFFF',
+  lightGray: '#2C2C2E',
   mediumGray: '#8E8E93',
-  shadow: 'rgba(162, 43, 246, 0.1)',
   success: '#34C759',
+  shadow: 'rgba(162, 43, 246, 0.3)',
 };
 
 const DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
-
-const createExercise = (name: string, sets: number, reps: string, rest: string) => ({
-  name,
-  sets,
-  reps,
-  rest,
-});
-
-const WORKOUT_DATA: Record<string, any> = {
-  Monday: {
-    title: 'Upper Body Push',
-    date: 'Monday, Oct 21',
-    duration: '45 min',
-    exercises: 8,
-    difficulty: 'Intermediate',
-    caloriesBurn: 420,
-    targetMuscles: 'Chest, Shoulders, Triceps',
-    overview: 'Progressive overload focused session targeting the pushing muscles. Start with compound movements and finish with isolation work.',
-    exerciseList: [
-      createExercise('Bench Press', 4, '8-10', '2 min'),
-      createExercise('Incline Dumbbell Press', 3, '10-12', '90 sec'),
-      createExercise('Overhead Press', 4, '6-8', '2 min'),
-      createExercise('Lateral Raises', 3, '12-15', '60 sec'),
-      createExercise('Tricep Dips', 3, '10-12', '90 sec'),
-      createExercise('Cable Flyes', 3, '12-15', '60 sec'),
-      createExercise('Tricep Pushdowns', 3, '12-15', '60 sec'),
-      createExercise('Face Pulls', 3, '15-20', '60 sec'),
-    ],
-  },
-  Tuesday: {
-    title: 'Lower Body Power',
-    date: 'Tuesday, Oct 22',
-    duration: '50 min',
-    exercises: 7,
-    difficulty: 'Advanced',
-    caloriesBurn: 480,
-    targetMuscles: 'Quads, Glutes, Hamstrings',
-    overview: 'Heavy compound leg movements focusing on building strength and power in the lower body.',
-    exerciseList: [
-      createExercise('Squats', 5, '5-8', '3 min'),
-      createExercise('Romanian Deadlifts', 4, '8-10', '2 min'),
-      createExercise('Leg Press', 3, '10-12', '90 sec'),
-      createExercise('Walking Lunges', 3, '12 each', '90 sec'),
-      createExercise('Leg Curls', 3, '12-15', '60 sec'),
-      createExercise('Calf Raises', 4, '15-20', '60 sec'),
-      createExercise('Core Planks', 3, '60 sec', '60 sec'),
-    ],
-  },
-  Wednesday: {
-    title: 'Upper Body Pull',
-    date: 'Wednesday, Oct 23',
-    duration: '45 min',
-    exercises: 8,
-    difficulty: 'Intermediate',
-    caloriesBurn: 400,
-    targetMuscles: 'Back, Biceps, Rear Delts',
-    overview: 'Pull-focused workout targeting back thickness and width with bicep isolation.',
-    exerciseList: [
-      createExercise('Pull-ups', 4, '8-12', '2 min'),
-      createExercise('Barbell Rows', 4, '8-10', '2 min'),
-      createExercise('Lat Pulldowns', 3, '10-12', '90 sec'),
-      createExercise('Face Pulls', 3, '15-20', '60 sec'),
-      createExercise('Barbell Curls', 3, '10-12', '90 sec'),
-      createExercise('Hammer Curls', 3, '12-15', '60 sec'),
-      createExercise('Cable Curls', 3, '12-15', '60 sec'),
-      createExercise('Shrugs', 3, '12-15', '60 sec'),
-    ],
-  },
-  Thursday: {
-    title: 'Active Recovery',
-    date: 'Thursday, Oct 24',
-    duration: '30 min',
-    exercises: 5,
-    difficulty: 'Beginner',
-    caloriesBurn: 200,
-    targetMuscles: 'Full Body Mobility',
-    overview: 'Light mobility work and stretching to promote recovery and reduce soreness.',
-    exerciseList: [
-      createExercise('Dynamic Stretching', 1, '10 min', 'None'),
-      createExercise('Foam Rolling', 1, '10 min', 'None'),
-      createExercise('Yoga Flow', 1, '10 min', 'None'),
-      createExercise('Light Cardio', 1, '15 min', 'None'),
-      createExercise('Cool Down Stretch', 1, '5 min', 'None'),
-    ],
-  },
-  Friday: {
-    title: 'Full Body Strength',
-    date: 'Friday, Oct 25',
-    duration: '55 min',
-    exercises: 9,
-    difficulty: 'Advanced',
-    caloriesBurn: 500,
-    targetMuscles: 'Full Body',
-    overview: 'Complete full-body workout hitting all major muscle groups with compound movements.',
-    exerciseList: [
-      createExercise('Deadlifts', 4, '5-8', '3 min'),
-      createExercise('Bench Press', 4, '8-10', '2 min'),
-      createExercise('Squats', 4, '8-10', '2 min'),
-      createExercise('Overhead Press', 3, '8-10', '90 sec'),
-      createExercise('Pull-ups', 3, '10-12', '90 sec'),
-      createExercise('Dips', 3, '10-12', '90 sec'),
-      createExercise('Barbell Rows', 3, '10-12', '90 sec'),
-      createExercise('Leg Curls', 3, '12-15', '60 sec'),
-      createExercise('Core Work', 3, '15-20', '60 sec'),
-    ],
-  },
-  Saturday: {
-    title: 'HIIT Cardio',
-    date: 'Saturday, Oct 26',
-    duration: '30 min',
-    exercises: 6,
-    difficulty: 'Intermediate',
-    caloriesBurn: 350,
-    targetMuscles: 'Cardiovascular System',
-    overview: 'High-intensity interval training to boost metabolism and burn calories.',
-    exerciseList: [
-      createExercise('Warm-up Jog', 1, '5 min', 'None'),
-      createExercise('Sprint Intervals', 8, '30 sec', '60 sec'),
-      createExercise('Burpees', 4, '15', '60 sec'),
-      createExercise('Jump Rope', 4, '60 sec', '60 sec'),
-      createExercise('Mountain Climbers', 4, '30 sec', '30 sec'),
-      createExercise('Cool Down Walk', 1, '5 min', 'None'),
-    ],
-  },
-  Sunday: {
-    title: 'Rest Day',
-    date: 'Sunday, Oct 27',
-    duration: '0 min',
-    exercises: 0,
-    difficulty: 'Rest',
-    caloriesBurn: 0,
-    targetMuscles: 'Recovery',
-    overview: 'Complete rest day for muscle recovery and growth. Stay hydrated and eat well.',
-    exerciseList: [],
-  },
-};
 
 interface WorkoutDetailsModalProps {
   visible: boolean;
   onClose: () => void;
   onStartWorkout: () => void;
   selectedDate?: number;
-  workout?: any; // The actual workout data from store
+  workout?: any;
 }
 
-const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL || 'https://bitter-kings-guess.loca.lt';
-
-export function WorkoutDetailsModal({ 
-  visible, 
-  onClose, 
-  onStartWorkout, 
+export function WorkoutDetailsModal({
+  visible,
+  onClose,
+  onStartWorkout,
   selectedDate = 23,
-  workout 
+  workout
 }: WorkoutDetailsModalProps) {
-  const { completeWorkout } = useWorkoutStore();
+  const { weekWorkouts } = useWorkoutStore();
   
-  const getDayIndexFromDate = (date: number) => {
-    const baseDate = 21;
-    return (date - baseDate) % 7;
-  };
-  
-  // If we have a workout from the store, use today's day index, otherwise use selectedDate
   const getTodayDayIndex = () => {
     const today = new Date();
     const dayOfWeek = today.getDay(); // 0 = Sunday, 1 = Monday
     return dayOfWeek === 0 ? 6 : dayOfWeek - 1; // Convert to 0 = Monday
   };
   
-  const initialDayIndex = workout ? getTodayDayIndex() : getDayIndexFromDate(selectedDate);
-  const [currentDayIndex, setCurrentDayIndex] = useState(initialDayIndex);
-  const [overviewExpanded, setOverviewExpanded] = useState(false);
-  const [exercisesExpanded, setExercisesExpanded] = useState(false);
+  const [currentDayIndex, setCurrentDayIndex] = useState(getTodayDayIndex());
   const [expandedExerciseIndex, setExpandedExerciseIndex] = useState<number | null>(null);
-  const [exerciseVideos, setExerciseVideos] = useState<Map<string, string>>(new Map());
-  const [loadingVideos, setLoadingVideos] = useState(false);
-  
-  // Set tracking state: exerciseIndex -> setIndex -> {weight, reps, feeling}
-  const [setData, setSetData] = useState<Map<number, Map<number, {weight: string, reps: string, feeling: string}>>>(new Map());
-  const [completedSets, setCompletedSets] = useState<Map<number, Set<number>>>(new Map());
-  const [activeSet, setActiveSet] = useState<{exerciseIndex: number, setIndex: number} | null>(null);
-  const [restTimerActive, setRestTimerActive] = useState(false);
-  const [restTimeRemaining, setRestTimeRemaining] = useState(0);
-  
   const swipeX = useRef(new Animated.Value(0)).current;
-
-  React.useEffect(() => {
-    if (visible) {
-      const newDayIndex = workout ? getTodayDayIndex() : getDayIndexFromDate(selectedDate);
-      setCurrentDayIndex(newDayIndex);
-    }
-  }, [visible, selectedDate, workout]);
-
-  // Fetch exercise videos when exercises are expanded
+  
+  // Get workout for current day from weekWorkouts or use provided workout
+  const currentWorkout = workout || weekWorkouts[currentDayIndex];
+  
   useEffect(() => {
-    const fetchExerciseVideos = async () => {
-      const safeExerciseList = currentWorkout?.exerciseList || [];
-      
-      if (exercisesExpanded && safeExerciseList.length > 0) {
-        setLoadingVideos(true);
-        try {
-          const exerciseNames = safeExerciseList
-            .map((ex: any) => ex?.name)
-            .filter(Boolean)
-            .join(',');
-          
-          if (!exerciseNames) {
-            setLoadingVideos(false);
-            return;
-          }
-          
-          const response = await fetch(
-            `${API_BASE_URL}/api/exercises?names=${encodeURIComponent(exerciseNames)}`
-          );
-          
-          if (response.ok) {
-            const data = await response.json();
-            const videoMap = new Map<string, string>();
-            
-            if (data?.exercises) {
-              data.exercises.forEach((ex: any) => {
-                if (ex && ex.videoUrl) {
-                  videoMap.set(ex.name, ex.videoUrl);
-                }
-              });
-            }
-            
-            setExerciseVideos(videoMap);
-            console.log(`Fetched ${videoMap.size} exercise videos`);
-          }
-        } catch (error) {
-          console.error('Error fetching exercise videos:', error);
-        } finally {
-          setLoadingVideos(false);
-        }
-      }
-    };
-
-    fetchExerciseVideos();
-  }, [exercisesExpanded, currentDayIndex, currentWorkout]);
-
-  const currentDay = DAYS[currentDayIndex];
-  // Use provided workout data or fallback to hardcoded data
-  const currentWorkout = workout || WORKOUT_DATA[currentDay];
+    if (visible) {
+      setCurrentDayIndex(getTodayDayIndex());
+      setExpandedExerciseIndex(null);
+    }
+  }, [visible]);
   
-  // Format date nicely based on current day
-  const formatDate = () => {
-    const dayName = DAYS[currentDay];
-    
-    // Calculate actual date based on current day index
-    const today = new Date();
-    const currentDayOfWeek = today.getDay(); // 0 = Sunday, 1 = Monday, etc.
-    const mondayIndex = currentDayOfWeek === 0 ? -6 : 1 - currentDayOfWeek;
-    const dayOffset = currentDay; // currentDay is already 0-based (Monday = 0)
-    
-    const targetDate = new Date(today);
-    targetDate.setDate(today.getDate() + mondayIndex + dayOffset);
-    
-    const dayNum = targetDate.getDate();
-    const suffix = dayNum === 1 || dayNum === 21 || dayNum === 31 ? 'st' 
-                  : dayNum === 2 || dayNum === 22 ? 'nd'
-                  : dayNum === 3 || dayNum === 23 ? 'rd' : 'th';
-    
-    return `${dayName} the ${dayNum}${suffix}`;
-  };
-  
-  // Safe access to workout properties with defaults
-  const exerciseList = currentWorkout?.exerciseList || currentWorkout?.exercises || [];
-  const workoutTitle = currentWorkout?.title || 'Workout';
-  const workoutDate = formatDate();
-  const workoutDuration = typeof currentWorkout?.duration === 'number' 
-    ? `${currentWorkout.duration} min` 
-    : (currentWorkout?.duration || '30 min');
-  const workoutDifficulty = currentWorkout?.difficulty || 'Moderate';
-  const workoutOverview = currentWorkout?.overview || '';
-  const targetMuscles = currentWorkout?.targetMuscles || currentWorkout?.type || 'Full Body';
-  const exerciseCount = exerciseList.length;
-  const caloriesBurn = currentWorkout?.caloriesBurn || (typeof currentWorkout?.duration === 'number' ? Math.round(currentWorkout.duration * 8) : 240);
-
-  const handlePreviousDay = () => {
-    setCurrentDayIndex((prev) => (prev === 0 ? 6 : prev - 1));
-  };
-
-  const handleNextDay = () => {
-    setCurrentDayIndex((prev) => (prev === 6 ? 0 : prev + 1));
-  };
-
+  // Swipe gesture handler
   const panResponder = useRef(
     PanResponder.create({
       onMoveShouldSetPanResponder: (_, gestureState) => {
-        return Math.abs(gestureState.dx) > 10;
+        return Math.abs(gestureState.dx) > 20;
       },
       onPanResponderMove: (_, gestureState) => {
         swipeX.setValue(gestureState.dx);
       },
       onPanResponderRelease: (_, gestureState) => {
-        if (gestureState.dx > 100) {
+        if (gestureState.dx > 80) {
+          // Swipe right - previous day
           handlePreviousDay();
-        } else if (gestureState.dx < -100) {
+        } else if (gestureState.dx < -80) {
+          // Swipe left - next day
           handleNextDay();
         }
         Animated.spring(swipeX, {
@@ -339,620 +95,459 @@ export function WorkoutDetailsModal({
       },
     })
   ).current;
-
+  
+  const handleNextDay = () => {
+    setCurrentDayIndex((prev) => (prev === 6 ? 0 : prev + 1));
+    setExpandedExerciseIndex(null);
+  };
+  
+  const handlePreviousDay = () => {
+    setCurrentDayIndex((prev) => (prev === 0 ? 6 : prev - 1));
+    setExpandedExerciseIndex(null);
+  };
+  
+  const formatDate = () => {
+    if (currentWorkout?.date) {
+      const date = new Date(currentWorkout.date);
+      return date.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+    }
+    return new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+  };
+  
+  const currentDay = DAYS[currentDayIndex];
+  
+  const warmupExercises = currentWorkout?.exercises?.filter((e: any) => e.category === 'warmup') || [];
+  const mainExercises = currentWorkout?.exercises?.filter((e: any) => e.category === 'main') || [];
+  const cooldownExercises = currentWorkout?.exercises?.filter((e: any) => e.category === 'cooldown') || [];
+  
+  if (!visible) return null;
+  
   return (
     <Modal
       visible={visible}
       animationType="slide"
-      transparent={true}
+      transparent={false}
       onRequestClose={onClose}
     >
-      <View style={styles.modalOverlay}>
-        <Animated.View 
-          style={[
-            styles.modalContainer,
-            {
-              transform: [{ translateX: swipeX }],
-            },
-          ]}
+      <View style={styles.container}>
+        <LinearGradient
+          colors={[COLORS.gradientStart, COLORS.gradientEnd]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={styles.header}
+        >
+          <View style={styles.headerTop}>
+            <TouchableOpacity style={styles.closeButton} onPress={onClose}>
+              <Ionicons name="close" size={28} color={COLORS.text} />
+            </TouchableOpacity>
+            <Text style={styles.headerLabel}>Workout Details</Text>
+            <View style={styles.placeholder} />
+          </View>
+          
+          {/* Day Navigation */}
+          <View style={styles.dayNavigation}>
+            <TouchableOpacity style={styles.navButton} onPress={handlePreviousDay}>
+              <Ionicons name="chevron-back" size={24} color={COLORS.text} />
+            </TouchableOpacity>
+            
+            <View style={styles.dayInfo}>
+              <Text style={styles.dayName}>{currentDay}</Text>
+              <Text style={styles.dateText}>{formatDate()}</Text>
+            </View>
+            
+            <TouchableOpacity style={styles.navButton} onPress={handleNextDay}>
+              <Ionicons name="chevron-forward" size={24} color={COLORS.text} />
+            </TouchableOpacity>
+          </View>
+          
+          {/* Workout Title */}
+          <Text style={styles.workoutTitle}>{currentWorkout?.title || 'Workout'}</Text>
+          
+          {/* Stats Row */}
+          <View style={styles.statsRow}>
+            <View style={styles.statItem}>
+              <Ionicons name="time-outline" size={20} color={COLORS.text} />
+              <Text style={styles.statText}>{currentWorkout?.duration || 45} min</Text>
+            </View>
+            <View style={styles.statDivider} />
+            <View style={styles.statItem}>
+              <Ionicons name="fitness-outline" size={20} color={COLORS.text} />
+              <Text style={styles.statText}>{currentWorkout?.exercises?.length || 0} exercises</Text>
+            </View>
+            <View style={styles.statDivider} />
+            <View style={styles.statItem}>
+              <Ionicons name="flame-outline" size={20} color={COLORS.text} />
+              <Text style={styles.statText}>{currentWorkout?.caloriesBurn || 300} cal</Text>
+            </View>
+          </View>
+        </LinearGradient>
+        
+        {/* Swipeable Content */}
+        <Animated.View
+          style={[styles.content, { transform: [{ translateX: swipeX }] }]}
           {...panResponder.panHandlers}
         >
-          <TouchableOpacity style={styles.closeButton} onPress={onClose}>
-            <Ionicons name="close" size={28} color={COLORS.text} />
-          </TouchableOpacity>
-
-          <ScrollView 
+          <ScrollView
+            style={styles.scrollView}
             showsVerticalScrollIndicator={false}
-            contentContainerStyle={styles.scrollContent}
           >
-            <View style={styles.dateNav}>
-              <TouchableOpacity style={styles.navButton} onPress={handlePreviousDay}>
-                <Ionicons name="chevron-back" size={24} color={COLORS.gradientStart} />
-              </TouchableOpacity>
-              
-              <View style={styles.dateContainer}>
-                <Text style={styles.dateText}>{workoutDate}</Text>
-                <Text style={styles.dayText}>{currentDay}</Text>
-              </View>
-              
-              <TouchableOpacity style={styles.navButton} onPress={handleNextDay}>
-                <Ionicons name="chevron-forward" size={24} color={COLORS.gradientStart} />
-              </TouchableOpacity>
+            {/* Overview */}
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>Overview</Text>
+              <Text style={styles.overviewText}>
+                {currentWorkout?.overview || 'Complete workout designed for your fitness level.'}
+              </Text>
             </View>
-
-            <View style={styles.statsRow}>
-              <View style={styles.statBox}>
-                <Ionicons name="time-outline" size={24} color={COLORS.gradientStart} />
-                <Text style={styles.statValue}>{workoutDuration}</Text>
-                <Text style={styles.statLabel}>Duration</Text>
-              </View>
-
-              <View style={styles.statBox}>
-                <Ionicons name="list-outline" size={24} color={COLORS.gradientStart} />
-                <Text style={styles.statValue}>{exerciseCount}</Text>
-                <Text style={styles.statLabel}>Exercises</Text>
-              </View>
-
-              <View style={styles.statBox}>
-                <Ionicons name="speedometer-outline" size={24} color={COLORS.gradientStart} />
-                <Text style={styles.statValue}>{workoutDifficulty}</Text>
-                <Text style={styles.statLabel}>Level</Text>
-              </View>
-
-              <View style={styles.statBox}>
-                <Ionicons name="flame-outline" size={24} color={COLORS.gradientStart} />
-                <Text style={styles.statValue}>{caloriesBurn}</Text>
-                <Text style={styles.statLabel}>Calories</Text>
-              </View>
-            </View>
-
-            <View style={styles.titleSection}>
-              <Text style={styles.workoutTitle}>{workoutTitle}</Text>
-              <Text style={styles.targetText}>Target: {targetMuscles}</Text>
-            </View>
-
-            {workoutOverview && (
-              <TouchableOpacity
-                style={styles.dropdown}
-                onPress={() => setOverviewExpanded(!overviewExpanded)}
-              >
-                <View style={styles.dropdownHeader}>
-                  <Ionicons name="document-text-outline" size={22} color={COLORS.gradientStart} />
-                  <Text style={styles.dropdownTitle}>Overview</Text>
-                  <Ionicons 
-                    name={overviewExpanded ? "chevron-up" : "chevron-down"} 
-                    size={20} 
-                    color={COLORS.mediumGray} 
-                  />
-                </View>
-                {overviewExpanded && (
-                  <View style={styles.dropdownContent}>
-                    <Text style={styles.overviewText}>{workoutOverview}</Text>
+            
+            {/* Warmup */}
+            {warmupExercises.length > 0 && (
+              <View style={styles.section}>
+                <View style={styles.sectionHeader}>
+                  <View style={styles.categoryBadge}>
+                    <Ionicons name="sunny-outline" size={16} color={COLORS.gradientStart} />
+                    <Text style={styles.categoryText}>Warm Up</Text>
                   </View>
-                )}
-              </TouchableOpacity>
-            )}
-
-            {exerciseList.length > 0 && (
-              <TouchableOpacity
-                style={styles.dropdown}
-                onPress={() => setExercisesExpanded(!exercisesExpanded)}
-              >
-                <View style={styles.dropdownHeader}>
-                  <Ionicons name="barbell-outline" size={22} color={COLORS.gradientStart} />
-                  <Text style={styles.dropdownTitle}>All Exercises ({exerciseCount})</Text>
-                  <Ionicons 
-                    name={exercisesExpanded ? "chevron-up" : "chevron-down"} 
-                    size={20} 
-                    color={COLORS.mediumGray} 
-                  />
+                  <Text style={styles.exerciseCount}>{warmupExercises.length} exercises</Text>
                 </View>
-                {exercisesExpanded && (
-                  <View style={styles.dropdownContent}>
-                    {loadingVideos && (
-                      <View style={styles.loadingContainer}>
-                        <ActivityIndicator size="small" color={COLORS.gradientStart} />
-                        <Text style={styles.loadingText}>Loading videos...</Text>
-                      </View>
-                    )}
-                    {exerciseList.map((exercise: any, index: number) => {
-                      // Safe access to exercise properties
-                      const exerciseName = exercise?.name || 'Exercise';
-                      const videoUrl = exerciseVideos.get(exerciseName);
-                      const isExpanded = expandedExerciseIndex === index;
-                      const sets = exercise?.sets || 3;
-                      const reps = exercise?.reps || '10-12';
-                      const restTime = exercise?.restTime || exercise?.rest || '';
-                      
-                      return (
-                        <View key={index} style={styles.exerciseItemContainer}>
-                          <TouchableOpacity
-                            style={styles.exerciseItem}
-                            onPress={() => setExpandedExerciseIndex(isExpanded ? null : index)}
-                          >
-                            <Text style={styles.exerciseNumber}>{index + 1}</Text>
-                            <View style={styles.exerciseInfo}>
-                              <View style={styles.exerciseHeader}>
-                                <Text style={styles.exerciseName}>{exerciseName}</Text>
-                                {videoUrl && (
-                                  <Ionicons
-                                    name="play-circle"
-                                    size={20}
-                                    color={COLORS.gradientStart}
-                                  />
-                                )}
-                              </View>
-                              <Text style={styles.exerciseDetails}>
-                                {sets} sets × {reps} {restTime ? `• ${restTime}s rest` : ''}
-                              </Text>
-                            </View>
-                            <Ionicons
-                              name={isExpanded ? "chevron-up" : "chevron-down"}
-                              size={20}
-                              color={COLORS.mediumGray}
-                            />
-                          </TouchableOpacity>
-                          
-                          {isExpanded && videoUrl && (
-                            <View style={styles.videoPlayerContainer}>
-                              <ExerciseVideoPlayer
-                                videoUrl={videoUrl}
-                                exerciseName={exerciseName}
-                                autoPlay={false}
-                              />
-                              <Text style={styles.videoHint}>
-                                Tap for controls • Full screen available
-                              </Text>
-                            </View>
-                          )}
-
-                          {isExpanded && !videoUrl && (
-                            <View style={styles.noVideoContainer}>
-                              <Ionicons
-                                name="videocam-off-outline"
-                                size={32}
-                                color={COLORS.mediumGray}
-                              />
-                              <Text style={styles.noVideoText}>
-                                Video not available for this exercise
-                              </Text>
-                            </View>
-                          )}
-                          
-                          {/* Form Tips */}
-                          {isExpanded && (
-                            <View style={styles.tipsContainer}>
-                              <View style={styles.tipsHeader}>
-                                <Ionicons name="information-circle" size={22} color={COLORS.gradientStart} />
-                                <Text style={styles.tipsTitle}>Form Tips</Text>
-                              </View>
-                              <Text style={styles.tipsText}>
-                                • Maintain proper form throughout the movement{'\n'}
-                                • Control the weight on both concentric and eccentric phases{'\n'}
-                                • Breathe steadily - exhale on exertion{'\n'}
-                                • Rest {restTime || '60'}s between sets
-                              </Text>
-                              <View style={styles.startWorkoutHint}>
-                                <Ionicons name="play-circle" size={20} color={COLORS.gradientStart} />
-                                <Text style={styles.startWorkoutHintText}>
-                                  Start the workout to log sets and track progress
-                                </Text>
-                              </View>
-                            </View>
-                          )}
-                        </View>
-                      );
-                    })}
-                  </View>
-                )}
-              </TouchableOpacity>
+                {warmupExercises.map((exercise: any, index: number) => (
+                  <ExerciseCard
+                    key={`warmup-${index}`}
+                    exercise={exercise}
+                    index={index}
+                    isExpanded={expandedExerciseIndex === index}
+                    onToggle={() => setExpandedExerciseIndex(expandedExerciseIndex === index ? null : index)}
+                  />
+                ))}
+              </View>
             )}
-
-            <View style={styles.actionButtons}>
-              <TouchableOpacity style={styles.editButton}>
-                <Ionicons name="create-outline" size={20} color={COLORS.gradientStart} />
-                <Text style={styles.editButtonText}>Edit Workout</Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity 
-                style={styles.startButton}
-                onPress={() => {
-                  // Close modal and navigate to workout hub
-                  onClose();
-                  onStartWorkout();
-                }}
-              >
-                <LinearGradient
-                  colors={[COLORS.gradientStart, COLORS.gradientEnd]}
-                  style={styles.startGradient}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 1 }}
-                >
-                  <Ionicons name="play" size={20} color={COLORS.white} />
-                  <Text style={styles.startButtonText}>Start Workout</Text>
-                </LinearGradient>
-              </TouchableOpacity>
-            </View>
+            
+            {/* Main Workout */}
+            {mainExercises.length > 0 && (
+              <View style={styles.section}>
+                <View style={styles.sectionHeader}>
+                  <View style={styles.categoryBadge}>
+                    <Ionicons name="barbell-outline" size={16} color={COLORS.gradientStart} />
+                    <Text style={styles.categoryText}>Main Workout</Text>
+                  </View>
+                  <Text style={styles.exerciseCount}>{mainExercises.length} exercises</Text>
+                </View>
+                {mainExercises.map((exercise: any, index: number) => (
+                  <ExerciseCard
+                    key={`main-${index}`}
+                    exercise={exercise}
+                    index={index + warmupExercises.length}
+                    isExpanded={expandedExerciseIndex === (index + warmupExercises.length)}
+                    onToggle={() => setExpandedExerciseIndex(expandedExerciseIndex === (index + warmupExercises.length) ? null : (index + warmupExercises.length))}
+                  />
+                ))}
+              </View>
+            )}
+            
+            {/* Cooldown */}
+            {cooldownExercises.length > 0 && (
+              <View style={styles.section}>
+                <View style={styles.sectionHeader}>
+                  <View style={styles.categoryBadge}>
+                    <Ionicons name="water-outline" size={16} color={COLORS.gradientStart} />
+                    <Text style={styles.categoryText}>Cool Down</Text>
+                  </View>
+                  <Text style={styles.exerciseCount}>{cooldownExercises.length} exercises</Text>
+                </View>
+                {cooldownExercises.map((exercise: any, index: number) => (
+                  <ExerciseCard
+                    key={`cooldown-${index}`}
+                    exercise={exercise}
+                    index={index + warmupExercises.length + mainExercises.length}
+                    isExpanded={expandedExerciseIndex === (index + warmupExercises.length + mainExercises.length)}
+                    onToggle={() => setExpandedExerciseIndex(expandedExerciseIndex === (index + warmupExercises.length + mainExercises.length) ? null : (index + warmupExercises.length + mainExercises.length))}
+                  />
+                ))}
+              </View>
+            )}
+            
+            <View style={{ height: 120 }} />
           </ScrollView>
         </Animated.View>
+        
+        {/* Start Workout Button */}
+        <View style={styles.footer}>
+          <TouchableOpacity style={styles.startButton} onPress={onStartWorkout}>
+            <LinearGradient
+              colors={[COLORS.gradientStart, COLORS.gradientEnd]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+              style={styles.startButtonGradient}
+            >
+              <Ionicons name="play" size={24} color={COLORS.text} />
+              <Text style={styles.startButtonText}>Start Workout</Text>
+            </LinearGradient>
+          </TouchableOpacity>
+        </View>
       </View>
     </Modal>
   );
 }
 
+function ExerciseCard({ exercise, index, isExpanded, onToggle }: any) {
+  return (
+    <View style={styles.exerciseCard}>
+      <TouchableOpacity style={styles.exerciseHeader} onPress={onToggle}>
+        <View style={styles.exerciseInfo}>
+          <Text style={styles.exerciseName}>{exercise.name}</Text>
+          <View style={styles.exerciseDetails}>
+            <View style={styles.detailItem}>
+              <Ionicons name="repeat-outline" size={14} color={COLORS.mediumGray} />
+              <Text style={styles.detailText}>{exercise.sets} sets</Text>
+            </View>
+            <View style={styles.detailItem}>
+              <Ionicons name="trending-up-outline" size={14} color={COLORS.mediumGray} />
+              <Text style={styles.detailText}>{exercise.reps} reps</Text>
+            </View>
+            <View style={styles.detailItem}>
+              <Ionicons name="timer-outline" size={14} color={COLORS.mediumGray} />
+              <Text style={styles.detailText}>{exercise.restTime}s rest</Text>
+            </View>
+          </View>
+        </View>
+        <Ionicons
+          name={isExpanded ? 'chevron-up' : 'chevron-down'}
+          size={20}
+          color={COLORS.mediumGray}
+        />
+      </TouchableOpacity>
+      
+      {isExpanded && exercise.videoUrl && (
+        <View style={styles.videoContainer}>
+          <ExerciseVideoPlayer
+            videoUrl={exercise.videoUrl}
+            exerciseName={exercise.name}
+            autoPlay={false}
+          />
+        </View>
+      )}
+      
+      {isExpanded && !exercise.videoUrl && (
+        <View style={styles.noVideoContainer}>
+          <Ionicons name="videocam-off-outline" size={32} color={COLORS.mediumGray} />
+          <Text style={styles.noVideoText}>Video not available</Text>
+        </View>
+      )}
+    </View>
+  );
+}
+
 const styles = StyleSheet.create({
-  modalOverlay: {
+  container: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'flex-end',
+    backgroundColor: COLORS.background,
   },
-  modalContainer: {
-    backgroundColor: COLORS.white,
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    maxHeight: SCREEN_HEIGHT * 0.9,
-    paddingTop: 20,
+  header: {
+    paddingTop: 60,
+    paddingBottom: 24,
+    paddingHorizontal: 20,
+    borderBottomLeftRadius: 30,
+    borderBottomRightRadius: 30,
+  },
+  headerTop: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 24,
   },
   closeButton: {
-    position: 'absolute',
-    top: 20,
-    right: 20,
-    zIndex: 10,
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: COLORS.lightGray,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
     justifyContent: 'center',
     alignItems: 'center',
   },
-  scrollContent: {
-    padding: 24,
-    paddingTop: 60,
+  headerLabel: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: COLORS.text,
   },
-  dateNav: {
+  placeholder: {
+    width: 40,
+  },
+  dayNavigation: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: 24,
+    justifyContent: 'center',
+    marginBottom: 16,
   },
   navButton: {
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: COLORS.lightGray,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
     justifyContent: 'center',
     alignItems: 'center',
   },
-  dateContainer: {
-    flex: 1,
+  dayInfo: {
+    marginHorizontal: 30,
     alignItems: 'center',
   },
-  dateText: {
-    fontSize: 18,
-    fontWeight: '600',
+  dayName: {
+    fontSize: 28,
+    fontWeight: '700',
     color: COLORS.text,
+    marginBottom: 4,
   },
-  dayText: {
+  dateText: {
     fontSize: 14,
     fontWeight: '500',
-    color: COLORS.mediumGray,
-    marginTop: 2,
+    color: 'rgba(255, 255, 255, 0.8)',
+  },
+  workoutTitle: {
+    fontSize: 20,
+    fontWeight: '600',
+    color: COLORS.text,
+    textAlign: 'center',
+    marginBottom: 16,
   },
   statsRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 24,
-  },
-  statBox: {
-    flex: 1,
-    backgroundColor: COLORS.white,
-    borderRadius: 16,
-    padding: 16,
+    justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 8,
-    borderWidth: 2,
-    borderColor: COLORS.lightGray,
   },
-  statValue: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: COLORS.text,
-    marginTop: 8,
-    marginBottom: 4,
+  statItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
   },
-  statLabel: {
-    fontSize: 11,
+  statText: {
+    fontSize: 14,
     fontWeight: '600',
-    color: COLORS.mediumGray,
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
+    color: COLORS.text,
   },
-  titleSection: {
-    marginBottom: 20,
+  statDivider: {
+    width: 1,
+    height: 16,
+    backgroundColor: 'rgba(255, 255, 255, 0.3)',
+    marginHorizontal: 16,
   },
-  workoutTitle: {
-    fontSize: 24,
+  content: {
+    flex: 1,
+  },
+  scrollView: {
+    flex: 1,
+  },
+  section: {
+    paddingHorizontal: 20,
+    marginTop: 24,
+  },
+  sectionTitle: {
+    fontSize: 20,
     fontWeight: '700',
     color: COLORS.text,
-    marginBottom: 8,
+    marginBottom: 12,
   },
-  targetText: {
+  overviewText: {
     fontSize: 15,
+    lineHeight: 22,
     color: COLORS.mediumGray,
   },
-  dropdown: {
+  sectionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  categoryBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
     backgroundColor: COLORS.lightGray,
+    borderRadius: 20,
+  },
+  categoryText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: COLORS.gradientStart,
+  },
+  exerciseCount: {
+    fontSize: 13,
+    fontWeight: '500',
+    color: COLORS.mediumGray,
+  },
+  exerciseCard: {
+    backgroundColor: COLORS.cardBg,
     borderRadius: 16,
     marginBottom: 12,
     overflow: 'hidden',
   },
-  dropdownHeader: {
+  exerciseHeader: {
     flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
     padding: 16,
-  },
-  dropdownTitle: {
-    flex: 1,
-    fontSize: 16,
-    fontWeight: '600',
-    color: COLORS.text,
-    marginLeft: 12,
-  },
-  dropdownContent: {
-    padding: 16,
-    paddingTop: 0,
-  },
-  overviewText: {
-    fontSize: 14,
-    color: COLORS.text,
-    lineHeight: 22,
-  },
-  loadingContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 12,
-    gap: 8,
-  },
-  loadingText: {
-    fontSize: 13,
-    color: COLORS.mediumGray,
-  },
-  exerciseItemContainer: {
-    marginBottom: 12,
-  },
-  exerciseItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 8,
-  },
-  exerciseNumber: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    backgroundColor: `${COLORS.gradientStart}20`,
-    color: COLORS.gradientStart,
-    fontSize: 14,
-    fontWeight: '600',
-    textAlign: 'center',
-    lineHeight: 28,
-    marginRight: 12,
   },
   exerciseInfo: {
     flex: 1,
   },
-  exerciseHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    marginBottom: 4,
-  },
   exerciseName: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: COLORS.text,
-  },
-  exerciseDetails: {
-    fontSize: 13,
-    color: COLORS.mediumGray,
-  },
-  videoPlayerContainer: {
-    marginTop: 12,
-    marginBottom: 8,
-  },
-  videoHint: {
-    fontSize: 11,
-    color: COLORS.mediumGray,
-    textAlign: 'center',
-    marginTop: 8,
-    fontStyle: 'italic',
-  },
-  noVideoContainer: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 24,
-    gap: 8,
-  },
-  noVideoText: {
-    fontSize: 13,
-    color: COLORS.mediumGray,
-    textAlign: 'center',
-  },
-  tipsContainer: {
-    marginTop: 12,
-    padding: 16,
-    backgroundColor: COLORS.lightGray,
-    borderRadius: 12,
-  },
-  tipsHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    marginBottom: 12,
-  },
-  tipsTitle: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: COLORS.text,
-  },
-  tipsText: {
-    fontSize: 13,
-    lineHeight: 20,
-    color: COLORS.text,
-  },
-  startWorkoutHint: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    marginTop: 12,
-    padding: 12,
-    backgroundColor: COLORS.white,
-    borderRadius: 8,
-  },
-  startWorkoutHintText: {
-    flex: 1,
-    fontSize: 12,
-    fontWeight: '600',
-    color: COLORS.gradientStart,
-  },
-  actionButtons: {
-    flexDirection: 'row',
-    gap: 12,
-    marginTop: 20,
-  },
-  editButton: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 16,
-    borderRadius: 16,
-    borderWidth: 2,
-    borderColor: COLORS.gradientStart,
-    backgroundColor: COLORS.white,
-    gap: 8,
-  },
-  editButtonText: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: COLORS.gradientStart,
-  },
-  startButton: {
-    flex: 1,
-    borderRadius: 16,
-    overflow: 'hidden',
-  },
-  startGradient: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 16,
-    gap: 8,
-  },
-  startButtonText: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: COLORS.white,
-  },
-  setTrackingContainer: {
-    marginTop: 16,
-    padding: 16,
-    backgroundColor: COLORS.white,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: `${COLORS.gradientStart}20`,
-  },
-  setTrackingHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 16,
-    gap: 8,
-  },
-  setTrackingTitle: {
     fontSize: 16,
     fontWeight: '600',
     color: COLORS.text,
+    marginBottom: 8,
   },
-  setRow: {
+  exerciseDetails: {
+    flexDirection: 'row',
+    gap: 16,
+  },
+  detailItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 12,
-    gap: 8,
+    gap: 4,
   },
-  setNumber: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: `${COLORS.gradientStart}15`,
+  detailText: {
+    fontSize: 13,
+    color: COLORS.mediumGray,
+  },
+  videoContainer: {
+    height: 220,
+    backgroundColor: '#000',
+  },
+  noVideoContainer: {
+    height: 120,
     justifyContent: 'center',
     alignItems: 'center',
-  },
-  setNumberText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: COLORS.gradientStart,
-  },
-  setInput: {
-    flex: 1,
-    height: 40,
-    borderWidth: 1,
-    borderColor: COLORS.lightGray,
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    fontSize: 14,
-    color: COLORS.text,
     backgroundColor: COLORS.lightGray,
   },
-  completeSetButton: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: `${COLORS.gradientStart}15`,
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: COLORS.gradientStart,
+  noVideoText: {
+    fontSize: 14,
+    color: COLORS.mediumGray,
+    marginTop: 8,
   },
-  completeSetButtonDone: {
-    backgroundColor: COLORS.success,
-    borderColor: COLORS.success,
-  },
-  feelingContainer: {
-    marginTop: 16,
-    paddingTop: 16,
+  footer: {
+    padding: 20,
+    paddingBottom: 40,
+    backgroundColor: COLORS.background,
     borderTopWidth: 1,
     borderTopColor: COLORS.lightGray,
   },
-  feelingLabel: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: COLORS.text,
-    marginBottom: 8,
+  startButton: {
+    borderRadius: 16,
+    overflow: 'hidden',
+    elevation: 8,
+    shadowColor: COLORS.gradientStart,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
   },
-  feelingButtons: {
+  startButtonGradient: {
     flexDirection: 'row',
-    gap: 8,
-  },
-  feelingButton: {
-    flex: 1,
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: COLORS.lightGray,
-    backgroundColor: COLORS.lightGray,
     alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 18,
+    gap: 12,
   },
-  feelingButtonSelected: {
-    backgroundColor: COLORS.gradientStart,
-    borderColor: COLORS.gradientStart,
-  },
-  feelingButtonText: {
-    fontSize: 13,
-    fontWeight: '500',
-    color: COLORS.mediumGray,
-  },
-  feelingButtonTextSelected: {
-    color: COLORS.white,
+  startButtonText: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: COLORS.text,
   },
 });
