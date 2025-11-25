@@ -269,8 +269,15 @@ export function WorkoutDetailsModal({
           </ScrollView>
         </Animated.View>
         
-        {/* Start Workout Button */}
+        {/* Action Buttons */}
         <View style={styles.footer}>
+          <TouchableOpacity style={styles.editButton} onPress={() => alert('Edit Workout coming soon!')}>
+            <View style={styles.editButtonContent}>
+              <Ionicons name="create-outline" size={20} color={COLORS.primary} />
+              <Text style={styles.editButtonText}>Edit Workout</Text>
+            </View>
+          </TouchableOpacity>
+          
           <TouchableOpacity style={styles.startButton} onPress={onStartWorkout}>
             <LinearGradient
               colors={[COLORS.gradientStart, COLORS.gradientEnd]}
@@ -278,7 +285,7 @@ export function WorkoutDetailsModal({
               end={{ x: 1, y: 0 }}
               style={styles.startButtonGradient}
             >
-              <Ionicons name="play" size={24} color={COLORS.text} />
+              <Ionicons name="play" size={24} color="#FFFFFF" />
               <Text style={styles.startButtonText}>Start Workout</Text>
             </LinearGradient>
           </TouchableOpacity>
