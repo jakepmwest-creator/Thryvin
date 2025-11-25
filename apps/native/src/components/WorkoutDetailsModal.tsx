@@ -409,7 +409,7 @@ const styles = StyleSheet.create({
   workoutTitle: {
     fontSize: 20,
     fontWeight: '600',
-    color: COLORS.text,
+    color: '#FFFFFF',
     textAlign: 'center',
     marginBottom: 16,
   },
