@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import * as SecureStore from 'expo-secure-store';
 
-const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL || 'https://28d88a1d-a878-4deb-9ffc-532c0d6fbf3a.preview.emergentagent.com';
+const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL || 'https://bitter-kings-guess.loca.lt';
 
 // Storage helpers
 const getStorageItem = async (key: string): Promise<string | null> => {
@@ -17,30 +17,6 @@ const setStorageItem = async (key: string, value: string): Promise<void> => {
     await SecureStore.setItemAsync(key, value);
   } catch (error) {
     console.error('Storage error:', error);
-  }
-};
-
-// Web-compatible storage helpers
-const getStorageItem = async (key: string): Promise<string | null> => {
-  try {
-    return await getStorageItem(key);
-  } catch (error) {
-    // Fallback to localStorage for web
-    if (typeof window !== 'undefined') {
-      return localStorage.getItem(key);
-    }
-    return null;
-  }
-};
-
-const setStorageItem = async (key: string, value: string): Promise<void> => {
-  try {
-    await setStorageItem(key, value);
-  } catch (error) {
-    // Fallback to localStorage for web
-    if (typeof window !== 'undefined') {
-      localStorage.setItem(key, value);
-    }
   }
 };
 
