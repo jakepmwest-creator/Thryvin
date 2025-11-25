@@ -262,6 +262,20 @@ export default function HomeScreen() {
           )}
         </View>
 
+        {/* Debug: Force Regenerate Week */}
+        <TouchableOpacity 
+          style={{ padding: 12, backgroundColor: COLORS.error, margin: 16, borderRadius: 8 }}
+          onPress={async () => {
+            console.log('🔄 Force regenerating week...');
+            await forceRegenerateWeek();
+            await fetchTodayWorkout();
+          }}
+        >
+          <Text style={{ color: '#FFF', textAlign: 'center', fontWeight: '600' }}>
+            🔄 Force Regenerate Week (Debug)
+          </Text>
+        </TouchableOpacity>
+
         {/* Today's Workout - WHITE CARD */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Today's Workout</Text>
