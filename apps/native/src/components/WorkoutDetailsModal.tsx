@@ -372,7 +372,7 @@ const styles = StyleSheet.create({
   headerLabel: {
     fontSize: 16,
     fontWeight: '600',
-    color: COLORS.text,
+    color: '#FFFFFF',
   },
   placeholder: {
     width: 40,
