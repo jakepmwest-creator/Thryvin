@@ -109,6 +109,7 @@ export default function HomeScreen() {
     personalBests,
     isLoading,
     fetchTodayWorkout,
+    fetchWeekWorkouts,
     fetchStats,
     fetchPersonalBests,
   } = useWorkoutStore();
@@ -116,6 +117,7 @@ export default function HomeScreen() {
   const loadAllData = async () => {
     await Promise.all([
       fetchTodayWorkout(),
+      fetchWeekWorkouts(), // Generate full week of workouts
       fetchStats(),
       fetchPersonalBests(),
     ]);
