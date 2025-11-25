@@ -64,6 +64,13 @@ export function WorkoutDetailsModal({
   // Get workout for current day from weekWorkouts or use provided workout
   const currentWorkout = workout || weekWorkouts[currentDayIndex];
   
+  // Debug logging
+  useEffect(() => {
+    console.log('📅 [MODAL] Current day index:', currentDayIndex);
+    console.log('📅 [MODAL] Week workouts count:', weekWorkouts?.length || 0);
+    console.log('📅 [MODAL] Current workout:', currentWorkout?.title || 'none');
+  }, [currentDayIndex, weekWorkouts, currentWorkout]);
+  
   useEffect(() => {
     if (visible) {
       setCurrentDayIndex(getTodayDayIndex());
