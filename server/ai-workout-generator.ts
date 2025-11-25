@@ -90,6 +90,7 @@ Respond ONLY with valid JSON:
 }`;
 
   const dayNames = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+  const workoutFocus = ['Upper Body', 'Lower Body', 'Full Body', 'Push', 'Pull', 'Legs', 'Core & Cardio'];
   const userGoals = userProfile.fitnessGoals?.join(', ') || userProfile.goal || 'general fitness';
   
   const userMessage = `Create a ${userProfile.sessionDuration || 45}-minute workout for ${dayNames[dayOfWeek]}.
@@ -101,7 +102,9 @@ User:
 - Time: ${userProfile.sessionDuration || 45} min
 ${userProfile.injuries?.length ? `- Injuries: ${userProfile.injuries.join(', ')}` : ''}
 
-Day ${dayOfWeek + 1}/7. Design a balanced workout with warmup, main exercises, and cooldown.`;
+Day ${dayOfWeek + 1}/7 - Focus: ${workoutFocus[dayOfWeek]}. 
+Create a UNIQUE workout different from other days. Design a balanced workout with warmup, main exercises, and cooldown.
+Vary the exercises and focus areas each day.`;
 
   // Step 3: Call AI
   console.log('  Calling GPT-5...');
