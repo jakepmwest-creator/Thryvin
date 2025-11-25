@@ -156,7 +156,7 @@ export function WorkoutDetailsModal({
             </View>
             
             <TouchableOpacity style={styles.navButton} onPress={handleNextDay}>
-              <Ionicons name="chevron-forward" size={24} color={COLORS.text} />
+              <Ionicons name="chevron-forward" size={24} color="#FFFFFF" />
             </TouchableOpacity>
           </View>
           
