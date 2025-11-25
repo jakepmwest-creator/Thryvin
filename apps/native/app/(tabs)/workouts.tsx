@@ -122,7 +122,16 @@ export default function WorkoutsScreen() {
   const [modalVisible, setModalVisible] = useState(false);
   
   // Connect to workout store
-  const { currentWorkout, todayWorkout, weekWorkouts, isLoading, fetchTodayWorkout, fetchWeekWorkouts } = useWorkoutStore();
+  const { currentWorkout, todayWorkout, weekWorkouts, completedWorkouts, isLoading, fetchTodayWorkout, fetchWeekWorkouts } = useWorkoutStore();
+  
+  // Check if a date has a completed workout
+  const isDateCompleted = (date: Date) => {
+    const dateStr = date.toDateString();
+    return completedWorkouts.some(w => {
+      const workoutDate = new Date(w.completedAt || w.date);
+      return workoutDate.toDateString() === dateStr;
+    });
+  };
 
   // Load workouts on mount
   useEffect(() => {
