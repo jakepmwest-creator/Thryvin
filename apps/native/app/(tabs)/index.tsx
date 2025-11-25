@@ -604,16 +604,16 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
   },
   activityTitle: {
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: '700',
     color: COLORS.white,
-    marginTop: 12,
+    marginTop: 6,
   },
   activitySubtitle: {
-    fontSize: 13,
+    fontSize: 11,
     color: COLORS.white,
     opacity: 0.9,
-    marginTop: 4,
+    marginTop: 2,
   },
   nutritionCard: {
     marginTop: 12,
