@@ -27,35 +27,7 @@ const EXTRA_COLORS = {
   incomplete: '#D1D1D6',
 };
 
-// Generate current week dates dynamically
-const getCurrentWeekDays = () => {
-  const today = new Date();
-  const currentDay = today.getDay(); // 0 = Sunday, 1 = Monday
-  const mondayOffset = currentDay === 0 ? -6 : 1 - currentDay; // Get to Monday
-  
-  const weekDays = [];
-  const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-  
-  for (let i = 0; i < 7; i++) {
-    const date = new Date(today);
-    date.setDate(today.getDate() + mondayOffset + i);
-    
-    const dayIndex = date.getDay();
-    const isToday = date.toDateString() === today.toDateString();
-    const isPast = date < today && !isToday;
-    
-    weekDays.push({
-      day: dayNames[dayIndex],
-      date: date.getDate(),
-      fullDate: date,
-      status: isPast ? 'completed' : isToday ? 'today' : 'upcoming'
-    });
-  }
-  
-  return weekDays;
-};
-
-const WEEK_DAYS = getCurrentWeekDays();
+// This will be computed inside the component to access completedWorkouts
 
 // Generate current month data dynamically
 const getCurrentMonthData = () => {
