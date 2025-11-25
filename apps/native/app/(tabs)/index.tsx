@@ -589,7 +589,7 @@ const styles = StyleSheet.create({
   activityScrollContainer: {
     paddingRight: 16,
   },
-  // Activity cards - smaller size
+  // Activity cards - much smaller size (half height)
   activityCard: {
     width: SCREEN_WIDTH * 0.42,
     marginRight: 12,
@@ -598,8 +598,8 @@ const styles = StyleSheet.create({
     ...CARD_SHADOW,
   },
   activityGradient: {
-    padding: 20,
-    minHeight: 140,
+    padding: 14,
+    minHeight: 70,
     justifyContent: 'center',
     alignItems: 'flex-start',
   },
