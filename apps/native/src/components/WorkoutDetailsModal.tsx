@@ -166,7 +166,7 @@ export function WorkoutDetailsModal({
           {/* Stats Row */}
           <View style={styles.statsRow}>
             <View style={styles.statItem}>
-              <Ionicons name="time-outline" size={20} color={COLORS.text} />
+              <Ionicons name="time-outline" size={20} color="#FFFFFF" />
               <Text style={styles.statText}>{currentWorkout?.duration || 45} min</Text>
             </View>
             <View style={styles.statDivider} />
