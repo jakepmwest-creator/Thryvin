@@ -104,6 +104,36 @@ export default function WorkoutsScreen() {
       return workoutDate.toDateString() === dateStr;
     });
   };
+  
+  // Generate current week dates dynamically with completion status
+  const getCurrentWeekDays = () => {
+    const today = new Date();
+    const currentDay = today.getDay(); // 0 = Sunday, 1 = Monday
+    const mondayOffset = currentDay === 0 ? -6 : 1 - currentDay; // Get to Monday
+    
+    const weekDays = [];
+    const dayNames = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+    
+    for (let i = 0; i < 7; i++) {
+      const date = new Date(today);
+      date.setDate(today.getDate() + mondayOffset + i);
+      
+      const isToday = date.toDateString() === today.toDateString();
+      const isPast = date < today && !isToday;
+      const isCompleted = isDateCompleted(date);
+      
+      weekDays.push({
+        day: dayNames[i], // Use index directly since we're going Mon-Sun
+        date: date.getDate(),
+        fullDate: date,
+        status: isCompleted ? 'completed' : (isToday ? 'today' : (isPast ? 'incomplete' : 'upcoming'))
+      });
+    }
+    
+    return weekDays;
+  };
+  
+  const WEEK_DAYS = getCurrentWeekDays();
 
   // Load workouts on mount
   useEffect(() => {
