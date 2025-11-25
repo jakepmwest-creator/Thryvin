@@ -220,7 +220,16 @@ export default function WorkoutHubScreen() {
           <Ionicons name="close" size={28} color={COLORS.text} />
         </TouchableOpacity>
         <View style={styles.headerCenter}>
-          <Text style={styles.headerTitle}>{currentWorkout?.title || 'Workout'}</Text>
+          <Text style={styles.headerTitle}>
+            {currentWorkout?.date 
+              ? new Date(currentWorkout.date).toLocaleDateString('en-US', { weekday: 'long' })
+              : new Date().toLocaleDateString('en-US', { weekday: 'long' })}
+          </Text>
+          <Text style={styles.headerDate}>
+            {currentWorkout?.date 
+              ? new Date(currentWorkout.date).toLocaleDateString('en-US', { month: 'long', day: 'numeric' })
+              : new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric' })}
+          </Text>
         </View>
         <TouchableOpacity style={styles.finishButton} onPress={handleFinishWorkout}>
           <Text style={styles.finishButtonText}>Finish</Text>
