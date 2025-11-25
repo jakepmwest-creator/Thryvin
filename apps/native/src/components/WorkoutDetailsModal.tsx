@@ -535,8 +535,30 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.background,
     borderTopWidth: 1,
     borderTopColor: COLORS.lightGray,
+    flexDirection: 'row',
+    gap: 12,
+  },
+  editButton: {
+    flex: 1,
+    borderRadius: 16,
+    backgroundColor: COLORS.cardBg,
+    borderWidth: 2,
+    borderColor: COLORS.primary,
+  },
+  editButtonContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 18,
+    gap: 8,
+  },
+  editButtonText: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: COLORS.primary,
   },
   startButton: {
+    flex: 1,
     borderRadius: 16,
     overflow: 'hidden',
     elevation: 8,
@@ -555,6 +577,6 @@ const styles = StyleSheet.create({
   startButtonText: {
     fontSize: 18,
     fontWeight: '700',
-    color: COLORS.text,
+    color: '#FFFFFF',
   },
 });
