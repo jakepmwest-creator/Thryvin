@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import * as SecureStore from 'expo-secure-store';
 
-const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL || 'https://bitter-kings-guess.loca.lt';
+const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL || 'https://shaggy-facts-accept.loca.lt';
 
 // Web-compatible storage helpers
 const getStorageItem = async (key: string): Promise<string | null> => {
