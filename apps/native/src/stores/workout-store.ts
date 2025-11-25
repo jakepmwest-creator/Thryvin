@@ -271,8 +271,12 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
       if (cachedWeek && cachedWeekDate === weekKey) {
         console.log('✅ [WEEK] Using cached week workouts');
         const workouts = JSON.parse(cachedWeek);
-        set({ weekWorkouts: workouts, isLoading: false });
-        return;
+        if (workouts && workouts.length === 7) {
+          set({ weekWorkouts: workouts, isLoading: false });
+          return;
+        } else {
+          console.log('⚠️ [WEEK] Cached workouts incomplete, regenerating...');
+        }
       }
       
       console.log('🤖 [WEEK] Generating week workouts with AI...');
