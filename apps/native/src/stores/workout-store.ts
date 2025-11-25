@@ -619,6 +619,12 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
   },
 
   clearError: () => set({ error: null }),
+  
+  // Force regenerate week workouts (for debugging/testing)
+  forceRegenerateWeek: async () => {
+    await setStorageItem('week_workouts_date', ''); // Clear cache
+    await get().fetchWeekWorkouts();
+  },
 }));
 
 // Helper Functions
