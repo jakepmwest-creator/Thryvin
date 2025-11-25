@@ -174,7 +174,6 @@ export default function HomeScreen() {
         onClose={() => setModalVisible(false)}
         onStartWorkout={handleStartWorkout}
         selectedDate={23}
-        workout={todayWorkout}
       />
 
       {selectedExercise && (
