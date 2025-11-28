@@ -3,7 +3,7 @@
 ## Problem
 The mobile app was getting **404 errors** when trying to reach the backend at:
 ```
-https://28d88a1d-a878-4deb-9ffc-532c0d6fbf3a.preview.emergentagent.com/api/*
+https://thryvin-health.preview.emergentagent.com/api/*
 ```
 
 This preview URL routes to the Emergent marketing page, NOT the backend API.
