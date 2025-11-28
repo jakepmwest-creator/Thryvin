@@ -171,30 +171,6 @@ export function ExerciseVideoPlayer({
 
         {showControls && (
           <>
-            {/* Top Controls */}
-            <LinearGradient
-              colors={['rgba(0, 0, 0, 0.7)', 'transparent']}
-              style={styles.topControls}
-            >
-              <Text style={styles.exerciseName}>{exerciseName}</Text>
-              <View style={styles.topButtons}>
-                <TouchableOpacity
-                  style={styles.iconButton}
-                  onPress={toggleFullscreen}
-                >
-                  <Ionicons
-                    name={isFullscreen ? 'contract' : 'expand'}
-                    size={24}
-                    color={COLORS.white}
-                  />
-                </TouchableOpacity>
-                {onClose && !isFullscreen && (
-                  <TouchableOpacity style={styles.iconButton} onPress={onClose}>
-                    <Ionicons name="close" size={24} color={COLORS.white} />
-                  </TouchableOpacity>
-                )}
-              </View>
-            </LinearGradient>
 
             {/* Center Play/Pause Button */}
             <TouchableOpacity
