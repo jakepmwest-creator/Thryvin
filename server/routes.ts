@@ -1325,6 +1325,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
 
+  // Exercise swap endpoint for Edit Workout feature
+  app.post("/api/workouts/swap-exercise", async (req, res) => {
+    try {
+      const { currentExercise, reason, additionalNotes, userProfile } = req.body;
+      
+      console.log('🔄 [API] Swap exercise request:', currentExercise.name);
+      
+      const { getExerciseAlternatives } = await import('./ai-exercise-swap');
+      const alternatives = await getExerciseAlternatives({
+        currentExercise,
+        reason,
+        additionalNotes,
+        userProfile,
+      });
+      
+      console.log('✅ [API] Alternatives generated');
+      res.json(alternatives);
+    } catch (error: any) {
+      console.error('❌ [API] Swap error:', error);
+      res.status(500).json({ 
+        error: 'Failed to find alternatives',
+        details: error.message 
+      });
+    }
+  });
+
+
   app.get("/api/user-stats/:userId", async (req, res) => {
     try {
       const userId = parseInt(req.params.userId);
