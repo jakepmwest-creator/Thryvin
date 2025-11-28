@@ -214,7 +214,7 @@ export function EditWorkoutModal({
                   <Text style={styles.sectionTitle}>Additional Details (Optional)</Text>
                   <TextInput
                     style={styles.notesInput}
-                    placeholder=\"e.g., Knee injury, prefer free weights...\"
+                    placeholder="e.g., Knee injury, prefer free weights..."
                     placeholderTextColor={COLORS.mediumGray}
                     multiline
                     numberOfLines={4}
