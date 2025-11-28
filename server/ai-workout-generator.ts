@@ -142,11 +142,12 @@ Vary the exercises and focus areas each day.`;
     throw new Error('Invalid AI response');
   }
   
-  // Step 5: Fetch exercise data from database
+  // Step 5: Fetch exercise data from database with fuzzy matching
   console.log('  Fetching exercise details...');
   const exerciseNames = workoutPlan.exercises.map((e: any) => e.name);
   
-  const exerciseData = await db
+  // First try exact match
+  let exerciseData = await db
     .select({
       name: exercises.name,
       slug: exercises.slug,
@@ -156,11 +157,39 @@ Vary the exercises and focus areas each day.`;
     .from(exercises)
     .where(inArray(exercises.name, exerciseNames));
   
-  const exerciseMap = new Map(exerciseData.map(e => [e.name, e]));
+  // If no exact matches, get all exercises for fuzzy matching
+  if (exerciseData.length === 0) {
+    exerciseData = await db
+      .select({
+        name: exercises.name,
+        slug: exercises.slug,
+        videoUrl: exercises.videoUrl,
+        thumbnailUrl: exercises.thumbnailUrl,
+      })
+      .from(exercises)
+      .limit(2000);
+  }
   
-  // Step 6: Enrich with videos
+  const exerciseMap = new Map(exerciseData.map(e => [e.name.toLowerCase(), e]));
+  
+  // Step 6: Enrich with videos using fuzzy matching
   const enrichedExercises = workoutPlan.exercises.map((ex: any, index: number) => {
-    const dbExercise = exerciseMap.get(ex.name);
+    // Try exact match first (case insensitive)
+    let dbExercise = exerciseMap.get(ex.name.toLowerCase());
+    
+    // If no exact match, try fuzzy matching
+    if (!dbExercise) {
+      const searchTerms = ex.name.toLowerCase()
+        .replace(/^(barbell|dumbbell|cable|machine|bodyweight|kettlebell)\s+/i, '');
+      
+      for (const [dbName, dbEx] of exerciseMap.entries()) {
+        if (dbName.includes(searchTerms) || searchTerms.includes(dbName.replace(/\s+/g, ''))) {
+          dbExercise = dbEx;
+          console.log(`  Fuzzy match: "${ex.name}" → "${dbEx.name}"`);
+          break;
+        }
+      }
+    }
     
     return {
       id: dbExercise?.slug || `exercise-${index}`,
