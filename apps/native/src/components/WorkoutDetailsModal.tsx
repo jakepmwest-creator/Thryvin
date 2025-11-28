@@ -530,8 +530,9 @@ const styles = StyleSheet.create({
   },
   videoContainer: {
     height: 220,
-    backgroundColor: COLORS.cardBg,
     overflow: 'hidden',
+    borderRadius: 12,
+    marginTop: 12,
   },
   noVideoContainer: {
     height: 120,
