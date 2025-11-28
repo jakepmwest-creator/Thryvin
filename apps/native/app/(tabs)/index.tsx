@@ -171,6 +171,39 @@ export default function HomeScreen() {
     setRingDetailsVisible(label);
     setTimeout(() => setRingDetailsVisible(null), 3000);
   };
+  
+  const handleTourNavigation = (stepId: string) => {
+    console.log('🎯 Tour navigation:', stepId);
+    
+    switch (stepId) {
+      case 'tap-workout-card':
+        // Open workout modal
+        setModalVisible(true);
+        nextStep();
+        break;
+        
+      case 'stats-tab':
+        // Navigate to stats tab
+        router.push('/(tabs)/stats');
+        nextStep();
+        break;
+        
+      case 'awards-tab':
+        // Navigate to awards tab
+        router.push('/(tabs)/awards');
+        nextStep();
+        break;
+        
+      case 'profile-tab':
+        // Navigate to profile tab
+        router.push('/(tabs)/profile');
+        nextStep();
+        break;
+        
+      default:
+        console.log('No navigation for step:', stepId);
+    }
+  };
 
   const handleActivityCardPress = (action: string) => {
     switch (action) {
