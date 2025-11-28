@@ -198,6 +198,21 @@ export function OnboardingTour({
         {/* Dark overlay with spotlight cutout */}
         {renderSpotlight()}
         
+        {/* Touchable area over target (when tap action) */}
+        {step.targetPosition && step.action === 'tap' && (
+          <TouchableOpacity
+            style={{
+              position: 'absolute',
+              left: step.targetPosition.x,
+              top: step.targetPosition.y,
+              width: step.targetPosition.width,
+              height: step.targetPosition.height,
+            }}
+            onPress={handleTargetTap}
+            activeOpacity={1}
+          />
+        )}
+        
         {/* Pulsing ring animation around target */}
         {step.targetPosition && step.action === 'tap' && (
           <Animated.View
