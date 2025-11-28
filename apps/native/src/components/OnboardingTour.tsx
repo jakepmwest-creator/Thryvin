@@ -144,6 +144,7 @@ export function OnboardingTour({
                 opacity: fadeAnim,
               },
             ]}
+            pointerEvents="none"
           >
             <View style={styles.pulsingRingInner} />
           </Animated.View>
