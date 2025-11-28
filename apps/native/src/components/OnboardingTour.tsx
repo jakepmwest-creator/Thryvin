@@ -147,18 +147,37 @@ export function OnboardingTour({
       return styles.tooltipCenter;
     }
 
-    if (step.placement === 'bottom') {
+    const { y, height } = step.targetPosition;
+    const elementBottom = y + height;
+    const elementTop = y;
+    
+    // Calculate available space above and below
+    const spaceAbove = elementTop;
+    const spaceBelow = SCREEN_HEIGHT - elementBottom;
+    
+    // Always prefer showing tooltip where there's more space
+    // Tooltip needs ~300px minimum
+    const tooltipHeight = 300;
+    
+    if (step.placement === 'bottom' || spaceBelow > tooltipHeight) {
+      // Show below if explicitly set or if there's enough space
       return {
-        ...styles.tooltipBottom,
-        top: step.targetPosition.y + step.targetPosition.height + 24,
+        position: 'absolute',
+        top: elementBottom + 24,
+        width: SCREEN_WIDTH - 40,
+        alignSelf: 'center',
       };
-    } else if (step.placement === 'top') {
+    } else if (step.placement === 'top' || spaceAbove > tooltipHeight) {
+      // Show above if explicitly set or if there's enough space
       return {
-        ...styles.tooltipTop,
-        bottom: SCREEN_HEIGHT - step.targetPosition.y + 24,
+        position: 'absolute',
+        bottom: SCREEN_HEIGHT - elementTop + 24,
+        width: SCREEN_WIDTH - 40,
+        alignSelf: 'center',
       };
     }
     
+    // Fallback to center if neither has enough space
     return styles.tooltipCenter;
   };
 
