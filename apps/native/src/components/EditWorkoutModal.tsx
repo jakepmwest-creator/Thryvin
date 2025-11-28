@@ -385,8 +385,34 @@ export function EditWorkoutModal({
           <View style={{ height: 100 }} />
         </ScrollView>
         
-        {/* Action Button */}
-        {selectedExercise && selectedReason && (
+        {/* Action Buttons */}
+        {alternatives ? (
+          <View style={styles.footer}>
+            <TouchableOpacity
+              style={[styles.secondaryButton, { marginBottom: 12 }]}
+              onPress={handleBackFromAlternatives}
+            >
+              <Ionicons name="arrow-back" size={20} color={COLORS.primary} />
+              <Text style={styles.secondaryButtonText}>Choose Different Exercise</Text>
+            </TouchableOpacity>
+            
+            <TouchableOpacity
+              style={styles.swapButton}
+              onPress={handleConfirmSwap}
+              disabled={!selectedAlternative}
+            >
+              <LinearGradient
+                colors={!selectedAlternative ? ['#CCCCCC', '#AAAAAA'] : [COLORS.gradientStart, COLORS.gradientEnd]}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0 }}
+                style={styles.swapButtonGradient}
+              >
+                <Ionicons name="checkmark-circle" size={20} color="#FFFFFF" />
+                <Text style={styles.swapButtonText}>Confirm Swap</Text>
+              </LinearGradient>
+            </TouchableOpacity>
+          </View>
+        ) : selectedExercise && selectedReason && (
           <View style={styles.footer}>
             <TouchableOpacity
               style={styles.swapButton}
@@ -402,12 +428,12 @@ export function EditWorkoutModal({
                 {isGenerating ? (
                   <>
                     <Ionicons name="sync-outline" size={20} color="#FFFFFF" />
-                    <Text style={styles.swapButtonText}>Finding Alternative...</Text>
+                    <Text style={styles.swapButtonText}>Finding Alternatives...</Text>
                   </>
                 ) : (
                   <>
                     <Ionicons name="swap-horizontal" size={20} color="#FFFFFF" />
-                    <Text style={styles.swapButtonText}>Swap Exercise with AI</Text>
+                    <Text style={styles.swapButtonText}>Find Alternatives with AI</Text>
                   </>
                 )}
               </LinearGradient>
