@@ -33,6 +33,7 @@ export interface TourStep {
   placement: 'top' | 'bottom' | 'center';
   action?: 'tap' | 'none';
   icon?: string;
+  requiresInteraction?: boolean; // If true, user must tap the highlighted element
 }
 
 interface OnboardingTourProps {
@@ -42,6 +43,7 @@ interface OnboardingTourProps {
   onNext: () => void;
   onSkip: () => void;
   onComplete: () => void;
+  onNavigate?: (stepId: string) => void; // Callback to handle navigation
 }
 
 export function OnboardingTour({
