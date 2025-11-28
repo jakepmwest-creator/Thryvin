@@ -67,17 +67,53 @@ export function EditWorkoutModal({
     
     setIsGenerating(true);
     
-    // TODO: Call AI API to get replacement exercise
-    // For now, simulate delay
-    await new Promise(resolve => setTimeout(resolve, 1500));
+    try {
+      console.log('🔄 Calling AI to find alternatives...');
+      const response = await fetch(`${API_BASE_URL}/api/workouts/swap-exercise`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          currentExercise: selectedExercise,
+          reason: selectedReason,
+          additionalNotes,
+          userProfile: { experience: 'intermediate' },
+        }),
+      });
+      
+      if (!response.ok) throw new Error('Failed to get alternatives');
+      
+      const data = await response.json();
+      console.log('✅ Got alternatives:', data);
+      setAlternatives(data);
+    } catch (error) {
+      console.error('❌ Error:', error);
+      alert('Failed to find alternatives');
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+  
+  const handleConfirmSwap = () => {
+    if (!selectedAlternative) return;
     
-    setIsGenerating(false);
+    // Update workout with new exercise
+    const updatedExercises = workout.exercises.map((ex: any) => 
+      ex.name === selectedExercise.name ? {
+        ...ex,
+        name: selectedAlternative.name,
+        videoUrl: selectedAlternative.videoUrl,
+      } : ex
+    );
+    
+    onSaveWorkout({ ...workout, exercises: updatedExercises });
+    
+    // Reset state
     setSelectedExercise(null);
     setSelectedReason('');
     setAdditionalNotes('');
-    
-    // Show success message or update workout
-    alert('Exercise swapped! (AI integration coming)');
+    setAlternatives(null);
+    setSelectedAlternative(null);
+    onClose();
   };
   
   const renderExerciseList = () => {
