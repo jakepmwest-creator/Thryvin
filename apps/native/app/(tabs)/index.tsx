@@ -291,7 +291,7 @@ export default function HomeScreen() {
           {isLoading ? (
             <ActivityIndicator size="large" color={COLORS.gradientStart} style={{ marginTop: 20 }} />
           ) : (
-            <View style={styles.todayWorkoutCard}>
+            <View ref={todayWorkoutRef} style={styles.todayWorkoutCard}>
               <View style={styles.workoutContent}>
                 <View style={styles.workoutHeader}>
                   <View style={{ flex: 1 }}>
