@@ -14,6 +14,10 @@ export function useTour() {
   // Check if user has completed tour
   useEffect(() => {
     checkTourStatus();
+    
+    // Poll for tour trigger flag (when user taps "Take Tour")
+    const interval = setInterval(checkForTourTrigger, 500);
+    return () => clearInterval(interval);
   }, []);
 
   const checkTourStatus = async () => {
@@ -27,6 +31,22 @@ export function useTour() {
       }
     } catch (error) {
       console.error('Error checking tour status:', error);
+    }
+  };
+  
+  const checkForTourTrigger = async () => {
+    try {
+      const trigger = await AsyncStorage.getItem('tour_trigger');
+      if (trigger === 'true') {
+        // Clear the trigger flag
+        await AsyncStorage.removeItem('tour_trigger');
+        // Start the tour
+        setCurrentStep(0);
+        setShowTour(true);
+        console.log('🎯 Tour triggered manually');
+      }
+    } catch (error) {
+      console.error('Error checking tour trigger:', error);
     }
   };
 
