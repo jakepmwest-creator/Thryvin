@@ -52,7 +52,7 @@ export function WorkoutDetailsModal({
   workout,
   initialDayIndex
 }: WorkoutDetailsModalProps) {
-  const { weekWorkouts } = useWorkoutStore();
+  const { weekWorkouts, updateWorkoutInWeek } = useWorkoutStore();
   
   const getTodayDayIndex = () => {
     const today = new Date();
