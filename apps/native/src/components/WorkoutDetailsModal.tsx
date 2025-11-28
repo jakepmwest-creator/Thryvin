@@ -346,13 +346,6 @@ function ExerciseCard({ exercise, index, isExpanded, onToggle }: any) {
           />
         </View>
       )}
-      
-      {isExpanded && !exercise.videoUrl && (
-        <View style={styles.noVideoContainer}>
-          <Ionicons name="videocam-off-outline" size={32} color={COLORS.mediumGray} />
-          <Text style={styles.noVideoText}>Video not available</Text>
-        </View>
-      )}
     </View>
   );
 }
