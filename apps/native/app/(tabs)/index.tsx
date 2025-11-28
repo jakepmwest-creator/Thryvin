@@ -426,6 +426,16 @@ export default function HomeScreen() {
           )}
         </View>
       </ScrollView>
+      
+      {/* Onboarding Tour */}
+      <OnboardingTour
+        visible={showTour}
+        steps={tourSteps}
+        currentStep={currentStep}
+        onNext={nextStep}
+        onSkip={skipTour}
+        onComplete={completeTour}
+      />
     </SafeAreaView>
   );
 }
