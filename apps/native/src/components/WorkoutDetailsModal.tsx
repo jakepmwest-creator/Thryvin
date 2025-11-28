@@ -62,6 +62,7 @@ export function WorkoutDetailsModal({
   
   const [currentDayIndex, setCurrentDayIndex] = useState(initialDayIndex !== undefined ? initialDayIndex : getTodayDayIndex());
   const [expandedExerciseIndex, setExpandedExerciseIndex] = useState<number | null>(null);
+  const [editModalVisible, setEditModalVisible] = useState(false);
   const swipeX = useRef(new Animated.Value(0)).current;
   
   // Get workout for current day from weekWorkouts (don't use workout prop)
