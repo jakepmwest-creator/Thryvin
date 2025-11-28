@@ -245,12 +245,12 @@ export function EditWorkoutModal({
               >
                 {isGenerating ? (
                   <>
-                    <Ionicons name=\"sync-outline\" size={20} color=\"#FFFFFF\" />
+                    <Ionicons name="sync-outline" size={20} color="#FFFFFF" />
                     <Text style={styles.swapButtonText}>Finding Alternative...</Text>
                   </>
                 ) : (
                   <>
-                    <Ionicons name=\"swap-horizontal\" size={20} color=\"#FFFFFF\" />
+                    <Ionicons name="swap-horizontal" size={20} color="#FFFFFF" />
                     <Text style={styles.swapButtonText}>Swap Exercise with AI</Text>
                   </>
                 )}
