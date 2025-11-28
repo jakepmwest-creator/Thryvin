@@ -41,6 +41,8 @@ interface EditWorkoutModalProps {
   onSaveWorkout: (updatedWorkout: any) => void;
 }
 
+const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL || 'https://witty-shrimps-smile.loca.lt';
+
 export function EditWorkoutModal({
   visible,
   onClose,
@@ -51,6 +53,8 @@ export function EditWorkoutModal({
   const [selectedReason, setSelectedReason] = useState<string>('');
   const [additionalNotes, setAdditionalNotes] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
+  const [alternatives, setAlternatives] = useState<any>(null);
+  const [selectedAlternative, setSelectedAlternative] = useState<any>(null);
   
   const handleSelectExercise = (exercise: any) => {
     setSelectedExercise(exercise);
