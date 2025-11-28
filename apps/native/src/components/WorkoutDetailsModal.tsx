@@ -294,7 +294,16 @@ export function WorkoutDetailsModal({
             </View>
           </TouchableOpacity>
           
-          <TouchableOpacity style={styles.startButton} onPress={onStartWorkout}>
+          <TouchableOpacity 
+            style={styles.startButton} 
+            onPress={() => {
+              // Set the current workout before starting
+              if (currentWorkout) {
+                setCurrentWorkout(currentWorkout);
+              }
+              onStartWorkout();
+            }}
+          >
             <LinearGradient
               colors={[COLORS.gradientStart, COLORS.gradientEnd]}
               start={{ x: 0, y: 0 }}
