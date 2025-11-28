@@ -287,7 +287,7 @@ export function WorkoutDetailsModal({
         
         {/* Action Buttons */}
         <View style={styles.footer}>
-          <TouchableOpacity style={styles.editButton} onPress={() => alert('Edit Workout coming soon!')}>
+          <TouchableOpacity style={styles.editButton} onPress={() => setEditModalVisible(true)}>
             <View style={styles.editButtonContent}>
               <Ionicons name="create-outline" size={20} color={COLORS.primary} />
               <Text style={styles.editButtonText}>Edit Workout</Text>
@@ -307,6 +307,17 @@ export function WorkoutDetailsModal({
           </TouchableOpacity>
         </View>
       </View>
+      
+      {/* Edit Workout Modal */}
+      <EditWorkoutModal
+        visible={editModalVisible}
+        onClose={() => setEditModalVisible(false)}
+        workout={currentWorkout}
+        onSaveWorkout={(updated) => {
+          // TODO: Save updated workout
+          setEditModalVisible(false);
+        }}
+      />
     </Modal>
   );
 }
