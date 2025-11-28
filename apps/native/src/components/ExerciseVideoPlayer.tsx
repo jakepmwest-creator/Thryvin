@@ -171,15 +171,19 @@ export function ExerciseVideoPlayer({
 
         {showControls && (
           <View style={styles.centerPlayButton}>
-            <TouchableOpacity
-              style={styles.simplePlayButton}
-              onPress={togglePlayPause}
-            >
-              <Ionicons
-                name={isPlaying ? 'pause' : 'play'}
-                size={48}
-                color={COLORS.white}
-              />
+            <TouchableOpacity onPress={togglePlayPause}>
+              <LinearGradient
+                colors={[COLORS.accent, COLORS.accentSecondary]}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={styles.simplePlayButton}
+              >
+                <Ionicons
+                  name={isPlaying ? 'pause' : 'play'}
+                  size={48}
+                  color={COLORS.white}
+                />
+              </LinearGradient>
             </TouchableOpacity>
           </View>
         )}
