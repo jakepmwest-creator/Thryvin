@@ -144,6 +144,17 @@ export default function HomeScreen() {
     console.log('📱 [HOME] EXPO_PUBLIC_API_BASE_URL:', process.env.EXPO_PUBLIC_API_BASE_URL);
     loadAllData();
   }, []);
+  
+  // Register tour elements and update positions
+  useEffect(() => {
+    if (showTour && todayWorkoutRef.current) {
+      registerElement('home-workout', todayWorkoutRef);
+      // Update position for the workout card step
+      setTimeout(() => {
+        updateStepPosition('home-workout', 'home-workout');
+      }, 500);
+    }
+  }, [showTour, isLoading]);
 
   const onRefresh = async () => {
     setRefreshing(true);
