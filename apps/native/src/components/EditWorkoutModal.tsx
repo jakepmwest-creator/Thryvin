@@ -112,7 +112,7 @@ export function EditWorkoutModal({
           </View>
         </View>
         {selectedExercise?.name === exercise.name && (
-          <Ionicons name=\"checkmark-circle\" size={24} color={COLORS.primary} />
+          <Ionicons name="checkmark-circle" size={24} color={COLORS.primary} />
         )}
       </TouchableOpacity>
     ));
