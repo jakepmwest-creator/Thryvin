@@ -277,8 +277,11 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
           set({ weekWorkouts: workouts, isLoading: false });
           return;
         } else {
-          console.log('⚠️ [WEEK] Cached workouts incomplete, regenerating...');
+          console.log('⚠️ [WEEK] Cached workouts incomplete:', workouts?.length, 'of 7');
         }
+      } else {
+        console.log('⚠️ [WEEK] Cache miss - cachedWeek:', !!cachedWeek, 'dateMatch:', cachedWeekDate === weekKey);
+        console.log('   Expected week key:', weekKey, 'Got:', cachedWeekDate);
       }
       
       console.log('🤖 [WEEK] Generating week workouts with AI...');
