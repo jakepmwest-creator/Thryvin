@@ -181,6 +181,12 @@ export function OnboardingTour({
     return styles.tooltipCenter;
   };
 
+  const handleTargetTap = () => {
+    if (step.action === 'tap' && onNavigate) {
+      onNavigate(step.id);
+    }
+  };
+
   return (
     <Modal
       visible={visible}
