@@ -156,8 +156,9 @@ export function OnboardingTour({
             getTooltipPosition(),
             { opacity: fadeAnim },
           ]}
+          pointerEvents="box-none"
         >
-          <View style={styles.tooltipCard}>
+          <View style={styles.tooltipCard} pointerEvents="auto">
             {/* Icon */}
             {step.icon && (
               <View style={styles.iconContainer}>
