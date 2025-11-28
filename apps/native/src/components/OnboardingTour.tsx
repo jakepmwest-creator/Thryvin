@@ -324,6 +324,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     width: SCREEN_WIDTH - 40,
     alignSelf: 'center',
+    zIndex: 9999,
   },
   tooltipCenter: {
     top: SCREEN_HEIGHT / 2 - 200,
