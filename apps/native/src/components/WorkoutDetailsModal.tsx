@@ -313,8 +313,9 @@ export function WorkoutDetailsModal({
         visible={editModalVisible}
         onClose={() => setEditModalVisible(false)}
         workout={currentWorkout}
-        onSaveWorkout={(updated) => {
-          // TODO: Save updated workout
+        onSaveWorkout={async (updated) => {
+          console.log('💾 Saving updated workout for day', currentDayIndex);
+          await updateWorkoutInWeek(currentDayIndex, updated);
           setEditModalVisible(false);
         }}
       />
