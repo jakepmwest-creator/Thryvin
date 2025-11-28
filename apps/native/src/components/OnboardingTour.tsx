@@ -75,31 +75,29 @@ export function OnboardingTour({
     const spotlightPadding = 8;
 
     return (
-      <View style={StyleSheet.absoluteFill} pointerEvents="none">
+      <View style={StyleSheet.absoluteFill} pointerEvents="box-none">
         {/* Top overlay */}
-        <View style={[styles.overlay, { height: y - spotlightPadding }]} />
+        <View style={[styles.overlay, { height: y - spotlightPadding }]} pointerEvents="none" />
         
         {/* Middle section with sides */}
-        <View style={{ flexDirection: 'row', height: height + spotlightPadding * 2 }}>
-          <View style={[styles.overlay, { width: x - spotlightPadding }]} />
+        <View style={{ flexDirection: 'row', height: height + spotlightPadding * 2 }} pointerEvents="box-none">
+          <View style={[styles.overlay, { width: x - spotlightPadding }]} pointerEvents="none" />
           
-          {/* Spotlight hole with animated border */}
+          {/* Spotlight hole - completely transparent, no border */}
           <View
             style={{
               width: width + spotlightPadding * 2,
               height: height + spotlightPadding * 2,
-              borderRadius: 16,
-              borderWidth: 3,
-              borderColor: COLORS.primary,
               backgroundColor: 'transparent',
             }}
+            pointerEvents="none"
           />
           
-          <View style={[styles.overlay, { flex: 1 }]} />
+          <View style={[styles.overlay, { flex: 1 }]} pointerEvents="none" />
         </View>
         
         {/* Bottom overlay */}
-        <View style={[styles.overlay, { flex: 1 }]} />
+        <View style={[styles.overlay, { flex: 1 }]} pointerEvents="none" />
       </View>
     );
   };
