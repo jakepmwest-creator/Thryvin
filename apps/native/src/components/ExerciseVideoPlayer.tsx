@@ -138,6 +138,10 @@ export function ExerciseVideoPlayer({
 
   const toggleControlsVisibility = () => {
     setShowControls(!showControls);
+    // Reset auto-hide timer
+    if (controlsTimer.current) {
+      clearTimeout(controlsTimer.current);
+    }
   };
 
   const renderPlayer = () => (
