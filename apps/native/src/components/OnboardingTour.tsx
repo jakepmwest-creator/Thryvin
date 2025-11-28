@@ -343,7 +343,8 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.3,
     shadowRadius: 16,
-    elevation: 10,
+    elevation: 20,
+    zIndex: 10000,
   },
   iconContainer: {
     marginBottom: 16,
