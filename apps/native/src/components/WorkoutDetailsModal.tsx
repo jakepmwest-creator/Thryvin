@@ -76,10 +76,14 @@ export function WorkoutDetailsModal({
   
   useEffect(() => {
     if (visible) {
-      setCurrentDayIndex(getTodayDayIndex());
+      if (initialDayIndex !== undefined) {
+        setCurrentDayIndex(initialDayIndex);
+      } else {
+        setCurrentDayIndex(getTodayDayIndex());
+      }
       setExpandedExerciseIndex(null);
     }
-  }, [visible]);
+  }, [visible, initialDayIndex]);
   
   // Swipe gesture handler
   const panResponder = useRef(
