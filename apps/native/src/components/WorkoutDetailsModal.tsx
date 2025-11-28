@@ -350,14 +350,21 @@ function ExerciseCard({ exercise, index, isExpanded, onToggle }: any) {
         />
       </TouchableOpacity>
       
-      {isExpanded && exercise.videoUrl && (
-        <View style={styles.videoContainer}>
-          <ExerciseVideoPlayer
-            videoUrl={exercise.videoUrl}
-            exerciseName={exercise.name}
-            autoPlay={false}
-          />
-        </View>
+      {isExpanded && (
+        exercise.videoUrl ? (
+          <View style={styles.videoContainer}>
+            <ExerciseVideoPlayer
+              videoUrl={exercise.videoUrl}
+              exerciseName={exercise.name}
+              autoPlay={false}
+            />
+          </View>
+        ) : (
+          <View style={styles.noVideoContainer}>
+            <Ionicons name="videocam-off-outline" size={32} color={COLORS.mediumGray} />
+            <Text style={styles.noVideoText}>Video Unavailable</Text>
+          </View>
+        )
       )}
     </View>
   );
