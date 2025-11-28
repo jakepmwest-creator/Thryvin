@@ -64,11 +64,12 @@ Exercise database includes:
 ${sampleExercises.slice(0, 30).map(e => `- ${e.name}`).join('\n')}
 ... and 1,500+ more exercises.
 
-IMPORTANT: Use standard exercise names without equipment prefixes.
-- Use "Deadlift" not "Cable Deadlift" or "Band Deadlift"
-- Use "Bench Press" not "Dumbbell Bench Press" (unless user has limited equipment)
-- Use "Squats" not "Goblet Squats"
-- Match exact names from the database above
+IMPORTANT: Use SPECIFIC exercise names with equipment type.
+- Use "Barbell Deadlift" or "Dumbbell Deadlift" not just "Deadlift"
+- Use "Barbell Bench Press" or "Dumbbell Bench Press" not just "Bench Press"
+- Use "Barbell Squat" or "Goblet Squat" not just "Squats"
+- Use "Dumbbell Hammer Curl" or "Cable Hammer Curl" not just "Hammer Curl"
+- Match exact names from the database above including equipment type
 
 Workout structure:
 1. 2-3 warmup exercises (dynamic stretches)
