@@ -446,6 +446,7 @@ export default function HomeScreen() {
         onNext={nextStep}
         onSkip={skipTour}
         onComplete={completeTour}
+        onNavigate={handleTourNavigation}
       />
     </SafeAreaView>
   );
