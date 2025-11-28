@@ -1,4 +1,7 @@
 import OpenAI from "openai";
+import { db } from './db';
+import { exercises } from '../shared/schema';
+import { like, or } from 'drizzle-orm';
 
 // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
@@ -6,46 +9,65 @@ const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 interface Exercise {
   id: string;
   name: string;
-  description: string;
+  description?: string;
   sets: number;
-  reps: number;
-  weight?: number;
+  reps: string | number;
+  restTime?: number;
+  videoUrl?: string;
+  category?: string;
 }
 
 interface SwapRequest {
   currentExercise: Exercise;
   reason: string;
+  additionalNotes?: string;
   userProfile?: any;
 }
 
-export async function generateExerciseAlternative(request: SwapRequest): Promise<Exercise> {
+interface AlternativesResponse {
+  recommended: Exercise;
+  alternatives: Exercise[];
+}
+
+export async function getExerciseAlternatives(request: SwapRequest): Promise<AlternativesResponse> {
   try {
-    const { currentExercise, reason, userProfile } = request;
+    const { currentExercise, reason, additionalNotes, userProfile } = request;
     
-    const prompt = `You are a professional fitness coach. A user wants to swap out an exercise for a different one.
+    console.log('🤖 Generating alternatives for:', currentExercise.name);
+    console.log('   Reason:', reason, additionalNotes || '');
+    
+    // Build AI prompt
+    const prompt = `You are a professional fitness coach. A user wants to swap an exercise for a better alternative.
 
 Current Exercise: ${currentExercise.name}
-Description: ${currentExercise.description}
 Sets: ${currentExercise.sets}
 Reps: ${currentExercise.reps}
-Weight: ${currentExercise.weight || 'No weight'}
+Reason for swap: ${reason}
+${additionalNotes ? `Additional details: ${additionalNotes}` : ''}
 
-User's reason for wanting to swap: "${reason}"
+Based on the reason, suggest 4 alternative exercises that:
+1. Target similar muscle groups
+2. Address the user's specific concern (${reason})
+3. Have appropriate difficulty
+4. MUST include SPECIFIC equipment type in name (e.g., "Barbell Bench Press", "Dumbbell Chest Press", "Cable Fly")
 
-Please suggest an appropriate alternative exercise that:
-1. Targets similar muscle groups
-2. Addresses the user's concern/reason for swapping
-3. Has similar difficulty level
-4. Can be performed with similar equipment requirements
+IMPORTANT: Use specific names with equipment:
+- "Barbell Bench Press" not "Bench Press"
+- "Dumbbell Lateral Raise" not "Lateral Raise"
+- "Cable Tricep Pushdown" not "Tricep Pushdown"
 
-Respond with JSON in this exact format:
+Rank by best match (first = most recommended).
+
+Respond with JSON ONLY:
 {
-  "id": "alternative-exercise-id",
-  "name": "Alternative Exercise Name",
-  "description": "Detailed description of how to perform the exercise",
-  "sets": number,
-  "reps": number,
-  "weight": number or null
+  "alternatives": [
+    {
+      "name": "Specific Exercise Name With Equipment",
+      "reason": "Why this is a good swap",
+      "sets": 3,
+      "reps": "8-10"
+    }
+  ]
 }`;
 
     const response = await openai.chat.completions.create({
@@ -60,36 +82,87 @@ Respond with JSON in this exact format:
           content: prompt
         }
       ],
-      response_format: { type: "json_object" }
+      response_format: { type: "json_object" },
+      temperature: 0.7,
     });
 
     const result = JSON.parse(response.choices[0].message.content || '{}');
     
-    // Ensure the response has required fields
-    if (!result.id || !result.name || !result.description) {
+    if (!result.alternatives || !Array.isArray(result.alternatives)) {
       throw new Error('Invalid AI response format');
     }
 
+    console.log(`   AI suggested ${result.alternatives.length} alternatives`);
+    
+    // Fetch video URLs from database for each alternative
+    const exerciseNames = result.alternatives.map((alt: any) => alt.name);
+    
+    const exerciseData = await db
+      .select({
+        name: exercises.name,
+        slug: exercises.slug,
+        videoUrl: exercises.videoUrl,
+        thumbnailUrl: exercises.thumbnailUrl,
+      })
+      .from(exercises)
+      .where(
+        or(
+          ...exerciseNames.map(name => like(exercises.name, `%${name}%`))
+        )
+      );
+    
+    console.log(`   Found ${exerciseData.length} matching videos in DB`);
+    
+    // Create a mapping of exercise names to video URLs
+    const exerciseMap = new Map(exerciseData.map(e => [e.name.toLowerCase(), e]));
+    
+    // Enrich alternatives with video URLs
+    const enrichedAlternatives = result.alternatives.map((alt: any, index: number) => {
+      const dbExercise = exerciseMap.get(alt.name.toLowerCase()) || 
+                        exerciseData.find(e => 
+                          e.name.toLowerCase().includes(alt.name.toLowerCase()) ||
+                          alt.name.toLowerCase().includes(e.name.toLowerCase())
+                        );
+      
+      return {
+        id: dbExercise?.slug || `alt-${index}`,
+        name: alt.name,
+        description: alt.reason || 'A great alternative exercise',
+        sets: alt.sets || currentExercise.sets,
+        reps: alt.reps || currentExercise.reps,
+        restTime: currentExercise.restTime || 60,
+        videoUrl: dbExercise?.videoUrl,
+        category: currentExercise.category || 'main',
+      };
+    });
+    
+    // First is recommended, rest are alternatives
     return {
-      id: result.id,
-      name: result.name,
-      description: result.description,
-      sets: result.sets || currentExercise.sets,
-      reps: result.reps || currentExercise.reps,
-      weight: result.weight || currentExercise.weight
+      recommended: enrichedAlternatives[0],
+      alternatives: enrichedAlternatives.slice(1),
     };
 
   } catch (error) {
-    console.error('Error generating exercise alternative:', error);
+    console.error('❌ Error generating alternatives:', error);
     
     // Fallback response
     return {
-      id: `alt-${currentExercise.id}`,
-      name: `Modified ${currentExercise.name}`,
-      description: `A modified version of ${currentExercise.name} based on your feedback.`,
-      sets: currentExercise.sets,
-      reps: Math.max(currentExercise.reps - 2, 5),
-      weight: currentExercise.weight ? Math.max(currentExercise.weight - 5, 5) : undefined
+      recommended: {
+        id: `alt-${currentExercise.id}`,
+        name: `Modified ${currentExercise.name}`,
+        description: 'A modified version based on your feedback',
+        sets: currentExercise.sets,
+        reps: currentExercise.reps,
+        restTime: currentExercise.restTime || 60,
+        category: currentExercise.category || 'main',
+      },
+      alternatives: [],
     };
   }
+}
+
+// Keep old function for backward compatibility
+export async function generateExerciseAlternative(request: SwapRequest): Promise<Exercise> {
+  const result = await getExerciseAlternatives(request);
+  return result.recommended;
 }
