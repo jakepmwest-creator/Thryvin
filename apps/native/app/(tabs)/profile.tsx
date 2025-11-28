@@ -295,6 +295,12 @@ export default function ProfileScreen() {
               onPress={() => console.log('Help')}
             />
             <MenuButton
+              icon="rocket"
+              title="Take App Tour"
+              subtitle="Learn how to use Thryvin like a pro"
+              onPress={handleStartTour}
+            />
+            <MenuButton
               icon="mail"
               title="Contact Support"
               onPress={() => console.log('Contact support')}
