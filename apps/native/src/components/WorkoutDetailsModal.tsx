@@ -544,7 +544,6 @@ const styles = StyleSheet.create({
   videoContainer: {
     height: 220,
     overflow: 'hidden',
-    borderRadius: 12,
     marginTop: 12,
   },
   noVideoContainer: {
