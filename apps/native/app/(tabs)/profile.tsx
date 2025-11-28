@@ -123,6 +123,27 @@ export default function ProfileScreen() {
     );
   };
 
+  const handleStartTour = async () => {
+    try {
+      // Clear the tour completion flag
+      await AsyncStorage.removeItem('onboarding_tour_completed');
+      
+      Alert.alert(
+        'App Tour Ready! 🎉',
+        'The tour will start when you return to the Home tab. Navigate to Home to begin!',
+        [
+          { 
+            text: 'Got it!', 
+            style: 'default',
+          }
+        ]
+      );
+    } catch (error) {
+      console.error('Error starting tour:', error);
+      Alert.alert('Error', 'Could not start tour. Please try again.');
+    }
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       {/* Header */}
