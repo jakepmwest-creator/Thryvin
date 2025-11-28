@@ -542,9 +542,9 @@ const styles = StyleSheet.create({
     color: COLORS.mediumGray,
   },
   videoContainer: {
-    height: 220,
-    overflow: 'hidden',
     marginTop: 12,
+    borderRadius: 12,
+    overflow: 'hidden',
   },
   noVideoContainer: {
     height: 120,
