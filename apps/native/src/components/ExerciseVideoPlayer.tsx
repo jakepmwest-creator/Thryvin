@@ -170,24 +170,19 @@ export function ExerciseVideoPlayer({
         )}
 
         {showControls && (
-          <>
-
-            {/* Simple Center Play/Pause Button */}
-            <View style={styles.centerPlayButton}>
-              <TouchableOpacity
-                style={styles.simplePlayButton}
-                onPress={togglePlayPause}
-              >
-                <Ionicons
-                  name={isPlaying ? 'pause' : 'play'}
-                  size={48}
-                  color={COLORS.white}
-                />
-              </TouchableOpacity>
-            </View>
-
-            {/* Removed bottom controls - simple play/pause only */}
-            <View style={{ display: 'none' }}>
+          <View style={styles.centerPlayButton}>
+            <TouchableOpacity
+              style={styles.simplePlayButton}
+              onPress={togglePlayPause}
+            >
+              <Ionicons
+                name={isPlaying ? 'pause' : 'play'}
+                size={48}
+                color={COLORS.white}
+              />
+            </TouchableOpacity>
+          </View>
+        )}
               {/* Seek Bar */}
               <View style={styles.seekBarContainer}>
                 <Text style={styles.timeText}>{formatTime(position)}</Text>
