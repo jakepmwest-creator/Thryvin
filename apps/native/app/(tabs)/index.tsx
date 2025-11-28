@@ -24,6 +24,8 @@ import Svg, { Circle, Defs, LinearGradient as SvgLinearGradient, Stop } from 're
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 import { COLORS, CARD_SHADOW } from '../../src/constants/colors';
+import { OnboardingTour } from '../../src/components/OnboardingTour';
+import { useTour } from '../../src/hooks/useTour';
 
 // Activity cards with vibrant gradients
 const ACTIVITY_CARDS = [
