@@ -211,7 +211,7 @@ const styles = StyleSheet.create({
   playerContainer: {
     width: '100%',
     aspectRatio: 16 / 9,
-    backgroundColor: '#000',
+    backgroundColor: 'transparent',
     borderRadius: 12,
     overflow: 'hidden',
   },
