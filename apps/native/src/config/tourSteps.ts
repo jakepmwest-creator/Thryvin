@@ -1,101 +1,111 @@
 import { TourStep } from '../components/OnboardingTour';
 
 export const TOUR_STEPS: TourStep[] = [
-  // Welcome step
+  // 1. Welcome
   {
     id: 'welcome',
     title: 'Welcome to Thryvin! 🎉',
-    description: 'Let\'s take a quick tour to help you get the most out of your fitness journey. This will only take a minute!',
+    description: 'Let\'s take a quick 60-second tour to show you around. You\'ll learn how to get personalized workouts, track progress, and stay motivated!',
     placement: 'center',
     action: 'none',
     icon: 'sparkles',
   },
   
-  // Home screen - Today's Workout
+  // 2. Home screen - Workout Card
   {
     id: 'home-workout',
-    title: 'Your Daily Workout',
-    description: 'Every day, AI generates a personalized workout based on your goals and fitness level. Tap here to see today\'s workout!',
+    title: 'Your Personalized Workout',
+    description: 'AI generates a unique workout for you every day based on your goals and fitness level. Tap the workout card to view today\'s exercises!',
     placement: 'top',
-    action: 'tap',
+    action: 'none',
     icon: 'fitness',
   },
   
-  // Workout modal
+  // 3. Inside workout modal - Overview
   {
-    id: 'workout-details',
-    title: 'Workout Overview',
-    description: 'View all exercises, sets, and reps. Swipe left or right to see the full week of workouts. Each day has a unique AI-generated routine!',
+    id: 'workout-modal',
+    title: 'Workout Structure',
+    description: 'Each workout has 3 phases: Warmup to prep your body, Main exercises for strength, and Cooldown to recover. Swipe left/right to see your full week!',
     placement: 'center',
     action: 'none',
     icon: 'calendar',
   },
   
-  // Edit workout feature
+  // 4. Edit & Customize
   {
-    id: 'edit-workout',
-    title: 'Customize Your Workout',
-    description: 'Tap "Edit Workout" to swap exercises. Our AI suggests alternatives based on injuries, equipment, or difficulty. Make it perfect for you!',
-    placement: 'top',
+    id: 'workout-customize',
+    title: 'Edit & Customize',
+    description: 'Use "Edit Workout" to swap exercises if you have an injury or different equipment. AI suggests perfect alternatives!',
+    placement: 'center',
     action: 'none',
     icon: 'create',
   },
   
-  // Start workout
+  // 5. Start workout button
   {
     id: 'start-workout',
-    title: 'Begin Your Session',
-    description: 'Tap "Start Workout" to enter the Workout Hub. Track your sets, reps, and weight in real-time with video guidance for each exercise!',
-    placement: 'top',
+    title: 'Ready to Train?',
+    description: 'Tap "Start Workout" to enter the Workout Hub where you\'ll log sets, reps, and weight. Exercise videos guide you through each movement!',
+    placement: 'center',
     action: 'none',
     icon: 'play-circle',
   },
   
-  // Workouts tab
+  // 6. Workout Hub explanation
   {
-    id: 'workouts-tab',
-    title: 'Your Weekly Schedule',
-    description: 'The Workouts tab shows your full week at a glance. See which days you\'ve completed and plan ahead!',
-    placement: 'top',
-    action: 'tap',
+    id: 'workout-hub',
+    title: 'Workout Hub',
+    description: 'During your workout: Watch exercise videos, log your sets and weights, and tap the purple AI button for form tips. Hit "Finish Workout" when done!',
+    placement: 'center',
+    action: 'none',
     icon: 'barbell',
   },
   
-  // Stats tab
+  // 7. Workouts Tab
+  {
+    id: 'workouts-tab',
+    title: 'Weekly Calendar',
+    description: 'The Workouts tab shows your full week. See which days you\'ve completed and what\'s coming up. Stay consistent!',
+    placement: 'center',
+    action: 'none',
+    icon: 'calendar-outline',
+  },
+  
+  // 8. Stats Tab
   {
     id: 'stats-tab',
     title: 'Track Your Progress',
-    description: 'View your workout stats, personal records, and strength gains over time. Watch yourself improve week after week!',
-    placement: 'top',
-    action: 'tap',
+    description: 'View your workout stats, personal records, and strength gains over time. Watch yourself get stronger every week!',
+    placement: 'center',
+    action: 'none',
     icon: 'stats-chart',
   },
   
-  // Awards tab
+  // 9. Awards Tab
   {
     id: 'awards-tab',
     title: 'Earn Achievements',
-    description: 'Unlock badges and achievements as you hit milestones. Stay motivated and celebrate your wins!',
-    placement: 'top',
-    action: 'tap',
+    description: 'Unlock badges as you hit milestones. Complete workouts, set PRs, and build streaks to earn rewards!',
+    placement: 'center',
+    action: 'none',
     icon: 'trophy',
   },
   
-  // Profile tab
+  // 10. Profile Tab
   {
     id: 'profile-tab',
-    title: 'Your Profile & Settings',
-    description: 'Update your goals, preferences, and account settings here. Your profile helps AI create better workouts for you!',
-    placement: 'top',
-    action: 'tap',
+    title: 'Your Profile',
+    description: 'Update your fitness goals, preferences, and settings here. The better AI knows you, the better your workouts!',
+    placement: 'center',
+    action: 'none',
     icon: 'person-circle',
   },
   
-  // Final step
+  // 11. Complete
   {
     id: 'complete',
-    title: 'You\'re All Set! 🚀',
-    description: 'That\'s it! You\'re ready to start your fitness journey. Remember, consistency is key. Let\'s get started!',
+    title: 'You\'re All Set! 💪',
+    description: 'That\'s everything! Remember: consistency beats perfection. Start with today\'s workout and build your streak. Let\'s get it!',
     placement: 'center',
     action: 'none',
     icon: 'checkmark-circle',
