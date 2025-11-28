@@ -172,22 +172,19 @@ export function ExerciseVideoPlayer({
         {showControls && (
           <>
 
-            {/* Center Play/Pause Button */}
-            <TouchableOpacity
-              style={styles.centerPlayButton}
-              onPress={togglePlayPause}
-            >
-              <LinearGradient
-                colors={[COLORS.accent, COLORS.accentSecondary]}
-                style={styles.centerPlayGradient}
+            {/* Simple Center Play/Pause Button */}
+            <View style={styles.centerPlayButton}>
+              <TouchableOpacity
+                style={styles.simplePlayButton}
+                onPress={togglePlayPause}
               >
                 <Ionicons
                   name={isPlaying ? 'pause' : 'play'}
-                  size={40}
+                  size={48}
                   color={COLORS.white}
                 />
-              </LinearGradient>
-            </TouchableOpacity>
+              </TouchableOpacity>
+            </View>
 
             {/* Bottom Controls */}
             <LinearGradient
