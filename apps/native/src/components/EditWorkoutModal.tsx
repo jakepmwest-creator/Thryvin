@@ -41,6 +41,81 @@ interface EditWorkoutModalProps {
   onSaveWorkout: (updatedWorkout: any) => void;
 }
 
+interface AlternativeCardProps {
+  exercise: any;
+  isRecommended?: boolean;
+  isSelected: boolean;
+  onSelect: () => void;
+}
+
+const AlternativeCard: React.FC<AlternativeCardProps> = ({
+  exercise,
+  isRecommended = false,
+  isSelected,
+  onSelect,
+}) => {
+  return (
+    <TouchableOpacity
+      style={[
+        styles.alternativeCard,
+        isSelected && styles.alternativeCardSelected,
+        isRecommended && styles.alternativeCardRecommended,
+      ]}
+      onPress={onSelect}
+    >
+      {isRecommended && (
+        <View style={styles.recommendedBadge}>
+          <Ionicons name="star" size={14} color="#FFFFFF" />
+          <Text style={styles.recommendedBadgeText}>Recommended</Text>
+        </View>
+      )}
+      
+      <View style={styles.alternativeHeader}>
+        <View style={styles.alternativeLeft}>
+          <View style={[
+            styles.alternativeIcon,
+            isRecommended && { backgroundColor: '#34C75920' },
+            isSelected && { backgroundColor: COLORS.primary },
+          ]}>
+            <Ionicons 
+              name={isSelected ? "checkmark" : "fitness-outline"} 
+              size={20} 
+              color={isSelected ? "#FFFFFF" : isRecommended ? '#34C759' : COLORS.primary} 
+            />
+          </View>
+          <View style={styles.alternativeInfo}>
+            <Text style={styles.alternativeName}>{exercise.name}</Text>
+            <Text style={styles.alternativeMeta}>
+              {exercise.sets} sets • {exercise.reps} reps
+            </Text>
+          </View>
+        </View>
+        {isSelected && (
+          <View style={styles.selectedCheckmark}>
+            <Ionicons name="checkmark-circle" size={28} color={COLORS.primary} />
+          </View>
+        )}
+      </View>
+      
+      {exercise.description && (
+        <Text style={styles.alternativeDescription}>{exercise.description}</Text>
+      )}
+      
+      {exercise.videoUrl ? (
+        <View style={styles.videoStatus}>
+          <Ionicons name="videocam" size={16} color={COLORS.success} />
+          <Text style={styles.videoStatusText}>Video available</Text>
+        </View>
+      ) : (
+        <View style={styles.videoStatus}>
+          <Ionicons name="videocam-off-outline" size={16} color={COLORS.mediumGray} />
+          <Text style={[styles.videoStatusText, { color: COLORS.mediumGray }]}>No video</Text>
+        </View>
+      )}
+    </TouchableOpacity>
+  );
+};
+
 const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL || 'https://witty-shrimps-smile.loca.lt';
 
 export function EditWorkoutModal({
