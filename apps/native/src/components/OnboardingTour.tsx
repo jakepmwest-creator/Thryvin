@@ -75,30 +75,70 @@ export function OnboardingTour({
     const spotlightPadding = 8;
 
     return (
-      <View style={StyleSheet.absoluteFill} pointerEvents="box-none">
-        {/* Top overlay */}
-        <View style={[styles.overlay, { height: y - spotlightPadding }]} pointerEvents="none" />
-        
-        {/* Middle section with sides */}
-        <View style={{ flexDirection: 'row', height: height + spotlightPadding * 2 }} pointerEvents="box-none">
-          <View style={[styles.overlay, { width: x - spotlightPadding }]} pointerEvents="none" />
+      <>
+        {/* Dark overlay covering everything */}
+        <View style={StyleSheet.absoluteFill} pointerEvents="none">
+          {/* Top overlay */}
+          <View style={[styles.overlay, { height: y - spotlightPadding }]} />
           
-          {/* Spotlight hole - completely transparent, no border */}
-          <View
-            style={{
-              width: width + spotlightPadding * 2,
-              height: height + spotlightPadding * 2,
-              backgroundColor: 'transparent',
-            }}
-            pointerEvents="none"
-          />
+          {/* Middle section with sides */}
+          <View style={{ flexDirection: 'row', height: height + spotlightPadding * 2 }}>
+            <View style={[styles.overlay, { width: x - spotlightPadding }]} />
+            
+            {/* Transparent hole for spotlight */}
+            <View
+              style={{
+                width: width + spotlightPadding * 2,
+                height: height + spotlightPadding * 2,
+                backgroundColor: 'transparent',
+              }}
+            />
+            
+            <View style={[styles.overlay, { flex: 1 }]} />
+          </View>
           
-          <View style={[styles.overlay, { flex: 1 }]} pointerEvents="none" />
+          {/* Bottom overlay */}
+          <View style={[styles.overlay, { flex: 1 }]} />
         </View>
         
-        {/* Bottom overlay */}
-        <View style={[styles.overlay, { flex: 1 }]} pointerEvents="none" />
-      </View>
+        {/* Purple gradient border around spotlight */}
+        <View
+          style={{
+            position: 'absolute',
+            left: x - spotlightPadding,
+            top: y - spotlightPadding,
+            width: width + spotlightPadding * 2,
+            height: height + spotlightPadding * 2,
+            borderRadius: 20,
+            overflow: 'hidden',
+          }}
+          pointerEvents="none"
+        >
+          <LinearGradient
+            colors={[COLORS.gradientStart, COLORS.gradientEnd]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+            }}
+          />
+          <View
+            style={{
+              position: 'absolute',
+              top: 3,
+              left: 3,
+              right: 3,
+              bottom: 3,
+              backgroundColor: 'transparent',
+              borderRadius: 17,
+            }}
+          />
+        </View>
+      </>
     );
   };
 
