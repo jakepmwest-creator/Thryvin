@@ -186,11 +186,8 @@ export function ExerciseVideoPlayer({
               </TouchableOpacity>
             </View>
 
-            {/* Bottom Controls */}
-            <LinearGradient
-              colors={['transparent', 'rgba(0, 0, 0, 0.7)']}
-              style={styles.bottomControls}
-            >
+            {/* Removed bottom controls - simple play/pause only */}
+            <View style={{ display: 'none' }}>
               {/* Seek Bar */}
               <View style={styles.seekBarContainer}>
                 <Text style={styles.timeText}>{formatTime(position)}</Text>
