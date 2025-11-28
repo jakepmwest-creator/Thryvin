@@ -163,7 +163,7 @@ export function EditWorkoutModal({
         >
           <View style={styles.headerTop}>
             <TouchableOpacity style={styles.closeButton} onPress={onClose}>
-              <Ionicons name=\"close\" size={28} color=\"#FFFFFF\" />
+              <Ionicons name="close" size={28} color="#FFFFFF" />
             </TouchableOpacity>
             <Text style={styles.headerTitle}>Edit Workout</Text>
             <View style={styles.placeholder} />
