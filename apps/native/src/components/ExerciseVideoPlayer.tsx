@@ -37,7 +37,7 @@ export function ExerciseVideoPlayer({
   videoUrl,
   exerciseName = 'Exercise',
   onClose,
-  autoPlay = false,
+  autoPlay = true, // Changed to true by default
 }: ExerciseVideoPlayerProps) {
   const videoRef = useRef<Video>(null);
   const [isPlaying, setIsPlaying] = useState(autoPlay);
@@ -49,15 +49,16 @@ export function ExerciseVideoPlayer({
   const [isLoading, setIsLoading] = useState(true);
   const [duration, setDuration] = useState(0);
   const [position, setPosition] = useState(0);
-  const [showControls, setShowControls] = useState(true);
+  const [showControls, setShowControls] = useState(false); // Hidden by default
 
   const controlsTimer = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
-    if (autoPlay && videoRef.current) {
+    // Autoplay on mount
+    if (videoRef.current) {
       videoRef.current.playAsync();
     }
-  }, [autoPlay]);
+  }, []);
 
   // Auto-hide controls after 3 seconds
   useEffect(() => {
