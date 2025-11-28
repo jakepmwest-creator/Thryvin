@@ -149,7 +149,7 @@ export function EditWorkoutModal({
   return (
     <Modal
       visible={visible}
-      animationType=\"slide\"
+      animationType="slide"
       transparent={false}
       onRequestClose={onClose}
     >
