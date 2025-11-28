@@ -622,6 +622,12 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
 
   clearError: () => set({ error: null }),
   
+  // Set the current workout (for viewing/starting)
+  setCurrentWorkout: (workout: Workout) => {
+    set({ currentWorkout: workout });
+    console.log('✅ [WORKOUT] Set currentWorkout:', workout.title);
+  },
+  
   // Update a specific workout in the week
   updateWorkoutInWeek: async (dayIndex: number, updatedWorkout: Workout) => {
     const { weekWorkouts, currentWorkout } = get();
