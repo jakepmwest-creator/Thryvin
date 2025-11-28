@@ -72,45 +72,47 @@ export function OnboardingTour({
     if (!step.targetPosition) return null;
 
     const { x, y, width, height } = step.targetPosition;
-    const spotlightPadding = 8;
+    const padding = 12;
+    const borderWidth = 3;
 
     return (
       <>
-        {/* Dark overlay covering everything */}
+        {/* Dark overlay with cutout */}
         <View style={StyleSheet.absoluteFill} pointerEvents="none">
-          {/* Top overlay */}
-          <View style={[styles.overlay, { height: y - spotlightPadding }]} />
+          {/* Top */}
+          <View style={[styles.overlay, { height: y - padding }]} />
           
-          {/* Middle section with sides */}
-          <View style={{ flexDirection: 'row', height: height + spotlightPadding * 2 }}>
-            <View style={[styles.overlay, { width: x - spotlightPadding }]} />
+          {/* Middle row */}
+          <View style={{ flexDirection: 'row', height: height + padding * 2 }}>
+            {/* Left */}
+            <View style={[styles.overlay, { width: x - padding }]} />
             
-            {/* Transparent hole for spotlight */}
+            {/* Center cutout - completely transparent */}
             <View
               style={{
-                width: width + spotlightPadding * 2,
-                height: height + spotlightPadding * 2,
+                width: width + padding * 2,
+                height: height + padding * 2,
                 backgroundColor: 'transparent',
               }}
             />
             
+            {/* Right */}
             <View style={[styles.overlay, { flex: 1 }]} />
           </View>
           
-          {/* Bottom overlay */}
+          {/* Bottom */}
           <View style={[styles.overlay, { flex: 1 }]} />
         </View>
         
-        {/* Purple gradient border around spotlight */}
+        {/* Gradient border ONLY (not filled) */}
         <View
           style={{
             position: 'absolute',
-            left: x - spotlightPadding,
-            top: y - spotlightPadding,
-            width: width + spotlightPadding * 2,
-            height: height + spotlightPadding * 2,
+            left: x - padding,
+            top: y - padding,
+            width: width + padding * 2,
+            height: height + padding * 2,
             borderRadius: 20,
-            overflow: 'hidden',
           }}
           pointerEvents="none"
         >
@@ -119,24 +121,20 @@ export function OnboardingTour({
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
             style={{
-              position: 'absolute',
-              top: 0,
-              left: 0,
-              right: 0,
-              bottom: 0,
+              flex: 1,
+              borderRadius: 20,
+              padding: borderWidth,
             }}
-          />
-          <View
-            style={{
-              position: 'absolute',
-              top: 3,
-              left: 3,
-              right: 3,
-              bottom: 3,
-              backgroundColor: 'transparent',
-              borderRadius: 17,
-            }}
-          />
+          >
+            {/* Inner transparent area */}
+            <View
+              style={{
+                flex: 1,
+                backgroundColor: 'rgba(0, 0, 0, 0.85)',
+                borderRadius: 17,
+              }}
+            />
+          </LinearGradient>
         </View>
       </>
     );
