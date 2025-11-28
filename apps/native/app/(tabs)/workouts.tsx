@@ -234,7 +234,10 @@ export default function WorkoutsScreen() {
                     styles.dayCard,
                     day.status === 'today' && styles.dayCardToday,
                   ]}
-                  onPress={() => handleDayPress(day.date)}
+                  onPress={() => {
+                    setSelectedDayIndex(index);
+                    setModalVisible(true);
+                  }}
                 >
                   {day.status === 'today' && (
                     <LinearGradient
