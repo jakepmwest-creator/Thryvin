@@ -116,7 +116,7 @@ const AlternativeCard: React.FC<AlternativeCardProps> = ({
   );
 };
 
-const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL || 'https://witty-shrimps-smile.loca.lt';
+const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL || 'https://modern-walls-speak.loca.lt';
 
 export function EditWorkoutModal({
   visible,
@@ -144,9 +144,16 @@ export function EditWorkoutModal({
     
     try {
       console.log('🔄 Calling AI to find alternatives...');
+      console.log('   API URL:', `${API_BASE_URL}/api/workouts/swap-exercise`);
+      console.log('   Exercise:', selectedExercise.name);
+      console.log('   Reason:', selectedReason);
+      
       const response = await fetch(`${API_BASE_URL}/api/workouts/swap-exercise`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Bypass-Tunnel-Reminder': 'true',
+        },
         body: JSON.stringify({
           currentExercise: selectedExercise,
           reason: selectedReason,
@@ -155,14 +162,33 @@ export function EditWorkoutModal({
         }),
       });
       
-      if (!response.ok) throw new Error('Failed to get alternatives');
+      console.log('   Response status:', response.status);
+      console.log('   Response headers:', response.headers);
       
-      const data = await response.json();
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('   Error response:', errorText.substring(0, 200));
+        throw new Error(`HTTP ${response.status}: ${errorText.substring(0, 100)}`);
+      }
+      
+      const responseText = await response.text();
+      console.log('   Raw response:', responseText.substring(0, 100));
+      
+      const data = JSON.parse(responseText);
       console.log('✅ Got alternatives:', data);
+      
+      // Validate response structure
+      if (!data.recommended || !data.alternatives) {
+        console.error('   Invalid response structure:', data);
+        throw new Error('Invalid response from server');
+      }
+      
       setAlternatives(data);
-    } catch (error) {
-      console.error('❌ Error:', error);
-      alert('Failed to find alternatives');
+    } catch (error: any) {
+      console.error('❌ Error details:', error);
+      console.error('   Error name:', error.name);
+      console.error('   Error message:', error.message);
+      alert(`Failed to find alternatives:\n\n${error.message}\n\nCheck console for details.`);
     } finally {
       setIsGenerating(false);
     }
@@ -298,7 +324,10 @@ export function EditWorkoutModal({
             <TouchableOpacity style={styles.closeButton} onPress={onClose}>
               <Ionicons name="close" size={28} color="#FFFFFF" />
             </TouchableOpacity>
-            <Text style={styles.headerTitle}>Edit Workout</Text>
+            <View style={styles.headerCenter}>
+              <Text style={styles.headerTitle}>Edit Workout</Text>
+              <Text style={styles.versionText}>v2.0 - AI Powered</Text>
+            </View>
             <View style={styles.placeholder} />
           </View>
           <Text style={styles.headerSubtitle}>{getHeaderText()}</Text>
@@ -428,12 +457,12 @@ export function EditWorkoutModal({
                 {isGenerating ? (
                   <>
                     <Ionicons name="sync-outline" size={20} color="#FFFFFF" />
-                    <Text style={styles.swapButtonText}>Finding Alternatives...</Text>
+                    <Text style={styles.swapButtonText}>AI Finding Better Options...</Text>
                   </>
                 ) : (
                   <>
-                    <Ionicons name="swap-horizontal" size={20} color="#FFFFFF" />
-                    <Text style={styles.swapButtonText}>Find Alternatives with AI</Text>
+                    <Ionicons name="sparkles" size={20} color="#FFFFFF" />
+                    <Text style={styles.swapButtonText}>Get AI Alternatives</Text>
                   </>
                 )}
               </LinearGradient>
@@ -471,10 +500,19 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
+  headerCenter: {
+    alignItems: 'center',
+  },
   headerTitle: {
     fontSize: 20,
     fontWeight: '700',
     color: '#FFFFFF',
+  },
+  versionText: {
+    fontSize: 11,
+    fontWeight: '500',
+    color: 'rgba(255, 255, 255, 0.7)',
+    marginTop: 2,
   },
   placeholder: {
     width: 40,

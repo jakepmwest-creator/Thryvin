@@ -1,0 +1,31 @@
+🔍 VERIFY THESE CHANGES IN YOUR GITHUB PUSH:
+
+File to check: /app/apps/native/src/components/EditWorkoutModal.tsx
+
+LOOK FOR THESE EXACT LINES:
+
+Line 328-329:
+              <Text style={styles.headerTitle}>Edit Workout</Text>
+              <Text style={styles.versionText}>v2.0 - AI Powered</Text>
+
+Line 465:
+                    <Text style={styles.swapButtonText}>Get AI Alternatives</Text>
+
+Line 326-332 (full header section):
+          <View style={styles.headerTop}>
+            <TouchableOpacity style={styles.closeButton} onPress={onClose}>
+              <Ionicons name="close" size={28} color="#FFFFFF" />
+            </TouchableOpacity>
+            <View style={styles.headerCenter}>
+              <Text style={styles.headerTitle}>Edit Workout</Text>
+              <Text style={styles.versionText}>v2.0 - AI Powered</Text>
+            </View>
+
+CHANGED TEXT:
+- Header now shows "v2.0 - AI Powered" under "Edit Workout"
+- Button changed from "Find Alternatives with AI" to "Get AI Alternatives"
+- Button icon changed from "swap-horizontal" to "sparkles"
+- Loading text changed to "AI Finding Better Options..."
+
+If you see these changes in GitHub, then changes ARE being saved.
+If you DON'T see these changes in GitHub, then there's an issue on the platform side.
