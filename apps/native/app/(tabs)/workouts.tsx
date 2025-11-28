@@ -193,7 +193,13 @@ export default function WorkoutsScreen() {
               </Text>
               <TouchableOpacity 
                 style={styles.startButton}
-                onPress={() => setModalVisible(true)}
+                onPress={() => {
+                  const today = new Date();
+                  const dayOfWeek = today.getDay(); // 0 = Sunday
+                  const todayIndex = dayOfWeek === 0 ? 6 : dayOfWeek - 1; // Convert to 0 = Monday
+                  setSelectedDayIndex(todayIndex);
+                  setModalVisible(true);
+                }}
               >
                 <LinearGradient
                   colors={[COLORS.gradientStart, COLORS.gradientEnd]}
