@@ -188,7 +188,7 @@ export function EditWorkoutModal({
             <>
               <View style={styles.section}>
                 <View style={styles.selectedExerciseBanner}>
-                  <Ionicons name=\"fitness-outline\" size={24} color={COLORS.primary} />
+                  <Ionicons name="fitness-outline" size={24} color={COLORS.primary} />
                   <View style={styles.selectedExerciseInfo}>
                     <Text style={styles.selectedExerciseLabel}>Editing</Text>
                     <Text style={styles.selectedExerciseName}>{selectedExercise.name}</Text>
