@@ -64,17 +64,27 @@ Exercise database includes:
 ${sampleExercises.slice(0, 30).map(e => `- ${e.name}`).join('\n')}
 ... and 1,500+ more exercises.
 
-IMPORTANT: Use SPECIFIC exercise names with equipment type.
-- Use "Barbell Deadlift" or "Dumbbell Deadlift" not just "Deadlift"
-- Use "Barbell Bench Press" or "Dumbbell Bench Press" not just "Bench Press"
-- Use "Barbell Squat" or "Goblet Squat" not just "Squats"
-- Use "Dumbbell Hammer Curl" or "Cable Hammer Curl" not just "Hammer Curl"
-- Match exact names from the database above including equipment type
+CRITICAL RULE: ALWAYS include the SPECIFIC EQUIPMENT TYPE in the exercise name.
+
+✅ CORRECT exercise names (with equipment):
+- "Barbell Deadlift" (NOT "Deadlift")
+- "Dumbbell Bench Press" (NOT "Bench Press")
+- "Barbell Back Squat" (NOT "Squat")
+- "Dumbbell Hammer Curl" (NOT "Hammer Curl")
+- "Cable Tricep Pushdown" (NOT "Tricep Pushdown")
+- "Bodyweight Push-Up" (NOT "Push-Up")
+- "Machine Leg Press" (NOT "Leg Press")
+- "Cable Lateral Raise" (NOT "Lateral Raise")
+- "Dumbbell Romanian Deadlift" (NOT "Romanian Deadlift")
+
+❌ NEVER use generic names without equipment type.
+
+When in doubt, specify: Barbell, Dumbbell, Cable, Machine, Bodyweight, Resistance Band, or Kettlebell.
 
 Workout structure:
-1. 2-3 warmup exercises (dynamic stretches)
-2. 4-6 main exercises (strength/cardio)
-3. 2 cooldown exercises (static stretches)
+1. 2-3 warmup exercises (dynamic stretches, can use "Bodyweight" prefix)
+2. 4-6 main exercises (strength/cardio with specific equipment)
+3. 2 cooldown exercises (static stretches, can use "Bodyweight" prefix)
 
 Respond ONLY with valid JSON:
 {
@@ -84,9 +94,9 @@ Respond ONLY with valid JSON:
   "duration": 45,
   "targetMuscles": "Chest, Back",
   "exercises": [
-    {"name": "Arm Circles", "sets": 2, "reps": "30 sec", "restTime": 15, "category": "warmup"},
-    {"name": "Bench Press", "sets": 4, "reps": "8-10", "restTime": 90, "category": "main"},
-    {"name": "Hamstring Stretch", "sets": 1, "reps": "60 sec", "restTime": 0, "category": "cooldown"}
+    {"name": "Bodyweight Arm Circles", "sets": 2, "reps": "30 sec", "restTime": 15, "category": "warmup"},
+    {"name": "Barbell Bench Press", "sets": 4, "reps": "8-10", "restTime": 90, "category": "main"},
+    {"name": "Bodyweight Hamstring Stretch", "sets": 1, "reps": "60 sec", "restTime": 0, "category": "cooldown"}
   ]
 }`;
 
