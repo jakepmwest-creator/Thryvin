@@ -366,13 +366,21 @@ const styles = StyleSheet.create({
     top: '50%',
     left: '50%',
     transform: [{ translateX: -40 }, { translateY: -40 }],
+    justifyContent: 'center',
+    alignItems: 'center',
   },
-  centerPlayGradient: {
+  simplePlayButton: {
     width: 80,
     height: 80,
     borderRadius: 40,
+    backgroundColor: 'rgba(162, 43, 246, 0.9)',
     justifyContent: 'center',
     alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
   },
   bottomControls: {
     position: 'absolute',
