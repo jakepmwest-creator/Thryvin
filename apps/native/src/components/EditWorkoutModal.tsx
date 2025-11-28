@@ -137,7 +137,7 @@ export function EditWorkoutModal({
         <Text style={styles.reasonLabel}>{reason.label}</Text>
         {selectedReason === reason.id && (
           <View style={styles.reasonCheckmark}>
-            <Ionicons name=\"checkmark-circle\" size={20} color={COLORS.primary} />
+            <Ionicons name="checkmark-circle" size={20} color={COLORS.primary} />
           </View>
         )}
       </TouchableOpacity>
