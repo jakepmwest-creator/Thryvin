@@ -624,7 +624,7 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
   
   // Update a specific workout in the week
   updateWorkoutInWeek: async (dayIndex: number, updatedWorkout: Workout) => {
-    const { weekWorkouts } = get();
+    const { weekWorkouts, currentWorkout } = get();
     const newWeekWorkouts = [...weekWorkouts];
     newWeekWorkouts[dayIndex] = updatedWorkout;
     
@@ -634,11 +634,18 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
     // Update state
     set({ weekWorkouts: newWeekWorkouts });
     
+    // If it's the current workout (being viewed/edited), update that too
+    if (currentWorkout && currentWorkout.id === updatedWorkout.id) {
+      set({ currentWorkout: updatedWorkout });
+      console.log('✅ [WORKOUT] Updated currentWorkout');
+    }
+    
     // If it's today's workout, update that too
     const todayIndex = new Date().getDay() === 0 ? 6 : new Date().getDay() - 1;
     if (dayIndex === todayIndex) {
-      set({ todayWorkout: updatedWorkout });
+      set({ todayWorkout: updatedWorkout, currentWorkout: updatedWorkout });
       await setStorageItem('today_workout', JSON.stringify(updatedWorkout));
+      console.log('✅ [WORKOUT] Updated todayWorkout and currentWorkout');
     }
     
     console.log('✅ [WORKOUT] Updated workout for day', dayIndex);
