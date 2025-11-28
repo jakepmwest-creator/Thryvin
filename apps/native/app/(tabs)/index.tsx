@@ -103,8 +103,21 @@ export default function HomeScreen() {
   const [selectedExercise, setSelectedExercise] = useState<any>(null);
   const [refreshing, setRefreshing] = useState(false);
   const scrollX = useRef(new Animated.Value(0)).current;
+  
+  // Tour refs for highlighting
+  const todayWorkoutRef = useRef(null);
 
   const { user } = useAuthStore();
+  const {
+    showTour,
+    currentStep,
+    tourSteps,
+    registerElement,
+    updateStepPosition,
+    nextStep,
+    skipTour,
+    completeTour,
+  } = useTour();
   const {
     todayWorkout,
     stats,
