@@ -48,7 +48,8 @@ export function WorkoutDetailsModal({
   onClose,
   onStartWorkout,
   selectedDate = 23,
-  workout
+  workout,
+  initialDayIndex
 }: WorkoutDetailsModalProps) {
   const { weekWorkouts } = useWorkoutStore();
   
@@ -58,7 +59,7 @@ export function WorkoutDetailsModal({
     return dayOfWeek === 0 ? 6 : dayOfWeek - 1; // Convert to 0 = Monday
   };
   
-  const [currentDayIndex, setCurrentDayIndex] = useState(getTodayDayIndex());
+  const [currentDayIndex, setCurrentDayIndex] = useState(initialDayIndex !== undefined ? initialDayIndex : getTodayDayIndex());
   const [expandedExerciseIndex, setExpandedExerciseIndex] = useState<number | null>(null);
   const swipeX = useRef(new Animated.Value(0)).current;
   
