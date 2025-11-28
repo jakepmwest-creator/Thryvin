@@ -127,10 +127,12 @@ export default function ProfileScreen() {
     try {
       // Clear the tour completion flag
       await AsyncStorage.removeItem('onboarding_tour_completed');
+      // Set a flag to trigger tour immediately
+      await AsyncStorage.setItem('tour_trigger', 'true');
       
       Alert.alert(
         'App Tour Ready! 🎉',
-        'The tour will start when you return to the Home tab. Navigate to Home to begin!',
+        'Navigate to the Home tab and the tour will start automatically!',
         [
           { 
             text: 'Got it!', 
