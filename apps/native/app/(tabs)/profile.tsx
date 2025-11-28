@@ -13,6 +13,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { PINSetup } from '../../src/components/PINSetup';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const COLORS = {
   accent: '#A22BF6',
