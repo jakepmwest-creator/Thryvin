@@ -186,6 +186,13 @@ export function EditWorkoutModal({
   
   if (!visible) return null;
   
+  // Determine header text
+  const getHeaderText = () => {
+    if (alternatives) return 'Choose Alternative';
+    if (selectedExercise) return 'Why swap this exercise?';
+    return 'Select exercise to modify';
+  };
+  
   return (
     <Modal
       visible={visible}
@@ -208,13 +215,36 @@ export function EditWorkoutModal({
             <Text style={styles.headerTitle}>Edit Workout</Text>
             <View style={styles.placeholder} />
           </View>
-          <Text style={styles.headerSubtitle}>
-            {selectedExercise ? 'Choose reason to swap' : 'Select exercise to modify'}
-          </Text>
+          <Text style={styles.headerSubtitle}>{getHeaderText()}</Text>
         </LinearGradient>
         
         <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-          {!selectedExercise ? (
+          {alternatives ? (
+            /* Alternatives Selection Screen */
+            <>
+              <View style={styles.section}>
+                <Text style={styles.sectionTitle}>✨ Recommended</Text>
+                <AlternativeCard
+                  exercise={alternatives.recommended}
+                  isRecommended
+                  isSelected={selectedAlternative?.name === alternatives.recommended.name}
+                  onSelect={() => setSelectedAlternative(alternatives.recommended)}
+                />
+              </View>
+              
+              <View style={styles.section}>
+                <Text style={styles.sectionTitle}>Other Options</Text>
+                {alternatives.alternatives.map((alt: any, idx: number) => (
+                  <AlternativeCard
+                    key={idx}
+                    exercise={alt}
+                    isSelected={selectedAlternative?.name === alt.name}
+                    onSelect={() => setSelectedAlternative(alt)}
+                  />
+                ))}
+              </View>
+            </>
+          ) : !selectedExercise ? (
             /* Exercise Selection */
             <View style={styles.section}>
               <Text style={styles.sectionTitle}>Exercises in Your Workout</Text>
