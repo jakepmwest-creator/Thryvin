@@ -16,7 +16,7 @@ export const TOUR_STEPS: TourStep[] = [
     id: 'home-workout',
     title: 'Your Daily Workout',
     description: 'Every day, AI generates a personalized workout based on your goals and fitness level. Tap here to see today\'s workout!',
-    placement: 'bottom',
+    placement: 'top',
     action: 'tap',
     icon: 'fitness',
   },
