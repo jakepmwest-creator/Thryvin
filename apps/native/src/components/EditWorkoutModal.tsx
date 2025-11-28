@@ -96,11 +96,17 @@ export function EditWorkoutModal({
   const handleConfirmSwap = () => {
     if (!selectedAlternative) return;
     
+    console.log('✅ Swapping exercise:', selectedExercise.name, '→', selectedAlternative.name);
+    
     // Update workout with new exercise
     const updatedExercises = workout.exercises.map((ex: any) => 
       ex.name === selectedExercise.name ? {
         ...ex,
         name: selectedAlternative.name,
+        description: selectedAlternative.description,
+        sets: selectedAlternative.sets,
+        reps: selectedAlternative.reps,
+        restTime: selectedAlternative.restTime,
         videoUrl: selectedAlternative.videoUrl,
       } : ex
     );
@@ -114,6 +120,11 @@ export function EditWorkoutModal({
     setAlternatives(null);
     setSelectedAlternative(null);
     onClose();
+  };
+  
+  const handleBackFromAlternatives = () => {
+    setAlternatives(null);
+    setSelectedAlternative(null);
   };
   
   const renderExerciseList = () => {
