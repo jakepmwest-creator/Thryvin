@@ -580,7 +580,6 @@ const styles = StyleSheet.create({
     marginRight: 12,
     borderRadius: 16,
     overflow: 'hidden',
-    ...CARD_SHADOW,
   },
   activityGradient: {
     padding: 14,
