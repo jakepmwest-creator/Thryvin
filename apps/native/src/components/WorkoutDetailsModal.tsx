@@ -40,6 +40,7 @@ interface WorkoutDetailsModalProps {
   onStartWorkout: () => void;
   selectedDate?: number;
   workout?: any;
+  initialDayIndex?: number;
 }
 
 export function WorkoutDetailsModal({
