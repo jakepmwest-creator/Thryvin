@@ -215,19 +215,19 @@ export default function ProfileScreen() {
               icon="person"
               title="Edit Profile"
               subtitle="Update your personal information"
-              onPress={() => console.log('Edit profile')}
+              onPress={() => Alert.alert('Coming Soon', 'Profile editing will be available in the next update!')}
             />
             <MenuButton
               icon="fitness"
               title="Workout Preferences"
               subtitle="Customize your training settings"
-              onPress={() => console.log('Workout preferences')}
+              onPress={() => Alert.alert('Coming Soon', 'Workout preferences will be available soon!')}
             />
             <MenuButton
               icon="trophy"
               title="Goals & Progress"
               subtitle={profileData.nextGoal}
-              onPress={() => console.log('Goals')}
+              onPress={() => Alert.alert('Coming Soon', 'Goals tracking will be available soon!')}
             />
           </View>
         </View>
