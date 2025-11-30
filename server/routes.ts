@@ -4272,10 +4272,8 @@ Respond with a complete workout in JSON format:
       
       console.log('📥 [API] Week generation request for user:', user.id);
       
-      // Import the week generator
-      const { generateWeekWorkouts } = await import('./week-generator');
-      
-      // Generate the week (this will handle all the DB operations)
+      // Generate the week using the proper function
+      const { generateWeekWorkouts } = require('./week-generator');
       const result = await generateWeekWorkouts(user.id, userProfile);
       
       return res.status(200).json({
