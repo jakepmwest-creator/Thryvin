@@ -283,12 +283,12 @@ export default function ProfileScreen() {
             <MenuButton
               icon="shield"
               title="Privacy Policy"
-              onPress={() => console.log('Privacy policy')}
+              onPress={() => Alert.alert('Coming Soon', 'Privacy policy will be available soon!')}
             />
             <MenuButton
               icon="document-text"
               title="Terms of Service"
-              onPress={() => console.log('Terms of service')}
+              onPress={() => Alert.alert('Coming Soon', 'Terms of service will be available soon!')}
             />
           </View>
         </View>
