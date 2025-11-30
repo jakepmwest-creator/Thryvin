@@ -53,6 +53,7 @@ export function OnboardingTour({
   onNext,
   onSkip,
   onComplete,
+  onNavigate,
 }: OnboardingTourProps) {
   const [fadeAnim] = useState(new Animated.Value(0));
   const step = steps[currentStep];
