@@ -299,7 +299,7 @@ export default function ProfileScreen() {
             <MenuButton
               icon="help-circle"
               title="Help & FAQ"
-              onPress={() => console.log('Help')}
+              onPress={() => Alert.alert('Coming Soon', 'Help center will be available soon!')}
             />
             <MenuButton
               icon="rocket"
@@ -310,13 +310,13 @@ export default function ProfileScreen() {
             <MenuButton
               icon="mail"
               title="Contact Support"
-              onPress={() => console.log('Contact support')}
+              onPress={() => Alert.alert('Coming Soon', 'Support channels will be available soon!')}
             />
             <MenuButton
               icon="star"
               title="Rate Thryvin"
               subtitle="Love the app? Leave us a review!"
-              onPress={() => console.log('Rate app')}
+              onPress={() => Alert.alert('Coming Soon', 'App store ratings will be enabled soon!')}
             />
           </View>
         </View>
