@@ -87,10 +87,24 @@ const SettingToggle = ({
 );
 
 export default function ProfileScreen() {
+  const { user } = useAuthStore();
+  const { totalWorkouts, totalMinutes, currentStreak } = useStatsStore();
   const [notifications, setNotifications] = useState(true);
   const [workoutReminders, setWorkoutReminders] = useState(true);
   const [analytics, setAnalytics] = useState(false);
   const [showPINSetup, setShowPINSetup] = useState(false);
+  
+  // Compute profile data from stores
+  const profileData = {
+    name: user?.name || 'User',
+    email: user?.email || 'user@example.com',
+    level: user?.experience || 'Beginner',
+    joinDate: user?.createdAt ? new Date(user.createdAt).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : 'Recently',
+    workoutsCompleted: totalWorkouts || 0,
+    totalMinutes: totalMinutes || 0,
+    currentStreak: currentStreak || 0,
+    nextGoal: user?.goal || 'Get fit',
+  };
 
   const handleLogout = () => {
     Alert.alert(
