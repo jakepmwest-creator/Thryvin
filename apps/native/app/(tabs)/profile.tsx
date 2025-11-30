@@ -245,7 +245,7 @@ export default function ProfileScreen() {
               icon="finger-print"
               title="Biometric Login"
               subtitle="Manage Face ID / Touch ID"
-              onPress={() => console.log('Biometric settings')}
+              onPress={() => Alert.alert('Coming Soon', 'Biometric authentication will be available soon!')}
             />
           </View>
         </View>
