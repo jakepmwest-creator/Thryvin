@@ -443,7 +443,7 @@ export default function HomeScreen() {
         <View style={[styles.section, { paddingBottom: 100 }]}>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>Personal Bests</Text>
-            <TouchableOpacity>
+            <TouchableOpacity onPress={() => router.push('/(tabs)/stats')}>
               <Text style={[styles.seeAllText, { color: COLORS.gradientStart }]}>See All</Text>
             </TouchableOpacity>
           </View>
