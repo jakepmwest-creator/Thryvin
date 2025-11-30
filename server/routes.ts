@@ -4296,18 +4296,6 @@ Respond with a complete workout in JSON format:
         details: process.env.NODE_ENV === 'development' ? error.stack : undefined,
       });
     }
-
-      return res.json({
-        status: "initiated",
-        message: `Workout generation initiated for week ${weekDates[0]} to ${weekDates[6]}`,
-        dates: weekDates,
-        newRows: newRows.length,
-        existingRows: existingCount,
-      });
-    } catch (error) {
-      console.error("Error generating weekly workouts:", error);
-      res.status(500).json({ error: "Failed to generate weekly workouts" });
-    }
   });
 
   // ====================
