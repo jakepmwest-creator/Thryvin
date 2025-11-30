@@ -181,12 +181,33 @@ export default function HomeScreen() {
   useEffect(() => {
     if (!showTour) return;
     
-    // Step 2: Open workout modal
-    if (currentStep === 2) {
-      console.log('🎯 Opening workout modal for tour');
-      setTimeout(() => {
-        setModalVisible(true);
-      }, 500);
+    console.log('🎯 Tour step:', currentStep);
+    
+    switch (currentStep) {
+      case 2:
+        // Open workout modal
+        console.log('Opening workout modal');
+        setTimeout(() => setModalVisible(true), 500);
+        break;
+        
+      case 5:
+        // Close modal, navigate to stats
+        console.log('Closing modal, going to stats');
+        setModalVisible(false);
+        setTimeout(() => router.push('/(tabs)/stats'), 500);
+        break;
+        
+      case 7:
+        // Navigate to awards
+        console.log('Going to awards');
+        setTimeout(() => router.push('/(tabs)/awards'), 500);
+        break;
+        
+      case 9:
+        // Back to home for completion
+        console.log('Going back to home');
+        setTimeout(() => router.push('/(tabs)/'), 500);
+        break;
     }
   }, [currentStep, showTour]);
 
