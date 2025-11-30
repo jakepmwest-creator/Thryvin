@@ -184,20 +184,14 @@ export default function HomeScreen() {
     console.log('🎯 Tour step:', currentStep);
     
     switch (currentStep) {
-      case 2:
-        // Open workout modal
-        console.log('Opening workout modal');
-        setTimeout(() => setModalVisible(true), 500);
-        break;
-        
-      case 5:
-        // Close modal, navigate to stats
-        console.log('Closing modal, going to stats');
+      case 7:
+        // Close any modals, navigate to stats
+        console.log('Going to stats');
         setModalVisible(false);
         setTimeout(() => router.push('/(tabs)/stats'), 500);
         break;
         
-      case 7:
+      case 8:
         // Navigate to awards
         console.log('Going to awards');
         setTimeout(() => router.push('/(tabs)/awards'), 500);
@@ -205,7 +199,7 @@ export default function HomeScreen() {
         
       case 9:
         // Back to home for completion
-        console.log('Going back to home');
+        console.log('Back to home');
         setTimeout(() => router.push('/(tabs)/'), 500);
         break;
     }
