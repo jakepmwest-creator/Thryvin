@@ -302,48 +302,57 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
               trainingType: user.trainingType,
               sessionDuration: user.sessionDuration,
               trainingDays: user.trainingDays,
-                equipment: user.equipment || [],
-                injuries: user.injuries || [],
-              },
-              dayOfWeek: dayIndex,
-            }),
-          });
-          
-          if (response.ok) {
-            const aiWorkout = await response.json();
-            
-            const workout: Workout = {
-              id: `workout_${date.getTime()}`,
-              title: aiWorkout.title,
-              type: aiWorkout.type,
-              difficulty: aiWorkout.difficulty,
-              duration: aiWorkout.duration,
-              date: date.toISOString(),
-              exercises: aiWorkout.exercises,
-              overview: aiWorkout.overview,
-              targetMuscles: aiWorkout.targetMuscles,
-              caloriesBurn: aiWorkout.caloriesBurn,
-              exerciseList: aiWorkout.exercises,
-            };
-            
-            weekWorkouts.push(workout);
-            console.log(`✅ [WEEK] Day ${dayIndex + 1}: ${workout.title} (${workout.exercises.length} exercises)`);
-          }
-        } catch (error) {
-          console.error(`❌ [WEEK] Failed to generate day ${dayIndex + 1}:`, error);
+              equipment: user.equipment,
+              injuries: user.injuries,
+            },
+          }),
+        });
+        
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.message || 'Failed to generate week');
         }
-      }
-      
-      // Only cache if we generated all 7 workouts
-      if (weekWorkouts.length === 7) {
+        
+        const result = await response.json();
+        console.log('✅ [WEEK] Generation response:', result);
+        
+        // Convert API response to workout objects
+        const weekWorkouts: Workout[] = result.workouts.map((day: any) => {
+          const workout = day.workout;
+          const date = new Date(day.date);
+          
+          return {
+            id: `workout_${date.getTime()}`,
+            title: workout.title,
+            type: workout.type,
+            difficulty: workout.difficulty,
+            duration: workout.duration,
+            date: date.toISOString(),
+            exercises: workout.exercises,
+            overview: workout.overview,
+            targetMuscles: workout.targetMuscles,
+            caloriesBurn: workout.caloriesBurn,
+            exerciseList: workout.exercises,
+            status: day.status,
+          };
+        });
+        
+        console.log(`✅ [WEEK] Generated ${weekWorkouts.length} workouts`);
+        
+        // Cache the workouts
         await setStorageItem('week_workouts', JSON.stringify(weekWorkouts));
         await setStorageItem('week_workouts_date', weekKey);
-        console.log(`✅ [WEEK] Complete! Generated all 7 workouts for the week`);
-      } else {
-        console.warn(`⚠️ [WEEK] Only generated ${weekWorkouts.length}/7 workouts`);
+        
+        set({ weekWorkouts, isLoading: false, error: null });
+        
+      } catch (error: any) {
+        console.error('❌ [WEEK] Generation failed:', error);
+        set({ 
+          error: error.message || 'Failed to generate workouts',
+          isLoading: false,
+          weekWorkouts: [],
+        });
       }
-      
-      set({ weekWorkouts, isLoading: false });
     } catch (error) {
       console.error('Error fetching week workouts:', error);
       set({ 
