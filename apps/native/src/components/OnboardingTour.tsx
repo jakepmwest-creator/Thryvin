@@ -318,7 +318,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'transparent',
   },
   overlay: {
-    backgroundColor: 'rgba(0, 0, 0, 0.85)',
+    backgroundColor: 'rgba(0, 0, 0, 0.75)',
   },
   pulsingRing: {
     position: 'absolute',
