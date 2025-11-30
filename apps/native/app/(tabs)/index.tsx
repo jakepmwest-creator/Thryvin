@@ -174,7 +174,12 @@ export default function HomeScreen() {
   
   const handleTourNavigation = (stepId: string) => {
     console.log('🎯 Tour navigation:', stepId);
-    // Not used in simplified tour
+    
+    if (stepId === 'tap-workouts-tab') {
+      // Navigate to workouts tab
+      router.push('/(tabs)/workouts');
+      setTimeout(() => nextStep(), 300);
+    }
   };
   
   // Watch for tour step changes and trigger actions
