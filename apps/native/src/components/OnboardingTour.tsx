@@ -194,8 +194,9 @@ export function OnboardingTour({
       transparent
       animationType="fade"
       statusBarTranslucent
+      presentationStyle="overFullScreen"
     >
-      <View style={styles.container}>
+      <View style={styles.container} pointerEvents="box-none">
         {/* Dark overlay with spotlight cutout */}
         {renderSpotlight()}
         
