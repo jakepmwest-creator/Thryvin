@@ -102,6 +102,23 @@ export default function WorkoutsScreen() {
     });
   };
   
+  // Get status for a specific date in the month
+  const getDateStatus = (day: number) => {
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = today.getMonth();
+    const date = new Date(year, month, day);
+    
+    const isToday = date.toDateString() === today.toDateString();
+    const isPast = date < today && !isToday;
+    const isCompleted = isDateCompleted(date);
+    
+    if (isCompleted) return 'completed';
+    if (isToday) return 'today';
+    if (isPast) return 'incomplete';
+    return 'upcoming';
+  };
+  
   // Generate current week dates dynamically with completion status
   const getCurrentWeekDays = () => {
     const today = new Date();
