@@ -174,36 +174,21 @@ export default function HomeScreen() {
   
   const handleTourNavigation = (stepId: string) => {
     console.log('🎯 Tour navigation:', stepId);
-    
-    switch (stepId) {
-      case 'tap-workout-card':
-        // Open workout modal
-        setModalVisible(true);
-        nextStep();
-        break;
-        
-      case 'stats-tab':
-        // Navigate to stats tab
-        router.push('/(tabs)/stats');
-        nextStep();
-        break;
-        
-      case 'awards-tab':
-        // Navigate to awards tab
-        router.push('/(tabs)/awards');
-        nextStep();
-        break;
-        
-      case 'profile-tab':
-        // Navigate to profile tab
-        router.push('/(tabs)/profile');
-        nextStep();
-        break;
-        
-      default:
-        console.log('No navigation for step:', stepId);
-    }
+    // Not used in simplified tour
   };
+  
+  // Watch for tour step changes and trigger actions
+  useEffect(() => {
+    if (!showTour) return;
+    
+    // Step 2: Open workout modal
+    if (currentStep === 2) {
+      console.log('🎯 Opening workout modal for tour');
+      setTimeout(() => {
+        setModalVisible(true);
+      }, 500);
+    }
+  }, [currentStep, showTour]);
 
   const handleActivityCardPress = (action: string) => {
     switch (action) {
