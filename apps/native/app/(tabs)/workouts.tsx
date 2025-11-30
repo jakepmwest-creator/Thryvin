@@ -71,11 +71,7 @@ const getCurrentMonthData = () => {
 
 const MONTH_DATA = getCurrentMonthData();
 
-const MONTH_STATUS: any = {
-  21: 'completed', 22: 'completed', 23: 'today',
-  24: 'upcoming', 25: 'upcoming', 26: 'upcoming', 27: 'upcoming',
-  14: 'completed', 15: 'incomplete', 16: 'completed',
-};
+// Removed mock data - will compute from completedWorkouts dynamically
 
 // Workout categories for explore section with vibrant gradients
 const WORKOUT_CATEGORIES = [
