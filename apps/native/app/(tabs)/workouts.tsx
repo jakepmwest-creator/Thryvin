@@ -163,6 +163,16 @@ export default function WorkoutsScreen() {
 
   const handleDayPress = (date: number) => {
     setSelectedDate(date);
+    
+    // Find which day of the week this date corresponds to
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = today.getMonth();
+    const clickedDate = new Date(year, month, date);
+    const dayOfWeek = clickedDate.getDay(); // 0 = Sunday
+    const dayIndex = dayOfWeek === 0 ? 6 : dayOfWeek - 1; // Convert to 0 = Monday
+    
+    setSelectedDayIndex(dayIndex);
     setModalVisible(true);
   };
 
