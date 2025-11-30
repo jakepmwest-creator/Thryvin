@@ -324,12 +324,10 @@ export default function WorkoutsScreen() {
                           ]}>
                             {date}
                           </Text>
-                          {MONTH_STATUS[date] && (
-                            <View style={[
-                              styles.monthDayDot,
-                              { backgroundColor: getStatusColor(MONTH_STATUS[date]) }
-                            ]} />
-                          )}
+                          <View style={[
+                            styles.monthDayDot,
+                            { backgroundColor: getStatusColor(getDateStatus(date)) }
+                          ]} />
                         </>
                       )}
                     </TouchableOpacity>
