@@ -288,7 +288,7 @@ export default function HomeScreen() {
         <View style={styles.progressSection}>
           <View style={styles.progressHeader}>
             <Text style={styles.sectionTitle}>Your Progress</Text>
-            <TouchableOpacity>
+            <TouchableOpacity onPress={() => router.push('/(tabs)/stats')}>
               <Text style={[styles.seeAllText, { color: COLORS.gradientStart }]}>Details</Text>
             </TouchableOpacity>
           </View>
