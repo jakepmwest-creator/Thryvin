@@ -285,29 +285,23 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
       }
       
       console.log('🤖 [WEEK] Generating week workouts with AI...');
-      const weekWorkouts: Workout[] = [];
       
-      // Generate AI workouts for each day of the week
-      for (let dayIndex = 0; dayIndex < 7; dayIndex++) {
-        try {
-          const date = new Date(mondayOfThisWeek);
-          date.setDate(mondayOfThisWeek.getDate() + dayIndex);
-          
-          console.log(`🤖 [WEEK] Generating day ${dayIndex + 1}/7...`);
-          
-          const response = await fetch(`${API_BASE_URL}/api/workouts/generate`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              userProfile: {
-                fitnessGoals: user.fitnessGoals || [user.goal],
-                goal: user.goal,
-                experience: user.experience,
-                trainingType: user.trainingType,
-                sessionDuration: user.sessionDuration,
-                trainingDays: user.trainingDays,
+      // Call the new batch generation endpoint
+      try {
+        const response = await fetch(`${API_BASE_URL}/api/v1/workouts/generate-week`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Bypass-Tunnel-Reminder': 'true',
+          },
+          body: JSON.stringify({
+            userProfile: {
+              fitnessGoals: user.fitnessGoals || [user.goal],
+              goal: user.goal,
+              experience: user.experience,
+              trainingType: user.trainingType,
+              sessionDuration: user.sessionDuration,
+              trainingDays: user.trainingDays,
                 equipment: user.equipment || [],
                 injuries: user.injuries || [],
               },
