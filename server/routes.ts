@@ -4268,85 +4268,36 @@ Respond with a complete workout in JSON format:
 
     try {
       const user = req.user!;
-
-      // Calculate Monday to Sunday of current week
-      const today = new Date();
-      const currentDay = today.getDay(); // 0 = Sunday, 1 = Monday, etc.
-      const mondayOffset = currentDay === 0 ? -6 : 1 - currentDay; // Handle Sunday as day 0
-
-      const monday = new Date(today);
-      monday.setDate(today.getDate() + mondayOffset);
-
-      const weekDates: string[] = [];
-      for (let i = 0; i < 7; i++) {
-        const date = new Date(monday);
-        date.setDate(monday.getDate() + i);
-        weekDates.push(date.toISOString().split("T")[0]);
-      }
-
-      // 🎯 Use in-memory storage for backend plumbing test
-      const existingDatesSet = new Set();
-      let existingCount = 0;
-
-      // Check existing days for this user
-      for (const [key, day] of Array.from(inMemoryWorkoutDays.entries())) {
-        if (day.userId === user.id && weekDates.includes(day.date)) {
-          existingDatesSet.add(day.date);
-          existingCount++;
-        }
-      }
-
-      // Create missing rows with status='pending'
-      const newRows = weekDates.filter((date) => !existingDatesSet.has(date));
-      const now = new Date();
-
-      for (const date of newRows) {
-        const userDateKey = `${user.id}-${date}`;
-        const workoutDay = {
-          id: workoutDayIdCounter++,
-          userId: user.id,
-          date,
-          status: "pending" as const,
-          payloadJson: {},
-          createdAt: now,
-          updatedAt: now,
-        };
-        inMemoryWorkoutDays.set(userDateKey, workoutDay);
-      }
-
-      // Trigger generate-day for each date (non-blocking)
-      const generatePromises = weekDates.map(async (date) => {
-        try {
-          const userDateKey = `${user.id}-${date}`;
-          const existingDay = inMemoryWorkoutDays.get(userDateKey);
-
-          if (existingDay) {
-            const status = existingDay.status;
-            if (status !== "ready" && status !== "generating") {
-              // Set generating then back to pending (stub)
-              existingDay.status = "generating";
-              existingDay.updatedAt = new Date();
-              inMemoryWorkoutDays.set(userDateKey, existingDay);
-
-              setTimeout(() => {
-                const updatedDay = inMemoryWorkoutDays.get(userDateKey);
-                if (updatedDay) {
-                  updatedDay.status = "pending";
-                  updatedDay.updatedAt = new Date();
-                  inMemoryWorkoutDays.set(userDateKey, updatedDay);
-                }
-              }, 10);
-            }
-          }
-        } catch (error) {
-          console.error(`Error generating workout for ${date}:`, error);
-        }
+      const userProfile = req.body.userProfile || {};
+      
+      console.log('📥 [API] Week generation request for user:', user.id);
+      
+      // Import the week generator
+      const { generateWeekWorkouts } = await import('./week-generator');
+      
+      // Generate the week (this will handle all the DB operations)
+      const result = await generateWeekWorkouts(user.id, userProfile);
+      
+      return res.status(200).json({
+        success: true,
+        message: 'Week generated successfully',
+        weekDates: result.weekDates,
+        workouts: result.workouts.map(day => ({
+          date: day.date,
+          status: day.status,
+          workout: day.payloadJson,
+        })),
       });
-
-      // Don't await - non-blocking
-      Promise.all(generatePromises).catch((error) => {
-        console.error("Error in batch workout generation:", error);
+      
+    } catch (error: any) {
+      console.error('❌ [API] Week generation error:', error);
+      
+      return res.status(500).json({
+        error: 'Failed to generate week',
+        message: error.message,
+        details: process.env.NODE_ENV === 'development' ? error.stack : undefined,
       });
+    }
 
       return res.json({
         status: "initiated",
