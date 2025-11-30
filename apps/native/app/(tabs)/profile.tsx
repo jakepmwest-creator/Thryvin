@@ -29,17 +29,6 @@ const COLORS = {
   danger: '#FF3B30',
 };
 
-const profileData = {
-  name: 'Jake West',
-  email: 'jake@example.com',
-  joinDate: 'January 2024',
-  workoutsCompleted: 25,
-  totalMinutes: 720,
-  currentStreak: 5,
-  level: 'Intermediate',
-  nextGoal: 'Complete 50 workouts',
-};
-
 const MenuButton = ({ 
   icon, 
   title, 
