@@ -55,36 +55,40 @@ async function analyzeExercisePerformance(
   exercise: ExercisePerformance,
   existingContext: any[]
 ): Promise<void> {
-  const { exerciseName, weight, reps, effort, notes } = exercise;
+  const { exerciseName, weight, reps, sets, notes } = exercise;
   
-  // Check if user found this too hard
-  if (effort === 'Too Hard' || effort === 'Hard') {
-    const existingInsight = existingContext.find(
-      ctx => ctx.category === 'difficulty' && ctx.exerciseName === exerciseName
-    );
+  // Learn from user notes - this is where they express difficulty, preferences, etc.
+  if (notes && notes.trim()) {
+    const notesLower = notes.toLowerCase();
     
-    if (existingInsight) {
-      // Update existing insight
-      await db
-        .update(aiLearningContext)
-        .set({
-          insight: `User consistently finds ${exerciseName} challenging. Consider reducing weight by 10-15% or reducing reps.`,
-          dataPoints: (existingInsight.dataPoints || 1) + 1,
-          confidence: existingInsight.dataPoints >= 3 ? 'high' : 'medium',
-          lastUpdated: new Date(),
-        })
-        .where(eq(aiLearningContext.id, existingInsight.id));
-    } else {
-      // Create new insight
-      await db.insert(aiLearningContext).values({
-        userId,
-        category: 'difficulty',
-        exerciseName,
-        insight: `User found ${exerciseName} ${effort.toLowerCase()}. May need weight/rep adjustment.`,
-        dataPoints: 1,
-        confidence: 'low',
-      });
+    // Detect difficulty signals in notes
+    const isTooHard = notesLower.includes('too hard') || notesLower.includes('too heavy') || 
+                      notesLower.includes('struggled') || notesLower.includes('difficult') ||
+                      notesLower.includes('can\'t') || notesLower.includes('couldn\'t');
+    const isTooEasy = notesLower.includes('too easy') || notesLower.includes('too light') ||
+                      notesLower.includes('easy') || notesLower.includes('increase');
+    
+    if (isTooHard) {
+      await upsertInsight(userId, 'difficulty', exerciseName,
+        `User noted ${exerciseName} was too hard: "${notes}". Consider reducing weight by 10-15%.`,
+        'high'
+      );
+    } else if (isTooEasy) {
+      await upsertInsight(userId, 'difficulty', exerciseName,
+        `User noted ${exerciseName} was too easy: "${notes}". Ready for progressive overload.`,
+        'high'
+      );
     }
+    
+    // Save general note for learning
+    await db.insert(aiLearningContext).values({
+      userId,
+      category: 'preference',
+      exerciseName,
+      insight: `User note about ${exerciseName}: "${notes}"`,
+      dataPoints: 1,
+      confidence: 'medium',
+    });
   }
   
   // Track strength progress (if weight is provided)
@@ -98,7 +102,7 @@ async function analyzeExercisePerformance(
       await db
         .update(aiLearningContext)
         .set({
-          insight: `${exerciseName}: Current working weight is ${weight}lbs for ${reps} reps. Effort level: ${effort}`,
+          insight: `${exerciseName}: Current working weight is ${weight}lbs for ${reps || '?'} reps.`,
           dataPoints: (strengthInsight.dataPoints || 1) + 1,
           lastUpdated: new Date(),
         })
