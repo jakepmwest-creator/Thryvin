@@ -184,9 +184,30 @@ export default function WorkoutsScreen() {
     const year = today.getFullYear();
     const month = today.getMonth();
     const clickedDate = new Date(year, month, date);
+    
+    // Convert to Monday=0 format
     const dayOfWeek = clickedDate.getDay(); // 0 = Sunday
     const dayIndex = dayOfWeek === 0 ? 6 : dayOfWeek - 1; // Convert to 0 = Monday
     
+    // Calculate which week offset this is from current week
+    const currentMonday = new Date(today);
+    const currentDayOfWeek = today.getDay();
+    const mondayOffset = currentDayOfWeek === 0 ? -6 : 1 - currentDayOfWeek;
+    currentMonday.setDate(today.getDate() + mondayOffset);
+    currentMonday.setHours(0, 0, 0, 0);
+    
+    const clickedMonday = new Date(clickedDate);
+    const clickedDayOfWeek = clickedDate.getDay();
+    const clickedMondayOffset = clickedDayOfWeek === 0 ? -6 : 1 - clickedDayOfWeek;
+    clickedMonday.setDate(clickedDate.getDate() + clickedMondayOffset);
+    clickedMonday.setHours(0, 0, 0, 0);
+    
+    const weekDiff = Math.round((clickedMonday.getTime() - currentMonday.getTime()) / (7 * 24 * 60 * 60 * 1000));
+    
+    console.log(`📅 Clicked date: ${clickedDate.toDateString()}, Day index: ${dayIndex}, Week diff: ${weekDiff}`);
+    
+    // Store week offset for the modal to use
+    setSelectedWeekOffset(weekDiff);
     setSelectedDayIndex(dayIndex);
     setModalVisible(true);
   };
