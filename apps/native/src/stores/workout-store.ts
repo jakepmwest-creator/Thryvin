@@ -287,16 +287,16 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
           set({ weekWorkouts: workouts, isLoading: false });
           return;
         } else {
-          console.log('⚠️ [WEEK] Cached workouts incomplete:', workouts?.length, 'of 7');
+          console.log('⚠️ [WEEK] Cached workouts incomplete:', workouts?.length, 'of 21');
         }
       } else {
         console.log('⚠️ [WEEK] Cache miss - cachedWeek:', !!cachedWeek, 'dateMatch:', cachedWeekDate === weekKey);
         console.log('   Expected week key:', weekKey, 'Got:', cachedWeekDate);
       }
       
-      console.log('🤖 [WEEK] Generating week workouts with AI...');
+      console.log('🤖 [3-WEEK] Generating 3 weeks of workouts with AI...');
       
-      // Generate workouts for each day of the week using the working endpoint
+      // Generate workouts for 3 weeks (21 days) with rest days
       try {
         const userProfile = {
           fitnessGoals: user.fitnessGoals || [user.goal],
@@ -304,66 +304,101 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
           experience: user.experience,
           trainingType: user.trainingType,
           sessionDuration: user.sessionDuration,
-          trainingDays: user.trainingDays,
+          trainingDays: user.trainingDays || 5, // Default 5 days/week
           equipment: user.equipment,
           injuries: user.injuries,
+          userId: user.id,
         };
         
-        // Calculate week dates (Monday to Sunday)
-        const weekDates: Date[] = [];
-        for (let i = 0; i < 7; i++) {
+        // Calculate all 21 dates (3 weeks starting from this Monday)
+        const allDates: Date[] = [];
+        for (let i = 0; i < 21; i++) {
           const date = new Date(mondayOfThisWeek);
           date.setDate(mondayOfThisWeek.getDate() + i);
-          weekDates.push(date);
+          allDates.push(date);
         }
         
-        console.log('📅 [WEEK] Generating for dates:', weekDates.map(d => d.toDateString()));
+        console.log('📅 [3-WEEK] Generating for 21 days starting:', mondayOfThisWeek.toDateString());
         
-        // Generate workout for each day using the working endpoint
+        // Determine rest days based on trainingDays setting
+        const trainingDaysPerWeek = parseInt(String(userProfile.trainingDays)) || 5;
+        const restDayPattern = getRestDayPattern(trainingDaysPerWeek);
+        console.log(`📅 [3-WEEK] Training ${trainingDaysPerWeek} days/week. Rest days:`, restDayPattern);
+        
+        // Generate workout for each day
         const weekWorkouts: Workout[] = [];
+        let workoutDayCounter = 0;
         
-        for (let i = 0; i < 7; i++) {
-          console.log(`🤖 [WEEK] Generating day ${i + 1}/7...`);
+        for (let i = 0; i < 21; i++) {
+          const date = allDates[i];
+          const dayOfWeek = i % 7; // 0=Monday, 6=Sunday
+          const isRestDay = restDayPattern.includes(dayOfWeek);
           
-          const response = await fetch(`${API_BASE_URL}/api/workouts/generate`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'Bypass-Tunnel-Reminder': 'true',
-            },
-            body: JSON.stringify({
-              userProfile,
-              dayOfWeek: i,
-            }),
-          });
-          
-          if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.message || `Failed to generate day ${i + 1}`);
+          if (isRestDay) {
+            // Create rest day entry
+            weekWorkouts.push({
+              id: `rest_${date.getTime()}`,
+              title: 'Rest Day',
+              type: 'Rest',
+              difficulty: 'rest',
+              duration: 0,
+              date: date.toISOString(),
+              exercises: [],
+              overview: 'Take time to recover. Stay hydrated and get good sleep!',
+              targetMuscles: '',
+              caloriesBurn: 0,
+              exerciseList: [],
+              status: 'rest',
+              isRestDay: true,
+            });
+            console.log(`😴 [3-WEEK] Day ${i + 1}/21: Rest day`);
+          } else {
+            // Generate workout
+            console.log(`🤖 [3-WEEK] Generating day ${i + 1}/21 (workout #${workoutDayCounter + 1})...`);
+            
+            const weekNumber = Math.floor(i / 7) + 1; // 1, 2, or 3
+            
+            const response = await fetch(`${API_BASE_URL}/api/workouts/generate`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Bypass-Tunnel-Reminder': 'true',
+              },
+              body: JSON.stringify({
+                userProfile,
+                dayOfWeek: workoutDayCounter % 7,
+                weekNumber, // Pass week number for variety
+              }),
+            });
+            
+            if (!response.ok) {
+              const errorData = await response.json();
+              throw new Error(errorData.message || `Failed to generate day ${i + 1}`);
+            }
+            
+            const workout = await response.json();
+            
+            weekWorkouts.push({
+              id: `workout_${date.getTime()}`,
+              title: workout.title,
+              type: workout.type,
+              difficulty: workout.difficulty,
+              duration: workout.duration,
+              date: date.toISOString(),
+              exercises: workout.exercises,
+              overview: workout.overview,
+              targetMuscles: workout.targetMuscles,
+              caloriesBurn: workout.caloriesBurn,
+              exerciseList: workout.exercises,
+              status: 'ready',
+            });
+            
+            workoutDayCounter++;
+            console.log(`✅ [3-WEEK] Day ${i + 1}/21 complete: ${workout.title}`);
           }
-          
-          const workout = await response.json();
-          const date = weekDates[i];
-          
-          weekWorkouts.push({
-            id: `workout_${date.getTime()}`,
-            title: workout.title,
-            type: workout.type,
-            difficulty: workout.difficulty,
-            duration: workout.duration,
-            date: date.toISOString(),
-            exercises: workout.exercises,
-            overview: workout.overview,
-            targetMuscles: workout.targetMuscles,
-            caloriesBurn: workout.caloriesBurn,
-            exerciseList: workout.exercises,
-            status: 'ready',
-          });
-          
-          console.log(`✅ [WEEK] Day ${i + 1}/7 complete: ${workout.title}`);
         }
         
-        console.log(`✅ [WEEK] Generated ${weekWorkouts.length} workouts`);
+        console.log(`✅ [3-WEEK] Generated ${weekWorkouts.length} days (${weekWorkouts.filter(w => !w.isRestDay).length} workouts, ${weekWorkouts.filter(w => w.isRestDay).length} rest days)`);
         
         // Cache the workouts with version
         await setStorageItem('week_workouts', JSON.stringify(weekWorkouts));
