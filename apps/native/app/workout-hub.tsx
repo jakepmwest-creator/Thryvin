@@ -489,27 +489,30 @@ export default function WorkoutHubScreen() {
                             </View>
                           </View>
 
-                          {/* Effort Rating */}
+                          {/* Effort Rating - with Gradient Buttons */}
                           <View style={styles.effortSection}>
                             <Text style={styles.inputLabel}>How did it feel?</Text>
                             <View style={styles.ratingRow}>
                               {[1, 2, 3, 4, 5].map((rating) => (
                                 <TouchableOpacity
                                   key={rating}
-                                  style={[
-                                    styles.ratingButton,
-                                    effortRating === rating && styles.ratingButtonActive,
-                                  ]}
+                                  style={styles.ratingButtonWrapper}
                                   onPress={() => setEffortRating(rating)}
                                 >
-                                  <Text
-                                    style={[
-                                      styles.ratingText,
-                                      effortRating === rating && styles.ratingTextActive,
-                                    ]}
-                                  >
-                                    {rating}
-                                  </Text>
+                                  {effortRating === rating ? (
+                                    <LinearGradient
+                                      colors={[COLORS.gradientStart, COLORS.gradientEnd]}
+                                      style={styles.ratingButtonGradient}
+                                      start={{ x: 0, y: 0 }}
+                                      end={{ x: 1, y: 1 }}
+                                    >
+                                      <Text style={styles.ratingTextActive}>{rating}</Text>
+                                    </LinearGradient>
+                                  ) : (
+                                    <View style={styles.ratingButtonInactive}>
+                                      <Text style={styles.ratingText}>{rating}</Text>
+                                    </View>
+                                  )}
                                 </TouchableOpacity>
                               ))}
                             </View>
@@ -520,17 +523,46 @@ export default function WorkoutHubScreen() {
                             </View>
                           </View>
 
-                          {/* Optional Notes */}
+                          {/* Optional Notes with Voice Input */}
                           <View style={styles.notesSection}>
-                            <Text style={styles.inputLabel}>Notes (optional)</Text>
+                            <View style={styles.notesHeader}>
+                              <Text style={styles.inputLabel}>Notes (optional)</Text>
+                              <TouchableOpacity
+                                style={styles.voiceButtonWrapper}
+                                onPress={toggleVoiceRecording}
+                              >
+                                <LinearGradient
+                                  colors={isRecording ? ['#FF3B30', '#FF6B6B'] : [COLORS.gradientStart, COLORS.gradientEnd]}
+                                  style={styles.voiceButton}
+                                  start={{ x: 0, y: 0 }}
+                                  end={{ x: 1, y: 1 }}
+                                >
+                                  <Ionicons 
+                                    name={isRecording ? "stop" : "mic"} 
+                                    size={18} 
+                                    color={COLORS.white} 
+                                  />
+                                  <Text style={styles.voiceButtonText}>
+                                    {isRecording ? 'Stop' : 'Voice'}
+                                  </Text>
+                                </LinearGradient>
+                              </TouchableOpacity>
+                            </View>
                             <TextInput
-                              style={styles.notesInput}
-                              placeholder="How did this set feel? Any adjustments needed?"
+                              style={[styles.notesInput, isRecording && styles.notesInputRecording]}
+                              placeholder={isRecording ? "Listening..." : "How did this set feel? Any adjustments needed?"}
+                              placeholderTextColor={isRecording ? COLORS.gradientStart : COLORS.mediumGray}
                               multiline
                               numberOfLines={2}
                               value={setNotes}
                               onChangeText={setSetNotes}
                             />
+                            {isRecording && (
+                              <View style={styles.recordingIndicator}>
+                                <View style={styles.recordingDot} />
+                                <Text style={styles.recordingText}>Recording...</Text>
+                              </View>
+                            )}
                           </View>
 
                           <TouchableOpacity
