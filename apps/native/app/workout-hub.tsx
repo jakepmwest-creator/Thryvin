@@ -543,130 +543,258 @@ export default function WorkoutHubScreen() {
                           )}
                         </TouchableOpacity>
 
-                        {/* Set Logging */}
-                        <View style={styles.loggingCard}>
-                          <Text style={styles.loggingTitle}>
-                            Set {currentSet + 1} of {exercise.sets}
-                          </Text>
+                        {/* Set Logging - Adaptive based on exercise type */}
+                        {(() => {
+                          const exType = getExerciseType(exercise);
+                          
+                          return (
+                            <View style={styles.loggingCard}>
+                              <Text style={styles.loggingTitle}>
+                                {exType === 'cardio' ? 'Log Your Session' :
+                                 exType === 'yoga' || exType === 'stretching' ? `Round ${currentSet + 1} of ${exercise.sets || 1}` :
+                                 `Set ${currentSet + 1} of ${exercise.sets}`}
+                              </Text>
 
-                          <View style={styles.inputRow}>
-                            <View style={styles.inputWrapper}>
-                              <View style={styles.weightLabelRow}>
-                                <Text style={styles.inputLabel}>Weight</Text>
-                                <View style={styles.unitSwitcher}>
-                                  <TouchableOpacity
-                                    style={styles.unitButtonWrapper}
-                                    onPress={() => setWeightUnit('lbs')}
-                                  >
-                                    {weightUnit === 'lbs' ? (
-                                      <LinearGradient
-                                        colors={[COLORS.gradientStart, COLORS.gradientEnd]}
-                                        style={styles.unitButtonGradient}
-                                        start={{ x: 0, y: 0 }}
-                                        end={{ x: 1, y: 1 }}
-                                      >
-                                        <Text style={styles.unitTextActive}>lbs</Text>
-                                      </LinearGradient>
-                                    ) : (
-                                      <View style={styles.unitButtonInactive}>
-                                        <Text style={styles.unitText}>lbs</Text>
+                              {/* CARDIO INPUTS: Time + Distance */}
+                              {exType === 'cardio' && (
+                                <View style={styles.inputRow}>
+                                  <View style={styles.inputWrapper}>
+                                    <Text style={styles.inputLabel}>Time (min)</Text>
+                                    <TextInput
+                                      style={styles.input}
+                                      placeholder="0"
+                                      placeholderTextColor={COLORS.mediumGray}
+                                      keyboardType="numeric"
+                                      value={duration}
+                                      onChangeText={setDuration}
+                                    />
+                                  </View>
+                                  <View style={styles.inputWrapper}>
+                                    <View style={styles.weightLabelRow}>
+                                      <Text style={styles.inputLabel}>Distance</Text>
+                                      <View style={styles.unitSwitcher}>
+                                        <TouchableOpacity
+                                          style={styles.unitButtonWrapper}
+                                          onPress={() => setDistanceUnit('mi')}
+                                        >
+                                          {distanceUnit === 'mi' ? (
+                                            <LinearGradient
+                                              colors={[COLORS.gradientStart, COLORS.gradientEnd]}
+                                              style={styles.unitButtonGradient}
+                                              start={{ x: 0, y: 0 }}
+                                              end={{ x: 1, y: 1 }}
+                                            >
+                                              <Text style={styles.unitTextActive}>mi</Text>
+                                            </LinearGradient>
+                                          ) : (
+                                            <View style={styles.unitButtonInactive}>
+                                              <Text style={styles.unitText}>mi</Text>
+                                            </View>
+                                          )}
+                                        </TouchableOpacity>
+                                        <TouchableOpacity
+                                          style={styles.unitButtonWrapper}
+                                          onPress={() => setDistanceUnit('km')}
+                                        >
+                                          {distanceUnit === 'km' ? (
+                                            <LinearGradient
+                                              colors={[COLORS.gradientStart, COLORS.gradientEnd]}
+                                              style={styles.unitButtonGradient}
+                                              start={{ x: 0, y: 0 }}
+                                              end={{ x: 1, y: 1 }}
+                                            >
+                                              <Text style={styles.unitTextActive}>km</Text>
+                                            </LinearGradient>
+                                          ) : (
+                                            <View style={styles.unitButtonInactive}>
+                                              <Text style={styles.unitText}>km</Text>
+                                            </View>
+                                          )}
+                                        </TouchableOpacity>
                                       </View>
-                                    )}
-                                  </TouchableOpacity>
-                                  <TouchableOpacity
-                                    style={styles.unitButtonWrapper}
-                                    onPress={() => setWeightUnit('kg')}
-                                  >
-                                    {weightUnit === 'kg' ? (
-                                      <LinearGradient
-                                        colors={[COLORS.gradientStart, COLORS.gradientEnd]}
-                                        style={styles.unitButtonGradient}
-                                        start={{ x: 0, y: 0 }}
-                                        end={{ x: 1, y: 1 }}
-                                      >
-                                        <Text style={styles.unitTextActive}>kg</Text>
-                                      </LinearGradient>
-                                    ) : (
-                                      <View style={styles.unitButtonInactive}>
-                                        <Text style={styles.unitText}>kg</Text>
-                                      </View>
-                                    )}
-                                  </TouchableOpacity>
+                                    </View>
+                                    <TextInput
+                                      style={styles.input}
+                                      placeholder="0.0"
+                                      placeholderTextColor={COLORS.mediumGray}
+                                      keyboardType="decimal-pad"
+                                      value={distance}
+                                      onChangeText={setDistance}
+                                    />
+                                  </View>
                                 </View>
+                              )}
+
+                              {/* YOGA/STRETCHING INPUTS: Hold Time or Reps */}
+                              {(exType === 'yoga' || exType === 'stretching') && (
+                                <View style={styles.inputRow}>
+                                  <View style={styles.inputWrapper}>
+                                    <Text style={styles.inputLabel}>Hold Time (sec)</Text>
+                                    <TextInput
+                                      style={styles.input}
+                                      placeholder={exercise.duration || '60'}
+                                      placeholderTextColor={COLORS.mediumGray}
+                                      keyboardType="numeric"
+                                      value={holdTime}
+                                      onChangeText={setHoldTime}
+                                    />
+                                  </View>
+                                  <View style={styles.inputWrapper}>
+                                    <Text style={styles.inputLabel}>Breaths</Text>
+                                    <TextInput
+                                      style={styles.input}
+                                      placeholder="5"
+                                      placeholderTextColor={COLORS.mediumGray}
+                                      keyboardType="numeric"
+                                      value={reps}
+                                      onChangeText={setReps}
+                                    />
+                                  </View>
+                                </View>
+                              )}
+
+                              {/* STRENGTH/HIIT INPUTS: Weight + Reps */}
+                              {(exType === 'strength' || exType === 'hiit') && (
+                                <View style={styles.inputRow}>
+                                  <View style={styles.inputWrapper}>
+                                    <View style={styles.weightLabelRow}>
+                                      <Text style={styles.inputLabel}>Weight</Text>
+                                      <View style={styles.unitSwitcher}>
+                                        <TouchableOpacity
+                                          style={styles.unitButtonWrapper}
+                                          onPress={() => setWeightUnit('lbs')}
+                                        >
+                                          {weightUnit === 'lbs' ? (
+                                            <LinearGradient
+                                              colors={[COLORS.gradientStart, COLORS.gradientEnd]}
+                                              style={styles.unitButtonGradient}
+                                              start={{ x: 0, y: 0 }}
+                                              end={{ x: 1, y: 1 }}
+                                            >
+                                              <Text style={styles.unitTextActive}>lbs</Text>
+                                            </LinearGradient>
+                                          ) : (
+                                            <View style={styles.unitButtonInactive}>
+                                              <Text style={styles.unitText}>lbs</Text>
+                                            </View>
+                                          )}
+                                        </TouchableOpacity>
+                                        <TouchableOpacity
+                                          style={styles.unitButtonWrapper}
+                                          onPress={() => setWeightUnit('kg')}
+                                        >
+                                          {weightUnit === 'kg' ? (
+                                            <LinearGradient
+                                              colors={[COLORS.gradientStart, COLORS.gradientEnd]}
+                                              style={styles.unitButtonGradient}
+                                              start={{ x: 0, y: 0 }}
+                                              end={{ x: 1, y: 1 }}
+                                            >
+                                              <Text style={styles.unitTextActive}>kg</Text>
+                                            </LinearGradient>
+                                          ) : (
+                                            <View style={styles.unitButtonInactive}>
+                                              <Text style={styles.unitText}>kg</Text>
+                                            </View>
+                                          )}
+                                        </TouchableOpacity>
+                                      </View>
+                                    </View>
+                                    <TextInput
+                                      style={styles.input}
+                                      placeholder="0"
+                                      placeholderTextColor={COLORS.mediumGray}
+                                      keyboardType="numeric"
+                                      value={weight}
+                                      onChangeText={setWeight}
+                                    />
+                                  </View>
+                                  <View style={styles.inputWrapper}>
+                                    <View style={styles.repsLabelRow}>
+                                      <Text style={styles.inputLabel}>Reps</Text>
+                                    </View>
+                                    <TextInput
+                                      style={styles.input}
+                                      placeholder="0"
+                                      placeholderTextColor={COLORS.mediumGray}
+                                      keyboardType="numeric"
+                                      value={reps}
+                                      onChangeText={setReps}
+                                    />
+                                  </View>
+                                </View>
+                              )}
+
+                              {/* Optional Notes with Voice Input - for all types */}
+                              <View style={styles.notesSection}>
+                                <View style={styles.notesHeader}>
+                                  <Text style={styles.inputLabel}>
+                                    {exType === 'cardio' ? 'How was your run?' :
+                                     exType === 'yoga' ? 'How did you feel?' : 'Notes (optional)'}
+                                  </Text>
+                                  <VoiceInputButton
+                                    onTranscription={handleVoiceTranscription}
+                                    size="small"
+                                  />
+                                </View>
+                                <TextInput
+                                  style={styles.notesInput}
+                                  placeholder={
+                                    exType === 'cardio' ? "Rate the route, how you felt, any pain..." :
+                                    exType === 'yoga' ? "Was it easy to hold? Any tight areas?" :
+                                    "How did this set feel? Tap Voice to speak..."
+                                  }
+                                  placeholderTextColor={COLORS.mediumGray}
+                                  multiline
+                                  numberOfLines={2}
+                                  value={setNotes}
+                                  onChangeText={setSetNotes}
+                                />
                               </View>
-                              <TextInput
-                                style={styles.input}
-                                placeholder="0"
-                                placeholderTextColor={COLORS.mediumGray}
-                                keyboardType="numeric"
-                                value={weight}
-                                onChangeText={setWeight}
-                              />
-                            </View>
-                            <View style={styles.inputWrapper}>
-                              <View style={styles.repsLabelRow}>
-                                <Text style={styles.inputLabel}>Reps</Text>
-                              </View>
-                              <TextInput
-                                style={styles.input}
-                                placeholder="0"
-                                placeholderTextColor={COLORS.mediumGray}
-                                keyboardType="numeric"
-                                value={reps}
-                                onChangeText={setReps}
-                              />
-                            </View>
-                          </View>
 
-                          {/* Optional Notes with Voice Input */}
-                          <View style={styles.notesSection}>
-                            <View style={styles.notesHeader}>
-                              <Text style={styles.inputLabel}>Notes (optional)</Text>
-                              <VoiceInputButton
-                                onTranscription={handleVoiceTranscription}
-                                size="small"
-                              />
+                              <TouchableOpacity
+                                style={styles.completeButton}
+                                onPress={() => handleCompleteSet(index, exercise)}
+                              >
+                                <LinearGradient
+                                  colors={[COLORS.gradientStart, COLORS.gradientEnd]}
+                                  style={styles.completeGradient}
+                                  start={{ x: 0, y: 0 }}
+                                  end={{ x: 1, y: 1 }}
+                                >
+                                  <Ionicons name="checkmark-circle" size={24} color={COLORS.white} />
+                                  <Text style={styles.completeText}>
+                                    {exType === 'cardio' ? 'Log Session' :
+                                     exType === 'yoga' || exType === 'stretching' ? 'Complete Round' : 'Complete Set'}
+                                  </Text>
+                                </LinearGradient>
+                              </TouchableOpacity>
                             </View>
-                            <TextInput
-                              style={styles.notesInput}
-                              placeholder="How did this set feel? Tap Voice to speak..."
-                              placeholderTextColor={COLORS.mediumGray}
-                              multiline
-                              numberOfLines={2}
-                              value={setNotes}
-                              onChangeText={setSetNotes}
-                            />
-                          </View>
+                          );
+                        })()}
 
-                          <TouchableOpacity
-                            style={styles.completeButton}
-                            onPress={() => handleCompleteSet(index)}
-                          >
-                            <LinearGradient
-                              colors={[COLORS.gradientStart, COLORS.gradientEnd]}
-                              style={styles.completeGradient}
-                              start={{ x: 0, y: 0 }}
-                              end={{ x: 1, y: 1 }}
-                            >
-                              <Ionicons name="checkmark-circle" size={24} color={COLORS.white} />
-                              <Text style={styles.completeText}>Complete Set</Text>
-                            </LinearGradient>
-                          </TouchableOpacity>
-                        </View>
-
-                        {/* Completed Sets */}
+                        {/* Completed Sets - Adaptive display */}
                         {completedSets.length > 0 && (
                           <View style={styles.completedCard}>
-                            <Text style={styles.completedTitle}>Completed Sets</Text>
-                            {completedSets.map((set, i) => (
-                              <View key={i} style={styles.completedSet}>
-                                <Ionicons name="checkmark-circle" size={20} color={COLORS.success} />
-                                <Text style={styles.completedText}>
-                                  Set {set.setIndex + 1}: {set.reps} reps
-                                  {set.weight ? ` @ ${set.weight} lbs` : ''}
-                                </Text>
-                              </View>
-                            ))}
+                            <Text style={styles.completedTitle}>
+                              {getExerciseType(exercise) === 'cardio' ? 'Session Logged' : 'Completed'}
+                            </Text>
+                            {completedSets.map((set, i) => {
+                              const exType = getExerciseType(exercise);
+                              return (
+                                <View key={i} style={styles.completedSet}>
+                                  <Ionicons name="checkmark-circle" size={20} color={COLORS.success} />
+                                  <Text style={styles.completedText}>
+                                    {exType === 'cardio' 
+                                      ? `${set.reps} min${set.weight ? ` • ${set.weight} ${distanceUnit}` : ''}`
+                                      : exType === 'yoga' || exType === 'stretching'
+                                        ? `Round ${set.setIndex + 1}: ${set.reps}s held`
+                                        : `Set ${set.setIndex + 1}: ${set.reps} reps${set.weight ? ` @ ${set.weight} ${weightUnit}` : ''}`
+                                    }
+                                  </Text>
+                                </View>
+                              );
+                            })}
                           </View>
                         )}
 
