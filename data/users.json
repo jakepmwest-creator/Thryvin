@@ -4987,5 +4987,22 @@
     "xpPoints": 0,
     "level": "Bronze",
     "createdAt": "2025-11-30T13:08:44.110Z"
+  },
+  {
+    "id": 294,
+    "name": "Test User",
+    "email": "test@example.com",
+    "password": "6b63f23d86b681047dafb47769c25ba4fe267d4003470597de7dc3805c1ab3ddbdd8add750817dbb0028ed97fb819fb510666dcba4d40c14ffdc3f434266fec2.999b9ded5dab5d64a35d3dc9d64277e5",
+    "trainingType": "general-fitness",
+    "goal": "improve-health",
+    "coachingStyle": "encouraging-positive",
+    "selectedCoach": "nate-green",
+    "trialEndsAt": "2025-12-08T10:49:57.999Z",
+    "hasActiveSubscription": false,
+    "weeklyGoalWorkouts": 5,
+    "weeklyGoalMinutes": 150,
+    "xpPoints": 0,
+    "level": "Bronze",
+    "createdAt": "2025-12-01T10:49:57.999Z"
   }
 ]
