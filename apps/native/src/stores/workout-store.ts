@@ -481,6 +481,47 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
       // Update personal bests
       await updatePersonalBests(exercises);
       
+      // Log performance to backend for AI learning
+      try {
+        const storedUser = await getStorageItem('user');
+        if (storedUser) {
+          const user = JSON.parse(storedUser);
+          
+          // Format exercises with effort rating for AI learning
+          const performanceData = exercises.map(ex => ({
+            exerciseName: ex.name,
+            weight: ex.weight,
+            reps: ex.reps,
+            sets: ex.sets,
+            effort: ex.effortRating === 1 ? 'Easy' : 
+                   ex.effortRating === 2 ? 'Medium' : 
+                   ex.effortRating === 3 ? 'Medium' :
+                   ex.effortRating === 4 ? 'Hard' : 
+                   ex.effortRating === 5 ? 'Too Hard' : 'Medium',
+            notes: ex.notes,
+          }));
+          
+          await fetch(`${API_BASE_URL}/api/workouts/log-performance`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Bypass-Tunnel-Reminder': 'true',
+            },
+            body: JSON.stringify({
+              userId: user.id,
+              workoutId,
+              exercises: performanceData,
+              duration: workout.duration,
+            }),
+          });
+          
+          console.log('📊 [WORKOUT] Performance logged for AI learning');
+        }
+      } catch (logError) {
+        console.log('⚠️ [WORKOUT] Could not log performance:', logError);
+        // Don't throw - this is non-critical
+      }
+      
       // Refresh stats
       await get().fetchStats();
       await get().fetchPersonalBests();
