@@ -30,7 +30,6 @@
     "expo-router": "~6.0.15",
     "expo-secure-store": "~15.0.7",
     "expo-speech": "^14.0.7",
-    "expo-speech-recognition": "^3.0.1",
     "expo-splash-screen": "~31.0.10",
     "expo-status-bar": "~3.0.8",
     "metro": "0.83.2",
