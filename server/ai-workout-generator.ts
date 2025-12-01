@@ -158,8 +158,6 @@ Vary the exercises and focus areas each day.`;
   
   console.log(`  Loaded ${exerciseData.length} exercises for matching`);
   
-  const exerciseMap = new Map(exerciseData.map(e => [e.name.toLowerCase(), e]));
-  
   // Create normalized lookup for better matching
   const normalizeExerciseName = (name: string): string => {
     return name.toLowerCase()
