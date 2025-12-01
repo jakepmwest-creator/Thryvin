@@ -13,11 +13,9 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { AppHeader } from '../../src/components/AppHeader';
-import { BarChart, LineChart, PieChart } from 'react-native-gifted-charts';
 import { useAuthStore } from '../../src/stores/auth-store';
 
 const { width } = Dimensions.get('window');
-const CHART_WIDTH = width - 64;
 
 import { COLORS as THEME_COLORS } from '../../src/constants/colors';
 
@@ -86,6 +84,287 @@ interface FocusBreakdown {
   }>;
   insights: string[];
 }
+
+// Simple Bar Chart Component (Pure RN)
+const SimpleBarChart = ({ 
+  data, 
+  maxValue, 
+  height = 150,
+  showLabels = true 
+}: { 
+  data: Array<{ label: string; value: number }>;
+  maxValue: number;
+  height?: number;
+  showLabels?: boolean;
+}) => {
+  const barWidth = Math.floor((width - 80) / data.length) - 8;
+  
+  return (
+    <View style={[simpleChartStyles.barContainer, { height }]}>
+      <View style={simpleChartStyles.barsRow}>
+        {data.map((item, index) => {
+          const barHeight = maxValue > 0 ? (item.value / maxValue) * (height - 40) : 0;
+          const isLast = index === data.length - 1;
+          
+          return (
+            <View key={index} style={simpleChartStyles.barWrapper}>
+              <Text style={simpleChartStyles.barValue}>{item.value}</Text>
+              <View style={[simpleChartStyles.barBackground, { height: height - 40 }]}>
+                <LinearGradient
+                  colors={isLast ? [COLORS.accent, COLORS.accentSecondary] : [`${COLORS.accent}60`, `${COLORS.accentSecondary}60`]}
+                  style={[simpleChartStyles.bar, { height: Math.max(barHeight, 4), width: barWidth }]}
+                  start={{ x: 0, y: 1 }}
+                  end={{ x: 0, y: 0 }}
+                />
+              </View>
+              {showLabels && <Text style={simpleChartStyles.barLabel}>{item.label}</Text>}
+            </View>
+          );
+        })}
+      </View>
+    </View>
+  );
+};
+
+// Simple Line Chart Component (Pure RN - using dots and lines)
+const SimpleLineChart = ({ 
+  data, 
+  maxValue,
+  height = 150 
+}: { 
+  data: Array<{ value: number }>;
+  maxValue: number;
+  height?: number;
+}) => {
+  const chartWidth = width - 80;
+  const chartHeight = height - 40;
+  const pointSpacing = chartWidth / (data.length - 1 || 1);
+  
+  return (
+    <View style={[simpleChartStyles.lineContainer, { height }]}>
+      <View style={[simpleChartStyles.lineChartArea, { height: chartHeight }]}>
+        {/* Grid lines */}
+        {[0, 1, 2, 3].map((i) => (
+          <View 
+            key={i} 
+            style={[
+              simpleChartStyles.gridLine, 
+              { top: (chartHeight / 4) * i }
+            ]} 
+          />
+        ))}
+        
+        {/* Area fill */}
+        <View style={simpleChartStyles.areaFill}>
+          {data.map((item, index) => {
+            const pointHeight = maxValue > 0 ? (item.value / maxValue) * chartHeight : 0;
+            const left = pointSpacing * index;
+            
+            return (
+              <View
+                key={index}
+                style={[
+                  simpleChartStyles.areaColumn,
+                  {
+                    left,
+                    width: pointSpacing,
+                    height: pointHeight,
+                  }
+                ]}
+              />
+            );
+          })}
+        </View>
+        
+        {/* Data points */}
+        {data.map((item, index) => {
+          const pointHeight = maxValue > 0 ? (item.value / maxValue) * chartHeight : 0;
+          const left = pointSpacing * index;
+          
+          return (
+            <View
+              key={index}
+              style={[
+                simpleChartStyles.dataPoint,
+                {
+                  left: left - 6,
+                  bottom: pointHeight - 6,
+                }
+              ]}
+            />
+          );
+        })}
+      </View>
+      
+      {/* Values below */}
+      <View style={simpleChartStyles.lineLabels}>
+        {data.map((item, index) => (
+          <Text key={index} style={simpleChartStyles.lineLabel}>
+            {item.value > 0 ? item.value : ''}
+          </Text>
+        ))}
+      </View>
+    </View>
+  );
+};
+
+// Simple Horizontal Bar Chart for Focus Breakdown
+const FocusBarChart = ({ 
+  data 
+}: { 
+  data: Array<{ category: string; percentage: number; color: string }>;
+}) => {
+  return (
+    <View style={simpleChartStyles.focusContainer}>
+      {data.map((item, index) => (
+        <View key={index} style={simpleChartStyles.focusRow}>
+          <View style={simpleChartStyles.focusLabelContainer}>
+            <View style={[simpleChartStyles.focusDot, { backgroundColor: item.color }]} />
+            <Text style={simpleChartStyles.focusLabel}>{item.category}</Text>
+          </View>
+          <View style={simpleChartStyles.focusBarContainer}>
+            <View 
+              style={[
+                simpleChartStyles.focusBar, 
+                { width: `${item.percentage}%`, backgroundColor: item.color }
+              ]} 
+            />
+          </View>
+          <Text style={simpleChartStyles.focusPercent}>{item.percentage}%</Text>
+        </View>
+      ))}
+    </View>
+  );
+};
+
+const simpleChartStyles = StyleSheet.create({
+  barContainer: {
+    width: '100%',
+    paddingHorizontal: 8,
+  },
+  barsRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    justifyContent: 'space-between',
+    flex: 1,
+  },
+  barWrapper: {
+    alignItems: 'center',
+    flex: 1,
+  },
+  barBackground: {
+    justifyContent: 'flex-end',
+    alignItems: 'center',
+    backgroundColor: '#F5F5F5',
+    borderRadius: 4,
+    overflow: 'hidden',
+  },
+  bar: {
+    borderRadius: 4,
+  },
+  barValue: {
+    fontSize: 10,
+    fontWeight: '600',
+    color: COLORS.text,
+    marginBottom: 4,
+  },
+  barLabel: {
+    fontSize: 9,
+    color: COLORS.mediumGray,
+    marginTop: 6,
+  },
+  lineContainer: {
+    width: '100%',
+    paddingHorizontal: 8,
+  },
+  lineChartArea: {
+    position: 'relative',
+    backgroundColor: '#FAFAFA',
+    borderRadius: 8,
+    overflow: 'hidden',
+  },
+  gridLine: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    height: 1,
+    backgroundColor: '#E5E5E5',
+  },
+  areaFill: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    flexDirection: 'row',
+  },
+  areaColumn: {
+    position: 'absolute',
+    bottom: 0,
+    backgroundColor: `${COLORS.accent}20`,
+  },
+  dataPoint: {
+    position: 'absolute',
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    backgroundColor: COLORS.accent,
+    borderWidth: 3,
+    borderColor: COLORS.white,
+  },
+  lineLabels: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 8,
+  },
+  lineLabel: {
+    fontSize: 10,
+    color: COLORS.mediumGray,
+    flex: 1,
+    textAlign: 'center',
+  },
+  focusContainer: {
+    width: '100%',
+  },
+  focusRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  focusLabelContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    width: 100,
+  },
+  focusDot: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    marginRight: 8,
+  },
+  focusLabel: {
+    fontSize: 12,
+    color: COLORS.text,
+  },
+  focusBarContainer: {
+    flex: 1,
+    height: 8,
+    backgroundColor: '#F0F0F0',
+    borderRadius: 4,
+    marginHorizontal: 8,
+    overflow: 'hidden',
+  },
+  focusBar: {
+    height: '100%',
+    borderRadius: 4,
+  },
+  focusPercent: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: COLORS.text,
+    width: 40,
+    textAlign: 'right',
+  },
+});
 
 const StatCard = ({ 
   title, 
@@ -232,31 +511,24 @@ export default function StatsScreen() {
     fetchStats();
   }, [fetchStats]);
 
-  // Prepare bar chart data for gifted-charts
-  const barChartData = weeklyTrend?.weeks.slice(-8).map((w, index) => ({
-    value: activeChart === 'workouts' ? w.workouts : w.minutes,
+  // Prepare chart data
+  const barChartData = weeklyTrend?.weeks.slice(-8).map(w => ({
     label: w.weekLabel,
-    frontColor: index === 7 ? COLORS.accent : `${COLORS.accent}80`,
-    topLabelComponent: () => (
-      <Text style={{ fontSize: 10, color: COLORS.text, marginBottom: 4 }}>
-        {activeChart === 'workouts' ? w.workouts : w.minutes}
-      </Text>
-    ),
+    value: activeChart === 'workouts' ? w.workouts : w.minutes,
   })) || [];
 
-  // Prepare line chart data
-  const lineChartData = weeklyTrend?.weeks.slice(-8).map((w) => ({
+  const lineChartData = weeklyTrend?.weeks.slice(-8).map(w => ({
     value: w.minutes || 0,
-    dataPointText: String(w.minutes),
   })) || [];
 
-  // Prepare pie chart data
-  const pieChartData = focusBreakdown?.breakdown.map((item, index) => ({
-    value: item.percentage || 1,
+  const focusData = focusBreakdown?.breakdown.map((item, index) => ({
+    category: item.category,
+    percentage: item.percentage,
     color: PIE_COLORS[index % PIE_COLORS.length],
-    text: `${item.percentage}%`,
-    focused: index === 0,
   })) || [];
+
+  const maxBarValue = Math.max(...barChartData.map(d => d.value), 1);
+  const maxLineValue = Math.max(...lineChartData.map(d => d.value), 1);
 
   if (isLoading) {
     return (
@@ -286,7 +558,7 @@ export default function StatsScreen() {
           />
         }
       >
-        {/* This Week Stats - Keep the original design */}
+        {/* This Week Stats */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>This Week</Text>
           
@@ -366,7 +638,7 @@ export default function StatsScreen() {
           </View>
         </View>
 
-        {/* Workouts Per Week Chart */}
+        {/* Weekly Progress Bar Chart */}
         <View style={styles.section}>
           <View style={styles.chartHeader}>
             <Text style={styles.sectionTitle}>Weekly Progress</Text>
@@ -392,22 +664,10 @@ export default function StatsScreen() {
           
           <View style={styles.chartCard}>
             {barChartData.length > 0 && barChartData.some(d => d.value > 0) ? (
-              <BarChart
-                data={barChartData}
-                width={CHART_WIDTH}
+              <SimpleBarChart 
+                data={barChartData} 
+                maxValue={maxBarValue + Math.ceil(maxBarValue * 0.2)}
                 height={180}
-                barWidth={24}
-                spacing={16}
-                roundedTop
-                roundedBottom
-                hideRules
-                xAxisThickness={0}
-                yAxisThickness={0}
-                yAxisTextStyle={{ color: COLORS.mediumGray, fontSize: 10 }}
-                xAxisLabelTextStyle={{ color: COLORS.mediumGray, fontSize: 10 }}
-                noOfSections={4}
-                maxValue={Math.max(...barChartData.map(d => d.value), 1) + 2}
-                isAnimated
               />
             ) : (
               <View style={styles.noDataContainer}>
@@ -424,26 +684,10 @@ export default function StatsScreen() {
           
           <View style={styles.chartCard}>
             {lineChartData.length > 0 && lineChartData.some(d => d.value > 0) ? (
-              <LineChart
-                data={lineChartData}
-                width={CHART_WIDTH}
+              <SimpleLineChart 
+                data={lineChartData} 
+                maxValue={maxLineValue + Math.ceil(maxLineValue * 0.2)}
                 height={180}
-                color={COLORS.accent}
-                thickness={3}
-                hideDataPoints={false}
-                dataPointsColor={COLORS.accent}
-                dataPointsRadius={5}
-                startFillColor={`${COLORS.accent}40`}
-                endFillColor={`${COLORS.accent}10`}
-                areaChart
-                curved
-                hideRules
-                xAxisThickness={0}
-                yAxisThickness={0}
-                yAxisTextStyle={{ color: COLORS.mediumGray, fontSize: 10 }}
-                noOfSections={4}
-                maxValue={Math.max(...lineChartData.map(d => d.value), 1) + 20}
-                isAnimated
               />
             ) : (
               <View style={styles.noDataContainer}>
@@ -454,36 +698,13 @@ export default function StatsScreen() {
           </View>
         </View>
 
-        {/* Focus Breakdown Pie Chart */}
+        {/* Training Focus */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Training Focus</Text>
           
           <View style={styles.chartCard}>
-            {pieChartData.length > 0 && pieChartData.some(d => d.value > 0) ? (
-              <View style={styles.pieContainer}>
-                <PieChart
-                  data={pieChartData}
-                  donut
-                  radius={80}
-                  innerRadius={50}
-                  innerCircleColor={COLORS.white}
-                  centerLabelComponent={() => (
-                    <View style={styles.pieCenter}>
-                      <Text style={styles.pieCenterText}>{summary?.allTime.totalWorkouts || 0}</Text>
-                      <Text style={styles.pieCenterLabel}>Total</Text>
-                    </View>
-                  )}
-                />
-                <View style={styles.pieLegend}>
-                  {focusBreakdown?.breakdown.map((item, index) => (
-                    <View key={index} style={styles.legendItem}>
-                      <View style={[styles.legendDot, { backgroundColor: PIE_COLORS[index % PIE_COLORS.length] }]} />
-                      <Text style={styles.legendText}>{item.category}</Text>
-                      <Text style={styles.legendPercent}>{item.percentage}%</Text>
-                    </View>
-                  ))}
-                </View>
-              </View>
+            {focusData.length > 0 && focusData.some(d => d.percentage > 0) ? (
+              <FocusBarChart data={focusData} />
             ) : (
               <View style={styles.noDataContainer}>
                 <Ionicons name="pie-chart-outline" size={48} color={COLORS.mediumGray} />
@@ -737,8 +958,6 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 8,
     elevation: 3,
-    alignItems: 'center',
-    overflow: 'hidden',
   },
   noDataContainer: {
     alignItems: 'center',
@@ -751,51 +970,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: COLORS.mediumGray,
     textAlign: 'center',
-  },
-  pieContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    width: '100%',
-    paddingHorizontal: 8,
-  },
-  pieCenter: {
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  pieCenterText: {
-    fontSize: 24,
-    fontWeight: '700',
-    color: COLORS.text,
-  },
-  pieCenterLabel: {
-    fontSize: 12,
-    color: COLORS.mediumGray,
-  },
-  pieLegend: {
-    flex: 1,
-    marginLeft: 24,
-  },
-  legendItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  legendDot: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-    marginRight: 8,
-  },
-  legendText: {
-    flex: 1,
-    fontSize: 13,
-    color: COLORS.text,
-  },
-  legendPercent: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: COLORS.mediumGray,
   },
   insightsCard: {
     backgroundColor: `${COLORS.accent}08`,
