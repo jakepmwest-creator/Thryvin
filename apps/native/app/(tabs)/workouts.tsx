@@ -351,10 +351,16 @@ export default function WorkoutsScreen() {
                           ]}>
                             {date}
                           </Text>
-                          <View style={[
-                            styles.monthDayDot,
-                            { backgroundColor: getStatusColor(getDateStatus(date)) }
-                          ]} />
+                          {getDateStatus(date) === 'completed' ? (
+                            <View style={styles.completedIconSmall}>
+                              <Ionicons name="checkmark-circle" size={12} color={COLORS.success} />
+                            </View>
+                          ) : (
+                            <View style={[
+                              styles.monthDayDot,
+                              { backgroundColor: getStatusColor(getDateStatus(date)) }
+                            ]} />
+                          )}
                         </>
                       )}
                     </TouchableOpacity>
