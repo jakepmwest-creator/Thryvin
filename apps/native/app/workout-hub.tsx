@@ -1071,16 +1071,11 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   videoContainer: {
-    margin: 16,
-    borderRadius: 16,
-    overflow: 'hidden',
-  },
-  videoContainer: {
     marginHorizontal: 16,
     marginBottom: 16,
     borderRadius: 16,
     overflow: 'hidden',
-    backgroundColor: COLORS.black,
+    backgroundColor: '#000000',
   },
   exerciseDetailCard: {
     backgroundColor: COLORS.white,
