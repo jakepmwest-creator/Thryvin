@@ -1076,27 +1076,6 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.lightGray,
     textAlignVertical: 'top',
   },
-  notesInputRecording: {
-    borderColor: COLORS.gradientStart,
-    backgroundColor: `${COLORS.gradientStart}10`,
-  },
-  recordingIndicator: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: 8,
-    gap: 6,
-  },
-  recordingDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: '#FF3B30',
-  },
-  recordingText: {
-    fontSize: 12,
-    color: COLORS.gradientStart,
-    fontWeight: '600',
-  },
   // Celebration Modal
   celebrationOverlay: {
     flex: 1,
