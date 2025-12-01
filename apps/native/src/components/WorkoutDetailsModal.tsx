@@ -236,6 +236,7 @@ export function WorkoutDetailsModal({
               <Text style={styles.statText}>{currentWorkout?.caloriesBurn || 300} cal</Text>
             </View>
           </View>
+          )}
         </LinearGradient>
         
         {/* Swipeable Content */}
@@ -247,13 +248,38 @@ export function WorkoutDetailsModal({
             style={styles.scrollView}
             showsVerticalScrollIndicator={false}
           >
-            {/* Overview */}
-            <View style={styles.section}>
-              <Text style={styles.sectionTitle}>Overview</Text>
-              <Text style={styles.overviewText}>
-                {currentWorkout?.overview || 'Complete workout designed for your fitness level.'}
-              </Text>
-            </View>
+            {/* Rest Day Content */}
+            {currentWorkout?.isRestDay ? (
+              <View style={styles.restDayContent}>
+                <Ionicons name="moon-outline" size={64} color={COLORS.gradientStart} />
+                <Text style={styles.restDayTitle}>Rest & Recover</Text>
+                <Text style={styles.restDayDescription}>
+                  {currentWorkout?.overview || 'Take time to recover. Stay hydrated and get good sleep!'}
+                </Text>
+                <View style={styles.restDayTips}>
+                  <View style={styles.tipItem}>
+                    <Ionicons name="water-outline" size={24} color={COLORS.gradientStart} />
+                    <Text style={styles.tipText}>Stay hydrated</Text>
+                  </View>
+                  <View style={styles.tipItem}>
+                    <Ionicons name="bed-outline" size={24} color={COLORS.gradientStart} />
+                    <Text style={styles.tipText}>Get 7-9 hours sleep</Text>
+                  </View>
+                  <View style={styles.tipItem}>
+                    <Ionicons name="leaf-outline" size={24} color={COLORS.gradientStart} />
+                    <Text style={styles.tipText}>Light stretching is okay</Text>
+                  </View>
+                </View>
+              </View>
+            ) : (
+              <>
+                {/* Overview */}
+                <View style={styles.section}>
+                  <Text style={styles.sectionTitle}>Overview</Text>
+                  <Text style={styles.overviewText}>
+                    {currentWorkout?.overview || 'Complete workout designed for your fitness level.'}
+                  </Text>
+                </View>
             
             {/* Warmup */}
             {warmupExercises.length > 0 && (
