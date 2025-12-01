@@ -289,11 +289,16 @@ Vary the exercises and focus areas each day.`;
       ];
       
       for (const core of coreExercises) {
-        const matchesPattern = core.patterns.some(p => aiName.includes(p));
-        if (matchesPattern && core.match) {
+        // Check if ALL patterns match
+        const matchesAllPatterns = core.patterns.every(p => aiName.includes(p));
+        // Check exclusions
+        const hasExclusion = (core as any).exclude?.some((ex: string) => aiName.includes(ex));
+        
+        if (matchesAllPatterns && !hasExclusion && core.match) {
           // Find the matching exercise in DB
+          const matchLower = core.match.toLowerCase();
           for (const [dbName, dbEx] of exerciseMap.entries()) {
-            if (dbName.includes(core.match) || core.match.split(' ').every(w => dbName.includes(w))) {
+            if (dbName === matchLower || dbName.includes(matchLower) || matchLower.split(' ').every(w => dbName.includes(w))) {
               dbExercise = dbEx;
               console.log(`  ✓ Core match: "${ex.name}" → "${dbEx.name}"`);
               break;
