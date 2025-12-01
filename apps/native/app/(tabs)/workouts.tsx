@@ -237,6 +237,7 @@ export default function WorkoutsScreen() {
         onClose={() => setModalVisible(false)}
         onStartWorkout={handleStartWorkout}
         selectedDate={selectedDate}
+        selectedFullDate={selectedFullDate}
         initialDayIndex={selectedDayIndex}
       />
       
