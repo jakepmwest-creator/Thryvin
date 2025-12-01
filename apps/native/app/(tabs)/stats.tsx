@@ -13,11 +13,11 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { AppHeader } from '../../src/components/AppHeader';
-import { LineChart, BarChart, PieChart } from 'react-native-chart-kit';
+import { BarChart, LineChart, PieChart } from 'react-native-gifted-charts';
 import { useAuthStore } from '../../src/stores/auth-store';
 
 const { width } = Dimensions.get('window');
-const CHART_WIDTH = width - 48;
+const CHART_WIDTH = width - 64;
 
 import { COLORS as THEME_COLORS } from '../../src/constants/colors';
 
@@ -35,29 +35,6 @@ const COLORS = {
 };
 
 const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL || 'https://soft-apes-tickle.loca.lt';
-
-// Chart theme configuration
-const chartConfig = {
-  backgroundColor: COLORS.white,
-  backgroundGradientFrom: COLORS.white,
-  backgroundGradientTo: COLORS.white,
-  decimalPlaces: 0,
-  color: (opacity = 1) => `rgba(162, 43, 246, ${opacity})`,
-  labelColor: (opacity = 1) => `rgba(102, 102, 102, ${opacity})`,
-  style: {
-    borderRadius: 16,
-  },
-  propsForDots: {
-    r: '5',
-    strokeWidth: '2',
-    stroke: COLORS.accent,
-  },
-  propsForBackgroundLines: {
-    strokeDasharray: '',
-    stroke: '#E5E5E5',
-    strokeWidth: 1,
-  },
-};
 
 // Pie chart colors
 const PIE_COLORS = [
@@ -255,29 +232,30 @@ export default function StatsScreen() {
     fetchStats();
   }, [fetchStats]);
 
-  // Prepare chart data
-  const barChartData = weeklyTrend ? {
-    labels: weeklyTrend.weeks.slice(-8).map(w => w.weekLabel),
-    datasets: [{
-      data: weeklyTrend.weeks.slice(-8).map(w => activeChart === 'workouts' ? w.workouts : w.minutes),
-    }],
-  } : null;
+  // Prepare bar chart data for gifted-charts
+  const barChartData = weeklyTrend?.weeks.slice(-8).map((w, index) => ({
+    value: activeChart === 'workouts' ? w.workouts : w.minutes,
+    label: w.weekLabel,
+    frontColor: index === 7 ? COLORS.accent : `${COLORS.accent}80`,
+    topLabelComponent: () => (
+      <Text style={{ fontSize: 10, color: COLORS.text, marginBottom: 4 }}>
+        {activeChart === 'workouts' ? w.workouts : w.minutes}
+      </Text>
+    ),
+  })) || [];
 
-  const lineChartData = weeklyTrend ? {
-    labels: weeklyTrend.weeks.slice(-8).map(w => w.weekLabel),
-    datasets: [{
-      data: weeklyTrend.weeks.slice(-8).map(w => w.minutes || 0),
-      color: (opacity = 1) => `rgba(162, 43, 246, ${opacity})`,
-      strokeWidth: 3,
-    }],
-  } : null;
+  // Prepare line chart data
+  const lineChartData = weeklyTrend?.weeks.slice(-8).map((w) => ({
+    value: w.minutes || 0,
+    dataPointText: String(w.minutes),
+  })) || [];
 
+  // Prepare pie chart data
   const pieChartData = focusBreakdown?.breakdown.map((item, index) => ({
-    name: item.category,
-    population: item.percentage || 1,
+    value: item.percentage || 1,
     color: PIE_COLORS[index % PIE_COLORS.length],
-    legendFontColor: COLORS.text,
-    legendFontSize: 12,
+    text: `${item.percentage}%`,
+    focused: index === 0,
   })) || [];
 
   if (isLoading) {
@@ -391,7 +369,7 @@ export default function StatsScreen() {
         {/* Workouts Per Week Chart */}
         <View style={styles.section}>
           <View style={styles.chartHeader}>
-            <Text style={styles.sectionTitle}>Workouts Per Week</Text>
+            <Text style={styles.sectionTitle}>Weekly Progress</Text>
             <View style={styles.chartToggle}>
               <TouchableOpacity 
                 style={[styles.toggleButton, activeChart === 'workouts' && styles.toggleButtonActive]}
@@ -413,17 +391,23 @@ export default function StatsScreen() {
           </View>
           
           <View style={styles.chartCard}>
-            {barChartData && barChartData.datasets[0].data.length > 0 ? (
+            {barChartData.length > 0 && barChartData.some(d => d.value > 0) ? (
               <BarChart
                 data={barChartData}
                 width={CHART_WIDTH}
-                height={200}
-                yAxisLabel=""
-                yAxisSuffix={activeChart === 'minutes' ? 'm' : ''}
-                chartConfig={chartConfig}
-                style={styles.chart}
-                showValuesOnTopOfBars
-                fromZero
+                height={180}
+                barWidth={24}
+                spacing={16}
+                roundedTop
+                roundedBottom
+                hideRules
+                xAxisThickness={0}
+                yAxisThickness={0}
+                yAxisTextStyle={{ color: COLORS.mediumGray, fontSize: 10 }}
+                xAxisLabelTextStyle={{ color: COLORS.mediumGray, fontSize: 10 }}
+                noOfSections={4}
+                maxValue={Math.max(...barChartData.map(d => d.value), 1) + 2}
+                isAnimated
               />
             ) : (
               <View style={styles.noDataContainer}>
@@ -436,23 +420,30 @@ export default function StatsScreen() {
 
         {/* Training Minutes Line Chart */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Training Minutes Trend</Text>
+          <Text style={styles.sectionTitle}>Training Minutes</Text>
           
           <View style={styles.chartCard}>
-            {lineChartData && lineChartData.datasets[0].data.some(d => d > 0) ? (
+            {lineChartData.length > 0 && lineChartData.some(d => d.value > 0) ? (
               <LineChart
                 data={lineChartData}
                 width={CHART_WIDTH}
-                height={200}
-                chartConfig={{
-                  ...chartConfig,
-                  fillShadowGradient: COLORS.accent,
-                  fillShadowGradientOpacity: 0.2,
-                }}
-                style={styles.chart}
-                bezier
-                withInnerLines={true}
-                withOuterLines={false}
+                height={180}
+                color={COLORS.accent}
+                thickness={3}
+                hideDataPoints={false}
+                dataPointsColor={COLORS.accent}
+                dataPointsRadius={5}
+                startFillColor={`${COLORS.accent}40`}
+                endFillColor={`${COLORS.accent}10`}
+                areaChart
+                curved
+                hideRules
+                xAxisThickness={0}
+                yAxisThickness={0}
+                yAxisTextStyle={{ color: COLORS.mediumGray, fontSize: 10 }}
+                noOfSections={4}
+                maxValue={Math.max(...lineChartData.map(d => d.value), 1) + 20}
+                isAnimated
               />
             ) : (
               <View style={styles.noDataContainer}>
@@ -468,18 +459,31 @@ export default function StatsScreen() {
           <Text style={styles.sectionTitle}>Training Focus</Text>
           
           <View style={styles.chartCard}>
-            {pieChartData.length > 0 && pieChartData.some(d => d.population > 0) ? (
-              <PieChart
-                data={pieChartData}
-                width={CHART_WIDTH}
-                height={200}
-                chartConfig={chartConfig}
-                accessor="population"
-                backgroundColor="transparent"
-                paddingLeft="15"
-                center={[0, 0]}
-                absolute={false}
-              />
+            {pieChartData.length > 0 && pieChartData.some(d => d.value > 0) ? (
+              <View style={styles.pieContainer}>
+                <PieChart
+                  data={pieChartData}
+                  donut
+                  radius={80}
+                  innerRadius={50}
+                  innerCircleColor={COLORS.white}
+                  centerLabelComponent={() => (
+                    <View style={styles.pieCenter}>
+                      <Text style={styles.pieCenterText}>{summary?.allTime.totalWorkouts || 0}</Text>
+                      <Text style={styles.pieCenterLabel}>Total</Text>
+                    </View>
+                  )}
+                />
+                <View style={styles.pieLegend}>
+                  {focusBreakdown?.breakdown.map((item, index) => (
+                    <View key={index} style={styles.legendItem}>
+                      <View style={[styles.legendDot, { backgroundColor: PIE_COLORS[index % PIE_COLORS.length] }]} />
+                      <Text style={styles.legendText}>{item.category}</Text>
+                      <Text style={styles.legendPercent}>{item.percentage}%</Text>
+                    </View>
+                  ))}
+                </View>
+              </View>
             ) : (
               <View style={styles.noDataContainer}>
                 <Ionicons name="pie-chart-outline" size={48} color={COLORS.mediumGray} />
@@ -734,10 +738,7 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 3,
     alignItems: 'center',
-  },
-  chart: {
-    borderRadius: 16,
-    marginVertical: 8,
+    overflow: 'hidden',
   },
   noDataContainer: {
     alignItems: 'center',
@@ -750,6 +751,51 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: COLORS.mediumGray,
     textAlign: 'center',
+  },
+  pieContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    width: '100%',
+    paddingHorizontal: 8,
+  },
+  pieCenter: {
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  pieCenterText: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: COLORS.text,
+  },
+  pieCenterLabel: {
+    fontSize: 12,
+    color: COLORS.mediumGray,
+  },
+  pieLegend: {
+    flex: 1,
+    marginLeft: 24,
+  },
+  legendItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  legendDot: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    marginRight: 8,
+  },
+  legendText: {
+    flex: 1,
+    fontSize: 13,
+    color: COLORS.text,
+  },
+  legendPercent: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: COLORS.mediumGray,
   },
   insightsCard: {
     backgroundColor: `${COLORS.accent}08`,
