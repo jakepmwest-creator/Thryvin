@@ -545,6 +545,69 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // =============================================================================
+  // VOICE INPUT: Audio Transcription using OpenAI Whisper
+  // =============================================================================
+  
+  app.post("/api/transcribe", audioUpload.single('audio'), async (req, res) => {
+    try {
+      const file = req.file;
+      
+      if (!file) {
+        return res.status(400).json({ error: "No audio file provided" });
+      }
+      
+      console.log('🎤 [TRANSCRIBE] Received audio file:', file.originalname, file.size, 'bytes');
+      
+      // Check if OpenAI is available
+      if (!process.env.OPENAI_API_KEY) {
+        // Clean up file
+        fs.unlinkSync(file.path);
+        return res.status(503).json({ error: "Transcription service unavailable" });
+      }
+      
+      try {
+        // Send to OpenAI Whisper for transcription
+        const transcription = await openai.audio.transcriptions.create({
+          file: fs.createReadStream(file.path),
+          model: "whisper-1",
+          language: "en",
+          response_format: "text",
+        });
+        
+        console.log('✅ [TRANSCRIBE] Result:', transcription);
+        
+        // Clean up the uploaded file
+        fs.unlinkSync(file.path);
+        
+        res.json({ 
+          text: transcription,
+          success: true 
+        });
+        
+      } catch (whisperError: any) {
+        console.error('❌ [TRANSCRIBE] Whisper error:', whisperError);
+        
+        // Clean up file on error
+        if (fs.existsSync(file.path)) {
+          fs.unlinkSync(file.path);
+        }
+        
+        res.status(500).json({ 
+          error: "Transcription failed", 
+          message: whisperError.message 
+        });
+      }
+      
+    } catch (error: any) {
+      console.error('❌ [TRANSCRIBE] Error:', error);
+      res.status(500).json({ 
+        error: "Failed to process audio",
+        message: error.message 
+      });
+    }
+  });
+
   // Config endpoint - returns live feature flags (admin-only in production)
   app.get("/api/config", requireAuth, async (req, res) => {
     try {
