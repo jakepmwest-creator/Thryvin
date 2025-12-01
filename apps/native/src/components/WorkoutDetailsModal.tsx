@@ -141,11 +141,14 @@ export function WorkoutDetailsModal({
   ).current;
   
   const handleNextDay = () => {
-    setCurrentDayIndex((prev) => (prev === 6 ? 0 : prev + 1));
+    setCurrentWorkoutIndex((prev) => Math.min(prev + 1, weekWorkouts.length - 1));
     setExpandedExerciseIndex(null);
   };
   
   const handlePreviousDay = () => {
+    setCurrentWorkoutIndex((prev) => Math.max(prev - 1, 0));
+    setExpandedExerciseIndex(null);
+  };
     setCurrentDayIndex((prev) => (prev === 0 ? 6 : prev - 1));
     setExpandedExerciseIndex(null);
   };
