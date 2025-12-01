@@ -158,6 +158,10 @@ export default function WorkoutHubScreen() {
     setCurrentSet(0);
     setWeight('');
     setReps('');
+    setDuration('');
+    setDistance('');
+    setHoldTime('');
+    setSetNotes('');
   };
 
   const handleCompleteSet = (exerciseIndex: number) => {
