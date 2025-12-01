@@ -794,46 +794,50 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
   
   // Force regenerate week workouts (for debugging/testing)
   forceRegenerateWeek: async () => {
-    console.log('🔄 [WEEK] Force clearing cache...');
+    console.log('🔄 [3-WEEK] Force clearing cache...');
     await setStorageItem('week_workouts', '[]'); // Clear workouts
     await setStorageItem('week_workouts_date', ''); // Clear date
+    await setStorageItem('week_workouts_version', ''); // Clear version
     await setStorageItem('today_workout', ''); // Clear today
     await setStorageItem('today_workout_date', ''); // Clear today date
     set({ weekWorkouts: [], todayWorkout: null });
-    console.log('🔄 [WEEK] Starting generation...');
+    console.log('🔄 [3-WEEK] Starting generation...');
     await get().fetchWeekWorkouts();
     await get().fetchTodayWorkout();
   },
   
-  // Check if we need to generate more weeks ahead (rolling generation)
-  // Rule: Always keep at least 2 weeks ahead generated
+  // Rolling generation: When a workout is completed, add a new day 3 weeks ahead
   checkAndGenerateMoreWeeks: async () => {
     try {
       const { weekWorkouts } = get();
       if (weekWorkouts.length === 0) return;
       
-      // Check how many workouts are completed
-      const completedCount = weekWorkouts.filter(w => w.completed).length;
-      const totalCount = weekWorkouts.length;
+      // Count completed non-rest workouts
+      const completedCount = weekWorkouts.filter(w => w.completed && !w.isRestDay).length;
       
-      console.log(`📊 [ROLLING] ${completedCount}/${totalCount} workouts completed`);
+      console.log(`📊 [ROLLING] ${completedCount} workouts completed`);
       
-      // If user has completed 5+ workouts (near end of week), generate next week
-      if (completedCount >= 5) {
-        console.log('🔄 [ROLLING] Near end of week, checking if next week exists...');
-        
-        // Get stored future weeks
-        const storedFutureWeeks = await getStorageItem('future_weeks');
-        const futureWeeks: Workout[][] = storedFutureWeeks ? JSON.parse(storedFutureWeeks) : [];
-        
-        // If we have less than 2 weeks ahead, generate more
-        if (futureWeeks.length < 2) {
-          console.log('🔄 [ROLLING] Generating next week...');
-          await generateNextWeek(futureWeeks.length);
-        }
+      // Generate a new day to maintain 3 weeks ahead
+      // Find the last date in our schedule
+      const lastWorkout = weekWorkouts[weekWorkouts.length - 1];
+      const lastDate = new Date(lastWorkout.date);
+      
+      // Calculate the next day
+      const nextDate = new Date(lastDate);
+      nextDate.setDate(lastDate.getDate() + 1);
+      
+      // Check if we already have this day
+      const existingDay = weekWorkouts.find(w => {
+        const wDate = new Date(w.date);
+        return wDate.toDateString() === nextDate.toDateString();
+      });
+      
+      if (!existingDay) {
+        console.log(`🔄 [ROLLING] Generating new day: ${nextDate.toDateString()}`);
+        await generateSingleDay(nextDate, weekWorkouts.length);
       }
     } catch (error) {
-      console.error('Error checking rolling weeks:', error);
+      console.error('Error in rolling generation:', error);
     }
   },
   
