@@ -282,19 +282,22 @@ export function FloatingCoachButton() {
             </ScrollView>
 
             <View style={styles.inputContainer}>
-              <VoiceInputButton
-                onTranscription={handleVoiceTranscription}
-                size="medium"
-              />
-              <TextInput
-                style={styles.input}
-                placeholder="Ask your coach or tap mic to speak..."
-                placeholderTextColor={COLORS.mediumGray}
-                value={inputText}
-                onChangeText={setInputText}
-                multiline
-                editable={!isLoading}
-              />
+              <View style={styles.inputWrapper}>
+                <TextInput
+                  style={styles.input}
+                  placeholder="Ask your coach anything..."
+                  placeholderTextColor={COLORS.mediumGray}
+                  value={inputText}
+                  onChangeText={setInputText}
+                  multiline
+                  editable={!isLoading}
+                />
+                <VoiceInputButton
+                  onTranscription={handleVoiceTranscription}
+                  size="small"
+                  style={styles.inlineVoiceButton}
+                />
+              </View>
               <TouchableOpacity
                 style={styles.sendButton}
                 onPress={handleSend}
@@ -306,7 +309,7 @@ export function FloatingCoachButton() {
                   start={{ x: 0, y: 0 }}
                   end={{ x: 1, y: 1 }}
                 >
-                  <Ionicons name="send" size={20} color={COLORS.white} />
+                  <Ionicons name="send" size={18} color={COLORS.white} />
                 </LinearGradient>
               </TouchableOpacity>
             </View>
