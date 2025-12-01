@@ -3466,6 +3466,44 @@ Previous conversation:`;
 
   // ========== END STATS 2.0 ENDPOINTS ==========
 
+  // Sync completed workout from frontend to backend
+  app.post("/api/workouts/complete", async (req, res) => {
+    try {
+      const userId = (req.user as any)?.id;
+      if (!userId) {
+        return res.status(401).json({ error: "Not authenticated" });
+      }
+
+      const { workoutId, title, type, duration, completedAt, exercises } = req.body;
+      
+      if (!workoutId) {
+        return res.status(400).json({ error: "Workout ID required" });
+      }
+      
+      // Create a user workout entry
+      const userWorkout = await storage.createUserWorkout({
+        usersId: userId,
+        completed: true,
+        completedAt: completedAt ? new Date(completedAt) : new Date(),
+        duration: duration || 45,
+        workoutType: type || 'General',
+        rating: 5, // Default rating
+        notes: `${title} - ${exercises?.length || 0} exercises`,
+      });
+      
+      console.log(`✅ [SYNC] Workout completed synced for user ${userId}: ${title}`);
+      
+      res.json({ 
+        success: true, 
+        message: 'Workout synced successfully',
+        workoutId: userWorkout?.id || workoutId,
+      });
+    } catch (error) {
+      console.error("Error syncing completed workout:", error);
+      res.status(500).json({ error: "Failed to sync workout" });
+    }
+  });
+
   // Claim quest reward
   app.post("/api/users/:userId/quests/:questId/claim", async (req, res) => {
     try {
