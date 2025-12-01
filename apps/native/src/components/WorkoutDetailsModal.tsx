@@ -346,12 +346,15 @@ export function WorkoutDetailsModal({
                 ))}
               </View>
             )}
+            </>
+            )}
             
             <View style={{ height: 120 }} />
           </ScrollView>
         </Animated.View>
         
-        {/* Action Buttons */}
+        {/* Action Buttons - hide for rest days */}
+        {!currentWorkout?.isRestDay && (
         <View style={styles.footer}>
           <TouchableOpacity style={styles.editButton} onPress={() => setEditModalVisible(true)}>
             <View style={styles.editButtonContent}>
