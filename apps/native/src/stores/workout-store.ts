@@ -46,7 +46,27 @@ interface Workout {
   targetMuscles?: string;
   caloriesBurn?: number;
   exerciseList?: Exercise[]; // Alias for modal compatibility
-  status?: string; // ready, in-progress, completed
+  status?: string; // ready, in-progress, completed, rest
+  isRestDay?: boolean; // True for rest days
+}
+
+// Helper function to determine rest days based on training days per week
+function getRestDayPattern(trainingDays: number): number[] {
+  // Returns array of day indices (0=Monday, 6=Sunday) that are rest days
+  switch (trainingDays) {
+    case 3:
+      return [1, 3, 5, 6]; // Rest: Tue, Thu, Sat, Sun
+    case 4:
+      return [2, 4, 6]; // Rest: Wed, Fri, Sun
+    case 5:
+      return [3, 6]; // Rest: Thu, Sun
+    case 6:
+      return [6]; // Rest: Sun only
+    case 7:
+      return []; // No rest days
+    default:
+      return [3, 6]; // Default 5 days: rest on Thu, Sun
+  }
 }
 
 interface WorkoutStats {
