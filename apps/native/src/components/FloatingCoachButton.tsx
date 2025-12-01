@@ -169,6 +169,11 @@ export function FloatingCoachButton() {
     setIsLoading(false);
   };
 
+  // Handle voice transcription
+  const handleVoiceTranscription = (text: string) => {
+    setInputText(prev => prev ? `${prev} ${text}` : text);
+  };
+
   return (
     <>
       <Animated.View
