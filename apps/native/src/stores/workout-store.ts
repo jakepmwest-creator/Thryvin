@@ -878,43 +878,58 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
   },
 }));
 
-// Helper function to generate the next week of workouts
-async function generateNextWeek(weekOffset: number = 1) {
+// Helper function to generate a single day's workout (for rolling generation)
+async function generateSingleDay(date: Date, dayIndex: number) {
   try {
-    const storedUser = await getStorageItem('user');
+    const storedUser = await getStorageItem('auth_user');
     if (!storedUser) return;
     
     const user = JSON.parse(storedUser);
+    const trainingDays = parseInt(String(user.trainingDays)) || 5;
+    const restDayPattern = getRestDayPattern(trainingDays);
     
-    // Calculate the Monday of the target week
-    const today = new Date();
-    const currentMonday = new Date(today);
-    const dayOfWeek = today.getDay();
-    const mondayOffset = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
-    currentMonday.setDate(today.getDate() + mondayOffset);
+    // Check if this is a rest day (0=Monday, 6=Sunday)
+    const dayOfWeek = date.getDay();
+    const mondayBasedDay = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
+    const isRestDay = restDayPattern.includes(mondayBasedDay);
     
-    const targetMonday = new Date(currentMonday);
-    targetMonday.setDate(currentMonday.getDate() + (7 * (weekOffset + 1)));
+    const { weekWorkouts } = useWorkoutStore.getState();
     
-    console.log(`📅 [ROLLING] Generating week starting ${targetMonday.toDateString()}`);
+    let newWorkout: Workout;
     
-    const userProfile = {
-      fitnessGoals: user.fitnessGoals || [user.goal],
-      goal: user.goal,
-      experience: user.experience,
-      trainingType: user.trainingType,
-      sessionDuration: user.sessionDuration,
-      trainingDays: user.trainingDays,
-      equipment: user.equipment,
-      injuries: user.injuries,
-    };
-    
-    // Generate workouts for each day
-    const weekWorkouts: Workout[] = [];
-    
-    for (let i = 0; i < 7; i++) {
-      const date = new Date(targetMonday);
-      date.setDate(targetMonday.getDate() + i);
+    if (isRestDay) {
+      newWorkout = {
+        id: `rest_${date.getTime()}`,
+        title: 'Rest Day',
+        type: 'Rest',
+        difficulty: 'rest',
+        duration: 0,
+        date: date.toISOString(),
+        exercises: [],
+        overview: 'Take time to recover. Stay hydrated and get good sleep!',
+        targetMuscles: '',
+        caloriesBurn: 0,
+        exerciseList: [],
+        status: 'rest',
+        isRestDay: true,
+      };
+      console.log(`😴 [ROLLING] Generated rest day: ${date.toDateString()}`);
+    } else {
+      const userProfile = {
+        fitnessGoals: user.fitnessGoals || [user.goal],
+        goal: user.goal,
+        experience: user.experience,
+        trainingType: user.trainingType,
+        sessionDuration: user.sessionDuration,
+        trainingDays: user.trainingDays,
+        equipment: user.equipment,
+        injuries: user.injuries,
+        userId: user.id,
+      };
+      
+      // Calculate week number (how many weeks from now)
+      const today = new Date();
+      const weekDiff = Math.floor((date.getTime() - today.getTime()) / (7 * 24 * 60 * 60 * 1000));
       
       const response = await fetch(`${API_BASE_URL}/api/workouts/generate`, {
         method: 'POST',
@@ -924,15 +939,19 @@ async function generateNextWeek(weekOffset: number = 1) {
         },
         body: JSON.stringify({
           userProfile,
-          dayOfWeek: i,
+          dayOfWeek: mondayBasedDay,
+          weekNumber: weekDiff + 1,
         }),
       });
       
-      if (!response.ok) continue;
+      if (!response.ok) {
+        console.error('Failed to generate workout for', date.toDateString());
+        return;
+      }
       
       const workout = await response.json();
       
-      weekWorkouts.push({
+      newWorkout = {
         id: `workout_${date.getTime()}`,
         title: workout.title,
         type: workout.type,
@@ -944,9 +963,20 @@ async function generateNextWeek(weekOffset: number = 1) {
         targetMuscles: workout.targetMuscles,
         caloriesBurn: workout.caloriesBurn,
         exerciseList: workout.exercises,
-        completed: false,
-      });
+        status: 'ready',
+      };
+      console.log(`✅ [ROLLING] Generated: ${workout.title} for ${date.toDateString()}`);
     }
+    
+    // Add to weekWorkouts and save
+    const updatedWorkouts = [...weekWorkouts, newWorkout];
+    await setStorageItem('week_workouts', JSON.stringify(updatedWorkouts));
+    useWorkoutStore.setState({ weekWorkouts: updatedWorkouts });
+    
+  } catch (error) {
+    console.error('Error generating single day:', error);
+  }
+}
     
     // Store in future weeks
     const storedFutureWeeks = await getStorageItem('future_weeks');
