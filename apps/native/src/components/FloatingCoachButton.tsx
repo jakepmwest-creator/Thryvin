@@ -282,9 +282,13 @@ export function FloatingCoachButton() {
             </ScrollView>
 
             <View style={styles.inputContainer}>
+              <VoiceInputButton
+                onTranscription={handleVoiceTranscription}
+                size="medium"
+              />
               <TextInput
                 style={styles.input}
-                placeholder="Ask your coach anything..."
+                placeholder="Ask your coach or tap mic to speak..."
                 placeholderTextColor={COLORS.mediumGray}
                 value={inputText}
                 onChangeText={setInputText}
