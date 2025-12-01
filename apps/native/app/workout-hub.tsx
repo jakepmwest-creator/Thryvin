@@ -41,7 +41,6 @@ export default function WorkoutHubScreen() {
   const [currentSet, setCurrentSet] = useState(0);
   const [weight, setWeight] = useState('');
   const [reps, setReps] = useState('');
-  const [effortRating, setEffortRating] = useState<number>(3);
   const [setNotes, setSetNotes] = useState('');
   const [showTips, setShowTips] = useState(false);
   const [showCelebration, setShowCelebration] = useState(false);
