@@ -164,29 +164,60 @@ export default function WorkoutHubScreen() {
     setSetNotes('');
   };
 
-  const handleCompleteSet = (exerciseIndex: number) => {
-    if (!reps) {
-      Alert.alert('Missing Data', 'Please enter reps');
-      return;
+  const handleCompleteSet = (exerciseIndex: number, exercise: any) => {
+    const exerciseType = getExerciseType(exercise);
+    
+    // Validate based on exercise type
+    if (exerciseType === 'strength' || exerciseType === 'hiit') {
+      if (!reps) {
+        Alert.alert('Missing Data', 'Please enter reps');
+        return;
+      }
+    } else if (exerciseType === 'cardio') {
+      if (!duration) {
+        Alert.alert('Missing Data', 'Please enter time/duration');
+        return;
+      }
+    } else if (exerciseType === 'yoga' || exerciseType === 'stretching') {
+      if (!holdTime && !reps) {
+        Alert.alert('Missing Data', 'Please enter hold time or reps');
+        return;
+      }
     }
 
     const actualIndex = activeTab === 'warmup' ? exerciseIndex : 
                         activeTab === 'workout' ? exerciseIndex + warmupExercises.length :
                         exerciseIndex + warmupExercises.length + mainExercises.length;
 
+    // Build performance data based on exercise type
+    let performanceValue = 0;
+    let performanceWeight: number | undefined = undefined;
+    
+    if (exerciseType === 'cardio') {
+      performanceValue = parseInt(duration) || 0; // Store duration as main value
+      performanceWeight = distance ? parseFloat(distance) : undefined; // Store distance as secondary
+    } else if (exerciseType === 'yoga' || exerciseType === 'stretching') {
+      performanceValue = holdTime ? parseInt(holdTime) : (parseInt(reps) || 0);
+    } else {
+      performanceValue = parseInt(reps) || 0;
+      performanceWeight = weight ? parseFloat(weight) : undefined;
+    }
+
     completeSet(
       actualIndex,
       currentSet,
-      parseInt(reps),
-      weight ? parseFloat(weight) : undefined,
+      performanceValue,
+      performanceWeight,
       'Medium'
     );
 
-    const exercise = currentExercises[exerciseIndex];
-    if (currentSet < (exercise?.sets || 0) - 1) {
+    if (currentSet < (exercise?.sets || 1) - 1) {
       setCurrentSet(currentSet + 1);
       setWeight('');
       setReps('');
+      setDuration('');
+      setDistance('');
+      setHoldTime('');
     } else {
       Alert.alert('Exercise Complete!', 'Great work! Ready for the next one?', [
         {
