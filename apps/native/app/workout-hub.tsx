@@ -45,8 +45,60 @@ export default function WorkoutHubScreen() {
   const [showTips, setShowTips] = useState(false);
   const [showCelebration, setShowCelebration] = useState(false);
   const [weightUnit, setWeightUnit] = useState<'lbs' | 'kg'>('lbs');
+  // New state for different workout types
+  const [duration, setDuration] = useState(''); // For cardio/yoga - time in minutes
+  const [distance, setDistance] = useState(''); // For cardio - distance
+  const [distanceUnit, setDistanceUnit] = useState<'mi' | 'km'>('mi');
+  const [holdTime, setHoldTime] = useState(''); // For yoga - hold duration in seconds
   
   const scrollX = useRef(new Animated.Value(0)).current;
+  const confettiRef = useRef<any>(null);
+
+  // Determine exercise type based on name, category, or type
+  const getExerciseType = (exercise: any): 'strength' | 'cardio' | 'yoga' | 'hiit' | 'stretching' => {
+    const name = (exercise.name || '').toLowerCase();
+    const category = (exercise.category || '').toLowerCase();
+    const type = (exercise.type || '').toLowerCase();
+    
+    // Cardio exercises
+    const cardioKeywords = ['run', 'jog', 'sprint', 'cycling', 'bike', 'swim', 'rowing', 'elliptical', 'treadmill', 'walk', 'stair', 'jump rope', 'skipping'];
+    if (cardioKeywords.some(k => name.includes(k) || category.includes(k) || type.includes(k))) {
+      return 'cardio';
+    }
+    
+    // Yoga and flexibility exercises
+    const yogaKeywords = ['yoga', 'pose', 'asana', 'flow', 'meditation', 'breathing', 'pranayama', 'sun salutation', 'warrior', 'downward dog', 'child\'s pose', 'cobra', 'pigeon'];
+    if (yogaKeywords.some(k => name.includes(k) || category.includes(k) || type.includes('yoga'))) {
+      return 'yoga';
+    }
+    
+    // Stretching exercises
+    const stretchKeywords = ['stretch', 'mobility', 'flexibility', 'foam roll', 'hold', 'static'];
+    if (stretchKeywords.some(k => name.includes(k) || category.includes(k) || category.includes('cooldown') || category.includes('recovery'))) {
+      return 'stretching';
+    }
+    
+    // HIIT exercises
+    const hiitKeywords = ['burpee', 'mountain climber', 'jumping jack', 'high knee', 'box jump', 'battle rope', 'kettle swing'];
+    if (hiitKeywords.some(k => name.includes(k)) || type.includes('hiit') || type.includes('circuit')) {
+      return 'hiit';
+    }
+    
+    // Default to strength for weight training
+    return 'strength';
+  };
+
+  // Get contextual tips based on exercise type
+  const getExerciseTips = (exercise: any, exerciseType: string): string => {
+    const tips: Record<string, string> = {
+      cardio: `🏃 Focus on maintaining a steady pace. Keep your breathing rhythmic - try breathing in for 3 steps, out for 2. Stay hydrated and choose routes with good surfaces. If outdoors, vary your terrain for better training.`,
+      yoga: `🧘 Move slowly and mindfully into each pose. Never force a stretch - breathe into tight areas. Hold each position for the full duration, focusing on your breath. Modify poses as needed for your body.`,
+      stretching: `🤸 Breathe deeply and relax into the stretch. Don't bounce - hold steady. You should feel tension, not pain. Hold for the full duration to allow your muscles to release.`,
+      hiit: `⚡ Give maximum effort during work intervals! Rest fully during breaks. Focus on form even when tired. Keep your core engaged throughout. Push through the burn!`,
+      strength: `💪 Keep your core engaged and maintain proper form throughout. Focus on controlled motion - 2 seconds up, 3 seconds down. Breathe out on exertion. Don't sacrifice form for heavier weight.`,
+    };
+    return tips[exerciseType] || tips.strength;
+  };
 
   // Handle voice transcription for notes
   const handleVoiceTranscription = (text: string) => {
