@@ -3482,7 +3482,8 @@ Previous conversation:`;
       
       // Create a user workout entry
       const userWorkout = await storage.createUserWorkout({
-        usersId: userId,
+        userId: userId,
+        workoutId: 1, // Default workout reference
         completed: true,
         completedAt: completedAt ? new Date(completedAt) : new Date(),
         duration: duration || 45,
