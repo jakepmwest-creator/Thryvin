@@ -487,18 +487,13 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
         if (storedUser) {
           const user = JSON.parse(storedUser);
           
-          // Format exercises with effort rating for AI learning
+          // Format exercises for AI learning (notes-based feedback)
           const performanceData = exercises.map(ex => ({
             exerciseName: ex.name,
             weight: ex.weight,
             reps: ex.reps,
             sets: ex.sets,
-            effort: ex.effortRating === 1 ? 'Easy' : 
-                   ex.effortRating === 2 ? 'Medium' : 
-                   ex.effortRating === 3 ? 'Medium' :
-                   ex.effortRating === 4 ? 'Hard' : 
-                   ex.effortRating === 5 ? 'Too Hard' : 'Medium',
-            notes: ex.notes,
+            notes: ex.notes, // AI will learn from user notes
           }));
           
           await fetch(`${API_BASE_URL}/api/workouts/log-performance`, {
