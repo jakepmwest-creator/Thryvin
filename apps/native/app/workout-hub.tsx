@@ -452,33 +452,84 @@ export default function WorkoutHubScreen() {
                           </View>
                         )}
 
-                        {/* Exercise Info */}
-                        <View style={styles.exerciseDetailCard}>
-                          <Text style={styles.exerciseDetailTitle}>Exercise Details</Text>
-                          <View style={styles.exerciseStats}>
-                            <View style={styles.statItem}>
-                              <Ionicons name="repeat" size={20} color={COLORS.gradientStart} />
-                              <Text style={styles.statValue}>{exercise.sets} Sets</Text>
+                        {/* Exercise Info - Adaptive based on type */}
+                        {(() => {
+                          const exType = getExerciseType(exercise);
+                          return (
+                            <View style={styles.exerciseDetailCard}>
+                              <View style={styles.exerciseTypeTag}>
+                                <Text style={styles.exerciseTypeText}>
+                                  {exType === 'cardio' ? '🏃 Cardio' : 
+                                   exType === 'yoga' ? '🧘 Yoga' : 
+                                   exType === 'stretching' ? '🤸 Stretching' :
+                                   exType === 'hiit' ? '⚡ HIIT' : '💪 Strength'}
+                                </Text>
+                              </View>
+                              <Text style={styles.exerciseDetailTitle}>Exercise Details</Text>
+                              <View style={styles.exerciseStats}>
+                                {exType === 'cardio' ? (
+                                  <>
+                                    <View style={styles.statItem}>
+                                      <Ionicons name="time" size={20} color={COLORS.gradientStart} />
+                                      <Text style={styles.statValue}>{exercise.duration || exercise.reps}</Text>
+                                    </View>
+                                    <View style={styles.statItem}>
+                                      <Ionicons name="navigate" size={20} color={COLORS.gradientStart} />
+                                      <Text style={styles.statValue}>Track Distance</Text>
+                                    </View>
+                                    <View style={styles.statItem}>
+                                      <Ionicons name="speedometer" size={20} color={COLORS.gradientStart} />
+                                      <Text style={styles.statValue}>Track Pace</Text>
+                                    </View>
+                                  </>
+                                ) : exType === 'yoga' || exType === 'stretching' ? (
+                                  <>
+                                    <View style={styles.statItem}>
+                                      <Ionicons name="hourglass" size={20} color={COLORS.gradientStart} />
+                                      <Text style={styles.statValue}>Hold {exercise.duration || exercise.reps}</Text>
+                                    </View>
+                                    <View style={styles.statItem}>
+                                      <Ionicons name="repeat" size={20} color={COLORS.gradientStart} />
+                                      <Text style={styles.statValue}>{exercise.sets || 1} Round{(exercise.sets || 1) > 1 ? 's' : ''}</Text>
+                                    </View>
+                                    <View style={styles.statItem}>
+                                      <Ionicons name="leaf" size={20} color={COLORS.gradientStart} />
+                                      <Text style={styles.statValue}>Breathe Deep</Text>
+                                    </View>
+                                  </>
+                                ) : (
+                                  <>
+                                    <View style={styles.statItem}>
+                                      <Ionicons name="repeat" size={20} color={COLORS.gradientStart} />
+                                      <Text style={styles.statValue}>{exercise.sets} Sets</Text>
+                                    </View>
+                                    <View style={styles.statItem}>
+                                      <Ionicons name="fitness" size={20} color={COLORS.gradientStart} />
+                                      <Text style={styles.statValue}>{exercise.reps} Reps</Text>
+                                    </View>
+                                    <View style={styles.statItem}>
+                                      <Ionicons name="timer" size={20} color={COLORS.gradientStart} />
+                                      <Text style={styles.statValue}>{exercise.restTime}s Rest</Text>
+                                    </View>
+                                  </>
+                                )}
+                              </View>
                             </View>
-                            <View style={styles.statItem}>
-                              <Ionicons name="fitness" size={20} color={COLORS.gradientStart} />
-                              <Text style={styles.statValue}>{exercise.reps} Reps</Text>
-                            </View>
-                            <View style={styles.statItem}>
-                              <Ionicons name="timer" size={20} color={COLORS.gradientStart} />
-                              <Text style={styles.statValue}>{exercise.restTime}s Rest</Text>
-                            </View>
-                          </View>
-                        </View>
+                          );
+                        })()}
 
-                        {/* Tips Dropdown */}
+                        {/* Tips Dropdown - Contextual based on exercise type */}
                         <TouchableOpacity
                           style={styles.tipsCard}
                           onPress={() => setShowTips(!showTips)}
                         >
                           <View style={styles.tipsHeader}>
                             <Ionicons name="bulb" size={22} color={COLORS.gradientStart} />
-                            <Text style={styles.tipsTitle}>Form Tips</Text>
+                            <Text style={styles.tipsTitle}>
+                              {getExerciseType(exercise) === 'cardio' ? 'Running Tips' :
+                               getExerciseType(exercise) === 'yoga' ? 'Pose Tips' :
+                               getExerciseType(exercise) === 'stretching' ? 'Stretch Tips' : 'Form Tips'}
+                            </Text>
                             <Ionicons
                               name={showTips ? 'chevron-up' : 'chevron-down'}
                               size={20}
@@ -487,8 +538,7 @@ export default function WorkoutHubScreen() {
                           </View>
                           {showTips && (
                             <Text style={styles.tipsText}>
-                              Keep your core engaged and maintain proper form throughout the movement. 
-                              Focus on controlled motion rather than speed.
+                              {getExerciseTips(exercise, getExerciseType(exercise))}
                             </Text>
                           )}
                         </TouchableOpacity>
