@@ -44,9 +44,10 @@ interface GeneratedWorkout {
 
 export async function generateAIWorkout(
   userProfile: UserProfile,
-  dayOfWeek: number = 0
+  dayOfWeek: number = 0,
+  weekNumber: number = 1 // Week number for variation
 ): Promise<GeneratedWorkout> {
-  console.log('🤖 Generating AI workout for user profile:', userProfile);
+  console.log('🤖 Generating AI workout for user profile:', userProfile, 'Week:', weekNumber);
   
   // Step 1: Fetch sample exercises for AI context
   const sampleExercises = await db
@@ -61,14 +62,34 @@ export async function generateAIWorkout(
   
   console.log(`  Found ${sampleExercises.length} sample exercises`);
   
-  // Step 2: Build AI prompt
-  const systemMessage = `You are an expert personal trainer. You create personalized workout plans.
+  // Step 1.5: Get user's learning context for personalization
+  let userLearningContext = "No previous workout history.";
+  if (userProfile.userId) {
+    try {
+      userLearningContext = await getUserLearningContext(userProfile.userId);
+      console.log('  📚 Loaded user learning context');
+    } catch (error) {
+      console.log('  ⚠️ Could not load learning context:', error);
+    }
+  }
+  
+  // Step 2: Build AI prompt with variation and personalization
+  const systemMessage = `You are an expert personal trainer who creates VARIED, PERSONALIZED workout plans.
 
 Exercise database includes:
 ${sampleExercises.slice(0, 30).map(e => `- ${e.name}`).join('\n')}
 ... and 1,500+ more exercises.
 
-CRITICAL RULE: ALWAYS include the SPECIFIC EQUIPMENT TYPE in the exercise name.
+${userLearningContext}
+
+CRITICAL RULES:
+1. ALWAYS include the SPECIFIC EQUIPMENT TYPE in the exercise name.
+2. CREATE VARIETY - Week ${weekNumber} should be DIFFERENT from other weeks:
+   - Mix up exercise selection (use different variations)
+   - Vary rep ranges (8-10 vs 12-15 vs 6-8)
+   - Change exercise order
+   - Include some new exercises they haven't done recently
+3. PERSONALIZE based on the user's history above - adjust for their known strengths/weaknesses.
 
 ✅ CORRECT exercise names (with equipment):
 - "Barbell Deadlift" (NOT "Deadlift")
@@ -82,8 +103,6 @@ CRITICAL RULE: ALWAYS include the SPECIFIC EQUIPMENT TYPE in the exercise name.
 - "Dumbbell Romanian Deadlift" (NOT "Romanian Deadlift")
 
 ❌ NEVER use generic names without equipment type.
-
-When in doubt, specify: Barbell, Dumbbell, Cable, Machine, Bodyweight, Resistance Band, or Kettlebell.
 
 Workout structure:
 1. 2-3 warmup exercises (dynamic stretches, can use "Bodyweight" prefix)
