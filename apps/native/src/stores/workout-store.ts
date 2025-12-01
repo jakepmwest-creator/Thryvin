@@ -977,19 +977,6 @@ async function generateSingleDay(date: Date, dayIndex: number) {
     console.error('Error generating single day:', error);
   }
 }
-    
-    // Store in future weeks
-    const storedFutureWeeks = await getStorageItem('future_weeks');
-    const futureWeeks: Workout[][] = storedFutureWeeks ? JSON.parse(storedFutureWeeks) : [];
-    futureWeeks.push(weekWorkouts);
-    await setStorageItem('future_weeks', JSON.stringify(futureWeeks));
-    
-    console.log(`✅ [ROLLING] Generated week ${weekOffset + 1} with ${weekWorkouts.length} workouts`);
-    
-  } catch (error) {
-    console.error('Error generating next week:', error);
-  }
-}
 
 // Helper Functions
 
