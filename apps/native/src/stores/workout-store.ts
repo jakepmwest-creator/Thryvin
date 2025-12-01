@@ -46,6 +46,7 @@ interface Workout {
   targetMuscles?: string;
   caloriesBurn?: number;
   exerciseList?: Exercise[]; // Alias for modal compatibility
+  status?: string; // ready, in-progress, completed
 }
 
 interface WorkoutStats {
