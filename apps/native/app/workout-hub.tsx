@@ -49,8 +49,56 @@ export default function WorkoutHubScreen() {
   const [showTips, setShowTips] = useState(false);
   const [showCelebration, setShowCelebration] = useState(false);
   const [weightUnit, setWeightUnit] = useState<'lbs' | 'kg'>('lbs');
+  const [isRecording, setIsRecording] = useState(false);
+  const [recognizedText, setRecognizedText] = useState('');
   
   const scrollX = useRef(new Animated.Value(0)).current;
+
+  // Speech recognition event handlers
+  useSpeechRecognitionEvent('start', () => {
+    setIsRecording(true);
+    console.log('🎤 Speech recognition started');
+  });
+  
+  useSpeechRecognitionEvent('end', () => {
+    setIsRecording(false);
+    console.log('🎤 Speech recognition ended');
+  });
+  
+  useSpeechRecognitionEvent('result', (event) => {
+    const transcript = event.results[0]?.transcript || '';
+    console.log('🎤 Recognized:', transcript);
+    setRecognizedText(transcript);
+    // Append to notes
+    setSetNotes(prev => prev ? `${prev} ${transcript}` : transcript);
+  });
+  
+  useSpeechRecognitionEvent('error', (event) => {
+    console.log('🎤 Error:', event.error);
+    setIsRecording(false);
+    if (event.error === 'not-allowed') {
+      Alert.alert('Permission Required', 'Please allow microphone access to use voice input.');
+    }
+  });
+
+  // Start/stop voice recording
+  const toggleVoiceRecording = async () => {
+    if (isRecording) {
+      ExpoSpeechRecognitionModule.stop();
+    } else {
+      const result = await ExpoSpeechRecognitionModule.requestPermissionsAsync();
+      if (!result.granted) {
+        Alert.alert('Permission Required', 'Microphone permission is needed for voice input.');
+        return;
+      }
+      
+      ExpoSpeechRecognitionModule.start({
+        lang: 'en-US',
+        interimResults: true,
+        maxAlternatives: 1,
+      });
+    }
+  };
 
   // Start workout session when component mounts
   useEffect(() => {
