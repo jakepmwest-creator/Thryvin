@@ -300,6 +300,24 @@ export default function ProfileScreen() {
         </View>
 
         <View style={styles.menuSection}>
+          <Text style={styles.sectionTitle}>Program</Text>
+          <View style={styles.menuContainer}>
+            <MenuButton
+              icon="refresh"
+              title="Reset Program"
+              subtitle="Generate a fresh workout program"
+              onPress={handleResetProgram}
+            />
+            <MenuButton
+              icon="calendar"
+              title="View All Weeks"
+              subtitle="See your upcoming workout schedule"
+              onPress={() => Alert.alert('Coming Soon', 'Week overview will be available soon!')}
+            />
+          </View>
+        </View>
+
+        <View style={styles.menuSection}>
           <Text style={styles.sectionTitle}>Privacy & Data</Text>
           <View style={styles.menuContainer}>
             <SettingToggle
