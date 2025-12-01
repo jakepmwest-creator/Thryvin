@@ -712,7 +712,158 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
     await get().fetchWeekWorkouts();
     await get().fetchTodayWorkout();
   },
+  
+  // Check if we need to generate more weeks ahead (rolling generation)
+  // Rule: Always keep at least 2 weeks ahead generated
+  checkAndGenerateMoreWeeks: async () => {
+    try {
+      const { weekWorkouts } = get();
+      if (weekWorkouts.length === 0) return;
+      
+      // Check how many workouts are completed
+      const completedCount = weekWorkouts.filter(w => w.completed).length;
+      const totalCount = weekWorkouts.length;
+      
+      console.log(`📊 [ROLLING] ${completedCount}/${totalCount} workouts completed`);
+      
+      // If user has completed 5+ workouts (near end of week), generate next week
+      if (completedCount >= 5) {
+        console.log('🔄 [ROLLING] Near end of week, checking if next week exists...');
+        
+        // Get stored future weeks
+        const storedFutureWeeks = await getStorageItem('future_weeks');
+        const futureWeeks: Workout[][] = storedFutureWeeks ? JSON.parse(storedFutureWeeks) : [];
+        
+        // If we have less than 2 weeks ahead, generate more
+        if (futureWeeks.length < 2) {
+          console.log('🔄 [ROLLING] Generating next week...');
+          await generateNextWeek(futureWeeks.length);
+        }
+      }
+    } catch (error) {
+      console.error('Error checking rolling weeks:', error);
+    }
+  },
+  
+  // Reset the entire workout program
+  resetProgram: async () => {
+    console.log('🔄 [RESET] Clearing all workout data...');
+    
+    // Clear all workout-related storage
+    await setStorageItem('week_workouts', '[]');
+    await setStorageItem('week_workouts_date', '');
+    await setStorageItem('week_workouts_version', '');
+    await setStorageItem('today_workout', '');
+    await setStorageItem('today_workout_date', '');
+    await setStorageItem('future_weeks', '[]');
+    await setStorageItem('completed_workouts', '[]');
+    
+    // Reset state
+    set({ 
+      weekWorkouts: [], 
+      todayWorkout: null, 
+      currentWorkout: null,
+      completedWorkouts: [],
+      activeSession: null,
+    });
+    
+    console.log('🔄 [RESET] Generating fresh program...');
+    
+    // Generate fresh week
+    await get().fetchWeekWorkouts();
+    await get().fetchTodayWorkout();
+    
+    console.log('✅ [RESET] Program reset complete!');
+  },
+  
+  // Get all available week workouts (current + future)
+  getAllWeekWorkouts: () => {
+    return get().weekWorkouts;
+  },
 }));
+
+// Helper function to generate the next week of workouts
+async function generateNextWeek(weekOffset: number = 1) {
+  try {
+    const storedUser = await getStorageItem('user');
+    if (!storedUser) return;
+    
+    const user = JSON.parse(storedUser);
+    
+    // Calculate the Monday of the target week
+    const today = new Date();
+    const currentMonday = new Date(today);
+    const dayOfWeek = today.getDay();
+    const mondayOffset = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
+    currentMonday.setDate(today.getDate() + mondayOffset);
+    
+    const targetMonday = new Date(currentMonday);
+    targetMonday.setDate(currentMonday.getDate() + (7 * (weekOffset + 1)));
+    
+    console.log(`📅 [ROLLING] Generating week starting ${targetMonday.toDateString()}`);
+    
+    const userProfile = {
+      fitnessGoals: user.fitnessGoals || [user.goal],
+      goal: user.goal,
+      experience: user.experience,
+      trainingType: user.trainingType,
+      sessionDuration: user.sessionDuration,
+      trainingDays: user.trainingDays,
+      equipment: user.equipment,
+      injuries: user.injuries,
+    };
+    
+    // Generate workouts for each day
+    const weekWorkouts: Workout[] = [];
+    
+    for (let i = 0; i < 7; i++) {
+      const date = new Date(targetMonday);
+      date.setDate(targetMonday.getDate() + i);
+      
+      const response = await fetch(`${API_BASE_URL}/api/workouts/generate`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Bypass-Tunnel-Reminder': 'true',
+        },
+        body: JSON.stringify({
+          userProfile,
+          dayOfWeek: i,
+        }),
+      });
+      
+      if (!response.ok) continue;
+      
+      const workout = await response.json();
+      
+      weekWorkouts.push({
+        id: `workout_${date.getTime()}`,
+        title: workout.title,
+        type: workout.type,
+        difficulty: workout.difficulty,
+        duration: workout.duration,
+        date: date.toISOString(),
+        exercises: workout.exercises,
+        overview: workout.overview,
+        targetMuscles: workout.targetMuscles,
+        caloriesBurn: workout.caloriesBurn,
+        exerciseList: workout.exercises,
+        completed: false,
+      });
+    }
+    
+    // Store in future weeks
+    const storedFutureWeeks = await getStorageItem('future_weeks');
+    const futureWeeks: Workout[][] = storedFutureWeeks ? JSON.parse(storedFutureWeeks) : [];
+    futureWeeks.push(weekWorkouts);
+    await setStorageItem('future_weeks', JSON.stringify(futureWeeks));
+    
+    console.log(`✅ [ROLLING] Generated week ${weekOffset + 1} with ${weekWorkouts.length} workouts`);
+    
+  } catch (error) {
+    console.error('Error generating next week:', error);
+  }
+}
 
 // Helper Functions
 
