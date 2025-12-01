@@ -286,42 +286,56 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
       
       console.log('🤖 [WEEK] Generating week workouts with AI...');
       
-      // Call the new batch generation endpoint
+      // Generate workouts for each day of the week using the working endpoint
       try {
-        const response = await fetch(`${API_BASE_URL}/api/v1/workouts/generate-week`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Bypass-Tunnel-Reminder': 'true',
-          },
-          body: JSON.stringify({
-            userProfile: {
-              fitnessGoals: user.fitnessGoals || [user.goal],
-              goal: user.goal,
-              experience: user.experience,
-              trainingType: user.trainingType,
-              sessionDuration: user.sessionDuration,
-              trainingDays: user.trainingDays,
-              equipment: user.equipment,
-              injuries: user.injuries,
-            },
-          }),
-        });
+        const userProfile = {
+          fitnessGoals: user.fitnessGoals || [user.goal],
+          goal: user.goal,
+          experience: user.experience,
+          trainingType: user.trainingType,
+          sessionDuration: user.sessionDuration,
+          trainingDays: user.trainingDays,
+          equipment: user.equipment,
+          injuries: user.injuries,
+        };
         
-        if (!response.ok) {
-          const errorData = await response.json();
-          throw new Error(errorData.message || 'Failed to generate week');
+        // Calculate week dates (Monday to Sunday)
+        const weekDates: Date[] = [];
+        for (let i = 0; i < 7; i++) {
+          const date = new Date(mondayOfThisWeek);
+          date.setDate(mondayOfThisWeek.getDate() + i);
+          weekDates.push(date);
         }
         
-        const result = await response.json();
-        console.log('✅ [WEEK] Generation response:', result);
+        console.log('📅 [WEEK] Generating for dates:', weekDates.map(d => d.toDateString()));
         
-        // Convert API response to workout objects
-        const weekWorkouts: Workout[] = result.workouts.map((day: any) => {
-          const workout = day.workout;
-          const date = new Date(day.date);
+        // Generate workout for each day using the working endpoint
+        const weekWorkouts: Workout[] = [];
+        
+        for (let i = 0; i < 7; i++) {
+          console.log(`🤖 [WEEK] Generating day ${i + 1}/7...`);
           
-          return {
+          const response = await fetch(`${API_BASE_URL}/api/workouts/generate`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Bypass-Tunnel-Reminder': 'true',
+            },
+            body: JSON.stringify({
+              userProfile,
+              dayOfWeek: i,
+            }),
+          });
+          
+          if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.message || `Failed to generate day ${i + 1}`);
+          }
+          
+          const workout = await response.json();
+          const date = weekDates[i];
+          
+          weekWorkouts.push({
             id: `workout_${date.getTime()}`,
             title: workout.title,
             type: workout.type,
@@ -333,9 +347,11 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
             targetMuscles: workout.targetMuscles,
             caloriesBurn: workout.caloriesBurn,
             exerciseList: workout.exercises,
-            status: day.status,
-          };
-        });
+            status: 'ready',
+          });
+          
+          console.log(`✅ [WEEK] Day ${i + 1}/7 complete: ${workout.title}`);
+        }
         
         console.log(`✅ [WEEK] Generated ${weekWorkouts.length} workouts`);
         
