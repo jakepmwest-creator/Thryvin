@@ -88,6 +88,7 @@ const SettingToggle = ({
 
 export default function ProfileScreen() {
   const { user } = useAuthStore();
+  const { resetProgram } = useWorkoutStore();
   // Stats will come from a future stats-store implementation
   const totalWorkouts = 0;
   const totalMinutes = 0;
@@ -96,6 +97,7 @@ export default function ProfileScreen() {
   const [workoutReminders, setWorkoutReminders] = useState(true);
   const [analytics, setAnalytics] = useState(false);
   const [showPINSetup, setShowPINSetup] = useState(false);
+  const [isResetting, setIsResetting] = useState(false);
   
   // Compute profile data from stores
   const profileData = {
@@ -107,6 +109,30 @@ export default function ProfileScreen() {
     totalMinutes: totalMinutes || 0,
     currentStreak: currentStreak || 0,
     nextGoal: user?.goal || 'Get fit',
+  };
+
+  const handleResetProgram = () => {
+    Alert.alert(
+      'Reset Program',
+      'This will clear your current workout program and generate a fresh one. Your completed workout history will be saved.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { 
+          text: 'Reset', 
+          style: 'destructive', 
+          onPress: async () => {
+            setIsResetting(true);
+            try {
+              await resetProgram();
+              Alert.alert('Success', 'Your workout program has been reset!');
+            } catch (error) {
+              Alert.alert('Error', 'Failed to reset program. Please try again.');
+            }
+            setIsResetting(false);
+          }
+        },
+      ]
+    );
   };
 
   const handleLogout = () => {
