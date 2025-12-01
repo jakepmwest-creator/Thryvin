@@ -188,25 +188,39 @@ export function WorkoutDetailsModal({
           
           {/* Day Navigation */}
           <View style={styles.dayNavigation}>
-            <TouchableOpacity style={styles.navButton} onPress={handlePreviousDay}>
-              <Ionicons name="chevron-back" size={24} color="#FFFFFF" />
+            <TouchableOpacity 
+              style={[styles.navButton, currentWorkoutIndex === 0 && styles.navButtonDisabled]} 
+              onPress={handlePreviousDay}
+              disabled={currentWorkoutIndex === 0}
+            >
+              <Ionicons name="chevron-back" size={24} color={currentWorkoutIndex === 0 ? "rgba(255,255,255,0.3)" : "#FFFFFF"} />
             </TouchableOpacity>
             
             <View style={styles.dayInfo}>
-              <Text style={styles.dayName}>{currentDay}</Text>
+              <Text style={styles.dayName}>{dayName}</Text>
               <Text style={styles.dateText}>{formatDate()}</Text>
             </View>
             
-            <TouchableOpacity style={styles.navButton} onPress={handleNextDay}>
-              <Ionicons name="chevron-forward" size={24} color="#FFFFFF" />
+            <TouchableOpacity 
+              style={[styles.navButton, currentWorkoutIndex >= weekWorkouts.length - 1 && styles.navButtonDisabled]} 
+              onPress={handleNextDay}
+              disabled={currentWorkoutIndex >= weekWorkouts.length - 1}
+            >
+              <Ionicons name="chevron-forward" size={24} color={currentWorkoutIndex >= weekWorkouts.length - 1 ? "rgba(255,255,255,0.3)" : "#FFFFFF"} />
             </TouchableOpacity>
           </View>
           
           {/* Workout Title */}
           <Text style={styles.workoutTitle}>{currentWorkout?.title || 'Workout'}</Text>
           
-          {/* Stats Row */}
-          <View style={styles.statsRow}>
+          {/* Rest Day or Stats Row */}
+          {currentWorkout?.isRestDay ? (
+            <View style={styles.restDayBanner}>
+              <Ionicons name="bed-outline" size={24} color="#FFFFFF" />
+              <Text style={styles.restDayText}>Recovery Day</Text>
+            </View>
+          ) : (
+            <View style={styles.statsRow}>
             <View style={styles.statItem}>
               <Ionicons name="time-outline" size={20} color="#FFFFFF" />
               <Text style={styles.statText}>{currentWorkout?.duration || 45} min</Text>
