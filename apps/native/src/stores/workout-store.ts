@@ -261,8 +261,11 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
       const user = JSON.parse(storedUser);
       
       // Check if we have cached week workouts
+      // Version key to invalidate cache when video matching is improved
+      const CACHE_VERSION = 'v2_improved_videos';
       const cachedWeek = await getStorageItem('week_workouts');
       const cachedWeekDate = await getStorageItem('week_workouts_date');
+      const cachedVersion = await getStorageItem('week_workouts_version');
       const today = new Date();
       const mondayOfThisWeek = new Date(today);
       const dayOfWeek = today.getDay();
@@ -270,7 +273,10 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
       mondayOfThisWeek.setDate(today.getDate() + mondayOffset);
       const weekKey = mondayOfThisWeek.toDateString();
       
-      if (cachedWeek && cachedWeekDate === weekKey) {
+      // Force regeneration if cache version is outdated
+      if (cachedVersion !== CACHE_VERSION) {
+        console.log('🔄 [WEEK] Cache version outdated, regenerating workouts with improved video matching...');
+      } else if (cachedWeek && cachedWeekDate === weekKey) {
         console.log('✅ [WEEK] Using cached week workouts');
         const workouts = JSON.parse(cachedWeek);
         if (workouts && workouts.length === 7) {
