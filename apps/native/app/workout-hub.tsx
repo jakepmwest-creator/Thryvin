@@ -1095,6 +1095,19 @@ const styles = StyleSheet.create({
     color: COLORS.text,
     marginBottom: 12,
   },
+  exerciseTypeTag: {
+    alignSelf: 'flex-start',
+    backgroundColor: `${COLORS.gradientStart}15`,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 20,
+    marginBottom: 12,
+  },
+  exerciseTypeText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: COLORS.gradientStart,
+  },
   exerciseStats: {
     flexDirection: 'row',
     justifyContent: 'space-around',
