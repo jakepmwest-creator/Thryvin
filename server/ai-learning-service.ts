@@ -10,9 +10,9 @@ const openai = new OpenAI({
 interface ExercisePerformance {
   exerciseName: string;
   weight?: number;
-  reps: number;
-  effort: string; // "Easy", "Medium", "Hard", "Too Hard"
-  notes?: string;
+  reps?: number;
+  sets?: number;
+  notes?: string; // User notes - AI learns from these
 }
 
 interface WorkoutPerformance {
