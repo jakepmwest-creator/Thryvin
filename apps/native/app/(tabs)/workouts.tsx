@@ -299,7 +299,13 @@ export default function WorkoutsScreen() {
                   ]}>
                     {day.date}
                   </Text>
-                  <View style={[styles.statusDot, { backgroundColor: getStatusColor(day.status) }]} />
+                  {day.status === 'completed' ? (
+                    <View style={styles.completedIcon}>
+                      <Ionicons name="checkmark-circle" size={16} color={COLORS.success} />
+                    </View>
+                  ) : (
+                    <View style={[styles.statusDot, { backgroundColor: getStatusColor(day.status) }]} />
+                  )}
                 </TouchableOpacity>
               ))}
             </View>
