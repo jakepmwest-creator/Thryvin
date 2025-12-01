@@ -224,6 +224,11 @@ Vary the exercises and focus areas each day.`;
     }
   }
   
+  // Debug: print some normalized entries
+  console.log('  Normalized index sample:', 
+    Array.from(exercisesByNormalized.keys()).slice(0, 10).join(', ')
+  );
+  
   // Step 6: Enrich with videos using smart matching
   const enrichedExercises = workoutPlan.exercises.map((ex: any, index: number) => {
     const aiName = ex.name.toLowerCase();
