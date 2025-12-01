@@ -934,7 +934,10 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
 async function generateSingleDay(date: Date, dayIndex: number) {
   try {
     const storedUser = await getStorageItem('auth_user');
-    if (!storedUser) return;
+    if (!storedUser) {
+      console.log('❌ [ROLLING] No user found for generation');
+      return;
+    }
     
     const user = JSON.parse(storedUser);
     const trainingDays = parseInt(String(user.trainingDays)) || 5;
@@ -983,25 +986,49 @@ async function generateSingleDay(date: Date, dayIndex: number) {
       const today = new Date();
       const weekDiff = Math.floor((date.getTime() - today.getTime()) / (7 * 24 * 60 * 60 * 1000));
       
-      const response = await fetch(`${API_BASE_URL}/api/workouts/generate`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Bypass-Tunnel-Reminder': 'true',
-        },
-        body: JSON.stringify({
-          userProfile,
-          dayOfWeek: mondayBasedDay,
-          weekNumber: weekDiff + 1,
-        }),
-      });
+      // Retry logic for API call
+      let attempts = 0;
+      let success = false;
+      let workout: any = null;
       
-      if (!response.ok) {
-        console.error('Failed to generate workout for', date.toDateString());
-        return;
+      while (attempts < 2 && !success) {
+        attempts++;
+        try {
+          const response = await fetch(`${API_BASE_URL}/api/workouts/generate`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Bypass-Tunnel-Reminder': 'true',
+            },
+            body: JSON.stringify({
+              userProfile,
+              dayOfWeek: mondayBasedDay,
+              weekNumber: weekDiff + 1,
+            }),
+          });
+          
+          if (response.ok) {
+            workout = await response.json();
+            success = true;
+          } else {
+            const errorText = await response.text();
+            console.log(`⚠️ [ROLLING] Attempt ${attempts} failed for ${date.toDateString()}: ${response.status}`);
+            if (attempts < 2) {
+              await new Promise(resolve => setTimeout(resolve, 2000)); // Wait 2s before retry
+            }
+          }
+        } catch (fetchError) {
+          console.log(`⚠️ [ROLLING] Network error attempt ${attempts}: ${fetchError}`);
+          if (attempts < 2) {
+            await new Promise(resolve => setTimeout(resolve, 2000));
+          }
+        }
       }
       
-      const workout = await response.json();
+      if (!success || !workout) {
+        console.log(`❌ [ROLLING] Could not generate workout for ${date.toDateString()} - will retry next time`);
+        return; // Don't add incomplete data
+      }
       
       newWorkout = {
         id: `workout_${date.getTime()}`,
