@@ -93,9 +93,20 @@ export default function WorkoutsScreen() {
   // Connect to workout store
   const { currentWorkout, todayWorkout, weekWorkouts, completedWorkouts, isLoading, fetchTodayWorkout, fetchWeekWorkouts } = useWorkoutStore();
   
-  // Check if a date has a completed workout
+  // Check if a date has a completed workout (check both weekWorkouts and completedWorkouts)
   const isDateCompleted = (date: Date) => {
     const dateStr = date.toDateString();
+    
+    // First check weekWorkouts (updated in real-time when workout is completed)
+    const weekCompleted = weekWorkouts.some(w => {
+      if (!w.completed) return false;
+      const workoutDate = new Date(w.date);
+      return workoutDate.toDateString() === dateStr;
+    });
+    
+    if (weekCompleted) return true;
+    
+    // Then check completedWorkouts (historical)
     return completedWorkouts.some(w => {
       const workoutDate = new Date(w.completedAt || w.date);
       return workoutDate.toDateString() === dateStr;
