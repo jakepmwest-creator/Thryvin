@@ -361,9 +361,10 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
         
         console.log(`✅ [WEEK] Generated ${weekWorkouts.length} workouts`);
         
-        // Cache the workouts
+        // Cache the workouts with version
         await setStorageItem('week_workouts', JSON.stringify(weekWorkouts));
         await setStorageItem('week_workouts_date', weekKey);
+        await setStorageItem('week_workouts_version', CACHE_VERSION);
         
         set({ weekWorkouts, isLoading: false, error: null });
         
