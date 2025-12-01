@@ -273,7 +273,7 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
     }
   },
 
-  // Fetch week's workouts (AI-generated with caching)
+  // Fetch 3 weeks of workouts (21 days, AI-generated with caching)
   fetchWeekWorkouts: async () => {
     set({ isLoading: true, error: null });
     try {
@@ -285,8 +285,8 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
       const user = JSON.parse(storedUser);
       
       // Check if we have cached week workouts
-      // Version key to invalidate cache when video matching is improved
-      const CACHE_VERSION = 'v2_improved_videos';
+      // Version key to invalidate cache - bump this to force regeneration
+      const CACHE_VERSION = 'v3_3weeks_rest_days';
       const cachedWeek = await getStorageItem('week_workouts');
       const cachedWeekDate = await getStorageItem('week_workouts_date');
       const cachedVersion = await getStorageItem('week_workouts_version');
