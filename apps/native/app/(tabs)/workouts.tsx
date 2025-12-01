@@ -29,7 +29,7 @@ const EXTRA_COLORS = {
 
 // This will be computed inside the component to access completedWorkouts
 
-// Generate current month data dynamically
+// Generate current month data dynamically (Monday-first calendar)
 const getCurrentMonthData = () => {
   const today = new Date();
   const year = today.getFullYear();
@@ -37,13 +37,17 @@ const getCurrentMonthData = () => {
   
   const firstDay = new Date(year, month, 1);
   const lastDay = new Date(year, month + 1, 0);
-  const firstDayOfWeek = firstDay.getDay(); // 0 = Sunday
+  
+  // Convert Sunday=0 to Monday-first format (Monday=0, Sunday=6)
+  let firstDayOfWeek = firstDay.getDay();
+  firstDayOfWeek = firstDayOfWeek === 0 ? 6 : firstDayOfWeek - 1; // Monday = 0
+  
   const daysInMonth = lastDay.getDate();
   
   const weeks: (number | null)[][] = [];
   let currentWeek: (number | null)[] = [];
   
-  // Fill first week with nulls before first day
+  // Fill first week with nulls before first day (Monday-first)
   for (let i = 0; i < firstDayOfWeek; i++) {
     currentWeek.push(null);
   }
