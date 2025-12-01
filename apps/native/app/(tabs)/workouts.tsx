@@ -92,6 +92,7 @@ export default function WorkoutsScreen() {
   const [calendarView, setCalendarView] = useState<'week' | 'month'>('week');
   const [selectedDate, setSelectedDate] = useState(new Date().getDate());
   const [selectedDayIndex, setSelectedDayIndex] = useState(0); // 0-6 for Mon-Sun
+  const [selectedWeekOffset, setSelectedWeekOffset] = useState(0); // 0 = current week, 1 = next week, etc.
   const [modalVisible, setModalVisible] = useState(false);
   
   // Connect to workout store
