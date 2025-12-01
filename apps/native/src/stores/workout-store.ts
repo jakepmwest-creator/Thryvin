@@ -451,7 +451,8 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
   // Complete a workout
   completeWorkout: async (workoutId: string, exercises: any[]) => {
     try {
-      const workout = get().todayWorkout;
+      const { weekWorkouts, currentWorkout, todayWorkout } = get();
+      const workout = currentWorkout || todayWorkout;
       if (!workout) return;
       
       const completedWorkout: Workout = {
@@ -466,6 +467,13 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
       await setStorageItem('completed_workouts', JSON.stringify(completedWorkouts));
       set({ completedWorkouts });
       
+      // Update the workout in weekWorkouts to show completion in calendar
+      const updatedWeekWorkouts = weekWorkouts.map(w => 
+        w.id === workoutId ? { ...w, completed: true, completedAt: completedWorkout.completedAt } : w
+      );
+      await setStorageItem('week_workouts', JSON.stringify(updatedWeekWorkouts));
+      set({ weekWorkouts: updatedWeekWorkouts });
+      
       // Update personal bests
       await updatePersonalBests(exercises);
       
@@ -473,7 +481,10 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
       await get().fetchStats();
       await get().fetchPersonalBests();
       
-      console.log('Workout completed:', workoutId);
+      // Check if we need to generate more weeks (rolling generation)
+      await get().checkAndGenerateMoreWeeks();
+      
+      console.log('✅ [WORKOUT] Completed:', workoutId, 'at', completedWorkout.completedAt);
     } catch (error) {
       console.error('Error completing workout:', error);
       throw error;
