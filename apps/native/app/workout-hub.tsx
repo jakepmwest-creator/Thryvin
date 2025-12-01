@@ -10,6 +10,7 @@ import {
   Alert,
   TextInput,
   Modal,
+  Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -19,6 +20,10 @@ import { ExerciseVideoPlayer } from '../src/components/ExerciseVideoPlayer';
 import { useWorkoutStore } from '../src/stores/workout-store';
 import { COLORS } from '../src/constants/colors';
 import ConfettiCannon from 'react-native-confetti-cannon';
+import { 
+  ExpoSpeechRecognitionModule, 
+  useSpeechRecognitionEvent 
+} from 'expo-speech-recognition';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
