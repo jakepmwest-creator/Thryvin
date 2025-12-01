@@ -392,8 +392,23 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
             });
             
             if (!response.ok) {
-              const errorData = await response.json();
-              throw new Error(errorData.message || `Failed to generate day ${i + 1}`);
+              // Try to get error message - handle both JSON and text responses
+              let errorMessage = `Failed to generate day ${i + 1}`;
+              try {
+                const text = await response.text();
+                // Check if it looks like JSON
+                if (text.startsWith('{')) {
+                  const errorData = JSON.parse(text);
+                  errorMessage = errorData.message || errorMessage;
+                } else if (text.includes('Tunnel') || text.includes('503')) {
+                  errorMessage = 'Backend connection unavailable. The tunnel may have restarted.';
+                } else {
+                  errorMessage = `API Error ${response.status}: ${text.substring(0, 100)}`;
+                }
+              } catch (parseErr) {
+                console.error('❌ [3-WEEK] Could not parse error response');
+              }
+              throw new Error(errorMessage);
             }
             
             const workout = await response.json();
