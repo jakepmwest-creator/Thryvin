@@ -187,6 +187,9 @@ export default function WorkoutsScreen() {
     const month = today.getMonth();
     const clickedDate = new Date(year, month, date);
     
+    // Store the full date for the modal
+    setSelectedFullDate(clickedDate);
+    
     // Convert to Monday=0 format
     const dayOfWeek = clickedDate.getDay(); // 0 = Sunday
     const dayIndex = dayOfWeek === 0 ? 6 : dayOfWeek - 1; // Convert to 0 = Monday
