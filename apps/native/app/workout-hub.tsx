@@ -1030,23 +1030,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 8,
   },
-  voiceButtonWrapper: {
-    borderRadius: 20,
-    overflow: 'hidden',
-  },
-  voiceButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 20,
-    gap: 4,
-  },
-  voiceButtonText: {
-    color: COLORS.white,
-    fontSize: 12,
-    fontWeight: '600',
-  },
   notesInput: {
     minHeight: 60,
     borderWidth: 2,
