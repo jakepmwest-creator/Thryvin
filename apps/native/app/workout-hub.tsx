@@ -980,54 +980,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: COLORS.text,
   },
-  // Effort Rating - Gradient style
-  effortSection: {
-    marginTop: 16,
-  },
-  ratingRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    gap: 8,
-    marginTop: 8,
-  },
-  ratingButtonWrapper: {
-    flex: 1,
-    height: 48,
-    borderRadius: 12,
-    overflow: 'hidden',
-  },
-  ratingButtonGradient: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderRadius: 12,
-  },
-  ratingButtonInactive: {
-    flex: 1,
-    height: 48,
-    borderRadius: 12,
-    backgroundColor: COLORS.lightGray,
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 2,
-    borderColor: 'transparent',
-  },
-  ratingText: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: COLORS.mediumGray,
-  },
-  ratingTextActive: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: COLORS.white,
-  },
-  ratingLabels: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginTop: 8,
-  },
-  ratingLabelText: {
+  // Notes Section with Voice {
     fontSize: 11,
     color: COLORS.mediumGray,
     fontWeight: '600',
