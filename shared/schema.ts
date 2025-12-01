@@ -504,6 +504,9 @@ export type InsertWorkoutEvent = z.infer<typeof insertWorkoutEventSchema>;
 export type MetricsDaily = typeof metricsDaily.$inferSelect;
 export type InsertMetricsDaily = z.infer<typeof insertMetricsDailySchema>;
 
+export type AiLearningContext = typeof aiLearningContext.$inferSelect;
+export type InsertAiLearningContext = z.infer<typeof insertAiLearningContextSchema>;
+
 // Achievements schema
 export const achievements = pgTable("achievements", {
   id: serial("id").primaryKey(),
