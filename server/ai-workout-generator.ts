@@ -172,23 +172,125 @@ Vary the exercises and focus areas each day.`;
   
   const exerciseMap = new Map(exerciseData.map(e => [e.name.toLowerCase(), e]));
   
-  // Step 6: Enrich with videos using fuzzy matching
+  // Create normalized lookup for better matching
+  const normalizeExerciseName = (name: string): string => {
+    return name.toLowerCase()
+      // Remove equipment prefixes
+      .replace(/^(barbell|dumbbell|cable|machine|bodyweight|kettlebell|resistance\s*band|ez\s*bar|smith)\s+/i, '')
+      // Remove common modifiers
+      .replace(/\s+(stretch|hold|static|dynamic|standing|seated|lying|incline|decline|overhead)\s*/gi, ' ')
+      // Normalize common variations
+      .replace(/push-?ups?/gi, 'push-ups')
+      .replace(/pull-?ups?/gi, 'pull-ups')
+      .replace(/sit-?ups?/gi, 'sit-ups')
+      .replace(/crunches/gi, 'crunches')
+      .replace(/squats?/gi, 'squat')
+      .replace(/lunges?/gi, 'lunge')
+      .replace(/rows?/gi, 'row')
+      .replace(/curls?/gi, 'curl')
+      .replace(/presses?/gi, 'press')
+      .replace(/raises?/gi, 'raise')
+      .replace(/extensions?/gi, 'extension')
+      .replace(/flies|flyes|fly/gi, 'fly')
+      .replace(/deadlifts?/gi, 'deadlift')
+      .replace(/bridges?/gi, 'bridge')
+      .replace(/dips?/gi, 'dip')
+      .replace(/planks?/gi, 'plank')
+      // Clean up
+      .replace(/\s+/g, ' ')
+      .trim();
+  };
+  
+  // Build normalized index
+  const normalizedIndex = new Map<string, typeof exerciseData[0]>();
+  for (const ex of exerciseData) {
+    const normalized = normalizeExerciseName(ex.name);
+    if (!normalizedIndex.has(normalized)) {
+      normalizedIndex.set(normalized, ex);
+    }
+  }
+  
+  // Step 6: Enrich with videos using smart matching
   const enrichedExercises = workoutPlan.exercises.map((ex: any, index: number) => {
-    // Try exact match first (case insensitive)
-    let dbExercise = exerciseMap.get(ex.name.toLowerCase());
+    const aiName = ex.name.toLowerCase();
+    let dbExercise = exerciseMap.get(aiName);
     
-    // If no exact match, try fuzzy matching
+    // Try normalized matching if no exact match
     if (!dbExercise) {
-      const searchTerms = ex.name.toLowerCase()
-        .replace(/^(barbell|dumbbell|cable|machine|bodyweight|kettlebell)\s+/i, '');
+      const normalizedAI = normalizeExerciseName(ex.name);
+      dbExercise = normalizedIndex.get(normalizedAI);
+      if (dbExercise) {
+        console.log(`  ✓ Normalized match: "${ex.name}" → "${dbExercise.name}"`);
+      }
+    }
+    
+    // Try partial matching - look for key exercise words
+    if (!dbExercise) {
+      const keyWords = aiName
+        .replace(/^(barbell|dumbbell|cable|machine|bodyweight|kettlebell)\s+/i, '')
+        .split(/\s+/)
+        .filter(w => w.length > 3);
       
       for (const [dbName, dbEx] of exerciseMap.entries()) {
-        if (dbName.includes(searchTerms) || searchTerms.includes(dbName.replace(/\s+/g, ''))) {
+        const matchCount = keyWords.filter(kw => dbName.includes(kw)).length;
+        if (matchCount >= Math.ceil(keyWords.length * 0.6)) {
           dbExercise = dbEx;
-          console.log(`  Fuzzy match: "${ex.name}" → "${dbEx.name}"`);
+          console.log(`  ✓ Keyword match: "${ex.name}" → "${dbEx.name}" (${matchCount}/${keyWords.length} keywords)`);
           break;
         }
       }
+    }
+    
+    // Last resort - try finding any exercise with similar core name
+    if (!dbExercise) {
+      const coreExercises = [
+        { patterns: ['bench', 'press', 'chest'], match: 'bench press' },
+        { patterns: ['shoulder', 'press', 'overhead'], match: 'shoulder press' },
+        { patterns: ['lat', 'pulldown', 'pull'], match: 'lat pulldown' },
+        { patterns: ['bicep', 'curl'], match: 'bicep curl' },
+        { patterns: ['tricep', 'extension', 'pushdown'], match: 'tricep extension' },
+        { patterns: ['squat'], match: 'squat' },
+        { patterns: ['deadlift'], match: 'deadlift' },
+        { patterns: ['lunge'], match: 'lunge' },
+        { patterns: ['row'], match: 'row' },
+        { patterns: ['fly', 'flye', 'chest'], match: 'chest fly' },
+        { patterns: ['calf', 'raise'], match: 'calf raise' },
+        { patterns: ['leg', 'press'], match: 'leg press' },
+        { patterns: ['leg', 'curl'], match: 'leg curl' },
+        { patterns: ['leg', 'extension'], match: 'leg extension' },
+        { patterns: ['glute', 'bridge'], match: 'glute bridge' },
+        { patterns: ['plank'], match: 'plank' },
+        { patterns: ['crunch'], match: 'crunch' },
+        { patterns: ['russian', 'twist'], match: 'russian twist' },
+        { patterns: ['pull-up', 'pullup', 'chin'], match: 'pull-up' },
+        { patterns: ['push-up', 'pushup'], match: 'push-up' },
+        { patterns: ['dip', 'tricep'], match: 'dip' },
+        { patterns: ['front', 'raise'], match: 'front raise' },
+        { patterns: ['lateral', 'raise', 'side'], match: 'lateral raise' },
+        { patterns: ['hammer', 'curl'], match: 'hammer curl' },
+        { patterns: ['romanian', 'rdl'], match: 'romanian deadlift' },
+        { patterns: ['hip', 'thrust', 'glute'], match: 'glute bridge' },
+        { patterns: ['stretch'], match: null }, // Stretches often don't have videos
+      ];
+      
+      for (const core of coreExercises) {
+        const matchesPattern = core.patterns.some(p => aiName.includes(p));
+        if (matchesPattern && core.match) {
+          // Find the matching exercise in DB
+          for (const [dbName, dbEx] of exerciseMap.entries()) {
+            if (dbName.includes(core.match) || core.match.split(' ').every(w => dbName.includes(w))) {
+              dbExercise = dbEx;
+              console.log(`  ✓ Core match: "${ex.name}" → "${dbEx.name}"`);
+              break;
+            }
+          }
+          if (dbExercise) break;
+        }
+      }
+    }
+    
+    if (!dbExercise) {
+      console.log(`  ⚠ No match found for: "${ex.name}"`);
     }
     
     return {
