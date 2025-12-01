@@ -120,6 +120,9 @@ interface WorkoutStore {
   logManualWorkout: (workoutData: Partial<Workout>) => Promise<void>;
   clearError: () => void;
   forceRegenerateWeek: () => Promise<void>;
+  checkAndGenerateMoreWeeks: () => Promise<void>;
+  resetProgram: () => Promise<void>;
+  getAllWeekWorkouts: () => Workout[];
 }
 
 export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
