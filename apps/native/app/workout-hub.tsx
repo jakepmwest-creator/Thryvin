@@ -410,70 +410,66 @@ export default function WorkoutHubScreen() {
                                 <Text style={styles.inputLabel}>Weight</Text>
                                 <View style={styles.unitSwitcher}>
                                   <TouchableOpacity
-                                    style={[styles.unitButton, weightUnit === 'lbs' && styles.unitButtonActive]}
+                                    style={styles.unitButtonWrapper}
                                     onPress={() => setWeightUnit('lbs')}
                                   >
-                                    <Text style={[styles.unitText, weightUnit === 'lbs' && styles.unitTextActive]}>lbs</Text>
+                                    {weightUnit === 'lbs' ? (
+                                      <LinearGradient
+                                        colors={[COLORS.gradientStart, COLORS.gradientEnd]}
+                                        style={styles.unitButtonGradient}
+                                        start={{ x: 0, y: 0 }}
+                                        end={{ x: 1, y: 1 }}
+                                      >
+                                        <Text style={styles.unitTextActive}>lbs</Text>
+                                      </LinearGradient>
+                                    ) : (
+                                      <View style={styles.unitButtonInactive}>
+                                        <Text style={styles.unitText}>lbs</Text>
+                                      </View>
+                                    )}
                                   </TouchableOpacity>
                                   <TouchableOpacity
-                                    style={[styles.unitButton, weightUnit === 'kg' && styles.unitButtonActive]}
+                                    style={styles.unitButtonWrapper}
                                     onPress={() => setWeightUnit('kg')}
                                   >
-                                    <Text style={[styles.unitText, weightUnit === 'kg' && styles.unitTextActive]}>kg</Text>
+                                    {weightUnit === 'kg' ? (
+                                      <LinearGradient
+                                        colors={[COLORS.gradientStart, COLORS.gradientEnd]}
+                                        style={styles.unitButtonGradient}
+                                        start={{ x: 0, y: 0 }}
+                                        end={{ x: 1, y: 1 }}
+                                      >
+                                        <Text style={styles.unitTextActive}>kg</Text>
+                                      </LinearGradient>
+                                    ) : (
+                                      <View style={styles.unitButtonInactive}>
+                                        <Text style={styles.unitText}>kg</Text>
+                                      </View>
+                                    )}
                                   </TouchableOpacity>
                                 </View>
                               </View>
                               <TextInput
                                 style={styles.input}
                                 placeholder="0"
+                                placeholderTextColor={COLORS.mediumGray}
                                 keyboardType="numeric"
                                 value={weight}
                                 onChangeText={setWeight}
                               />
                             </View>
                             <View style={styles.inputWrapper}>
-                              <Text style={styles.inputLabel}>Reps</Text>
+                              <View style={styles.repsLabelRow}>
+                                <Text style={styles.inputLabel}>Reps</Text>
+                              </View>
                               <TextInput
                                 style={styles.input}
                                 placeholder="0"
+                                placeholderTextColor={COLORS.mediumGray}
                                 keyboardType="numeric"
                                 value={reps}
                                 onChangeText={setReps}
                               />
-                            </View>
-                          </View>
-
-                          {/* Effort Rating - with Gradient Buttons */}
-                          <View style={styles.effortSection}>
-                            <Text style={styles.inputLabel}>How did it feel?</Text>
-                            <View style={styles.ratingRow}>
-                              {[1, 2, 3, 4, 5].map((rating) => (
-                                <TouchableOpacity
-                                  key={rating}
-                                  style={styles.ratingButtonWrapper}
-                                  onPress={() => setEffortRating(rating)}
-                                >
-                                  {effortRating === rating ? (
-                                    <LinearGradient
-                                      colors={[COLORS.gradientStart, COLORS.gradientEnd]}
-                                      style={styles.ratingButtonGradient}
-                                      start={{ x: 0, y: 0 }}
-                                      end={{ x: 1, y: 1 }}
-                                    >
-                                      <Text style={styles.ratingTextActive}>{rating}</Text>
-                                    </LinearGradient>
-                                  ) : (
-                                    <View style={styles.ratingButtonInactive}>
-                                      <Text style={styles.ratingText}>{rating}</Text>
-                                    </View>
-                                  )}
-                                </TouchableOpacity>
-                              ))}
-                            </View>
-                            <View style={styles.ratingLabels}>
-                              <Text style={styles.ratingLabelText}>Too Easy</Text>
-                              <Text style={styles.ratingLabelText}>Perfect</Text>
-                              <Text style={styles.ratingLabelText}>Too Hard</Text>
                             </View>
                           </View>
 
