@@ -142,12 +142,11 @@ Vary the exercises and focus areas each day.`;
     throw new Error('Invalid AI response');
   }
   
-  // Step 5: Fetch exercise data from database with fuzzy matching
+  // Step 5: Fetch ALL exercise data from database for matching
   console.log('  Fetching exercise details...');
-  const exerciseNames = workoutPlan.exercises.map((e: any) => e.name);
   
-  // First try exact match
-  let exerciseData = await db
+  // Always fetch all exercises for proper fuzzy matching
+  const exerciseData = await db
     .select({
       name: exercises.name,
       slug: exercises.slug,
@@ -155,20 +154,9 @@ Vary the exercises and focus areas each day.`;
       thumbnailUrl: exercises.thumbnailUrl,
     })
     .from(exercises)
-    .where(inArray(exercises.name, exerciseNames));
+    .limit(2000);
   
-  // If no exact matches, get all exercises for fuzzy matching
-  if (exerciseData.length === 0) {
-    exerciseData = await db
-      .select({
-        name: exercises.name,
-        slug: exercises.slug,
-        videoUrl: exercises.videoUrl,
-        thumbnailUrl: exercises.thumbnailUrl,
-      })
-      .from(exercises)
-      .limit(2000);
-  }
+  console.log(`  Loaded ${exerciseData.length} exercises for matching`);
   
   const exerciseMap = new Map(exerciseData.map(e => [e.name.toLowerCase(), e]));
   
