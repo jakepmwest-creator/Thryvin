@@ -481,28 +481,14 @@ export default function WorkoutHubScreen() {
                           <View style={styles.notesSection}>
                             <View style={styles.notesHeader}>
                               <Text style={styles.inputLabel}>Notes (optional)</Text>
-                              <TouchableOpacity
-                                style={styles.voiceButtonWrapper}
-                                onPress={toggleVoiceRecording}
-                              >
-                                <LinearGradient
-                                  colors={[COLORS.gradientStart, COLORS.gradientEnd]}
-                                  style={styles.voiceButton}
-                                  start={{ x: 0, y: 0 }}
-                                  end={{ x: 1, y: 1 }}
-                                >
-                                  <Ionicons 
-                                    name="mic" 
-                                    size={18} 
-                                    color={COLORS.white} 
-                                  />
-                                  <Text style={styles.voiceButtonText}>Voice</Text>
-                                </LinearGradient>
-                              </TouchableOpacity>
+                              <VoiceInputButton
+                                onTranscription={handleVoiceTranscription}
+                                size="small"
+                              />
                             </View>
                             <TextInput
                               style={styles.notesInput}
-                              placeholder="How did this set feel? Any adjustments needed?"
+                              placeholder="How did this set feel? Tap Voice to speak..."
                               placeholderTextColor={COLORS.mediumGray}
                               multiline
                               numberOfLines={2}
