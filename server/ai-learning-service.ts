@@ -112,48 +112,35 @@ async function analyzeExercisePerformance(
         userId,
         category: 'strength',
         exerciseName,
-        insight: `${exerciseName}: Started with ${weight}lbs for ${reps} reps. Baseline established.`,
+        insight: `${exerciseName}: Started with ${weight}lbs for ${reps || '?'} reps. Baseline established.`,
         dataPoints: 1,
         confidence: 'low',
       });
     }
-  }
-  
-  // Learn from notes
-  if (notes && notes.trim()) {
-    await db.insert(aiLearningContext).values({
-      userId,
-      category: 'preference',
-      exerciseName,
-      insight: `User note about ${exerciseName}: "${notes}"`,
-      dataPoints: 1,
-      confidence: 'medium',
-    });
   }
 }
 
 async function analyzeWorkoutDifficulty(performance: WorkoutPerformance): Promise<void> {
   const { userId, exercises } = performance;
   
-  // Count difficulty ratings
-  const difficultyCount = {
-    easy: 0,
-    medium: 0,
-    hard: 0,
-    tooHard: 0,
-  };
+  // Count exercises with notes that indicate difficulty
+  let hardCount = 0;
+  let easyCount = 0;
   
   exercises.forEach(ex => {
-    const effort = ex.effort.toLowerCase().replace(' ', '');
-    if (effort === 'easy') difficultyCount.easy++;
-    else if (effort === 'medium') difficultyCount.medium++;
-    else if (effort === 'hard') difficultyCount.hard++;
-    else if (effort === 'toohard') difficultyCount.tooHard++;
+    if (ex.notes) {
+      const notesLower = ex.notes.toLowerCase();
+      if (notesLower.includes('hard') || notesLower.includes('heavy') || notesLower.includes('struggled')) {
+        hardCount++;
+      } else if (notesLower.includes('easy') || notesLower.includes('light')) {
+        easyCount++;
+      }
+    }
   });
   
   const total = exercises.length;
-  const hardPercentage = ((difficultyCount.hard + difficultyCount.tooHard) / total) * 100;
-  const easyPercentage = (difficultyCount.easy / total) * 100;
+  const hardPercentage = (hardCount / total) * 100;
+  const easyPercentage = (easyCount / total) * 100;
   
   // Learn overall difficulty preference
   if (hardPercentage > 50) {
