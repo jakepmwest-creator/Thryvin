@@ -49,13 +49,9 @@ export default function WorkoutHubScreen() {
   
   const scrollX = useRef(new Animated.Value(0)).current;
 
-  // Voice input placeholder - show coming soon message
-  const toggleVoiceRecording = () => {
-    Alert.alert(
-      'Voice Input Coming Soon',
-      'Voice-to-text will be available in the next update. For now, please type your notes.',
-      [{ text: 'OK' }]
-    );
+  // Handle voice transcription for notes
+  const handleVoiceTranscription = (text: string) => {
+    setSetNotes(prev => prev ? `${prev} ${text}` : text);
   };
 
   // Start workout session when component mounts
