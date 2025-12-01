@@ -465,6 +465,12 @@ export const insertMetricsDailySchema = createInsertSchema(metricsDaily).omit({
   updatedAt: true,
 });
 
+export const insertAiLearningContextSchema = createInsertSchema(aiLearningContext).omit({
+  id: true,
+  createdAt: true,
+  lastUpdated: true,
+});
+
 // Type exports
 export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
