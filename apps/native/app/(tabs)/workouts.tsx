@@ -574,6 +574,12 @@ const styles = StyleSheet.create({
     borderRadius: 3,
     zIndex: 1,
   },
+  completedIcon: {
+    marginTop: 2,
+  },
+  completedIconSmall: {
+    marginTop: 2,
+  },
   
   // Month Calendar
   monthCalendar: {
