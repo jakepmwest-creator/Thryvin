@@ -979,7 +979,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: COLORS.text,
   },
-  // Notes Section with Voice {
+  ratingLabelText: {
     fontSize: 11,
     color: COLORS.mediumGray,
     fontWeight: '600',
