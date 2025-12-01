@@ -560,6 +560,34 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
       // Update personal bests
       await updatePersonalBests(exercises);
       
+      // SYNC completed workout to backend for stats tracking
+      try {
+        await fetch(`${API_BASE_URL}/api/workouts/complete`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Bypass-Tunnel-Reminder': 'true',
+          },
+          credentials: 'include',
+          body: JSON.stringify({
+            workoutId: completedWorkout.id,
+            title: completedWorkout.title,
+            type: completedWorkout.type,
+            duration: completedWorkout.duration,
+            completedAt: completedWorkout.completedAt,
+            exercises: exercises.map(ex => ({
+              name: ex.name,
+              sets: ex.sets,
+              reps: ex.reps,
+            })),
+          }),
+        });
+        console.log('📊 [WORKOUT] Synced to backend for stats tracking');
+      } catch (syncError) {
+        console.log('⚠️ [WORKOUT] Could not sync to backend:', syncError);
+        // Non-critical - stats will be stale but workout is still saved locally
+      }
+      
       // Log performance to backend for AI learning
       try {
         const storedUser = await getStorageItem('user');
