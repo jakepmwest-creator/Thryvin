@@ -608,6 +608,65 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // =============================================================================
+  // WORKOUT PERFORMANCE LOGGING & AI LEARNING
+  // =============================================================================
+  
+  // Log workout performance for AI learning
+  app.post("/api/workouts/log-performance", async (req, res) => {
+    try {
+      const { userId, workoutId, exercises, overallFeedback, duration } = req.body;
+      
+      if (!userId || !workoutId || !exercises) {
+        return res.status(400).json({ error: "Missing required fields" });
+      }
+      
+      console.log(`📊 [PERFORMANCE] Logging workout for user ${userId}`);
+      
+      // Import AI learning service dynamically to avoid circular deps
+      const { analyzeAndLearn } = await import('./ai-learning-service');
+      
+      // Analyze the workout and learn from it
+      await analyzeAndLearn({
+        userId,
+        workoutId,
+        exercises,
+        overallFeedback,
+        duration,
+        completedAt: new Date().toISOString(),
+      });
+      
+      res.json({ 
+        success: true, 
+        message: "Workout performance logged and analyzed" 
+      });
+      
+    } catch (error: any) {
+      console.error('❌ [PERFORMANCE] Error:', error);
+      res.status(500).json({ error: error.message });
+    }
+  });
+  
+  // Get user's AI learning context (for debugging/display)
+  app.get("/api/users/:userId/learning-context", async (req, res) => {
+    try {
+      const userId = parseInt(req.params.userId);
+      
+      if (isNaN(userId)) {
+        return res.status(400).json({ error: "Invalid user ID" });
+      }
+      
+      const { getUserLearningContext } = await import('./ai-learning-service');
+      const context = await getUserLearningContext(userId);
+      
+      res.json({ context });
+      
+    } catch (error: any) {
+      console.error('Error fetching learning context:', error);
+      res.status(500).json({ error: error.message });
+    }
+  });
+
   // Config endpoint - returns live feature flags (admin-only in production)
   app.get("/api/config", requireAuth, async (req, res) => {
     try {
