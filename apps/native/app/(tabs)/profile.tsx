@@ -87,7 +87,10 @@ const SettingToggle = ({
 
 export default function ProfileScreen() {
   const { user } = useAuthStore();
-  const { totalWorkouts, totalMinutes, currentStreak } = useStatsStore();
+  // Stats will come from a future stats-store implementation
+  const totalWorkouts = 0;
+  const totalMinutes = 0;
+  const currentStreak = 0;
   const [notifications, setNotifications] = useState(true);
   const [workoutReminders, setWorkoutReminders] = useState(true);
   const [analytics, setAnalytics] = useState(false);
