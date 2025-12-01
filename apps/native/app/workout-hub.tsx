@@ -17,6 +17,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { ExerciseVideoPlayer } from '../src/components/ExerciseVideoPlayer';
+import { VoiceInputButton } from '../src/components/VoiceInputButton';
 import { useWorkoutStore } from '../src/stores/workout-store';
 import { COLORS } from '../src/constants/colors';
 import ConfettiCannon from 'react-native-confetti-cannon';
