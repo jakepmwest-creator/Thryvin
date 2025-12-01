@@ -3,6 +3,7 @@ import { db } from './db';
 import { exercises } from '../shared/schema';
 import { inArray } from 'drizzle-orm';
 import OpenAI from 'openai';
+import { getUserLearningContext, getPersonalizedAdjustments } from './ai-learning-service';
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -17,6 +18,7 @@ interface UserProfile {
   trainingDays?: string | number;
   equipment?: string[];
   injuries?: string[];
+  userId?: number; // For personalized learning
 }
 
 interface GeneratedWorkout {
@@ -32,6 +34,8 @@ interface GeneratedWorkout {
     restTime: number;
     videoUrl?: string;
     category: 'warmup' | 'main' | 'cooldown';
+    suggestedWeight?: number;
+    aiNote?: string;
   }>;
   overview: string;
   targetMuscles: string;
