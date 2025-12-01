@@ -401,10 +401,19 @@ export default function WorkoutHubScreen() {
                     <View style={styles.exerciseInfo}>
                       <Text style={styles.exerciseName}>{exercise.name}</Text>
                       <Text style={styles.exerciseMeta}>
-                        {exercise.sets} sets × {exercise.reps} reps
+                        {(() => {
+                          const exType = getExerciseType(exercise);
+                          if (exType === 'cardio') {
+                            return exercise.duration ? `${exercise.duration} min` : `${exercise.sets} rounds`;
+                          } else if (exType === 'yoga' || exType === 'stretching') {
+                            return exercise.duration ? `Hold ${exercise.duration}s` : `${exercise.reps}`;
+                          } else {
+                            return `${exercise.sets} sets × ${exercise.reps}`;
+                          }
+                        })()}
                       </Text>
                     </View>
-                    {completedSets.length === exercise.sets && (
+                    {completedSets.length >= (exercise.sets || 1) && (
                       <Ionicons name="checkmark-circle" size={24} color={COLORS.success} />
                     )}
                   </View>
