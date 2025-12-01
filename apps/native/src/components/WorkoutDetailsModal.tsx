@@ -39,7 +39,8 @@ interface WorkoutDetailsModalProps {
   visible: boolean;
   onClose: () => void;
   onStartWorkout: () => void;
-  selectedDate?: number;
+  selectedDate?: number; // Day of month
+  selectedFullDate?: Date; // Full date object for 3-week navigation
   workout?: any;
   initialDayIndex?: number;
 }
@@ -49,43 +50,70 @@ export function WorkoutDetailsModal({
   onClose,
   onStartWorkout,
   selectedDate = 23,
+  selectedFullDate,
   workout,
   initialDayIndex
 }: WorkoutDetailsModalProps) {
   const { weekWorkouts, updateWorkoutInWeek, setCurrentWorkout } = useWorkoutStore();
   
-  const getTodayDayIndex = () => {
-    const today = new Date();
-    const dayOfWeek = today.getDay(); // 0 = Sunday, 1 = Monday
-    return dayOfWeek === 0 ? 6 : dayOfWeek - 1; // Convert to 0 = Monday
+  // Find workout by date from weekWorkouts (now has 21 days)
+  const findWorkoutByDate = (date: Date) => {
+    const dateStr = date.toDateString();
+    return weekWorkouts.find((w: any) => {
+      const workoutDate = new Date(w.date);
+      return workoutDate.toDateString() === dateStr;
+    });
   };
   
-  const [currentDayIndex, setCurrentDayIndex] = useState(initialDayIndex !== undefined ? initialDayIndex : getTodayDayIndex());
+  // Get workout index by date
+  const getWorkoutIndexByDate = (date: Date) => {
+    const dateStr = date.toDateString();
+    return weekWorkouts.findIndex((w: any) => {
+      const workoutDate = new Date(w.date);
+      return workoutDate.toDateString() === dateStr;
+    });
+  };
+  
+  const getTodayDayIndex = () => {
+    const today = new Date();
+    return getWorkoutIndexByDate(today);
+  };
+  
+  // State to track current workout index in the 21-day array
+  const [currentWorkoutIndex, setCurrentWorkoutIndex] = useState(0);
   const [expandedExerciseIndex, setExpandedExerciseIndex] = useState<number | null>(null);
   const [editModalVisible, setEditModalVisible] = useState(false);
   const swipeX = useRef(new Animated.Value(0)).current;
   
-  // Get workout for current day from weekWorkouts (don't use workout prop)
-  const currentWorkout = weekWorkouts[currentDayIndex] || workout;
+  // Get workout for current index
+  const currentWorkout = weekWorkouts[currentWorkoutIndex] || workout;
+  const currentWorkoutDate = currentWorkout?.date ? new Date(currentWorkout.date) : new Date();
+  const dayName = DAYS[currentWorkoutDate.getDay() === 0 ? 6 : currentWorkoutDate.getDay() - 1];
   
   // Debug logging
   useEffect(() => {
-    console.log('📅 [MODAL] Current day index:', currentDayIndex);
+    console.log('📅 [MODAL] Current workout index:', currentWorkoutIndex);
     console.log('📅 [MODAL] Week workouts count:', weekWorkouts?.length || 0);
-    console.log('📅 [MODAL] Week workouts:', weekWorkouts?.map((w: any) => w?.title || 'none'));
     console.log('📅 [MODAL] Current workout:', currentWorkout?.title || 'none');
-  }, [currentDayIndex, weekWorkouts, currentWorkout]);
+    console.log('📅 [MODAL] Is rest day:', currentWorkout?.isRestDay);
+  }, [currentWorkoutIndex, weekWorkouts, currentWorkout]);
   
   useEffect(() => {
     if (visible) {
-      if (initialDayIndex !== undefined) {
-        setCurrentDayIndex(initialDayIndex);
+      if (selectedFullDate) {
+        // Find index by full date
+        const index = getWorkoutIndexByDate(selectedFullDate);
+        setCurrentWorkoutIndex(index >= 0 ? index : 0);
+      } else if (initialDayIndex !== undefined) {
+        // Fallback to day index for current week
+        setCurrentWorkoutIndex(initialDayIndex);
       } else {
-        setCurrentDayIndex(getTodayDayIndex());
+        const todayIndex = getTodayDayIndex();
+        setCurrentWorkoutIndex(todayIndex >= 0 ? todayIndex : 0);
       }
       setExpandedExerciseIndex(null);
     }
-  }, [visible, initialDayIndex]);
+  }, [visible, initialDayIndex, selectedFullDate]);
   
   // Swipe gesture handler
   const panResponder = useRef(
