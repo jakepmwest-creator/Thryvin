@@ -219,23 +219,5 @@ Vary the exercises and focus areas each day.`;
   };
 }
 
-// Test
-if (require.main === module) {
-  const testProfile = {
-    fitnessGoals: ['muscle-gain'],
-    experience: 'intermediate',
-    trainingType: 'Strength Training',
-    sessionDuration: 45,
-  };
-  
-  generateAIWorkout(testProfile, 0)
-    .then(workout => {
-      console.log('\n✅ Generated Workout:');
-      console.log(JSON.stringify(workout, null, 2));
-      process.exit(0);
-    })
-    .catch(error => {
-      console.error('\n❌ Error:', error);
-      process.exit(1);
-    });
-}
+// Test function - call directly if needed
+// Note: Removed CommonJS require.main check for ESM compatibility
