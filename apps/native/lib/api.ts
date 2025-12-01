@@ -23,7 +23,7 @@ export type DayPayload = {
   blocks: { type: "warmup" | "main" | "recovery"; items: BlockItem[] }[];
 };
 
-const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL || 'https://nine-cars-lie.loca.lt';
+const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL || 'https://soft-apes-tickle.loca.lt';
 
 async function api(path: string, init: RequestInit = {}) {
   const fullUrl = `${API_BASE_URL}${path}`;
