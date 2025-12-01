@@ -489,37 +489,29 @@ export default function WorkoutHubScreen() {
                                 onPress={toggleVoiceRecording}
                               >
                                 <LinearGradient
-                                  colors={isRecording ? ['#FF3B30', '#FF6B6B'] : [COLORS.gradientStart, COLORS.gradientEnd]}
+                                  colors={[COLORS.gradientStart, COLORS.gradientEnd]}
                                   style={styles.voiceButton}
                                   start={{ x: 0, y: 0 }}
                                   end={{ x: 1, y: 1 }}
                                 >
                                   <Ionicons 
-                                    name={isRecording ? "stop" : "mic"} 
+                                    name="mic" 
                                     size={18} 
                                     color={COLORS.white} 
                                   />
-                                  <Text style={styles.voiceButtonText}>
-                                    {isRecording ? 'Stop' : 'Voice'}
-                                  </Text>
+                                  <Text style={styles.voiceButtonText}>Voice</Text>
                                 </LinearGradient>
                               </TouchableOpacity>
                             </View>
                             <TextInput
-                              style={[styles.notesInput, isRecording && styles.notesInputRecording]}
-                              placeholder={isRecording ? "Listening..." : "How did this set feel? Any adjustments needed?"}
-                              placeholderTextColor={isRecording ? COLORS.gradientStart : COLORS.mediumGray}
+                              style={styles.notesInput}
+                              placeholder="How did this set feel? Any adjustments needed?"
+                              placeholderTextColor={COLORS.mediumGray}
                               multiline
                               numberOfLines={2}
                               value={setNotes}
                               onChangeText={setSetNotes}
                             />
-                            {isRecording && (
-                              <View style={styles.recordingIndicator}>
-                                <View style={styles.recordingDot} />
-                                <Text style={styles.recordingText}>Recording...</Text>
-                              </View>
-                            )}
                           </View>
 
                           <TouchableOpacity
