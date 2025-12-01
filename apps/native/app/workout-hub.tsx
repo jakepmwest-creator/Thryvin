@@ -1036,7 +1036,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: COLORS.text,
   },
-  // Effort Rating
+  // Effort Rating - Gradient style
   effortSection: {
     marginTop: 16,
   },
@@ -1046,7 +1046,19 @@ const styles = StyleSheet.create({
     gap: 8,
     marginTop: 8,
   },
-  ratingButton: {
+  ratingButtonWrapper: {
+    flex: 1,
+    height: 48,
+    borderRadius: 12,
+    overflow: 'hidden',
+  },
+  ratingButtonGradient: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRadius: 12,
+  },
+  ratingButtonInactive: {
     flex: 1,
     height: 48,
     borderRadius: 12,
@@ -1056,16 +1068,14 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: 'transparent',
   },
-  ratingButtonActive: {
-    backgroundColor: COLORS.gradientStart,
-    borderColor: COLORS.gradientStart,
-  },
   ratingText: {
     fontSize: 18,
     fontWeight: '700',
     color: COLORS.mediumGray,
   },
   ratingTextActive: {
+    fontSize: 18,
+    fontWeight: '700',
     color: COLORS.white,
   },
   ratingLabels: {
@@ -1078,12 +1088,34 @@ const styles = StyleSheet.create({
     color: COLORS.mediumGray,
     fontWeight: '600',
   },
-  // Notes Section
+  // Notes Section with Voice
   notesSection: {
     marginTop: 16,
   },
+  notesHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  voiceButtonWrapper: {
+    borderRadius: 20,
+    overflow: 'hidden',
+  },
+  voiceButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 20,
+    gap: 4,
+  },
+  voiceButtonText: {
+    color: COLORS.white,
+    fontSize: 12,
+    fontWeight: '600',
+  },
   notesInput: {
-    marginTop: 8,
     minHeight: 60,
     borderWidth: 2,
     borderColor: COLORS.lightGray,
@@ -1094,6 +1126,27 @@ const styles = StyleSheet.create({
     color: COLORS.text,
     backgroundColor: COLORS.lightGray,
     textAlignVertical: 'top',
+  },
+  notesInputRecording: {
+    borderColor: COLORS.gradientStart,
+    backgroundColor: `${COLORS.gradientStart}10`,
+  },
+  recordingIndicator: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 8,
+    gap: 6,
+  },
+  recordingDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: '#FF3B30',
+  },
+  recordingText: {
+    fontSize: 12,
+    color: COLORS.gradientStart,
+    fontWeight: '600',
   },
   // Celebration Modal
   celebrationOverlay: {
