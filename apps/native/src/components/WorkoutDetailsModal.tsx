@@ -384,6 +384,7 @@ export function WorkoutDetailsModal({
             </LinearGradient>
           </TouchableOpacity>
         </View>
+        )}
       </View>
       
       {/* Edit Workout Modal */}
@@ -392,8 +393,8 @@ export function WorkoutDetailsModal({
         onClose={() => setEditModalVisible(false)}
         workout={currentWorkout}
         onSaveWorkout={async (updated) => {
-          console.log('💾 Saving updated workout for day', currentDayIndex);
-          await updateWorkoutInWeek(currentDayIndex, updated);
+          console.log('💾 Saving updated workout for index', currentWorkoutIndex);
+          await updateWorkoutInWeek(currentWorkoutIndex, updated);
           setEditModalVisible(false);
         }}
       />
