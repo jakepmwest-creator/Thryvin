@@ -50,6 +50,34 @@ import {
 } from "@shared/schema";
 import { sendPasswordResetEmail } from "./email-service";
 import { generateSecureToken, hashPassword } from "./crypto-utils";
+import multer from "multer";
+import fs from "fs";
+import path from "path";
+
+// Configure multer for audio file uploads
+const audioUpload = multer({
+  storage: multer.diskStorage({
+    destination: '/tmp/audio-uploads',
+    filename: (req, file, cb) => {
+      cb(null, `audio-${Date.now()}${path.extname(file.originalname)}`);
+    }
+  }),
+  limits: { fileSize: 25 * 1024 * 1024 }, // 25MB limit (Whisper max)
+  fileFilter: (req, file, cb) => {
+    const allowedTypes = ['audio/m4a', 'audio/mp4', 'audio/mpeg', 'audio/wav', 'audio/webm', 'audio/ogg'];
+    if (allowedTypes.includes(file.mimetype) || file.originalname.endsWith('.m4a')) {
+      cb(null, true);
+    } else {
+      cb(new Error('Invalid audio file type'));
+    }
+  }
+});
+
+// Ensure upload directory exists
+const uploadDir = '/tmp/audio-uploads';
+if (!fs.existsSync(uploadDir)) {
+  fs.mkdirSync(uploadDir, { recursive: true });
+}
 
 // Initialize OpenAI
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY || "" });
