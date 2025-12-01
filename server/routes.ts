@@ -3210,6 +3210,262 @@ Previous conversation:`;
     }
   });
 
+  // ========== STATS 2.0 ENDPOINTS ==========
+
+  // GET /api/stats/summary - Top-line numbers & streaks
+  app.get("/api/stats/summary", async (req, res) => {
+    try {
+      const userId = (req.user as any)?.id;
+      if (!userId) {
+        return res.status(401).json({ error: "Not authenticated" });
+      }
+
+      // Get all user workouts
+      const userWorkoutsData = await storage.getUserWorkouts(userId);
+      
+      // Calculate this week's stats
+      const now = new Date();
+      const startOfThisWeek = new Date(now);
+      startOfThisWeek.setDate(now.getDate() - now.getDay()); // Sunday
+      startOfThisWeek.setHours(0, 0, 0, 0);
+      
+      const startOfLastWeek = new Date(startOfThisWeek);
+      startOfLastWeek.setDate(startOfLastWeek.getDate() - 7);
+      
+      const thisWeekWorkouts = userWorkoutsData.filter(w => 
+        w.completedAt && new Date(w.completedAt) >= startOfThisWeek
+      );
+      
+      const lastWeekWorkouts = userWorkoutsData.filter(w => 
+        w.completedAt && 
+        new Date(w.completedAt) >= startOfLastWeek && 
+        new Date(w.completedAt) < startOfThisWeek
+      );
+      
+      // Calculate minutes (estimate 45 min per workout if not stored)
+      const thisWeekMinutes = thisWeekWorkouts.reduce((sum, w) => sum + (w.duration || 45), 0);
+      const lastWeekMinutes = lastWeekWorkouts.reduce((sum, w) => sum + (w.duration || 45), 0);
+      
+      // Calculate calories (estimate based on duration - 8 cal/min average)
+      const thisWeekCalories = thisWeekMinutes * 8;
+      const lastWeekCalories = lastWeekMinutes * 8;
+      
+      // Calculate streak
+      const workoutStreak = await storage.calculateWorkoutStreak(userId);
+      
+      // Get user for weekly goal
+      const user = await storage.getUser(userId);
+      const weeklyGoal = parseInt(String(user?.trainingDays)) || 5;
+      
+      // Calculate best streak (simplified - would need historical data)
+      const bestStreak = Math.max(workoutStreak, userWorkoutsData.length > 0 ? Math.min(userWorkoutsData.length, 30) : 0);
+      
+      const summary = {
+        thisWeek: {
+          workoutsCompleted: thisWeekWorkouts.length,
+          workoutsChange: thisWeekWorkouts.length - lastWeekWorkouts.length,
+          activeMinutes: thisWeekMinutes,
+          minutesChange: thisWeekMinutes - lastWeekMinutes,
+          caloriesBurned: thisWeekCalories,
+          caloriesChange: thisWeekCalories - lastWeekCalories,
+          weeklyGoal,
+          goalProgress: Math.round((thisWeekWorkouts.length / weeklyGoal) * 100),
+        },
+        streaks: {
+          current: workoutStreak,
+          best: bestStreak,
+        },
+        allTime: {
+          totalWorkouts: userWorkoutsData.length,
+          totalMinutes: userWorkoutsData.reduce((sum, w) => sum + (w.duration || 45), 0),
+          totalCalories: userWorkoutsData.reduce((sum, w) => sum + ((w.duration || 45) * 8), 0),
+        },
+      };
+      
+      res.json(summary);
+    } catch (error) {
+      console.error("Error fetching stats summary:", error);
+      res.status(500).json({ error: "Failed to fetch stats summary" });
+    }
+  });
+
+  // GET /api/stats/weekly-trend - Weekly data for charts (last 12 weeks)
+  app.get("/api/stats/weekly-trend", async (req, res) => {
+    try {
+      const userId = (req.user as any)?.id;
+      if (!userId) {
+        return res.status(401).json({ error: "Not authenticated" });
+      }
+
+      const userWorkoutsData = await storage.getUserWorkouts(userId);
+      
+      // Generate last 12 weeks data
+      const weeks: Array<{
+        weekStart: string;
+        weekLabel: string;
+        workouts: number;
+        minutes: number;
+        volume: number;
+      }> = [];
+      
+      const now = new Date();
+      
+      for (let i = 11; i >= 0; i--) {
+        const weekStart = new Date(now);
+        weekStart.setDate(now.getDate() - now.getDay() - (i * 7)); // Go back i weeks
+        weekStart.setHours(0, 0, 0, 0);
+        
+        const weekEnd = new Date(weekStart);
+        weekEnd.setDate(weekStart.getDate() + 7);
+        
+        const weekWorkouts = userWorkoutsData.filter(w => {
+          if (!w.completedAt) return false;
+          const completedDate = new Date(w.completedAt);
+          return completedDate >= weekStart && completedDate < weekEnd;
+        });
+        
+        const weekMinutes = weekWorkouts.reduce((sum, w) => sum + (w.duration || 45), 0);
+        // Volume estimation: sets * reps * weight (use placeholder if not available)
+        const weekVolume = weekWorkouts.length * 15 * 10 * 50; // Estimate: 15 sets, 10 reps, 50lbs avg
+        
+        weeks.push({
+          weekStart: weekStart.toISOString().split('T')[0],
+          weekLabel: `${weekStart.getMonth() + 1}/${weekStart.getDate()}`,
+          workouts: weekWorkouts.length,
+          minutes: weekMinutes,
+          volume: weekVolume,
+        });
+      }
+      
+      res.json({ weeks });
+    } catch (error) {
+      console.error("Error fetching weekly trend:", error);
+      res.status(500).json({ error: "Failed to fetch weekly trend" });
+    }
+  });
+
+  // GET /api/stats/focus-breakdown - Category/muscle group distribution
+  app.get("/api/stats/focus-breakdown", async (req, res) => {
+    try {
+      const userId = (req.user as any)?.id;
+      if (!userId) {
+        return res.status(401).json({ error: "Not authenticated" });
+      }
+
+      const userWorkoutsData = await storage.getUserWorkouts(userId);
+      
+      // Analyze workout types from the workout data
+      const focusCount: Record<string, number> = {
+        'Upper Body': 0,
+        'Lower Body': 0,
+        'Full Body': 0,
+        'Core': 0,
+        'Cardio': 0,
+        'Flexibility': 0,
+      };
+      
+      // Parse workout types from stored data
+      for (const workout of userWorkoutsData) {
+        // Try to get workout type from the workout data
+        const workoutType = (workout as any).workoutType || 'Full Body';
+        
+        // Categorize based on type
+        if (workoutType.toLowerCase().includes('upper') || 
+            workoutType.toLowerCase().includes('push') || 
+            workoutType.toLowerCase().includes('pull') ||
+            workoutType.toLowerCase().includes('chest') ||
+            workoutType.toLowerCase().includes('back') ||
+            workoutType.toLowerCase().includes('shoulder') ||
+            workoutType.toLowerCase().includes('arm')) {
+          focusCount['Upper Body']++;
+        } else if (workoutType.toLowerCase().includes('lower') || 
+                   workoutType.toLowerCase().includes('leg') ||
+                   workoutType.toLowerCase().includes('glute')) {
+          focusCount['Lower Body']++;
+        } else if (workoutType.toLowerCase().includes('cardio') || 
+                   workoutType.toLowerCase().includes('hiit') ||
+                   workoutType.toLowerCase().includes('run')) {
+          focusCount['Cardio']++;
+        } else if (workoutType.toLowerCase().includes('core') || 
+                   workoutType.toLowerCase().includes('ab')) {
+          focusCount['Core']++;
+        } else if (workoutType.toLowerCase().includes('yoga') || 
+                   workoutType.toLowerCase().includes('stretch') ||
+                   workoutType.toLowerCase().includes('mobility')) {
+          focusCount['Flexibility']++;
+        } else {
+          focusCount['Full Body']++;
+        }
+      }
+      
+      const totalWorkouts = userWorkoutsData.length || 1; // Avoid division by zero
+      
+      const breakdown = Object.entries(focusCount)
+        .filter(([_, count]) => count > 0)
+        .map(([category, count]) => ({
+          category,
+          sessions: count,
+          percentage: Math.round((count / totalWorkouts) * 100),
+        }))
+        .sort((a, b) => b.sessions - a.sessions);
+      
+      // If no data, return balanced default
+      if (breakdown.length === 0) {
+        res.json({
+          breakdown: [
+            { category: 'Upper Body', sessions: 0, percentage: 25 },
+            { category: 'Lower Body', sessions: 0, percentage: 25 },
+            { category: 'Full Body', sessions: 0, percentage: 25 },
+            { category: 'Cardio', sessions: 0, percentage: 25 },
+          ],
+          insights: [],
+        });
+        return;
+      }
+      
+      // Generate insights
+      const insights: string[] = [];
+      
+      // Most common workout day
+      const dayCount: Record<number, number> = { 0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0 };
+      for (const workout of userWorkoutsData) {
+        if (workout.completedAt) {
+          const day = new Date(workout.completedAt).getDay();
+          dayCount[day]++;
+        }
+      }
+      const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+      const mostConsistentDay = Object.entries(dayCount)
+        .sort((a, b) => b[1] - a[1])[0];
+      if (parseInt(mostConsistentDay[1] as any) > 0) {
+        insights.push(`Your most consistent day is: ${days[parseInt(mostConsistentDay[0])]}`);
+      }
+      
+      // Balance analysis
+      const upperCount = focusCount['Upper Body'];
+      const lowerCount = focusCount['Lower Body'];
+      if (upperCount > lowerCount * 1.5 && lowerCount > 0) {
+        const diff = Math.round(((upperCount - lowerCount) / upperCount) * 100);
+        insights.push(`You train legs ${diff}% less than upper body`);
+      } else if (lowerCount > upperCount * 1.5 && upperCount > 0) {
+        const diff = Math.round(((lowerCount - upperCount) / lowerCount) * 100);
+        insights.push(`You train upper body ${diff}% less than legs`);
+      }
+      
+      // Cardio check
+      if (focusCount['Cardio'] === 0 && userWorkoutsData.length > 3) {
+        insights.push(`Consider adding some cardio for heart health!`);
+      }
+      
+      res.json({ breakdown, insights });
+    } catch (error) {
+      console.error("Error fetching focus breakdown:", error);
+      res.status(500).json({ error: "Failed to fetch focus breakdown" });
+    }
+  });
+
+  // ========== END STATS 2.0 ENDPOINTS ==========
+
   // Claim quest reward
   app.post("/api/users/:userId/quests/:questId/claim", async (req, res) => {
     try {
