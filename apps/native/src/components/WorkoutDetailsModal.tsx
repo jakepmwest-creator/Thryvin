@@ -149,9 +149,6 @@ export function WorkoutDetailsModal({
     setCurrentWorkoutIndex((prev) => Math.max(prev - 1, 0));
     setExpandedExerciseIndex(null);
   };
-    setCurrentDayIndex((prev) => (prev === 0 ? 6 : prev - 1));
-    setExpandedExerciseIndex(null);
-  };
   
   const formatDate = () => {
     if (currentWorkout?.date) {
@@ -160,8 +157,6 @@ export function WorkoutDetailsModal({
     }
     return new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
   };
-  
-  const currentDay = DAYS[currentDayIndex];
   
   const warmupExercises = currentWorkout?.exercises?.filter((e: any) => e.category === 'warmup') || [];
   const mainExercises = currentWorkout?.exercises?.filter((e: any) => e.category === 'main') || [];
