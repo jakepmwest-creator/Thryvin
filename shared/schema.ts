@@ -379,6 +379,29 @@ export const metricsDailyRelations = relations(metricsDaily, ({ one }) => ({
   }),
 }));
 
+// AI Learning Context - stores learned insights about the user for personalization
+export const aiLearningContext = pgTable("ai_learning_context", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  category: text("category").notNull(), // strength, endurance, difficulty, preference, injury, performance
+  exerciseName: text("exercise_name"), // Optional - for exercise-specific insights
+  insight: text("insight").notNull(), // The learned insight in natural language
+  dataPoints: integer("data_points").default(1), // How many data points led to this insight
+  confidence: text("confidence").default("low"), // low, medium, high
+  lastUpdated: timestamp("last_updated").defaultNow().notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (table) => ({
+  userIdIdx: index("ai_learning_context_user_id_idx").on(table.userId),
+  categoryIdx: index("ai_learning_context_category_idx").on(table.category),
+}));
+
+export const aiLearningContextRelations = relations(aiLearningContext, ({ one }) => ({
+  user: one(users, {
+    fields: [aiLearningContext.userId],
+    references: [users.id],
+  }),
+}));
+
 // Define user workouts relations (moved here to avoid forward reference)
 export const userWorkoutsRelations = relations(userWorkouts, ({ one, many }) => ({
   user: one(users, {
