@@ -884,27 +884,41 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: '600',
     color: COLORS.text,
-    marginBottom: 8,
   },
   weightLabelRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 6,
+    height: 28,
+    marginBottom: 8,
+  },
+  repsLabelRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    height: 28,
+    marginBottom: 8,
   },
   unitSwitcher: {
     flexDirection: 'row',
     backgroundColor: COLORS.lightGray,
     borderRadius: 8,
     padding: 2,
+    gap: 2,
   },
-  unitButton: {
-    paddingHorizontal: 12,
+  unitButtonWrapper: {
+    borderRadius: 6,
+    overflow: 'hidden',
+  },
+  unitButtonGradient: {
+    paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: 6,
   },
-  unitButtonActive: {
-    backgroundColor: COLORS.gradientStart,
+  unitButtonInactive: {
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 6,
+    backgroundColor: 'transparent',
   },
   unitText: {
     fontSize: 11,
@@ -912,6 +926,8 @@ const styles = StyleSheet.create({
     color: COLORS.mediumGray,
   },
   unitTextActive: {
+    fontSize: 11,
+    fontWeight: '600',
     color: COLORS.white,
   },
   input: {
