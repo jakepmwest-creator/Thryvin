@@ -354,7 +354,7 @@ export default function HomeScreen() {
             <View style={styles.ringDetailsPopup}>
               <Text style={styles.ringDetailsText}>
                 {ringDetailsVisible === 'Weekly Goal' && `${stats?.weeklyWorkouts || 0} of ${stats?.weeklyGoal || 5} workouts`}
-                {ringDetailsVisible === 'Minutes' && `${stats?.weeklyMinutes || 0} of ${stats?.weeklyMinutesGoal || 225} mins`}
+                {ringDetailsVisible === 'Active Minutes' && `${stats?.weeklyMinutes || 0} of ${stats?.weeklyMinutesGoal || 225} mins`}
                 {ringDetailsVisible === 'Calories' && '1,820 of 2,500 kcal'}
               </Text>
             </View>
