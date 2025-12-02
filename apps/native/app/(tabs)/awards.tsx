@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import {
   View,
   Text,
@@ -9,6 +9,7 @@ import {
   Modal,
   Animated,
   Share,
+  Easing,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -30,170 +31,227 @@ import { useWorkoutStore } from '../../src/stores/workout-store';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
-const CATEGORY_INFO: Record<BadgeCategory, { label: string; icon: string }> = {
-  consistency: { label: 'Consistency', icon: 'flame' },
-  volume: { label: 'Volume', icon: 'barbell' },
-  focus: { label: 'Focus', icon: 'body' },
-  program: { label: 'Program', icon: 'trophy' },
-  challenge: { label: 'Challenge', icon: 'flash' },
+const CATEGORY_INFO: Record<BadgeCategory, { label: string; icon: string; color: string }> = {
+  consistency: { label: 'Consistency', icon: 'flame', color: '#FF6B35' },
+  volume: { label: 'Volume', icon: 'barbell', color: '#5B8DEF' },
+  focus: { label: 'Focus', icon: 'body', color: '#34C759' },
+  program: { label: 'Program', icon: 'trophy', color: '#FFD700' },
+  challenge: { label: 'Challenge', icon: 'flash', color: '#FF4EC7' },
 };
 
-// Island Visual Component - Actual island graphic
-const IslandVisual = ({ island, isUnlocked, isCurrent }: { island: Island; isUnlocked: boolean; isCurrent: boolean }) => {
-  const colors = island.landscapeColors;
+// Animated floating particle component
+const FloatingParticle = ({ delay, size, left }: { delay: number; size: number; left: number }) => {
+  const animValue = useRef(new Animated.Value(0)).current;
+  
+  useEffect(() => {
+    const animate = () => {
+      Animated.loop(
+        Animated.sequence([
+          Animated.timing(animValue, { toValue: 1, duration: 3000 + delay, easing: Easing.inOut(Easing.sin), useNativeDriver: true }),
+          Animated.timing(animValue, { toValue: 0, duration: 3000 + delay, easing: Easing.inOut(Easing.sin), useNativeDriver: true }),
+        ])
+      ).start();
+    };
+    setTimeout(animate, delay);
+  }, []);
+  
+  const translateY = animValue.interpolate({ inputRange: [0, 1], outputRange: [0, -15] });
+  const opacity = animValue.interpolate({ inputRange: [0, 0.5, 1], outputRange: [0.3, 0.7, 0.3] });
   
   return (
-    <View style={[islandStyles.islandContainer, !isUnlocked && islandStyles.islandLocked]}>
-      {/* Sky */}
-      <View style={[islandStyles.sky, { backgroundColor: isUnlocked ? colors.sky : '#D0D0D0' }]} />
-      
-      {/* Island Shape */}
-      <View style={islandStyles.islandShape}>
-        {/* Mountain/Hill */}
-        <View style={[
-          islandStyles.mountain,
-          { 
-            backgroundColor: isUnlocked ? colors.ground : '#A0A0A0',
-            borderBottomColor: isUnlocked ? colors.ground : '#A0A0A0',
-          }
-        ]} />
-        
-        {/* Ground */}
-        <View style={[
-          islandStyles.ground,
-          { backgroundColor: isUnlocked ? colors.ground : '#B0B0B0' }
-        ]} />
-        
-        {/* Accent (flag/star on top) */}
-        {isUnlocked && (
-          <View style={islandStyles.flagContainer}>
-            <Text style={islandStyles.islandEmoji}>{island.emoji}</Text>
-          </View>
-        )}
-        
-        {!isUnlocked && (
-          <View style={islandStyles.lockOverlay}>
-            <Ionicons name="lock-closed" size={40} color="#666" />
-          </View>
-        )}
-      </View>
-      
-      {/* Island Info */}
-      <View style={islandStyles.islandInfo}>
-        <Text style={[islandStyles.islandName, !isUnlocked && islandStyles.islandNameLocked]}>
-          {island.name}
-        </Text>
-        <Text style={[islandStyles.islandSubtitle, !isUnlocked && islandStyles.islandSubtitleLocked]}>
-          {isUnlocked ? island.subtitle : `${island.requiredBadges} badges to unlock`}
-        </Text>
-        {isCurrent && (
-          <View style={islandStyles.currentTag}>
-            <Text style={islandStyles.currentTagText}>YOU ARE HERE</Text>
-          </View>
-        )}
-      </View>
-    </View>
+    <Animated.View style={[{ position: 'absolute', left: `${left}%`, bottom: 20, width: size, height: size, borderRadius: size / 2, backgroundColor: 'rgba(255,255,255,0.4)' }, { transform: [{ translateY }], opacity }]} />
   );
 };
 
+// Pulsing glow component for current island
+const PulsingGlow = () => {
+  const pulseAnim = useRef(new Animated.Value(1)).current;
+  
+  useEffect(() => {
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(pulseAnim, { toValue: 1.15, duration: 1200, easing: Easing.inOut(Easing.ease), useNativeDriver: true }),
+        Animated.timing(pulseAnim, { toValue: 1, duration: 1200, easing: Easing.inOut(Easing.ease), useNativeDriver: true }),
+      ])
+    ).start();
+  }, []);
+  
+  return (
+    <Animated.View style={[islandStyles.pulsingGlow, { transform: [{ scale: pulseAnim }] }]}>
+      <LinearGradient colors={['rgba(162, 43, 246, 0.4)', 'rgba(255, 78, 199, 0.2)', 'transparent']} style={islandStyles.pulsingGlowInner} />
+    </Animated.View>
+  );
+};
+
+// Beautiful Island Card for Journey Map
+const IslandCard = ({ island, isUnlocked, isCurrent, completedBadges, totalBadges, onPress }: { 
+  island: Island; 
+  isUnlocked: boolean; 
+  isCurrent: boolean; 
+  completedBadges: number;
+  totalBadges: number;
+  onPress: () => void;
+}) => {
+  const colors = island.landscapeColors;
+  const scaleAnim = useRef(new Animated.Value(1)).current;
+  
+  const handlePressIn = () => {
+    Animated.spring(scaleAnim, { toValue: 0.97, useNativeDriver: true }).start();
+  };
+  
+  const handlePressOut = () => {
+    Animated.spring(scaleAnim, { toValue: 1, friction: 3, useNativeDriver: true }).start();
+  };
+  
+  return (
+    <TouchableOpacity 
+      onPress={onPress} 
+      onPressIn={handlePressIn} 
+      onPressOut={handlePressOut}
+      activeOpacity={1}
+      disabled={!isUnlocked}
+    >
+      <Animated.View style={[islandStyles.islandCard, { transform: [{ scale: scaleAnim }] }]}>
+        {isCurrent && <PulsingGlow />}
+        
+        <LinearGradient
+          colors={isUnlocked ? [colors.sky, colors.ground] : ['#E0E0E0', '#B0B0B0']}
+          style={[islandStyles.islandGradient, isCurrent && islandStyles.islandCurrentBorder]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 0, y: 1 }}
+        >
+          {/* Decorative elements */}
+          {isUnlocked && (
+            <>
+              <View style={[islandStyles.cloud, { top: 15, left: 20 }]} />
+              <View style={[islandStyles.cloud, { top: 25, right: 30, transform: [{ scale: 0.7 }] }]} />
+              <View style={[islandStyles.cloud, { top: 10, right: 60, transform: [{ scale: 0.5 }] }]} />
+            </>
+          )}
+          
+          {/* Island terrain */}
+          <View style={islandStyles.terrainContainer}>
+            <View style={[islandStyles.mountainLeft, { backgroundColor: isUnlocked ? colors.accent : '#999' }]} />
+            <View style={[islandStyles.mountainCenter, { backgroundColor: isUnlocked ? colors.ground : '#888' }]} />
+            <View style={[islandStyles.mountainRight, { backgroundColor: isUnlocked ? colors.accent : '#999' }]} />
+          </View>
+          
+          {/* Island emoji badge */}
+          <View style={[islandStyles.emojiContainer, !isUnlocked && { opacity: 0.5 }]}>
+            <Text style={islandStyles.islandEmoji}>{island.emoji}</Text>
+          </View>
+          
+          {/* Lock overlay */}
+          {!isUnlocked && (
+            <View style={islandStyles.lockOverlay}>
+              <View style={islandStyles.lockBadge}>
+                <Ionicons name="lock-closed" size={24} color="#666" />
+              </View>
+            </View>
+          )}
+          
+          {/* Current indicator */}
+          {isCurrent && (
+            <View style={islandStyles.youAreHereTag}>
+              <Ionicons name="location" size={10} color={COLORS.white} />
+              <Text style={islandStyles.youAreHereText}>YOU ARE HERE</Text>
+            </View>
+          )}
+        </LinearGradient>
+        
+        {/* Island info footer */}
+        <View style={islandStyles.islandInfo}>
+          <View style={islandStyles.islandNameRow}>
+            <Text style={[islandStyles.islandName, !isUnlocked && islandStyles.textLocked]} numberOfLines={1}>
+              {island.name}
+            </Text>
+            <View style={[islandStyles.xpBadge, !isUnlocked && { opacity: 0.5 }]}>
+              <Text style={islandStyles.xpText}>{island.xpMultiplier}x XP</Text>
+            </View>
+          </View>
+          <Text style={[islandStyles.islandSubtitle, !isUnlocked && islandStyles.textLocked]}>
+            {isUnlocked ? island.subtitle : `Unlock with ${island.requiredBadges} badges`}
+          </Text>
+          
+          {/* Progress for this island */}
+          {isUnlocked && (
+            <View style={islandStyles.badgeProgress}>
+              <View style={islandStyles.badgeProgressBar}>
+                <View style={[islandStyles.badgeProgressFill, { width: `${totalBadges > 0 ? (completedBadges / totalBadges) * 100 : 0}%` }]} />
+              </View>
+              <Text style={islandStyles.badgeProgressText}>{completedBadges}/{totalBadges} badges</Text>
+            </View>
+          )}
+        </View>
+      </Animated.View>
+    </TouchableOpacity>
+  );
+};
+
+// Connector line between islands
+const IslandConnector = ({ isCompleted }: { isCompleted: boolean }) => (
+  <View style={islandStyles.connectorContainer}>
+    <View style={[islandStyles.connectorLine, isCompleted && islandStyles.connectorLineCompleted]}>
+      {isCompleted && (
+        <>
+          <View style={[islandStyles.connectorDot, { top: 0 }]} />
+          <View style={[islandStyles.connectorDot, { top: '50%' }]} />
+          <View style={[islandStyles.connectorDot, { bottom: 0 }]} />
+        </>
+      )}
+    </View>
+  </View>
+);
+
 const islandStyles = StyleSheet.create({
-  islandContainer: {
-    width: SCREEN_WIDTH - 48,
-    height: 200,
-    marginBottom: 20,
-    borderRadius: 20,
-    overflow: 'hidden',
-    alignSelf: 'center',
-  },
-  islandLocked: {
-    opacity: 0.6,
-  },
-  sky: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    height: '60%',
-  },
-  islandShape: {
-    position: 'absolute',
-    bottom: 50,
-    left: 0,
-    right: 0,
-    height: 100,
-    alignItems: 'center',
-    justifyContent: 'flex-end',
-  },
-  mountain: {
-    width: 0,
-    height: 0,
-    borderLeftWidth: 80,
-    borderRightWidth: 80,
-    borderBottomWidth: 70,
-    borderLeftColor: 'transparent',
-    borderRightColor: 'transparent',
-    position: 'absolute',
-    top: 0,
-  },
-  ground: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    height: 40,
-    borderTopLeftRadius: 100,
-    borderTopRightRadius: 100,
-  },
-  flagContainer: {
-    position: 'absolute',
-    top: -20,
-  },
-  islandEmoji: {
-    fontSize: 36,
-  },
-  lockOverlay: {
-    position: 'absolute',
-    top: 10,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  islandInfo: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    backgroundColor: 'rgba(255,255,255,0.95)',
-    padding: 12,
-    alignItems: 'center',
-  },
-  islandName: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: COLORS.text,
-  },
-  islandNameLocked: {
-    color: COLORS.mediumGray,
-  },
-  islandSubtitle: {
-    fontSize: 13,
-    color: COLORS.mediumGray,
-    marginTop: 2,
-  },
-  islandSubtitleLocked: {
-    color: '#999',
-  },
-  currentTag: {
-    marginTop: 8,
-    backgroundColor: COLORS.gradientStart,
-    paddingHorizontal: 12,
-    paddingVertical: 4,
-    borderRadius: 12,
-  },
-  currentTagText: {
-    fontSize: 10,
-    fontWeight: '700',
-    color: COLORS.white,
-  },
+  // Pulsing glow
+  pulsingGlow: { position: 'absolute', top: -20, left: -20, right: -20, bottom: -20, zIndex: -1 },
+  pulsingGlowInner: { flex: 1, borderRadius: 30 },
+  
+  // Island card
+  islandCard: { width: SCREEN_WIDTH - 56, marginBottom: 8, borderRadius: 20, overflow: 'visible', alignSelf: 'center' },
+  islandGradient: { height: 140, borderTopLeftRadius: 20, borderTopRightRadius: 20, overflow: 'hidden', position: 'relative' },
+  islandCurrentBorder: { borderWidth: 2, borderColor: COLORS.gradientStart, borderBottomWidth: 0 },
+  
+  // Clouds
+  cloud: { position: 'absolute', width: 40, height: 16, backgroundColor: 'rgba(255,255,255,0.6)', borderRadius: 8 },
+  
+  // Terrain
+  terrainContainer: { position: 'absolute', bottom: 0, left: 0, right: 0, height: 60, flexDirection: 'row', justifyContent: 'center', alignItems: 'flex-end' },
+  mountainLeft: { width: 60, height: 40, borderTopLeftRadius: 30, borderTopRightRadius: 10, marginRight: -15 },
+  mountainCenter: { width: 80, height: 55, borderTopLeftRadius: 40, borderTopRightRadius: 40, zIndex: 1 },
+  mountainRight: { width: 50, height: 35, borderTopLeftRadius: 10, borderTopRightRadius: 25, marginLeft: -10 },
+  
+  // Emoji
+  emojiContainer: { position: 'absolute', top: 15, left: 20, backgroundColor: 'rgba(255,255,255,0.9)', borderRadius: 20, padding: 8 },
+  islandEmoji: { fontSize: 28 },
+  
+  // Lock
+  lockOverlay: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0,0,0,0.3)', justifyContent: 'center', alignItems: 'center' },
+  lockBadge: { backgroundColor: 'rgba(255,255,255,0.9)', borderRadius: 25, padding: 12 },
+  
+  // You are here
+  youAreHereTag: { position: 'absolute', top: 12, right: 12, backgroundColor: COLORS.gradientStart, paddingHorizontal: 10, paddingVertical: 5, borderRadius: 12, flexDirection: 'row', alignItems: 'center' },
+  youAreHereText: { fontSize: 9, fontWeight: '800', color: COLORS.white, marginLeft: 3, letterSpacing: 0.5 },
+  
+  // Island info
+  islandInfo: { backgroundColor: COLORS.white, padding: 14, borderBottomLeftRadius: 20, borderBottomRightRadius: 20, borderWidth: 1, borderTopWidth: 0, borderColor: COLORS.lightGray },
+  islandNameRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  islandName: { fontSize: 17, fontWeight: '700', color: COLORS.text, flex: 1 },
+  xpBadge: { backgroundColor: '#FFF8E1', paddingHorizontal: 8, paddingVertical: 3, borderRadius: 8 },
+  xpText: { fontSize: 11, fontWeight: '700', color: '#F57F17' },
+  islandSubtitle: { fontSize: 12, color: COLORS.mediumGray, marginTop: 3 },
+  textLocked: { color: '#999' },
+  badgeProgress: { marginTop: 10, flexDirection: 'row', alignItems: 'center' },
+  badgeProgressBar: { flex: 1, height: 4, backgroundColor: '#E8E8E8', borderRadius: 2, marginRight: 10, overflow: 'hidden' },
+  badgeProgressFill: { height: '100%', backgroundColor: COLORS.gradientStart, borderRadius: 2 },
+  badgeProgressText: { fontSize: 11, color: COLORS.mediumGray, fontWeight: '500' },
+  
+  // Connector
+  connectorContainer: { height: 40, alignItems: 'center', justifyContent: 'center' },
+  connectorLine: { width: 3, height: '100%', backgroundColor: '#E0E0E0', borderRadius: 2 },
+  connectorLineCompleted: { backgroundColor: COLORS.gradientStart },
+  connectorDot: { position: 'absolute', width: 7, height: 7, borderRadius: 4, backgroundColor: COLORS.gradientEnd, left: -2 },
 });
 
 // Badge Card
