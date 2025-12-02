@@ -99,6 +99,23 @@ export default function WorkoutsScreen() {
   // Connect to workout store
   const { currentWorkout, todayWorkout, weekWorkouts, completedWorkouts, isLoading, fetchTodayWorkout, fetchWeekWorkouts } = useWorkoutStore();
   
+  // Check if a date has a workout (not rest day)
+  const hasWorkout = (date: Date) => {
+    const dateStr = date.toDateString();
+    
+    // Check weekWorkouts
+    const workout = weekWorkouts.find(w => {
+      const workoutDate = new Date(w.date);
+      return workoutDate.toDateString() === dateStr;
+    });
+    
+    // If no workout found or it's a rest day, return false
+    if (!workout) return false;
+    if (workout.title?.toLowerCase().includes('rest')) return false;
+    
+    return true;
+  };
+  
   // Check if a date has a completed workout (check both weekWorkouts and completedWorkouts)
   const isDateCompleted = (date: Date) => {
     const dateStr = date.toDateString();
@@ -106,6 +123,7 @@ export default function WorkoutsScreen() {
     // First check weekWorkouts (updated in real-time when workout is completed)
     const weekCompleted = weekWorkouts.some(w => {
       if (!w.completed) return false;
+      if (w.title?.toLowerCase().includes('rest')) return false; // Rest days don't count as completed
       const workoutDate = new Date(w.date);
       return workoutDate.toDateString() === dateStr;
     });
@@ -117,6 +135,18 @@ export default function WorkoutsScreen() {
       const workoutDate = new Date(w.completedAt || w.date);
       return workoutDate.toDateString() === dateStr;
     });
+  };
+  
+  // Check if a date is a rest day
+  const isRestDay = (date: Date) => {
+    const dateStr = date.toDateString();
+    
+    const workout = weekWorkouts.find(w => {
+      const workoutDate = new Date(w.date);
+      return workoutDate.toDateString() === dateStr;
+    });
+    
+    return workout?.title?.toLowerCase().includes('rest') || false;
   };
   
   // Get status for a specific date in the month
