@@ -485,17 +485,6 @@ export default function HomeScreen() {
         </View>
       </ScrollView>
       
-      {/* AI Coach Floating Button */}
-      <View style={styles.floatingButtonContainer}>
-        <AICoachButton onPress={() => setShowAICoach(true)} />
-      </View>
-      
-      {/* AI Coach Modal */}
-      <AICoachWidget 
-        visible={showAICoach} 
-        onClose={() => setShowAICoach(false)} 
-      />
-      
       {/* Onboarding Tour */}
       <OnboardingTour
         visible={showTour}
