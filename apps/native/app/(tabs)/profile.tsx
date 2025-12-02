@@ -169,7 +169,7 @@ export default function ProfileScreen() {
     name: userName || user?.name || 'User',
     email: user?.email || 'user@example.com',
     level: user?.experience || 'Intermediate',
-    joinDate: user?.createdAt ? new Date(user.createdAt).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : 'Dec 2024',
+    joinDate: 'Dec 2024', // Using static date since createdAt not in User type
     nextGoal: user?.goal || 'Get fit',
   };
 
