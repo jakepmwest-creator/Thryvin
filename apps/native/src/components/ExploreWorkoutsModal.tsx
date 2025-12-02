@@ -310,16 +310,53 @@ export const ExploreWorkoutsModal = ({ visible, onClose, category, categoryGradi
                     
                     <Text style={styles.detailDescription}>{selectedExercise.description}</Text>
                     
-                    {/* Video placeholder */}
-                    <View style={styles.videoPlaceholder}>
-                      <LinearGradient
-                        colors={['#1a1a1a', '#333']}
-                        style={styles.videoGradient}
-                      >
-                        <Ionicons name="play-circle" size={64} color="rgba(255,255,255,0.8)" />
-                        <Text style={styles.videoText}>Video tutorial coming soon</Text>
-                      </LinearGradient>
-                    </View>
+                    {/* Video player or placeholder */}
+                    {selectedExercise.videoUrl ? (
+                      <View style={styles.videoContainer}>
+                        <Video
+                          source={{ uri: selectedExercise.videoUrl }}
+                          style={styles.videoPlayer}
+                          useNativeControls
+                          resizeMode={ResizeMode.CONTAIN}
+                          isLooping
+                          shouldPlay={false}
+                        />
+                      </View>
+                    ) : (
+                      <View style={styles.videoPlaceholder}>
+                        <LinearGradient
+                          colors={['#1a1a1a', '#333']}
+                          style={styles.videoGradient}
+                        >
+                          <Ionicons name="play-circle" size={64} color="rgba(255,255,255,0.8)" />
+                          <Text style={styles.videoText}>Video coming soon</Text>
+                        </LinearGradient>
+                      </View>
+                    )}
+                    
+                    {/* Exercise details */}
+                    {(selectedExercise.sets || selectedExercise.reps) && (
+                      <View style={styles.exerciseDetails}>
+                        {selectedExercise.sets && (
+                          <View style={styles.detailChip}>
+                            <Ionicons name="repeat" size={16} color={COLORS.accent} />
+                            <Text style={styles.detailChipText}>{selectedExercise.sets} sets</Text>
+                          </View>
+                        )}
+                        {selectedExercise.reps && (
+                          <View style={styles.detailChip}>
+                            <Ionicons name="fitness" size={16} color={COLORS.accent} />
+                            <Text style={styles.detailChipText}>{selectedExercise.reps} reps</Text>
+                          </View>
+                        )}
+                        {selectedExercise.restTime && (
+                          <View style={styles.detailChip}>
+                            <Ionicons name="timer" size={16} color={COLORS.accent} />
+                            <Text style={styles.detailChipText}>{selectedExercise.restTime}s rest</Text>
+                          </View>
+                        )}
+                      </View>
+                    )}
                     
                     <Text style={styles.tipsTitle}>Pro Tips</Text>
                     {selectedExercise.tips.map((tip, index) => (
