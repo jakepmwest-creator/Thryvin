@@ -275,37 +275,46 @@ export default function ProfileScreen() {
       await AsyncStorage.removeItem('onboarding_tour_completed');
       await AsyncStorage.setItem('tour_trigger', 'true');
       
-      Alert.alert(
-        'App Tour Ready! 🎉',
-        'Navigate to the Home tab and the tour will start automatically!',
-        [{ text: 'Got it!', style: 'default' }]
-      );
+      showAlert({
+        type: 'success',
+        title: 'App Tour Ready! 🎉',
+        message: 'Navigate to the Home tab and the tour will start automatically!',
+        buttons: [{ text: 'Got it!', onPress: hideAlert }]
+      });
     } catch (error) {
       console.error('Error starting tour:', error);
-      Alert.alert('Error', 'Could not start tour. Please try again.');
+      showAlert({
+        type: 'error',
+        title: 'Error',
+        message: 'Could not start tour. Please try again.',
+        buttons: [{ text: 'OK', onPress: hideAlert }]
+      });
     }
   };
   
   const handleRateApp = () => {
-    const storeUrl = Platform.OS === 'ios' 
-      ? 'https://apps.apple.com/app/thryvin/id123456789' 
-      : 'https://play.google.com/store/apps/details?id=com.thryvin.app';
-    
-    Alert.alert(
-      'Rate Thryvin ⭐',
-      'Loving the app? Your review helps us grow and improve!',
-      [
-        { text: 'Maybe Later', style: 'cancel' },
+    showAlert({
+      type: 'info',
+      title: 'Rate Thryvin ⭐',
+      message: 'Loving the app? Your review helps us grow and improve!',
+      buttons: [
+        { text: 'Maybe Later', style: 'cancel', onPress: hideAlert },
         { 
           text: 'Rate Now', 
           onPress: () => {
-            // For now, show a thank you since store URLs aren't live
-            Alert.alert('Thank You! 🙏', 'App store rating will be available soon. We appreciate your support!');
-            // In production: Linking.openURL(storeUrl);
+            hideAlert();
+            setTimeout(() => {
+              showAlert({
+                type: 'success',
+                title: 'Thank You! 🙏',
+                message: 'App store rating will be available soon. We appreciate your support!',
+                buttons: [{ text: 'OK', onPress: hideAlert }]
+              });
+            }, 300);
           }
         },
       ]
-    );
+    });
   };
   
   const handleContactSupport = () => {
