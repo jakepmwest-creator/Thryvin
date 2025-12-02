@@ -53,7 +53,7 @@ const QUICK_ACTIONS = [
 ];
 
 export function FloatingCoachButton() {
-  const { swapWorkoutDays, forceRegenerateWeek, weekWorkouts } = useWorkoutStore();
+  const { swapWorkoutDays, forceRegenerateWeek, weekWorkouts, resetProgram } = useWorkoutStore();
   
   const [chatVisible, setChatVisible] = useState(false);
   const [messages, setMessages] = useState([
