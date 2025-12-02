@@ -38,6 +38,9 @@ const EXERCISES_DATA: Record<string, Array<{
   description: string;
   tips: string[];
   videoUrl?: string;
+  sets?: number;
+  reps?: string | number;
+  restTime?: number;
 }>> = {
   Strength: [
     { id: 's1', name: 'Barbell Bench Press', muscleGroup: 'Chest', equipment: 'Barbell, Bench', difficulty: 'Intermediate', description: 'Classic compound movement for building chest strength and size.', tips: ['Keep feet flat on floor', 'Arch your back slightly', 'Lower bar to mid-chest'] },
