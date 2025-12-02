@@ -123,7 +123,68 @@ export const ExploreWorkoutsModal = ({ visible, onClose, category, categoryGradi
   const [selectedExercise, setSelectedExercise] = useState<typeof EXERCISES_DATA['Strength'][0] | null>(null);
   const [filterDifficulty, setFilterDifficulty] = useState<'All' | 'Beginner' | 'Intermediate' | 'Advanced'>('All');
   
-  const exercises = EXERCISES_DATA[category] || [];
+  // Get real exercises from the workout store
+  const { weekWorkouts } = useWorkoutStore();
+  
+  // Extract unique exercises from weekWorkouts that match the category
+  const realExercises = useMemo(() => {
+    const exerciseMap = new Map<string, any>();
+    
+    // Map category to workout types
+    const categoryTypeMap: Record<string, string[]> = {
+      'Strength': ['upper', 'lower', 'strength', 'full body', 'push', 'pull', 'legs'],
+      'HIIT': ['hiit', 'circuit', 'conditioning', 'interval'],
+      'Cardio': ['cardio', 'endurance', 'running', 'cycling'],
+      'Flexibility': ['stretch', 'flexibility', 'yoga', 'cooldown', 'recovery'],
+      'Mobility': ['mobility', 'warmup', 'warm-up', 'activation'],
+      'Conditioning': ['conditioning', 'metabolic', 'circuit', 'finisher'],
+    };
+    
+    const matchTypes = categoryTypeMap[category] || [];
+    
+    weekWorkouts.forEach(workout => {
+      // Check if workout type matches category
+      const workoutType = workout.type?.toLowerCase() || '';
+      const workoutTitle = workout.title?.toLowerCase() || '';
+      const isMatchingCategory = matchTypes.some(t => 
+        workoutType.includes(t) || workoutTitle.includes(t)
+      ) || category === 'Strength'; // Default to showing in Strength
+      
+      if (isMatchingCategory && workout.exercises) {
+        workout.exercises.forEach((ex: any) => {
+          if (!exerciseMap.has(ex.name)) {
+            exerciseMap.set(ex.name, {
+              id: ex.id || ex.name.replace(/\s+/g, '_'),
+              name: ex.name,
+              muscleGroup: ex.targetMuscles || 'Full Body',
+              equipment: ex.equipment || 'Various',
+              difficulty: ex.difficulty || 'Intermediate',
+              description: ex.instructions || `Perform ${ex.name} with proper form.`,
+              tips: ex.tips || ['Focus on form', 'Control the movement', 'Breathe steadily'],
+              videoUrl: ex.videoUrl,
+              sets: ex.sets,
+              reps: ex.reps,
+              restTime: ex.restTime,
+            });
+          }
+        });
+      }
+    });
+    
+    return Array.from(exerciseMap.values());
+  }, [weekWorkouts, category]);
+  
+  // Combine real exercises with static data, prioritizing real ones
+  const exercises = useMemo(() => {
+    const staticExercises = EXERCISES_DATA[category] || [];
+    if (realExercises.length > 0) {
+      // Merge: real exercises first, then static ones not already present
+      const existingNames = new Set(realExercises.map(e => e.name.toLowerCase()));
+      const uniqueStatic = staticExercises.filter(e => !existingNames.has(e.name.toLowerCase()));
+      return [...realExercises, ...uniqueStatic];
+    }
+    return staticExercises;
+  }, [realExercises, category]);
   
   const filteredExercises = useMemo(() => {
     return exercises.filter(ex => {
