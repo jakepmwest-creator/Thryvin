@@ -782,4 +782,9 @@ const styles = StyleSheet.create({
     color: COLORS.mediumGray,
     marginTop: 4,
   },
+  floatingButtonContainer: {
+    position: 'absolute',
+    bottom: 100,
+    right: 20,
+  },
 });
