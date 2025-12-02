@@ -123,7 +123,7 @@ const ExerciseCard = ({ exercise, onPress }: { exercise: typeof EXERCISES_DATA['
 
 export const ExploreWorkoutsModal = ({ visible, onClose, category, categoryGradient }: ExploreWorkoutsModalProps) => {
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedExercise, setSelectedExercise] = useState<typeof EXERCISES_DATA['Strength'][0] | null>(null);
+  const [selectedExercise, setSelectedExercise] = useState<(typeof EXERCISES_DATA)['Strength'][0] | null>(null);
   const [filterDifficulty, setFilterDifficulty] = useState<'All' | 'Beginner' | 'Intermediate' | 'Advanced'>('All');
   
   // Get real exercises from the workout store
