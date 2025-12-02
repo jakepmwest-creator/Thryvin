@@ -5,7 +5,6 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  Alert,
   Switch,
   Image,
   Linking,
@@ -23,6 +22,7 @@ import { BiometricSettingsModal } from '../../src/components/BiometricSettingsMo
 import { HelpFAQModal } from '../../src/components/HelpFAQModal';
 import { LegalModal } from '../../src/components/LegalModal';
 import { ViewAllWeeksModal } from '../../src/components/ViewAllWeeksModal';
+import { CustomAlert } from '../../src/components/CustomAlert';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useAuthStore } from '../../src/stores/auth-store';
 import { useWorkoutStore } from '../../src/stores/workout-store';
