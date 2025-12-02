@@ -315,24 +315,39 @@ export default function HomeScreen() {
           <View style={styles.ringsContainer}>
             <ProgressRing
               label="Weekly Goal"
-              progress={(stats?.weeklyWorkouts || 0) / (stats?.weeklyGoal || 5)}
+              progress={displayStats.weeklyGoal > 0 ? displayStats.weeklyWorkouts / displayStats.weeklyGoal : 0}
               colors={[COLORS.gradientStart, COLORS.gradientEnd]}
               size={85}
               onPress={() => showRingDetails('Weekly Goal')}
+              details={{
+                current: displayStats.weeklyWorkouts,
+                goal: displayStats.weeklyGoal,
+                unit: 'workouts'
+              }}
             />
             <ProgressRing
-              label="Minutes"
-              progress={(stats?.weeklyMinutes || 0) / (stats?.weeklyMinutesGoal || 225)}
-              colors={['#5B8DEF', '#34C4E5']}
+              label="Active Minutes"
+              progress={displayStats.weeklyMinutesGoal > 0 ? displayStats.weeklyMinutes / displayStats.weeklyMinutesGoal : 0}
+              colors={['#FF6B6B', '#FF8E53']}
               size={85}
-              onPress={() => showRingDetails('Minutes')}
+              onPress={() => showRingDetails('Active Minutes')}
+              details={{
+                current: displayStats.weeklyMinutes,
+                goal: displayStats.weeklyMinutesGoal,
+                unit: 'min'
+              }}
             />
             <ProgressRing
               label="Calories"
-              progress={0.78}
-              colors={['#FF6B35', '#FFD60A']}
+              progress={Math.min((displayStats.weeklyMinutes * 8) / 2000, 1)}
+              colors={['#4ECDC4', '#44A08D']}
               size={85}
               onPress={() => showRingDetails('Calories')}
+              details={{
+                current: Math.round(displayStats.weeklyMinutes * 8),
+                goal: 2000,
+                unit: 'kcal'
+              }}
             />
           </View>
           {ringDetailsVisible && (
