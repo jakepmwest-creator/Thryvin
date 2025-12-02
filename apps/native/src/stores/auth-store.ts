@@ -45,6 +45,12 @@ interface User {
   trainingType?: string;
   goal?: string;
   coachingStyle?: string;
+  trainingDays?: string | number;
+  sessionDuration?: string | number;
+  experience?: string;
+  equipment?: string[];
+  injuries?: string[];
+  fitnessGoals?: string[];
 }
 
 interface AuthState {
