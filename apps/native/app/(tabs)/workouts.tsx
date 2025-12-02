@@ -182,12 +182,16 @@ export default function WorkoutsScreen() {
       const isToday = date.toDateString() === today.toDateString();
       const isPast = date < today && !isToday;
       const isCompleted = isDateCompleted(date);
+      const isRest = isRestDay(date);
+      const hasWorkoutForDay = hasWorkout(date);
       
       weekDays.push({
         day: dayNames[i], // Use index directly since we're going Mon-Sun
         date: date.getDate(),
         fullDate: date,
-        status: isCompleted ? 'completed' : (isToday ? 'today' : (isPast ? 'incomplete' : 'upcoming'))
+        status: isCompleted ? 'completed' : (isToday ? 'today' : (isPast ? 'incomplete' : 'upcoming')),
+        isRestDay: isRest,
+        hasWorkout: hasWorkoutForDay,
       });
     }
     
