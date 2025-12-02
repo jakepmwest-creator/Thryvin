@@ -364,13 +364,18 @@ export default function WorkoutsScreen() {
                   ]}>
                     {day.date}
                   </Text>
-                  {day.status === 'completed' ? (
+                  {/* Only show indicator if not a rest day */}
+                  {day.isRestDay ? (
+                    <View style={styles.restDayIcon}>
+                      <Ionicons name="bed-outline" size={12} color={COLORS.mediumGray} />
+                    </View>
+                  ) : day.status === 'completed' ? (
                     <View style={styles.completedIcon}>
                       <Ionicons name="checkmark-circle" size={16} color={COLORS.success} />
                     </View>
-                  ) : (
+                  ) : day.hasWorkout ? (
                     <View style={[styles.statusDot, { backgroundColor: getStatusColor(day.status) }]} />
-                  )}
+                  ) : null}
                 </TouchableOpacity>
               ))}
             </View>
