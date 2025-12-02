@@ -172,7 +172,12 @@ export default function ProfileScreen() {
     await AsyncStorage.setItem('notifications_enabled', newValue.toString());
     
     if (newValue) {
-      Alert.alert('Notifications Enabled', 'You\'ll receive updates about your workouts and achievements!');
+      showAlert({
+        type: 'success',
+        title: 'Notifications Enabled',
+        message: "You'll receive updates about your workouts and achievements!",
+        buttons: [{ text: 'OK', onPress: hideAlert }]
+      });
     }
   };
   
@@ -182,7 +187,12 @@ export default function ProfileScreen() {
     await AsyncStorage.setItem('workout_reminders_enabled', newValue.toString());
     
     if (newValue) {
-      Alert.alert('Reminders Enabled', 'You\'ll get daily reminders to stay on track with your workouts!');
+      showAlert({
+        type: 'success',
+        title: 'Reminders Enabled',
+        message: "You'll get daily reminders to stay on track with your workouts!",
+        buttons: [{ text: 'OK', onPress: hideAlert }]
+      });
     }
   };
   
