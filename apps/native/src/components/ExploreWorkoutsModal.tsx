@@ -9,9 +9,12 @@ import {
   TextInput,
   Dimensions,
   Image,
+  Linking,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
+import { Video, ResizeMode } from 'expo-av';
+import { useWorkoutStore } from '../stores/workout-store';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
