@@ -474,7 +474,7 @@ export default function WorkoutsScreen() {
                 onPress={() => handleCategoryPress(category)}
               >
                 <LinearGradient
-                  colors={category.gradient}
+                  colors={category.gradient as [string, string]}
                   style={styles.categoryGradient}
                   start={{ x: 0, y: 0 }}
                   end={{ x: 1.2, y: 1.2 }}
