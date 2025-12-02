@@ -7,7 +7,6 @@ import {
   ScrollView,
   Dimensions,
   Animated,
-  Alert,
   TextInput,
   Modal,
   Platform,
@@ -18,6 +17,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { ExerciseVideoPlayer } from '../src/components/ExerciseVideoPlayer';
 import { VoiceInputButton } from '../src/components/VoiceInputButton';
+import { CustomAlert } from '../src/components/CustomAlert';
 import { useWorkoutStore } from '../src/stores/workout-store';
 import { COLORS } from '../src/constants/colors';
 import ConfettiCannon from 'react-native-confetti-cannon';
