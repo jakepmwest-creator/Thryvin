@@ -118,19 +118,21 @@ export default function HomeScreen() {
     skipTour,
     completeTour,
   } = useTour();
-  const {
-    todayWorkout,
-    stats,
-    personalBests,
-    isLoading,
-    fetchTodayWorkout,
-    fetchWeekWorkouts,
-    forceRegenerateWeek,
-    fetchStats,
-    fetchPersonalBests,
-    completedWorkouts,
-    weekWorkouts,
-  } = useWorkoutStore();
+  // Subscribe to specific store slices for better reactivity
+  const todayWorkout = useWorkoutStore(state => state.todayWorkout);
+  const weekWorkouts = useWorkoutStore(state => state.weekWorkouts);
+  const completedWorkouts = useWorkoutStore(state => state.completedWorkouts);
+  const stats = useWorkoutStore(state => state.stats);
+  const personalBests = useWorkoutStore(state => state.personalBests);
+  const isLoading = useWorkoutStore(state => state.isLoading);
+  const fetchTodayWorkout = useWorkoutStore(state => state.fetchTodayWorkout);
+  const fetchWeekWorkouts = useWorkoutStore(state => state.fetchWeekWorkouts);
+  const fetchStats = useWorkoutStore(state => state.fetchStats);
+  const fetchPersonalBests = useWorkoutStore(state => state.fetchPersonalBests);
+  const forceRegenerateWeek = useWorkoutStore(state => state.forceRegenerateWeek);
+
+  // Force re-render key when stats change
+  const [statsVersion, setStatsVersion] = useState(0);
 
   const loadAllData = async () => {
     await Promise.all([
@@ -139,6 +141,7 @@ export default function HomeScreen() {
       fetchStats(),
       fetchPersonalBests(),
     ]);
+    setStatsVersion(v => v + 1); // Force re-render after data loads
   };
 
   useEffect(() => {
@@ -147,15 +150,24 @@ export default function HomeScreen() {
     loadAllData();
   }, []);
   
-  // Auto-update stats when completed workouts change
+  // Auto-update stats when completed workouts or weekWorkouts change
   useEffect(() => {
-    console.log('📊 [HOME] Completed workouts changed:', completedWorkouts.length);
+    console.log('📊 [HOME] Workouts changed - completedWorkouts:', completedWorkouts.length, 'weekWorkouts completed:', weekWorkouts.filter(w => w.completed).length);
     // Only refetch stats, not workouts (to avoid regeneration)
-    fetchStats();
-  }, [completedWorkouts.length]);
+    fetchStats().then(() => {
+      setStatsVersion(v => v + 1); // Force re-render after stats update
+    });
+  }, [completedWorkouts.length, weekWorkouts.filter(w => w.completed).length]);
+  
+  // Get today's actual workout from weekWorkouts (most accurate source)
+  const actualTodayWorkout = useMemo(() => {
+    const today = new Date().toDateString();
+    const fromWeek = weekWorkouts.find(w => new Date(w.date).toDateString() === today);
+    return fromWeek || todayWorkout;
+  }, [weekWorkouts, todayWorkout]);
   
   // Compute workout count for display to ensure accuracy
-  const displayStats = {
+  const displayStats = useMemo(() => ({
     weeklyWorkouts: stats?.weeklyWorkouts || 0,
     weeklyGoal: stats?.weeklyGoal || 5,
     currentStreak: stats?.currentStreak || 0,
@@ -163,7 +175,7 @@ export default function HomeScreen() {
     weeklyMinutesGoal: stats?.weeklyMinutesGoal || 225,
     totalWorkouts: stats?.totalWorkouts || 0,
     totalMinutes: stats?.totalMinutes || 0,
-  };
+  }), [stats, statsVersion]);
   
   // Register tour elements and update positions
   useEffect(() => {
