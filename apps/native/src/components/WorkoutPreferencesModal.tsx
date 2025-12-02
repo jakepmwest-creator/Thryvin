@@ -232,16 +232,27 @@ export const WorkoutPreferencesModal = ({ visible, onClose, onSave }: WorkoutPre
         <View style={styles.container}>
           {/* Header */}
           <View style={styles.header}>
-            <TouchableOpacity onPress={onClose} style={styles.closeButton}>
+            <TouchableOpacity onPress={onClose} style={styles.closeButton} disabled={isSaving}>
               <Ionicons name="close" size={24} color={COLORS.mediumGray} />
             </TouchableOpacity>
             <Text style={styles.title}>Workout Preferences</Text>
-            <TouchableOpacity onPress={handleSave} disabled={isSaving}>
-              <Text style={[styles.saveButton, isSaving && { opacity: 0.5 }]}>
-                {isSaving ? 'Saving...' : 'Save'}
+            <TouchableOpacity onPress={handleSave} disabled={isSaving || !hasChanges}>
+              <Text style={[
+                styles.saveButton, 
+                (isSaving || !hasChanges) && { opacity: 0.5 }
+              ]}>
+                {isSaving ? 'Saving...' : hasChanges ? 'Save' : 'Done'}
               </Text>
             </TouchableOpacity>
           </View>
+          
+          {/* Regenerating indicator */}
+          {isRegenerating && (
+            <View style={styles.regeneratingBanner}>
+              <ActivityIndicator size="small" color={COLORS.white} />
+              <Text style={styles.regeneratingText}>Regenerating your workouts...</Text>
+            </View>
+          )}
 
           <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
             {/* Experience Level */}
