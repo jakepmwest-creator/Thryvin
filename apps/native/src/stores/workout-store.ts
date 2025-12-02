@@ -978,6 +978,45 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
   getAllWeekWorkouts: () => {
     return get().weekWorkouts;
   },
+  
+  swapWorkoutDays: async (fromIndex: number, toIndex: number) => {
+    const { weekWorkouts } = get();
+    
+    if (fromIndex < 0 || fromIndex >= weekWorkouts.length || 
+        toIndex < 0 || toIndex >= weekWorkouts.length) {
+      console.log('❌ [SWAP] Invalid indices:', fromIndex, toIndex);
+      return;
+    }
+    
+    // Create a copy of weekWorkouts
+    const updatedWorkouts = [...weekWorkouts];
+    
+    // Get the workouts to swap
+    const fromWorkout = { ...updatedWorkouts[fromIndex] };
+    const toWorkout = { ...updatedWorkouts[toIndex] };
+    
+    // Swap the dates but keep the workout content
+    const fromDate = fromWorkout.date;
+    const toDate = toWorkout.date;
+    
+    fromWorkout.date = toDate;
+    toWorkout.date = fromDate;
+    
+    // Swap in the array
+    updatedWorkouts[fromIndex] = toWorkout;
+    updatedWorkouts[toIndex] = fromWorkout;
+    
+    // Update state
+    set({ weekWorkouts: updatedWorkouts });
+    
+    // Persist to storage
+    try {
+      await AsyncStorage.setItem('week_workouts', JSON.stringify(updatedWorkouts));
+      console.log('✅ [SWAP] Swapped workouts between indices', fromIndex, 'and', toIndex);
+    } catch (error) {
+      console.error('❌ [SWAP] Failed to persist swapped workouts:', error);
+    }
+  },
 }));
 
 // Helper function to generate a single day's workout (for rolling generation)
