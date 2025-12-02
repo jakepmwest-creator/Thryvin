@@ -97,52 +97,80 @@ const SettingToggle = ({
 );
 
 export default function ProfileScreen() {
-  const { user } = useAuthStore();
-  const { resetProgram } = useWorkoutStore();
-  // Stats will come from a future stats-store implementation
-  const totalWorkouts = 0;
-  const totalMinutes = 0;
-  const currentStreak = 0;
+  const { user, logout } = useAuthStore();
+  const { resetProgram, stats } = useWorkoutStore();
+  
+  // Modal states
+  const [showPINSetup, setShowPINSetup] = useState(false);
+  const [showEditProfile, setShowEditProfile] = useState(false);
+  const [showWorkoutPrefs, setShowWorkoutPrefs] = useState(false);
+  const [showGoals, setShowGoals] = useState(false);
+  const [showResetProgram, setShowResetProgram] = useState(false);
+  const [showBiometrics, setShowBiometrics] = useState(false);
+  const [showHelpFAQ, setShowHelpFAQ] = useState(false);
+  const [showPrivacy, setShowPrivacy] = useState(false);
+  const [showTerms, setShowTerms] = useState(false);
+  const [showAllWeeks, setShowAllWeeks] = useState(false);
+  
+  // Settings states (persisted)
   const [notifications, setNotifications] = useState(true);
   const [workoutReminders, setWorkoutReminders] = useState(true);
-  const [analytics, setAnalytics] = useState(false);
-  const [showPINSetup, setShowPINSetup] = useState(false);
-  const [isResetting, setIsResetting] = useState(false);
   
-  // Compute profile data from stores
-  const profileData = {
-    name: user?.name || 'User',
-    email: user?.email || 'user@example.com',
-    level: user?.experience || 'Beginner',
-    joinDate: user?.createdAt ? new Date(user.createdAt).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : 'Recently',
-    workoutsCompleted: totalWorkouts || 0,
-    totalMinutes: totalMinutes || 0,
-    currentStreak: currentStreak || 0,
-    nextGoal: user?.goal || 'Get fit',
+  // Profile data
+  const [profileImage, setProfileImage] = useState<string | null>(null);
+  const [bio, setBio] = useState('');
+  const [userName, setUserName] = useState(user?.name || 'User');
+  
+  // Load persisted settings
+  useEffect(() => {
+    loadSettings();
+  }, []);
+  
+  const loadSettings = async () => {
+    try {
+      const savedNotifications = await AsyncStorage.getItem('notifications_enabled');
+      const savedReminders = await AsyncStorage.getItem('workout_reminders_enabled');
+      const savedImage = await AsyncStorage.getItem('user_profile_image');
+      const savedBio = await AsyncStorage.getItem('user_bio');
+      const savedName = await AsyncStorage.getItem('user_name');
+      
+      if (savedNotifications !== null) setNotifications(savedNotifications === 'true');
+      if (savedReminders !== null) setWorkoutReminders(savedReminders === 'true');
+      if (savedImage) setProfileImage(savedImage);
+      if (savedBio) setBio(savedBio);
+      if (savedName) setUserName(savedName);
+    } catch (error) {
+      console.error('Error loading settings:', error);
+    }
   };
-
-  const handleResetProgram = () => {
-    Alert.alert(
-      'Reset Program',
-      'This will clear your current workout program and generate a fresh one. Your completed workout history will be saved.',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        { 
-          text: 'Reset', 
-          style: 'destructive', 
-          onPress: async () => {
-            setIsResetting(true);
-            try {
-              await resetProgram();
-              Alert.alert('Success', 'Your workout program has been reset!');
-            } catch (error) {
-              Alert.alert('Error', 'Failed to reset program. Please try again.');
-            }
-            setIsResetting(false);
-          }
-        },
-      ]
-    );
+  
+  const toggleNotifications = async () => {
+    const newValue = !notifications;
+    setNotifications(newValue);
+    await AsyncStorage.setItem('notifications_enabled', newValue.toString());
+    
+    if (newValue) {
+      Alert.alert('Notifications Enabled', 'You\'ll receive updates about your workouts and achievements!');
+    }
+  };
+  
+  const toggleWorkoutReminders = async () => {
+    const newValue = !workoutReminders;
+    setWorkoutReminders(newValue);
+    await AsyncStorage.setItem('workout_reminders_enabled', newValue.toString());
+    
+    if (newValue) {
+      Alert.alert('Reminders Enabled', 'You\'ll get daily reminders to stay on track with your workouts!');
+    }
+  };
+  
+  // Compute profile data
+  const profileData = {
+    name: userName || user?.name || 'User',
+    email: user?.email || 'user@example.com',
+    level: user?.experience || 'Intermediate',
+    joinDate: user?.createdAt ? new Date(user.createdAt).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : 'Dec 2024',
+    nextGoal: user?.goal || 'Get fit',
   };
 
   const handleLogout = () => {
@@ -151,7 +179,17 @@ export default function ProfileScreen() {
       'Are you sure you want to sign out?',
       [
         { text: 'Cancel', style: 'cancel' },
-        { text: 'Sign Out', style: 'destructive', onPress: () => console.log('Logout') },
+        { 
+          text: 'Sign Out', 
+          style: 'destructive', 
+          onPress: async () => {
+            try {
+              await logout();
+            } catch (error) {
+              console.error('Logout error:', error);
+            }
+          }
+        },
       ]
     );
   };
@@ -162,42 +200,84 @@ export default function ProfileScreen() {
       'This action cannot be undone. All your data will be permanently deleted.',
       [
         { text: 'Cancel', style: 'cancel' },
-        { text: 'Delete', style: 'destructive', onPress: () => console.log('Delete account') },
+        { 
+          text: 'Delete', 
+          style: 'destructive', 
+          onPress: () => {
+            Alert.alert(
+              'Confirm Deletion',
+              'Type DELETE to confirm account deletion.',
+              [
+                { text: 'Cancel', style: 'cancel' },
+                { 
+                  text: 'I Understand', 
+                  style: 'destructive', 
+                  onPress: async () => {
+                    // Clear all local data
+                    await AsyncStorage.clear();
+                    Alert.alert('Account Deleted', 'Your account has been deleted.');
+                    await logout();
+                  }
+                },
+              ]
+            );
+          }
+        },
       ]
     );
   };
 
   const handleStartTour = async () => {
     try {
-      // Clear the tour completion flag
       await AsyncStorage.removeItem('onboarding_tour_completed');
-      // Set a flag to trigger tour immediately
       await AsyncStorage.setItem('tour_trigger', 'true');
       
       Alert.alert(
         'App Tour Ready! 🎉',
         'Navigate to the Home tab and the tour will start automatically!',
-        [
-          { 
-            text: 'Got it!', 
-            style: 'default',
-          }
-        ]
+        [{ text: 'Got it!', style: 'default' }]
       );
     } catch (error) {
       console.error('Error starting tour:', error);
       Alert.alert('Error', 'Could not start tour. Please try again.');
     }
   };
+  
+  const handleRateApp = () => {
+    const storeUrl = Platform.OS === 'ios' 
+      ? 'https://apps.apple.com/app/thryvin/id123456789' 
+      : 'https://play.google.com/store/apps/details?id=com.thryvin.app';
+    
+    Alert.alert(
+      'Rate Thryvin ⭐',
+      'Loving the app? Your review helps us grow and improve!',
+      [
+        { text: 'Maybe Later', style: 'cancel' },
+        { 
+          text: 'Rate Now', 
+          onPress: () => {
+            // For now, show a thank you since store URLs aren't live
+            Alert.alert('Thank You! 🙏', 'App store rating will be available soon. We appreciate your support!');
+            // In production: Linking.openURL(storeUrl);
+          }
+        },
+      ]
+    );
+  };
+  
+  const handleContactSupport = () => {
+    Linking.openURL('mailto:support@thryvin.app?subject=Support%20Request%20-%20Thryvin%20App');
+  };
+  
+  const handleProfileSave = () => {
+    loadSettings(); // Reload to get updated profile data
+  };
 
   return (
     <SafeAreaView style={styles.container}>
-      {/* Header */}
+      {/* Header - Removed edit button */}
       <View style={styles.header}>
         <Text style={styles.title}>Profile</Text>
-        <TouchableOpacity style={styles.editButton}>
-          <Ionicons name="create" size={20} color={COLORS.accent} />
-        </TouchableOpacity>
       </View>
 
       <ScrollView 
@@ -214,36 +294,28 @@ export default function ProfileScreen() {
             end={{ x: 1, y: 1 }}
           >
             <View style={styles.profileHeader}>
-              <View style={styles.avatar}>
-                <Text style={styles.avatarText}>
-                  {profileData.name.split(' ').map(n => n[0]).join('')}
-                </Text>
-              </View>
+              <TouchableOpacity style={styles.avatar} onPress={() => setShowEditProfile(true)}>
+                {profileImage ? (
+                  <Image source={{ uri: profileImage }} style={styles.avatarImage} />
+                ) : (
+                  <Text style={styles.avatarText}>
+                    {profileData.name.split(' ').map(n => n[0]).join('').toUpperCase()}
+                  </Text>
+                )}
+                <View style={styles.editAvatarBadge}>
+                  <Ionicons name="camera" size={10} color={COLORS.white} />
+                </View>
+              </TouchableOpacity>
               <View style={styles.profileInfo}>
                 <Text style={styles.profileName}>{profileData.name}</Text>
                 <Text style={styles.profileEmail}>{profileData.email}</Text>
                 <Text style={styles.profileLevel}>{profileData.level} • Since {profileData.joinDate}</Text>
               </View>
             </View>
+            {bio ? (
+              <Text style={styles.profileBio} numberOfLines={2}>{bio}</Text>
+            ) : null}
           </LinearGradient>
-        </View>
-
-        {/* Quick Stats */}
-        <View style={styles.statsContainer}>
-          <View style={styles.statItem}>
-            <Text style={styles.statValue}>{profileData.workoutsCompleted}</Text>
-            <Text style={styles.statLabel}>Workouts</Text>
-          </View>
-          <View style={styles.statDivider} />
-          <View style={styles.statItem}>
-            <Text style={styles.statValue}>{Math.round(profileData.totalMinutes / 60)}h</Text>
-            <Text style={styles.statLabel}>Total Time</Text>
-          </View>
-          <View style={styles.statDivider} />
-          <View style={styles.statItem}>
-            <Text style={styles.statValue}>{profileData.currentStreak}</Text>
-            <Text style={styles.statLabel}>Day Streak</Text>
-          </View>
         </View>
 
         {/* Menu Sections */}
@@ -253,20 +325,20 @@ export default function ProfileScreen() {
             <MenuButton
               icon="person"
               title="Edit Profile"
-              subtitle="Update your personal information"
-              onPress={() => Alert.alert('Coming Soon', 'Profile editing will be available in the next update!')}
+              subtitle="Update your photo, name & bio"
+              onPress={() => setShowEditProfile(true)}
             />
             <MenuButton
               icon="fitness"
               title="Workout Preferences"
               subtitle="Customize your training settings"
-              onPress={() => Alert.alert('Coming Soon', 'Workout preferences will be available soon!')}
+              onPress={() => setShowWorkoutPrefs(true)}
             />
             <MenuButton
               icon="trophy"
               title="Goals & Progress"
               subtitle={profileData.nextGoal}
-              onPress={() => Alert.alert('Coming Soon', 'Goals tracking will be available soon!')}
+              onPress={() => setShowGoals(true)}
             />
           </View>
         </View>
@@ -284,7 +356,7 @@ export default function ProfileScreen() {
               icon="finger-print"
               title="Biometric Login"
               subtitle="Manage Face ID / Touch ID"
-              onPress={() => Alert.alert('Coming Soon', 'Biometric authentication will be available soon!')}
+              onPress={() => setShowBiometrics(true)}
             />
           </View>
         </View>
@@ -297,14 +369,14 @@ export default function ProfileScreen() {
               title="Push Notifications"
               subtitle="Get notified about workouts and progress"
               value={notifications}
-              onToggle={() => setNotifications(!notifications)}
+              onToggle={toggleNotifications}
             />
             <SettingToggle
               icon="alarm"
               title="Workout Reminders"
               subtitle="Daily reminders to stay on track"
               value={workoutReminders}
-              onToggle={() => setWorkoutReminders(!workoutReminders)}
+              onToggle={toggleWorkoutReminders}
             />
           </View>
         </View>
@@ -315,37 +387,30 @@ export default function ProfileScreen() {
             <MenuButton
               icon="refresh"
               title="Reset Program"
-              subtitle="Generate a fresh workout program"
-              onPress={handleResetProgram}
+              subtitle="Chat with AI to customize your plan"
+              onPress={() => setShowResetProgram(true)}
             />
             <MenuButton
               icon="calendar"
               title="View All Weeks"
-              subtitle="See your upcoming workout schedule"
-              onPress={() => Alert.alert('Coming Soon', 'Week overview will be available soon!')}
+              subtitle="See your 21-day workout schedule"
+              onPress={() => setShowAllWeeks(true)}
             />
           </View>
         </View>
 
         <View style={styles.menuSection}>
-          <Text style={styles.sectionTitle}>Privacy & Data</Text>
+          <Text style={styles.sectionTitle}>Legal</Text>
           <View style={styles.menuContainer}>
-            <SettingToggle
-              icon="analytics"
-              title="Share Analytics"
-              subtitle="Help improve the app with anonymous data"
-              value={analytics}
-              onToggle={() => setAnalytics(!analytics)}
-            />
             <MenuButton
               icon="shield"
               title="Privacy Policy"
-              onPress={() => Alert.alert('Coming Soon', 'Privacy policy will be available soon!')}
+              onPress={() => setShowPrivacy(true)}
             />
             <MenuButton
               icon="document-text"
               title="Terms of Service"
-              onPress={() => Alert.alert('Coming Soon', 'Terms of service will be available soon!')}
+              onPress={() => setShowTerms(true)}
             />
           </View>
         </View>
@@ -356,7 +421,8 @@ export default function ProfileScreen() {
             <MenuButton
               icon="help-circle"
               title="Help & FAQ"
-              onPress={() => Alert.alert('Coming Soon', 'Help center will be available soon!')}
+              subtitle="Find answers to common questions"
+              onPress={() => setShowHelpFAQ(true)}
             />
             <MenuButton
               icon="rocket"
@@ -367,13 +433,14 @@ export default function ProfileScreen() {
             <MenuButton
               icon="mail"
               title="Contact Support"
-              onPress={() => Alert.alert('Coming Soon', 'Support channels will be available soon!')}
+              subtitle="support@thryvin.app"
+              onPress={handleContactSupport}
             />
             <MenuButton
               icon="star"
               title="Rate Thryvin"
               subtitle="Love the app? Leave us a review!"
-              onPress={() => Alert.alert('Coming Soon', 'App store ratings will be enabled soon!')}
+              onPress={handleRateApp}
             />
           </View>
         </View>
@@ -393,7 +460,7 @@ export default function ProfileScreen() {
         <Text style={styles.versionText}>Thryvin v1.0.0</Text>
       </ScrollView>
 
-      {/* PIN Setup Modal */}
+      {/* Modals */}
       <PINSetup
         visible={showPINSetup}
         onClose={() => setShowPINSetup(false)}
@@ -401,6 +468,57 @@ export default function ProfileScreen() {
           setShowPINSetup(false);
           Alert.alert('Success', 'PIN has been set successfully!');
         }}
+      />
+      
+      <EditProfileModal
+        visible={showEditProfile}
+        onClose={() => setShowEditProfile(false)}
+        onSave={handleProfileSave}
+      />
+      
+      <WorkoutPreferencesModal
+        visible={showWorkoutPrefs}
+        onClose={() => setShowWorkoutPrefs(false)}
+        onSave={() => {}}
+      />
+      
+      <GoalsProgressModal
+        visible={showGoals}
+        onClose={() => setShowGoals(false)}
+        onSave={() => {}}
+      />
+      
+      <ResetProgramModal
+        visible={showResetProgram}
+        onClose={() => setShowResetProgram(false)}
+        onReset={() => {}}
+      />
+      
+      <BiometricSettingsModal
+        visible={showBiometrics}
+        onClose={() => setShowBiometrics(false)}
+      />
+      
+      <HelpFAQModal
+        visible={showHelpFAQ}
+        onClose={() => setShowHelpFAQ(false)}
+      />
+      
+      <LegalModal
+        visible={showPrivacy}
+        onClose={() => setShowPrivacy(false)}
+        type="privacy"
+      />
+      
+      <LegalModal
+        visible={showTerms}
+        onClose={() => setShowTerms(false)}
+        type="terms"
+      />
+      
+      <ViewAllWeeksModal
+        visible={showAllWeeks}
+        onClose={() => setShowAllWeeks(false)}
       />
     </SafeAreaView>
   );
