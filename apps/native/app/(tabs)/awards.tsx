@@ -520,79 +520,171 @@ const journeyStyles = StyleSheet.create({
   finalGoalSubtext: { fontSize: 13, color: COLORS.mediumGray, marginTop: 4, textAlign: 'center' },
 });
 
-// Badge Detail Modal
+// Enhanced Badge Detail Modal
 const BadgeDetailModal = ({ visible, onClose, badge, userBadge, onShare }: { visible: boolean; onClose: () => void; badge: Badge | null; userBadge?: UserBadge; onShare: () => void }) => {
+  const slideAnim = useRef(new Animated.Value(SCREEN_HEIGHT)).current;
+  
+  useEffect(() => {
+    if (visible) {
+      Animated.spring(slideAnim, { toValue: 0, friction: 8, tension: 40, useNativeDriver: true }).start();
+    } else {
+      slideAnim.setValue(SCREEN_HEIGHT);
+    }
+  }, [visible]);
+  
   if (!badge) return null;
   const isUnlocked = userBadge?.completed;
   const progress = userBadge?.progress || 0;
   const progressPercent = Math.min((progress / badge.targetValue) * 100, 100);
   const rarityColor = RARITY_COLORS[badge.rarity];
+  const categoryInfo = CATEGORY_INFO[badge.category];
+  const island = ISLANDS.find(i => i.id === badge.island);
   
   return (
-    <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose}>
-      <View style={styles.modalOverlay}>
-        <View style={styles.modalContent}>
-          <TouchableOpacity style={styles.modalClose} onPress={onClose}>
-            <Ionicons name="close" size={24} color={COLORS.mediumGray} />
-          </TouchableOpacity>
+    <Modal visible={visible} animationType="fade" transparent onRequestClose={onClose}>
+      <View style={detailStyles.overlay}>
+        <TouchableOpacity style={detailStyles.backdrop} onPress={onClose} activeOpacity={1} />
+        <Animated.View style={[detailStyles.content, { transform: [{ translateY: slideAnim }] }]}>
+          {/* Header with gradient based on badge */}
+          <LinearGradient 
+            colors={isUnlocked ? badge.gradient as any : ['#E0E0E0', '#B0B0B0']} 
+            style={detailStyles.header}
+            start={{ x: 0, y: 0 }} 
+            end={{ x: 1, y: 1 }}
+          >
+            <TouchableOpacity style={detailStyles.closeButton} onPress={onClose}>
+              <Ionicons name="close" size={22} color={COLORS.white} />
+            </TouchableOpacity>
+            
+            {/* Rarity banner */}
+            <View style={[detailStyles.rarityBanner, { backgroundColor: rarityColor.bg }]}>
+              {badge.rarity === 'legendary' && <Ionicons name="diamond" size={12} color={rarityColor.text} />}
+              {badge.rarity === 'epic' && <Ionicons name="star" size={12} color={rarityColor.text} />}
+              <Text style={[detailStyles.rarityText, { color: rarityColor.text }]}>{RARITY_LABELS[badge.rarity]}</Text>
+            </View>
+            
+            {/* Badge icon */}
+            <View style={detailStyles.iconContainer}>
+              <View style={[detailStyles.iconCircle, isUnlocked && detailStyles.iconCircleUnlocked]}>
+                <Ionicons name={badge.icon as any} size={48} color={isUnlocked ? COLORS.white : COLORS.mediumGray} />
+              </View>
+              {isUnlocked && (
+                <View style={detailStyles.checkmark}>
+                  <Ionicons name="checkmark" size={16} color={COLORS.white} />
+                </View>
+              )}
+            </View>
+          </LinearGradient>
           
-          <View style={styles.modalIconContainer}>
+          {/* Content */}
+          <View style={detailStyles.body}>
+            <Text style={detailStyles.badgeName}>{badge.name}</Text>
+            <Text style={detailStyles.badgeDesc}>{badge.description}</Text>
+            
+            {/* Meta info row */}
+            <View style={detailStyles.metaRow}>
+              <View style={detailStyles.metaItem}>
+                <View style={[detailStyles.metaIcon, { backgroundColor: COLORS.warning + '20' }]}>
+                  <Ionicons name="star" size={14} color={COLORS.warning} />
+                </View>
+                <Text style={detailStyles.metaValue}>{badge.xp}</Text>
+                <Text style={detailStyles.metaLabel}>XP</Text>
+              </View>
+              <View style={detailStyles.metaItem}>
+                <View style={[detailStyles.metaIcon, { backgroundColor: categoryInfo.color + '20' }]}>
+                  <Ionicons name={categoryInfo.icon as any} size={14} color={categoryInfo.color} />
+                </View>
+                <Text style={detailStyles.metaValue}>{categoryInfo.label}</Text>
+                <Text style={detailStyles.metaLabel}>Category</Text>
+              </View>
+              <View style={detailStyles.metaItem}>
+                <View style={[detailStyles.metaIcon, { backgroundColor: COLORS.gradientStart + '20' }]}>
+                  <Text style={{ fontSize: 12 }}>{island?.emoji}</Text>
+                </View>
+                <Text style={detailStyles.metaValue}>Island {badge.island}</Text>
+                <Text style={detailStyles.metaLabel}>{island?.name}</Text>
+              </View>
+            </View>
+            
+            {/* Progress or Unlocked status */}
             {isUnlocked ? (
-              <LinearGradient colors={badge.gradient as any} style={styles.modalIconGradient} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}>
-                <Ionicons name={badge.icon as any} size={52} color={COLORS.white} />
-              </LinearGradient>
+              <View style={detailStyles.unlockedSection}>
+                <View style={detailStyles.unlockedBadge}>
+                  <Ionicons name="checkmark-circle" size={20} color={COLORS.success} />
+                  <Text style={detailStyles.unlockedText}>
+                    Unlocked {userBadge?.unlockedAt ? new Date(userBadge.unlockedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : ''}
+                  </Text>
+                </View>
+                
+                <TouchableOpacity onPress={onShare} activeOpacity={0.8}>
+                  <LinearGradient colors={[COLORS.gradientStart, COLORS.gradientEnd]} style={detailStyles.shareButton}>
+                    <Ionicons name="share-social" size={18} color={COLORS.white} />
+                    <Text style={detailStyles.shareText}>Share Achievement</Text>
+                  </LinearGradient>
+                </TouchableOpacity>
+              </View>
             ) : (
-              <View style={styles.modalIconLocked}>
-                <Ionicons name={badge.icon as any} size={52} color={COLORS.mediumGray} />
+              <View style={detailStyles.progressSection}>
+                <View style={detailStyles.progressHeader}>
+                  <Text style={detailStyles.progressTitle}>Progress</Text>
+                  <Text style={detailStyles.progressPercent}>{Math.round(progressPercent)}%</Text>
+                </View>
+                <View style={detailStyles.progressBarOuter}>
+                  <LinearGradient 
+                    colors={badge.gradient as any} 
+                    style={[detailStyles.progressBarInner, { width: `${progressPercent}%` }]} 
+                    start={{ x: 0, y: 0 }} 
+                    end={{ x: 1, y: 0 }} 
+                  />
+                </View>
+                <Text style={detailStyles.progressNumbers}>{progress} / {badge.targetValue}</Text>
               </View>
             )}
           </View>
-          
-          <View style={[styles.modalRarityTag, { backgroundColor: rarityColor.bg }]}>
-            <Text style={[styles.modalRarityText, { color: rarityColor.text }]}>{RARITY_LABELS[badge.rarity]}</Text>
-          </View>
-          
-          <Text style={styles.modalBadgeName}>{badge.name}</Text>
-          <Text style={styles.modalBadgeDescription}>{badge.description}</Text>
-          
-          {isUnlocked ? (
-            <>
-              <View style={styles.modalUnlocked}>
-                <Ionicons name="checkmark-circle" size={22} color={COLORS.success} />
-                <Text style={styles.modalUnlockedText}>Unlocked {userBadge?.unlockedAt ? new Date(userBadge.unlockedAt).toLocaleDateString() : ''}</Text>
-              </View>
-              <TouchableOpacity style={styles.shareButton} onPress={onShare}>
-                <LinearGradient colors={[COLORS.gradientStart, COLORS.gradientEnd]} style={styles.shareButtonGradient} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}>
-                  <Ionicons name="share-social" size={18} color={COLORS.white} />
-                  <Text style={styles.shareButtonText}>Share</Text>
-                </LinearGradient>
-              </TouchableOpacity>
-            </>
-          ) : (
-            <View style={styles.modalProgress}>
-              <Text style={styles.modalProgressLabel}>Progress</Text>
-              <View style={styles.modalProgressBar}>
-                <LinearGradient colors={badge.gradient as any} style={[styles.modalProgressFill, { width: `${progressPercent}%` }]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} />
-              </View>
-              <Text style={styles.modalProgressText}>{progress} / {badge.targetValue}</Text>
-            </View>
-          )}
-          
-          <View style={styles.modalMeta}>
-            <View style={styles.modalMetaItem}>
-              <Ionicons name="star" size={16} color={COLORS.warning} />
-              <Text style={styles.modalMetaText}>{badge.xp} XP</Text>
-            </View>
-            <View style={styles.modalMetaItem}>
-              <Ionicons name={CATEGORY_INFO[badge.category].icon as any} size={16} color={COLORS.mediumGray} />
-              <Text style={styles.modalMetaText}>{CATEGORY_INFO[badge.category].label}</Text>
-            </View>
-          </View>
-        </View>
+        </Animated.View>
       </View>
     </Modal>
   );
 };
+
+const detailStyles = StyleSheet.create({
+  overlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' },
+  backdrop: { flex: 1 },
+  content: { backgroundColor: COLORS.white, borderTopLeftRadius: 28, borderTopRightRadius: 28, overflow: 'hidden' },
+  
+  header: { paddingTop: 20, paddingBottom: 30, alignItems: 'center', position: 'relative' },
+  closeButton: { position: 'absolute', top: 16, right: 16, padding: 6, backgroundColor: 'rgba(0,0,0,0.2)', borderRadius: 16 },
+  rarityBanner: { paddingHorizontal: 14, paddingVertical: 5, borderRadius: 14, flexDirection: 'row', alignItems: 'center', gap: 4, marginBottom: 16 },
+  rarityText: { fontSize: 12, fontWeight: '700' },
+  iconContainer: { position: 'relative' },
+  iconCircle: { width: 90, height: 90, borderRadius: 45, backgroundColor: 'rgba(255,255,255,0.3)', justifyContent: 'center', alignItems: 'center' },
+  iconCircleUnlocked: { backgroundColor: 'rgba(255,255,255,0.2)' },
+  checkmark: { position: 'absolute', bottom: 0, right: 0, width: 28, height: 28, borderRadius: 14, backgroundColor: COLORS.success, justifyContent: 'center', alignItems: 'center', borderWidth: 3, borderColor: COLORS.white },
+  
+  body: { padding: 24 },
+  badgeName: { fontSize: 24, fontWeight: '700', color: COLORS.text, textAlign: 'center' },
+  badgeDesc: { fontSize: 15, color: COLORS.mediumGray, textAlign: 'center', marginTop: 6, marginBottom: 20 },
+  
+  metaRow: { flexDirection: 'row', justifyContent: 'space-around', marginBottom: 24 },
+  metaItem: { alignItems: 'center' },
+  metaIcon: { width: 40, height: 40, borderRadius: 20, justifyContent: 'center', alignItems: 'center', marginBottom: 6 },
+  metaValue: { fontSize: 14, fontWeight: '600', color: COLORS.text },
+  metaLabel: { fontSize: 11, color: COLORS.mediumGray, marginTop: 2 },
+  
+  unlockedSection: { alignItems: 'center' },
+  unlockedBadge: { flexDirection: 'row', alignItems: 'center', backgroundColor: COLORS.success + '15', paddingHorizontal: 16, paddingVertical: 10, borderRadius: 20, marginBottom: 16 },
+  unlockedText: { fontSize: 14, color: COLORS.success, fontWeight: '600', marginLeft: 8 },
+  shareButton: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 28, paddingVertical: 14, borderRadius: 16 },
+  shareText: { fontSize: 15, fontWeight: '600', color: COLORS.white, marginLeft: 8 },
+  
+  progressSection: { },
+  progressHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 },
+  progressTitle: { fontSize: 14, fontWeight: '600', color: COLORS.text },
+  progressPercent: { fontSize: 14, fontWeight: '700', color: COLORS.gradientStart },
+  progressBarOuter: { height: 10, backgroundColor: '#E8E8E8', borderRadius: 5, overflow: 'hidden' },
+  progressBarInner: { height: '100%', borderRadius: 5 },
+  progressNumbers: { fontSize: 13, color: COLORS.mediumGray, textAlign: 'center', marginTop: 8 },
+});
 
 // Unlock Celebration
 const UnlockCelebrationModal = ({ visible, onClose, badges }: { visible: boolean; onClose: () => void; badges: Badge[] }) => {
