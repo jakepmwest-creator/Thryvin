@@ -471,7 +471,7 @@ export default function WorkoutsScreen() {
               <TouchableOpacity
                 key={category.id}
                 style={styles.categoryCard}
-                onPress={() => console.log('Category:', category.name)}
+                onPress={() => handleCategoryPress(category)}
               >
                 <LinearGradient
                   colors={category.gradient}
@@ -490,6 +490,14 @@ export default function WorkoutsScreen() {
           </View>
         </View>
       </ScrollView>
+      
+      {/* Explore Workouts Modal */}
+      <ExploreWorkoutsModal
+        visible={exploreModalVisible}
+        onClose={() => setExploreModalVisible(false)}
+        category={selectedCategory}
+        categoryGradient={selectedCategoryGradient}
+      />
     </SafeAreaView>
   );
 }
