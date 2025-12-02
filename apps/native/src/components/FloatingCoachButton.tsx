@@ -166,6 +166,118 @@ export function FloatingCoachButton() {
     }
   };
 
+  // Detect workout intents and handle locally
+  const detectWorkoutIntent = (message: string): { handled: boolean; response?: string; action?: { type: string; params?: any } } => {
+    const lower = message.toLowerCase();
+    
+    // Swap days intent
+    if (lower.includes('swap') || lower.includes('switch') || lower.includes('move')) {
+      const days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+      const dayMap: Record<string, number> = { 
+        monday: 0, tuesday: 1, wednesday: 2, thursday: 3, 
+        friday: 4, saturday: 5, sunday: 6,
+        mon: 0, tue: 1, wed: 2, thu: 3, fri: 4, sat: 5, sun: 6
+      };
+      
+      // Find mentioned days
+      const mentionedDays: number[] = [];
+      for (const [key, index] of Object.entries(dayMap)) {
+        if (lower.includes(key)) {
+          mentionedDays.push(index);
+        }
+      }
+      
+      // Check for "today" and "tomorrow"
+      if (lower.includes('today')) {
+        const today = new Date().getDay();
+        mentionedDays.push(today === 0 ? 6 : today - 1);
+      }
+      if (lower.includes('tomorrow')) {
+        const today = new Date().getDay();
+        const tomorrow = today === 6 ? 0 : today;
+        mentionedDays.push(tomorrow);
+      }
+      
+      if (mentionedDays.length >= 2) {
+        const [from, to] = mentionedDays;
+        return {
+          handled: true,
+          response: `Got it! I'll swap those workout days for you. 📅\n\nConfirm by tapping the button below, or just say "yes" to proceed!`,
+          action: { type: 'swap', params: { from, to } }
+        };
+      } else {
+        return {
+          handled: true,
+          response: "Which days would you like to swap? 📅\n\nTry saying: 'Swap Wednesday with Thursday' or 'Switch today and tomorrow'"
+        };
+      }
+    }
+    
+    // Regenerate workout intent
+    if (lower.includes('new workout') || lower.includes('regenerate') || lower.includes('different workout') || lower.includes('fresh workout')) {
+      return {
+        handled: true,
+        response: "Sure! I'll generate a fresh workout for you. 💪\n\nThis will create new exercises while keeping your preferences.\n\nConfirm to regenerate?",
+        action: { type: 'regenerate' }
+      };
+    }
+    
+    // Intensity change
+    if (lower.includes('harder') || lower.includes('intense') || lower.includes('challenging')) {
+      return {
+        handled: true,
+        response: "Let's crank up the intensity! 🔥\n\nI'll regenerate your workout with:\n• More sets\n• Shorter rest periods\n• Compound movements\n\nReady to make it harder?",
+        action: { type: 'regenerate' }
+      };
+    }
+    
+    // Shorter workout
+    if (lower.includes('shorter') || lower.includes('quick') || lower.includes('less time') || lower.includes('30 min')) {
+      return {
+        handled: true,
+        response: "No problem! ⏱️ I'll create a quick but effective workout.\n\nUsing supersets and compound moves to maximize your time.\n\nShall I regenerate with a shorter duration?",
+        action: { type: 'regenerate' }
+      };
+    }
+    
+    // Yes/confirm handling for pending action
+    if (pendingAction && (lower === 'yes' || lower === 'confirm' || lower === 'do it' || lower === 'go ahead')) {
+      return { handled: true, response: 'executing_action' };
+    }
+    
+    return { handled: false };
+  };
+  
+  // Execute pending action
+  const executeAction = async (action: { type: string; params?: any }) => {
+    try {
+      switch (action.type) {
+        case 'swap':
+          if (action.params?.from !== undefined && action.params?.to !== undefined) {
+            await swapWorkoutDays(action.params.from, action.params.to);
+            setMessages(prev => [...prev, { 
+              role: 'assistant', 
+              text: "Done! ✅ I've swapped your workout days. Check your schedule to see the changes!" 
+            }]);
+          }
+          break;
+        case 'regenerate':
+          await forceRegenerateWeek();
+          setMessages(prev => [...prev, { 
+            role: 'assistant', 
+            text: "Done! ✅ Your workout has been regenerated with fresh exercises. Go crush it! 💪" 
+          }]);
+          break;
+      }
+    } catch (error) {
+      setMessages(prev => [...prev, { 
+        role: 'assistant', 
+        text: "Oops, something went wrong. 😓 Please try again!" 
+      }]);
+    }
+    setPendingAction(null);
+  };
+
   const handleSend = async () => {
     if (!inputText.trim() || isLoading) return;
 
@@ -175,10 +287,32 @@ export function FloatingCoachButton() {
     setMessages(prev => [...prev, { role: 'user', text: userMessage }]);
     setIsLoading(true);
 
+    // First check for workout intents
+    const intentResult = detectWorkoutIntent(userMessage);
+    
+    if (intentResult.handled) {
+      if (intentResult.response === 'executing_action' && pendingAction) {
+        await executeAction(pendingAction);
+      } else if (intentResult.response) {
+        setMessages(prev => [...prev, { role: 'assistant', text: intentResult.response! }]);
+        if (intentResult.action) {
+          setPendingAction(intentResult.action);
+        }
+      }
+      setIsLoading(false);
+      return;
+    }
+    
+    // Otherwise, call OpenAI
     const aiResponse = await callOpenAI(userMessage);
     
     setMessages(prev => [...prev, { role: 'assistant', text: aiResponse }]);
     setIsLoading(false);
+  };
+
+  // Handle quick action
+  const handleQuickAction = (action: typeof QUICK_ACTIONS[0]) => {
+    setInputText(action.prompt);
   };
 
   // Handle voice transcription
