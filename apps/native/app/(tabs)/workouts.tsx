@@ -14,6 +14,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { AppHeader } from '../../src/components/AppHeader';
 import { WorkoutDetailsModal } from '../../src/components/WorkoutDetailsModal';
+import { ExploreWorkoutsModal } from '../../src/components/ExploreWorkoutsModal';
 import { useWorkoutStore } from '../../src/stores/workout-store';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
