@@ -97,8 +97,20 @@ export default function WorkoutsScreen() {
   const [selectedFullDate, setSelectedFullDate] = useState<Date>(new Date()); // Full date for navigation
   const [modalVisible, setModalVisible] = useState(false);
   
+  // Explore Workouts modal state
+  const [exploreModalVisible, setExploreModalVisible] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState<string>('Strength');
+  const [selectedCategoryGradient, setSelectedCategoryGradient] = useState<string[]>(COLORS.strength);
+  
   // Connect to workout store
   const { currentWorkout, todayWorkout, weekWorkouts, completedWorkouts, isLoading, fetchTodayWorkout, fetchWeekWorkouts } = useWorkoutStore();
+  
+  // Handle category press for Explore Workouts
+  const handleCategoryPress = (category: { name: string; gradient: string[] }) => {
+    setSelectedCategory(category.name);
+    setSelectedCategoryGradient(category.gradient);
+    setExploreModalVisible(true);
+  };
   
   // Check if a date has a workout (not rest day)
   const hasWorkout = (date: Date) => {
