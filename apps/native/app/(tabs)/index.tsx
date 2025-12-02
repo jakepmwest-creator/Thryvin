@@ -128,6 +128,7 @@ export default function HomeScreen() {
     forceRegenerateWeek,
     fetchStats,
     fetchPersonalBests,
+    completedWorkouts,
   } = useWorkoutStore();
 
   const loadAllData = async () => {
@@ -144,6 +145,14 @@ export default function HomeScreen() {
     console.log('📱 [HOME] EXPO_PUBLIC_API_BASE_URL:', process.env.EXPO_PUBLIC_API_BASE_URL);
     loadAllData();
   }, []);
+  
+  // Auto-update stats when completed workouts change
+  useEffect(() => {
+    if (completedWorkouts.length > 0) {
+      console.log('📊 [HOME] Completed workouts changed, refreshing stats...');
+      fetchStats();
+    }
+  }, [completedWorkouts.length]);
   
   // Register tour elements and update positions
   useEffect(() => {
