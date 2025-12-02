@@ -100,6 +100,7 @@ const ProgressRing = ({ label, progress, colors, size = 70, onPress }: any) => {
 export default function HomeScreen() {
   const [modalVisible, setModalVisible] = useState(false);
   const [ringDetailsVisible, setRingDetailsVisible] = useState<string | null>(null);
+  const [showAICoach, setShowAICoach] = useState(false);
   const [chartModalVisible, setChartModalVisible] = useState(false);
   const [selectedExercise, setSelectedExercise] = useState<any>(null);
   const [refreshing, setRefreshing] = useState(false);
