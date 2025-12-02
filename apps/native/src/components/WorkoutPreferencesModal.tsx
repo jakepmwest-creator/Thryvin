@@ -450,6 +450,19 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: COLORS.accent,
   },
+  regeneratingBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: COLORS.accent,
+    paddingVertical: 10,
+    gap: 8,
+  },
+  regeneratingText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: COLORS.white,
+  },
   content: {
     padding: 20,
   },
