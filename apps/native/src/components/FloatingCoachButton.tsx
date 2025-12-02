@@ -341,10 +341,25 @@ export function FloatingCoachButton() {
           }
           break;
         case 'regenerate':
+          setMessages(prev => [...prev, { 
+            role: 'assistant', 
+            text: "🔄 Regenerating your workout... This may take a moment." 
+          }]);
           await forceRegenerateWeek();
           setMessages(prev => [...prev, { 
             role: 'assistant', 
             text: "Done! ✅ Your workout has been regenerated with fresh exercises. Go crush it! 💪" 
+          }]);
+          break;
+        case 'reset':
+          setMessages(prev => [...prev, { 
+            role: 'assistant', 
+            text: "🔄 Resetting your program... Creating a fresh 3-week plan." 
+          }]);
+          await resetProgram();
+          setMessages(prev => [...prev, { 
+            role: 'assistant', 
+            text: "Done! ✅ Your program has been reset. You have a brand new 3-week workout plan ready to go! 🎯" 
           }]);
           break;
       }
