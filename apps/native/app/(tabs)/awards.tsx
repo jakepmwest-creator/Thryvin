@@ -9,6 +9,7 @@ import {
   Modal,
   Animated,
   FlatList,
+  Share,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -20,21 +21,69 @@ import {
   BADGE_DEFINITIONS, 
   RARITY_COLORS, 
   RARITY_LABELS,
+  ISLANDS,
   Badge,
   UserBadge,
   BadgeCategory,
+  Island,
 } from '../../src/stores/awards-store';
 import { useWorkoutStore } from '../../src/stores/workout-store';
 
-const { width: SCREEN_WIDTH } = Dimensions.get('window');
+const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
-// Category labels and icons
-const CATEGORY_INFO: Record<BadgeCategory, { label: string; icon: string; gradient: string[] }> = {
-  consistency: { label: 'Consistency', icon: 'flame', gradient: ['#FF6B35', '#FFD60A'] },
-  volume: { label: 'Volume', icon: 'barbell', gradient: ['#5B8DEF', '#34C4E5'] },
-  focus: { label: 'Focus', icon: 'body', gradient: ['#34C759', '#00C7BE'] },
-  program: { label: 'Program', icon: 'trophy', gradient: ['#FFD700', '#FFA500'] },
-  challenge: { label: 'Challenge', icon: 'flash', gradient: ['#A22BF6', '#FF4EC7'] },
+// Category info
+const CATEGORY_INFO: Record<BadgeCategory, { label: string; icon: string }> = {
+  consistency: { label: 'Consistency', icon: 'flame' },
+  volume: { label: 'Volume', icon: 'barbell' },
+  focus: { label: 'Focus', icon: 'body' },
+  program: { label: 'Program', icon: 'trophy' },
+  challenge: { label: 'Challenge', icon: 'flash' },
+};
+
+// Island Card for the selector
+const IslandCard = ({ 
+  island, 
+  isCurrentIsland, 
+  isUnlocked, 
+  onPress 
+}: { 
+  island: Island; 
+  isCurrentIsland: boolean; 
+  isUnlocked: boolean;
+  onPress: () => void;
+}) => {
+  return (
+    <TouchableOpacity 
+      style={[styles.islandCard, isCurrentIsland && styles.islandCardCurrent]}
+      onPress={onPress}
+      disabled={!isUnlocked}
+      activeOpacity={0.8}
+    >
+      {isUnlocked ? (
+        <LinearGradient
+          colors={island.gradient as any}
+          style={styles.islandCardGradient}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+        >
+          <Text style={styles.islandEmoji}>{island.emoji}</Text>
+          <Text style={styles.islandCardName}>{island.name}</Text>
+          <Text style={styles.islandCardSubtitle}>{island.subtitle}</Text>
+          {isCurrentIsland && (
+            <View style={styles.currentBadge}>
+              <Text style={styles.currentBadgeText}>YOU ARE HERE</Text>
+            </View>
+          )}
+        </LinearGradient>
+      ) : (
+        <View style={styles.islandCardLocked}>
+          <Ionicons name="lock-closed" size={32} color={COLORS.mediumGray} />
+          <Text style={styles.islandLockedName}>{island.name}</Text>
+          <Text style={styles.islandLockedReq}>{island.requiredBadges} badges to unlock</Text>
+        </View>
+      )}
+    </TouchableOpacity>
+  );
 };
 
 // Badge Card Component
@@ -42,29 +91,29 @@ const BadgeCard = ({
   badge, 
   userBadge, 
   onPress,
-  size = 'normal'
+  isAvailable,
 }: { 
   badge: Badge; 
   userBadge?: UserBadge;
   onPress: () => void;
-  size?: 'normal' | 'small';
+  isAvailable: boolean;
 }) => {
   const isUnlocked = userBadge?.completed;
   const progress = userBadge?.progress || 0;
   const progressPercent = Math.min((progress / badge.targetValue) * 100, 100);
   const rarityColor = RARITY_COLORS[badge.rarity];
   
-  const cardWidth = size === 'small' ? 140 : 160;
-  
   return (
     <TouchableOpacity 
-      style={[styles.badgeCard, { width: cardWidth }]} 
+      style={styles.badgeCard} 
       onPress={onPress}
       activeOpacity={0.8}
+      disabled={!isAvailable}
     >
       <View style={[
         styles.badgeCardInner,
         !isUnlocked && styles.badgeCardLocked,
+        !isAvailable && styles.badgeCardUnavailable,
         isUnlocked && { borderColor: rarityColor.border, borderWidth: 2 },
       ]}>
         {/* Rarity Tag */}
@@ -83,11 +132,11 @@ const BadgeCard = ({
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 1 }}
             >
-              <Ionicons name={badge.icon as any} size={32} color={COLORS.white} />
+              <Ionicons name={badge.icon as any} size={28} color={COLORS.white} />
             </LinearGradient>
           ) : (
-            <View style={styles.badgeIconLocked}>
-              <Ionicons name={badge.icon as any} size={32} color={COLORS.mediumGray} />
+            <View style={[styles.badgeIconLocked, !isAvailable && { opacity: 0.4 }]}>
+              <Ionicons name={badge.icon as any} size={28} color={COLORS.mediumGray} />
             </View>
           )}
         </View>
@@ -97,13 +146,13 @@ const BadgeCard = ({
           {badge.name}
         </Text>
         
-        {/* Progress or Unlocked Date */}
+        {/* Progress or Unlocked */}
         {isUnlocked ? (
           <View style={styles.unlockedBadge}>
             <Ionicons name="checkmark-circle" size={14} color={COLORS.success} />
             <Text style={styles.unlockedText}>Unlocked</Text>
           </View>
-        ) : (
+        ) : isAvailable ? (
           <View style={styles.progressSection}>
             <View style={styles.progressBar}>
               <LinearGradient
@@ -113,15 +162,18 @@ const BadgeCard = ({
                 end={{ x: 1, y: 0 }}
               />
             </View>
-            <Text style={styles.progressText}>
-              {progress}/{badge.targetValue}
-            </Text>
+            <Text style={styles.progressText}>{progress}/{badge.targetValue}</Text>
+          </View>
+        ) : (
+          <View style={styles.lockedSection}>
+            <Ionicons name="lock-closed" size={12} color={COLORS.mediumGray} />
+            <Text style={styles.lockedText}>Island {badge.islandRequired}</Text>
           </View>
         )}
         
         {/* XP Value */}
         <View style={styles.xpBadge}>
-          <Ionicons name="star" size={12} color={COLORS.warning} />
+          <Ionicons name="star" size={11} color={COLORS.warning} />
           <Text style={styles.xpText}>{badge.xp} XP</Text>
         </View>
       </View>
@@ -134,12 +186,14 @@ const BadgeDetailModal = ({
   visible, 
   onClose, 
   badge, 
-  userBadge 
+  userBadge,
+  onShare,
 }: { 
   visible: boolean; 
   onClose: () => void; 
   badge: Badge | null;
   userBadge?: UserBadge;
+  onShare: () => void;
 }) => {
   if (!badge) return null;
   
@@ -149,15 +203,9 @@ const BadgeDetailModal = ({
   const rarityColor = RARITY_COLORS[badge.rarity];
   
   return (
-    <Modal
-      visible={visible}
-      animationType="slide"
-      transparent
-      onRequestClose={onClose}
-    >
+    <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose}>
       <View style={styles.modalOverlay}>
         <View style={styles.modalContent}>
-          {/* Close Button */}
           <TouchableOpacity style={styles.modalClose} onPress={onClose}>
             <Ionicons name="close" size={24} color={COLORS.mediumGray} />
           </TouchableOpacity>
@@ -171,34 +219,46 @@ const BadgeDetailModal = ({
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 1 }}
               >
-                <Ionicons name={badge.icon as any} size={64} color={COLORS.white} />
+                <Ionicons name={badge.icon as any} size={56} color={COLORS.white} />
               </LinearGradient>
             ) : (
               <View style={styles.modalIconLocked}>
-                <Ionicons name={badge.icon as any} size={64} color={COLORS.mediumGray} />
+                <Ionicons name={badge.icon as any} size={56} color={COLORS.mediumGray} />
               </View>
             )}
           </View>
           
-          {/* Rarity */}
           <View style={[styles.modalRarityTag, { backgroundColor: rarityColor.bg }]}>
             <Text style={[styles.modalRarityText, { color: rarityColor.text }]}>
               {RARITY_LABELS[badge.rarity]}
             </Text>
           </View>
           
-          {/* Badge Name & Description */}
           <Text style={styles.modalBadgeName}>{badge.name}</Text>
           <Text style={styles.modalBadgeDescription}>{badge.description}</Text>
           
-          {/* Progress or Unlocked */}
           {isUnlocked ? (
-            <View style={styles.modalUnlocked}>
-              <Ionicons name="checkmark-circle" size={24} color={COLORS.success} />
-              <Text style={styles.modalUnlockedText}>
-                Unlocked {userBadge?.unlockedAt ? new Date(userBadge.unlockedAt).toLocaleDateString() : ''}
-              </Text>
-            </View>
+            <>
+              <View style={styles.modalUnlocked}>
+                <Ionicons name="checkmark-circle" size={24} color={COLORS.success} />
+                <Text style={styles.modalUnlockedText}>
+                  Unlocked {userBadge?.unlockedAt ? new Date(userBadge.unlockedAt).toLocaleDateString() : ''}
+                </Text>
+              </View>
+              
+              {/* Share Button */}
+              <TouchableOpacity style={styles.shareButton} onPress={onShare}>
+                <LinearGradient
+                  colors={badge.gradient as any}
+                  style={styles.shareButtonGradient}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 1 }}
+                >
+                  <Ionicons name="share-social" size={20} color={COLORS.white} />
+                  <Text style={styles.shareButtonText}>Share Achievement</Text>
+                </LinearGradient>
+              </TouchableOpacity>
+            </>
           ) : (
             <View style={styles.modalProgress}>
               <Text style={styles.modalProgressLabel}>Progress</Text>
@@ -216,23 +276,82 @@ const BadgeDetailModal = ({
             </View>
           )}
           
-          {/* XP Reward */}
           <View style={styles.modalXP}>
             <Ionicons name="star" size={20} color={COLORS.warning} />
             <Text style={styles.modalXPText}>{badge.xp} XP Reward</Text>
           </View>
           
-          {/* Category */}
           <View style={styles.modalCategory}>
-            <Ionicons 
-              name={CATEGORY_INFO[badge.category].icon as any} 
-              size={16} 
-              color={COLORS.mediumGray} 
-            />
+            <Ionicons name={CATEGORY_INFO[badge.category].icon as any} size={16} color={COLORS.mediumGray} />
             <Text style={styles.modalCategoryText}>
-              {CATEGORY_INFO[badge.category].label} Badge
-              {badge.tier && ` • Tier ${badge.tier}`}
+              {CATEGORY_INFO[badge.category].label}{badge.tier ? ` • Tier ${badge.tier}` : ''}
             </Text>
+          </View>
+        </View>
+      </View>
+    </Modal>
+  );
+};
+
+// Island Selector Modal
+const IslandSelectorModal = ({ 
+  visible, 
+  onClose, 
+  currentIsland,
+  completedCount,
+}: { 
+  visible: boolean; 
+  onClose: () => void; 
+  currentIsland: number;
+  completedCount: number;
+}) => {
+  return (
+    <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose}>
+      <View style={styles.islandModalOverlay}>
+        <View style={styles.islandModalContent}>
+          <View style={styles.islandModalHeader}>
+            <Text style={styles.islandModalTitle}>Your Journey</Text>
+            <TouchableOpacity onPress={onClose}>
+              <Ionicons name="close" size={24} color={COLORS.mediumGray} />
+            </TouchableOpacity>
+          </View>
+          
+          <Text style={styles.islandModalSubtitle}>
+            {completedCount} badges collected • Island {currentIsland} of 10
+          </Text>
+          
+          <ScrollView 
+            horizontal 
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.islandScroll}
+            snapToInterval={SCREEN_WIDTH * 0.7 + 16}
+            decelerationRate="fast"
+          >
+            {ISLANDS.map((island) => {
+              const isUnlocked = completedCount >= island.requiredBadges;
+              const isCurrent = island.id === currentIsland;
+              
+              return (
+                <IslandCard
+                  key={island.id}
+                  island={island}
+                  isCurrentIsland={isCurrent}
+                  isUnlocked={isUnlocked}
+                  onPress={onClose}
+                />
+              );
+            })}
+          </ScrollView>
+          
+          <View style={styles.islandLegend}>
+            <View style={styles.legendItem}>
+              <View style={[styles.legendDot, { backgroundColor: COLORS.success }]} />
+              <Text style={styles.legendText}>Unlocked</Text>
+            </View>
+            <View style={styles.legendItem}>
+              <View style={[styles.legendDot, { backgroundColor: COLORS.mediumGray }]} />
+              <Text style={styles.legendText}>Locked</Text>
+            </View>
           </View>
         </View>
       </View>
@@ -268,18 +387,13 @@ const UnlockCelebrationModal = ({
   if (badges.length === 0) return null;
   
   return (
-    <Modal
-      visible={visible}
-      animationType="fade"
-      transparent
-      onRequestClose={onClose}
-    >
+    <Modal visible={visible} animationType="fade" transparent onRequestClose={onClose}>
       <View style={styles.celebrationOverlay}>
         <Animated.View style={[styles.celebrationContent, { transform: [{ scale: scaleAnim }] }]}>
           <Text style={styles.celebrationEmoji}>🏆</Text>
-          <Text style={styles.celebrationTitle}>Badge Unlocked!</Text>
+          <Text style={styles.celebrationTitle}>Badge{badges.length > 1 ? 's' : ''} Unlocked!</Text>
           
-          {badges.map((badge, index) => (
+          {badges.map((badge) => (
             <View key={badge.id} style={styles.celebrationBadge}>
               <LinearGradient
                 colors={badge.gradient as any}
@@ -287,7 +401,7 @@ const UnlockCelebrationModal = ({
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 1 }}
               >
-                <Ionicons name={badge.icon as any} size={40} color={COLORS.white} />
+                <Ionicons name={badge.icon as any} size={36} color={COLORS.white} />
               </LinearGradient>
               <Text style={styles.celebrationBadgeName}>{badge.name}</Text>
               <View style={styles.celebrationXP}>
@@ -318,34 +432,35 @@ export default function AwardsScreen() {
     userBadges, 
     newlyUnlocked, 
     totalXP, 
-    level,
+    currentIsland,
     loadUserBadges, 
     checkBadges, 
     clearNewlyUnlocked,
     getNextUnlocks,
+    getCompletedCount,
+    getCurrentIsland,
+    getIslandProgress,
   } = useAwardsStore();
   
   const { completedWorkouts, weekWorkouts, stats } = useWorkoutStore();
   
   const [selectedBadge, setSelectedBadge] = useState<Badge | null>(null);
   const [showCelebration, setShowCelebration] = useState(false);
-  const [activeCategory, setActiveCategory] = useState<BadgeCategory | 'all'>('all');
+  const [showIslandSelector, setShowIslandSelector] = useState(false);
+  const [filter, setFilter] = useState<'all' | 'completed' | 'incomplete'>('all');
+  const [categoryFilter, setCategoryFilter] = useState<BadgeCategory | 'all'>('all');
   
-  // Load badges on mount
   useEffect(() => {
     loadUserBadges();
   }, []);
   
-  // Check for new badges when data changes
   useEffect(() => {
     const checkForBadges = async () => {
-      // Combine completed workouts
       const allCompleted = [
         ...completedWorkouts,
         ...weekWorkouts.filter(w => w.completed && !w.isRestDay)
       ].filter((w, i, self) => i === self.findIndex(x => x.id === w.id));
       
-      // Calculate category counts
       const categoryCounts: Record<string, number> = {
         upper: 0, lower: 0, full: 0, cardio: 0, core: 0,
       };
@@ -365,7 +480,6 @@ export default function AwardsScreen() {
         }
       });
       
-      // Estimate total sets/reps (rough calculation)
       const avgSetsPerWorkout = 15;
       const avgRepsPerSet = 10;
       const totalSets = allCompleted.length * avgSetsPerWorkout;
@@ -387,7 +501,6 @@ export default function AwardsScreen() {
     }
   }, [completedWorkouts, weekWorkouts, stats]);
   
-  // Show celebration for newly unlocked badges
   useEffect(() => {
     if (newlyUnlocked.length > 0) {
       setShowCelebration(true);
@@ -399,59 +512,107 @@ export default function AwardsScreen() {
     clearNewlyUnlocked();
   };
   
-  // Get badges by category
-  const getBadgesByCategory = (category: BadgeCategory | 'all') => {
-    if (category === 'all') return BADGE_DEFINITIONS;
-    return BADGE_DEFINITIONS.filter(b => b.category === category);
+  const handleShare = async () => {
+    if (!selectedBadge) return;
+    
+    try {
+      await Share.share({
+        message: `🏆 I just unlocked the "${selectedBadge.name}" badge on Thryvin! ${selectedBadge.description} #Thryvin #FitnessGoals`,
+      });
+    } catch (error) {
+      console.error('Error sharing:', error);
+    }
   };
   
-  const filteredBadges = getBadgesByCategory(activeCategory);
-  const unlockedCount = userBadges.filter(b => b.completed).length;
-  const totalBadges = BADGE_DEFINITIONS.length;
+  const island = getCurrentIsland();
+  const islandProgress = getIslandProgress();
+  const completedCount = getCompletedCount();
   const nextUnlocks = getNextUnlocks();
   const newlyUnlockedBadges = BADGE_DEFINITIONS.filter(b => newlyUnlocked.includes(b.id));
+  
+  // Filter badges
+  let filteredBadges = BADGE_DEFINITIONS;
+  
+  if (categoryFilter !== 'all') {
+    filteredBadges = filteredBadges.filter(b => b.category === categoryFilter);
+  }
+  
+  if (filter === 'completed') {
+    filteredBadges = filteredBadges.filter(b => 
+      userBadges.find(ub => ub.badgeId === b.id)?.completed
+    );
+  } else if (filter === 'incomplete') {
+    filteredBadges = filteredBadges.filter(b => 
+      !userBadges.find(ub => ub.badgeId === b.id)?.completed
+    );
+  }
   
   return (
     <SafeAreaView style={styles.container}>
       <AppHeader mode="fitness" />
       
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-        {/* Level Header */}
-        <LinearGradient
-          colors={[COLORS.gradientStart, COLORS.gradientEnd]}
-          style={styles.levelHeader}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-        >
-          <View style={styles.levelContent}>
-            <View style={styles.levelBadge}>
-              <Text style={styles.levelNumber}>{level}</Text>
+        {/* Island Banner - Tappable */}
+        <TouchableOpacity onPress={() => setShowIslandSelector(true)} activeOpacity={0.9}>
+          <LinearGradient
+            colors={island.gradient as any}
+            style={styles.islandBanner}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+          >
+            <View style={styles.islandBannerContent}>
+              <Text style={styles.islandBannerEmoji}>{island.emoji}</Text>
+              <View style={styles.islandBannerInfo}>
+                <Text style={styles.islandBannerName}>{island.name}</Text>
+                <Text style={styles.islandBannerSubtitle}>{island.subtitle}</Text>
+              </View>
+              <View style={styles.islandBannerStats}>
+                <Text style={styles.islandBannerXP}>{totalXP}</Text>
+                <Text style={styles.islandBannerXPLabel}>XP</Text>
+              </View>
             </View>
-            <View style={styles.levelInfo}>
-              <Text style={styles.levelTitle}>Level {level}</Text>
-              <Text style={styles.levelXP}>{totalXP} XP Total</Text>
+            
+            {/* Progress to next island */}
+            <View style={styles.islandProgressSection}>
+              <View style={styles.islandProgressBar}>
+                <View style={[styles.islandProgressFill, { width: `${islandProgress.percentage}%` }]} />
+              </View>
+              <Text style={styles.islandProgressText}>
+                {currentIsland < 10 
+                  ? `${islandProgress.current}/${islandProgress.required} badges to next island`
+                  : 'Max level reached! 🌟'}
+              </Text>
             </View>
-            <View style={styles.badgeCount}>
-              <Text style={styles.badgeCountNumber}>{unlockedCount}</Text>
-              <Text style={styles.badgeCountLabel}>of {totalBadges}</Text>
+            
+            <View style={styles.tapHint}>
+              <Text style={styles.tapHintText}>Tap to view all islands</Text>
+              <Ionicons name="chevron-forward" size={16} color="rgba(255,255,255,0.8)" />
             </View>
-          </View>
-          
-          {/* XP Progress to next level */}
-          <View style={styles.xpProgressContainer}>
-            <View style={styles.xpProgressBar}>
-              <View style={[styles.xpProgressFill, { width: `${(totalXP % 500) / 5}%` }]} />
-            </View>
-            <Text style={styles.xpProgressText}>
-              {500 - (totalXP % 500)} XP to Level {level + 1}
-            </Text>
-          </View>
-        </LinearGradient>
+          </LinearGradient>
+        </TouchableOpacity>
         
-        {/* Next Unlocks Section */}
+        {/* Stats Row */}
+        <View style={styles.statsRow}>
+          <View style={styles.statBox}>
+            <Text style={styles.statNumber}>{completedCount}</Text>
+            <Text style={styles.statLabel}>Badges</Text>
+          </View>
+          <View style={styles.statDivider} />
+          <View style={styles.statBox}>
+            <Text style={styles.statNumber}>{currentIsland}/10</Text>
+            <Text style={styles.statLabel}>Island</Text>
+          </View>
+          <View style={styles.statDivider} />
+          <View style={styles.statBox}>
+            <Text style={styles.statNumber}>{island.xpMultiplier}x</Text>
+            <Text style={styles.statLabel}>XP Bonus</Text>
+          </View>
+        </View>
+        
+        {/* Next Unlocks */}
         {nextUnlocks.length > 0 && (
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Almost There!</Text>
+            <Text style={styles.sectionTitle}>🔥 Almost There</Text>
             <FlatList
               data={nextUnlocks}
               horizontal
@@ -462,7 +623,7 @@ export default function AwardsScreen() {
                   badge={item.badge}
                   userBadge={item.progress}
                   onPress={() => setSelectedBadge(item.badge)}
-                  size="small"
+                  isAvailable={true}
                 />
               )}
               keyExtractor={item => item.badge.id}
@@ -470,64 +631,94 @@ export default function AwardsScreen() {
           </View>
         )}
         
-        {/* Category Filter */}
-        <ScrollView 
-          horizontal 
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.categoryFilter}
-        >
-          <TouchableOpacity
-            style={[styles.categoryChip, activeCategory === 'all' && styles.categoryChipActive]}
-            onPress={() => setActiveCategory('all')}
-          >
-            <Ionicons name="grid" size={16} color={activeCategory === 'all' ? COLORS.white : COLORS.text} />
-            <Text style={[styles.categoryChipText, activeCategory === 'all' && styles.categoryChipTextActive]}>
-              All
-            </Text>
-          </TouchableOpacity>
+        {/* Filters */}
+        <View style={styles.filterSection}>
+          {/* Status Filter */}
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.filterRow}>
+            {(['all', 'completed', 'incomplete'] as const).map(f => (
+              <TouchableOpacity
+                key={f}
+                style={[styles.filterChip, filter === f && styles.filterChipActive]}
+                onPress={() => setFilter(f)}
+              >
+                <Text style={[styles.filterChipText, filter === f && styles.filterChipTextActive]}>
+                  {f === 'all' ? 'All' : f === 'completed' ? '✅ Completed' : '🔒 In Progress'}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
           
-          {(Object.keys(CATEGORY_INFO) as BadgeCategory[]).map(cat => (
+          {/* Category Filter */}
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.filterRow}>
             <TouchableOpacity
-              key={cat}
-              style={[styles.categoryChip, activeCategory === cat && styles.categoryChipActive]}
-              onPress={() => setActiveCategory(cat)}
+              style={[styles.categoryChip, categoryFilter === 'all' && styles.categoryChipActive]}
+              onPress={() => setCategoryFilter('all')}
             >
-              <Ionicons 
-                name={CATEGORY_INFO[cat].icon as any} 
-                size={16} 
-                color={activeCategory === cat ? COLORS.white : COLORS.text} 
-              />
-              <Text style={[styles.categoryChipText, activeCategory === cat && styles.categoryChipTextActive]}>
-                {CATEGORY_INFO[cat].label}
-              </Text>
+              <Ionicons name="grid" size={14} color={categoryFilter === 'all' ? COLORS.white : COLORS.text} />
+              <Text style={[styles.categoryChipText, categoryFilter === 'all' && styles.categoryChipTextActive]}>All</Text>
             </TouchableOpacity>
-          ))}
-        </ScrollView>
+            
+            {(Object.keys(CATEGORY_INFO) as BadgeCategory[]).map(cat => (
+              <TouchableOpacity
+                key={cat}
+                style={[styles.categoryChip, categoryFilter === cat && styles.categoryChipActive]}
+                onPress={() => setCategoryFilter(cat)}
+              >
+                <Ionicons 
+                  name={CATEGORY_INFO[cat].icon as any} 
+                  size={14} 
+                  color={categoryFilter === cat ? COLORS.white : COLORS.text} 
+                />
+                <Text style={[styles.categoryChipText, categoryFilter === cat && styles.categoryChipTextActive]}>
+                  {CATEGORY_INFO[cat].label}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
+        </View>
         
         {/* Badge Grid */}
         <View style={styles.badgeGrid}>
-          {filteredBadges.map(badge => (
-            <BadgeCard
-              key={badge.id}
-              badge={badge}
-              userBadge={userBadges.find(ub => ub.badgeId === badge.id)}
-              onPress={() => setSelectedBadge(badge)}
-            />
-          ))}
+          {filteredBadges.map(badge => {
+            const isAvailable = !badge.islandRequired || badge.islandRequired <= currentIsland;
+            return (
+              <BadgeCard
+                key={badge.id}
+                badge={badge}
+                userBadge={userBadges.find(ub => ub.badgeId === badge.id)}
+                onPress={() => setSelectedBadge(badge)}
+                isAvailable={isAvailable}
+              />
+            );
+          })}
         </View>
+        
+        {filteredBadges.length === 0 && (
+          <View style={styles.emptyState}>
+            <Ionicons name="trophy-outline" size={64} color={COLORS.mediumGray} />
+            <Text style={styles.emptyStateText}>No badges match your filters</Text>
+          </View>
+        )}
         
         <View style={{ height: 32 }} />
       </ScrollView>
       
-      {/* Badge Detail Modal */}
+      {/* Modals */}
+      <IslandSelectorModal
+        visible={showIslandSelector}
+        onClose={() => setShowIslandSelector(false)}
+        currentIsland={currentIsland}
+        completedCount={completedCount}
+      />
+      
       <BadgeDetailModal
         visible={!!selectedBadge}
         onClose={() => setSelectedBadge(null)}
         badge={selectedBadge}
         userBadge={userBadges.find(ub => ub.badgeId === selectedBadge?.id)}
+        onShare={handleShare}
       />
       
-      {/* Unlock Celebration Modal */}
       <UnlockCelebrationModal
         visible={showCelebration}
         onClose={handleCelebrationClose}
@@ -538,87 +729,119 @@ export default function AwardsScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: COLORS.white,
-  },
-  scrollView: {
-    flex: 1,
-  },
+  container: { flex: 1, backgroundColor: COLORS.white },
+  scrollView: { flex: 1 },
   
-  // Level Header
-  levelHeader: {
+  // Island Banner
+  islandBanner: {
     margin: 16,
     borderRadius: 20,
     padding: 20,
+    ...CARD_SHADOW,
   },
-  levelContent: {
+  islandBannerContent: {
     flexDirection: 'row',
     alignItems: 'center',
   },
-  levelBadge: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-    backgroundColor: 'rgba(255,255,255,0.2)',
-    justifyContent: 'center',
-    alignItems: 'center',
+  islandBannerEmoji: {
+    fontSize: 48,
   },
-  levelNumber: {
+  islandBannerInfo: {
+    flex: 1,
+    marginLeft: 16,
+  },
+  islandBannerName: {
+    fontSize: 22,
+    fontWeight: '700',
+    color: COLORS.white,
+  },
+  islandBannerSubtitle: {
+    fontSize: 14,
+    color: 'rgba(255,255,255,0.85)',
+    marginTop: 2,
+  },
+  islandBannerStats: {
+    alignItems: 'center',
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+  },
+  islandBannerXP: {
     fontSize: 24,
     fontWeight: '700',
     color: COLORS.white,
   },
-  levelInfo: {
-    flex: 1,
-    marginLeft: 16,
-  },
-  levelTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: COLORS.white,
-  },
-  levelXP: {
-    fontSize: 14,
-    color: 'rgba(255,255,255,0.8)',
-    marginTop: 2,
-  },
-  badgeCount: {
-    alignItems: 'center',
-  },
-  badgeCountNumber: {
-    fontSize: 28,
-    fontWeight: '700',
-    color: COLORS.white,
-  },
-  badgeCountLabel: {
-    fontSize: 12,
+  islandBannerXPLabel: {
+    fontSize: 11,
     color: 'rgba(255,255,255,0.8)',
   },
-  xpProgressContainer: {
+  islandProgressSection: {
     marginTop: 16,
   },
-  xpProgressBar: {
+  islandProgressBar: {
     height: 6,
-    backgroundColor: 'rgba(255,255,255,0.2)',
+    backgroundColor: 'rgba(255,255,255,0.25)',
     borderRadius: 3,
     overflow: 'hidden',
   },
-  xpProgressFill: {
+  islandProgressFill: {
     height: '100%',
     backgroundColor: COLORS.white,
     borderRadius: 3,
   },
-  xpProgressText: {
+  islandProgressText: {
     fontSize: 12,
-    color: 'rgba(255,255,255,0.8)',
+    color: 'rgba(255,255,255,0.9)',
     marginTop: 8,
     textAlign: 'center',
+  },
+  tapHint: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 12,
+  },
+  tapHintText: {
+    fontSize: 12,
+    color: 'rgba(255,255,255,0.8)',
+  },
+  
+  // Stats Row
+  statsRow: {
+    flexDirection: 'row',
+    marginHorizontal: 16,
+    backgroundColor: COLORS.white,
+    borderRadius: 16,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: COLORS.lightGray,
+    ...CARD_SHADOW,
+  },
+  statBox: {
+    flex: 1,
+    alignItems: 'center',
+  },
+  statNumber: {
+    fontSize: 22,
+    fontWeight: '700',
+    color: COLORS.text,
+  },
+  statLabel: {
+    fontSize: 12,
+    color: COLORS.mediumGray,
+    marginTop: 2,
+  },
+  statDivider: {
+    width: 1,
+    backgroundColor: COLORS.lightGray,
+    marginHorizontal: 8,
   },
   
   // Section
   section: {
-    marginBottom: 24,
+    marginTop: 24,
+    marginBottom: 8,
   },
   sectionTitle: {
     fontSize: 18,
@@ -631,29 +854,49 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
   },
   
-  // Category Filter
-  categoryFilter: {
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    gap: 8,
+  // Filters
+  filterSection: {
+    marginTop: 16,
   },
-  categoryChip: {
-    flexDirection: 'row',
-    alignItems: 'center',
+  filterRow: {
+    paddingHorizontal: 12,
+    marginBottom: 8,
+  },
+  filterChip: {
     paddingHorizontal: 14,
     paddingVertical: 8,
     backgroundColor: COLORS.lightGray,
     borderRadius: 20,
     marginRight: 8,
   },
+  filterChipActive: {
+    backgroundColor: COLORS.gradientStart,
+  },
+  filterChipText: {
+    fontSize: 13,
+    fontWeight: '500',
+    color: COLORS.text,
+  },
+  filterChipTextActive: {
+    color: COLORS.white,
+  },
+  categoryChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    backgroundColor: COLORS.lightGray,
+    borderRadius: 16,
+    marginRight: 8,
+  },
   categoryChipActive: {
     backgroundColor: COLORS.gradientStart,
   },
   categoryChipText: {
-    fontSize: 14,
+    fontSize: 12,
     fontWeight: '500',
     color: COLORS.text,
-    marginLeft: 6,
+    marginLeft: 5,
   },
   categoryChipTextActive: {
     color: COLORS.white,
@@ -663,27 +906,29 @@ const styles = StyleSheet.create({
   badgeGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
+    paddingHorizontal: 12,
+    marginTop: 8,
   },
-  
-  // Badge Card
   badgeCard: {
-    marginBottom: 16,
+    width: (SCREEN_WIDTH - 40) / 2,
+    marginBottom: 12,
     marginHorizontal: 4,
   },
   badgeCardInner: {
     backgroundColor: COLORS.white,
     borderRadius: 16,
-    padding: 16,
+    padding: 14,
     alignItems: 'center',
     borderWidth: 1,
     borderColor: COLORS.lightGray,
+    minHeight: 160,
     ...CARD_SHADOW,
   },
   badgeCardLocked: {
-    backgroundColor: '#F8F8F8',
-    opacity: 0.85,
+    backgroundColor: '#FAFAFA',
+  },
+  badgeCardUnavailable: {
+    opacity: 0.5,
   },
   rarityTag: {
     position: 'absolute',
@@ -694,34 +939,34 @@ const styles = StyleSheet.create({
     borderRadius: 10,
   },
   rarityText: {
-    fontSize: 10,
+    fontSize: 9,
     fontWeight: '600',
   },
   badgeIconContainer: {
     marginTop: 8,
-    marginBottom: 12,
+    marginBottom: 10,
   },
   badgeIconGradient: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
     justifyContent: 'center',
     alignItems: 'center',
   },
   badgeIconLocked: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
     backgroundColor: '#E8E8E8',
     justifyContent: 'center',
     alignItems: 'center',
   },
   badgeName: {
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '600',
     color: COLORS.text,
     textAlign: 'center',
-    marginBottom: 8,
+    marginBottom: 6,
   },
   badgeNameLocked: {
     color: COLORS.mediumGray,
@@ -731,7 +976,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   unlockedText: {
-    fontSize: 12,
+    fontSize: 11,
     color: COLORS.success,
     marginLeft: 4,
     fontWeight: '500',
@@ -742,33 +987,173 @@ const styles = StyleSheet.create({
   },
   progressBar: {
     width: '100%',
-    height: 6,
+    height: 5,
     backgroundColor: '#E8E8E8',
-    borderRadius: 3,
+    borderRadius: 2.5,
     overflow: 'hidden',
     marginBottom: 4,
   },
   progressFill: {
     height: '100%',
-    borderRadius: 3,
+    borderRadius: 2.5,
   },
   progressText: {
-    fontSize: 11,
+    fontSize: 10,
     color: COLORS.mediumGray,
+  },
+  lockedSection: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  lockedText: {
+    fontSize: 10,
+    color: COLORS.mediumGray,
+    marginLeft: 4,
   },
   xpBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 8,
+    marginTop: 6,
   },
   xpText: {
-    fontSize: 11,
+    fontSize: 10,
     color: COLORS.warning,
     fontWeight: '600',
-    marginLeft: 4,
+    marginLeft: 3,
   },
   
-  // Modal
+  // Empty State
+  emptyState: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 48,
+  },
+  emptyStateText: {
+    marginTop: 16,
+    fontSize: 16,
+    color: COLORS.mediumGray,
+  },
+  
+  // Island Selector Modal
+  islandModalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    justifyContent: 'flex-end',
+  },
+  islandModalContent: {
+    backgroundColor: COLORS.white,
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    paddingTop: 20,
+    paddingBottom: 40,
+    maxHeight: SCREEN_HEIGHT * 0.7,
+  },
+  islandModalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    marginBottom: 8,
+  },
+  islandModalTitle: {
+    fontSize: 22,
+    fontWeight: '700',
+    color: COLORS.text,
+  },
+  islandModalSubtitle: {
+    fontSize: 14,
+    color: COLORS.mediumGray,
+    paddingHorizontal: 20,
+    marginBottom: 20,
+  },
+  islandScroll: {
+    paddingHorizontal: 16,
+    paddingBottom: 16,
+  },
+  islandCard: {
+    width: SCREEN_WIDTH * 0.7,
+    marginRight: 16,
+    borderRadius: 20,
+    overflow: 'hidden',
+  },
+  islandCardCurrent: {
+    borderWidth: 3,
+    borderColor: COLORS.gradientStart,
+  },
+  islandCardGradient: {
+    padding: 24,
+    alignItems: 'center',
+    minHeight: 180,
+    justifyContent: 'center',
+  },
+  islandEmoji: {
+    fontSize: 48,
+    marginBottom: 12,
+  },
+  islandCardName: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: COLORS.white,
+    textAlign: 'center',
+  },
+  islandCardSubtitle: {
+    fontSize: 14,
+    color: 'rgba(255,255,255,0.85)',
+    textAlign: 'center',
+    marginTop: 4,
+  },
+  currentBadge: {
+    marginTop: 12,
+    backgroundColor: 'rgba(255,255,255,0.25)',
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
+  currentBadgeText: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: COLORS.white,
+  },
+  islandCardLocked: {
+    padding: 24,
+    alignItems: 'center',
+    minHeight: 180,
+    justifyContent: 'center',
+    backgroundColor: '#F0F0F0',
+  },
+  islandLockedName: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: COLORS.mediumGray,
+    marginTop: 12,
+  },
+  islandLockedReq: {
+    fontSize: 13,
+    color: COLORS.mediumGray,
+    marginTop: 4,
+  },
+  islandLegend: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    paddingTop: 16,
+    gap: 24,
+  },
+  legendItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  legendDot: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    marginRight: 6,
+  },
+  legendText: {
+    fontSize: 13,
+    color: COLORS.mediumGray,
+  },
+  
+  // Badge Detail Modal
   modalOverlay: {
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.5)',
@@ -780,7 +1165,7 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 24,
     padding: 24,
     alignItems: 'center',
-    minHeight: 400,
+    minHeight: 380,
   },
   modalClose: {
     position: 'absolute',
@@ -789,102 +1174,120 @@ const styles = StyleSheet.create({
     padding: 8,
   },
   modalIconContainer: {
-    marginTop: 16,
-    marginBottom: 16,
+    marginTop: 8,
+    marginBottom: 12,
   },
   modalIconGradient: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
+    width: 90,
+    height: 90,
+    borderRadius: 45,
     justifyContent: 'center',
     alignItems: 'center',
   },
   modalIconLocked: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
+    width: 90,
+    height: 90,
+    borderRadius: 45,
     backgroundColor: '#E8E8E8',
     justifyContent: 'center',
     alignItems: 'center',
   },
   modalRarityTag: {
-    paddingHorizontal: 16,
-    paddingVertical: 6,
-    borderRadius: 16,
-    marginBottom: 12,
+    paddingHorizontal: 14,
+    paddingVertical: 5,
+    borderRadius: 14,
+    marginBottom: 10,
   },
   modalRarityText: {
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '600',
   },
   modalBadgeName: {
-    fontSize: 24,
+    fontSize: 22,
     fontWeight: '700',
     color: COLORS.text,
     textAlign: 'center',
   },
   modalBadgeDescription: {
-    fontSize: 16,
+    fontSize: 15,
     color: COLORS.mediumGray,
     textAlign: 'center',
-    marginTop: 8,
-    marginBottom: 24,
+    marginTop: 6,
+    marginBottom: 20,
   },
   modalUnlocked: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: 12,
   },
   modalUnlockedText: {
-    fontSize: 16,
+    fontSize: 15,
     color: COLORS.success,
     fontWeight: '500',
     marginLeft: 8,
   },
+  shareButton: {
+    width: '100%',
+    marginTop: 8,
+    marginBottom: 12,
+  },
+  shareButtonGradient: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 14,
+    borderRadius: 12,
+  },
+  shareButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: COLORS.white,
+    marginLeft: 8,
+  },
   modalProgress: {
     width: '100%',
-    marginBottom: 16,
+    marginBottom: 12,
   },
   modalProgressLabel: {
-    fontSize: 14,
+    fontSize: 13,
     color: COLORS.mediumGray,
     marginBottom: 8,
   },
   modalProgressBar: {
-    height: 10,
+    height: 8,
     backgroundColor: '#E8E8E8',
-    borderRadius: 5,
+    borderRadius: 4,
     overflow: 'hidden',
-    marginBottom: 8,
+    marginBottom: 6,
   },
   modalProgressFill: {
     height: '100%',
-    borderRadius: 5,
+    borderRadius: 4,
   },
   modalProgressText: {
-    fontSize: 14,
+    fontSize: 13,
     color: COLORS.text,
     textAlign: 'center',
   },
   modalXP: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 12,
+    marginBottom: 8,
   },
   modalXPText: {
-    fontSize: 16,
+    fontSize: 15,
     color: COLORS.warning,
     fontWeight: '600',
-    marginLeft: 8,
+    marginLeft: 6,
   },
   modalCategory: {
     flexDirection: 'row',
     alignItems: 'center',
   },
   modalCategoryText: {
-    fontSize: 14,
+    fontSize: 13,
     color: COLORS.mediumGray,
-    marginLeft: 6,
+    marginLeft: 5,
   },
   
   // Celebration Modal
@@ -897,60 +1300,60 @@ const styles = StyleSheet.create({
   celebrationContent: {
     backgroundColor: COLORS.white,
     borderRadius: 24,
-    padding: 32,
+    padding: 28,
     alignItems: 'center',
     margin: 32,
     width: SCREEN_WIDTH - 64,
   },
   celebrationEmoji: {
-    fontSize: 64,
-    marginBottom: 16,
+    fontSize: 56,
+    marginBottom: 12,
   },
   celebrationTitle: {
-    fontSize: 28,
+    fontSize: 26,
     fontWeight: '700',
     color: COLORS.text,
-    marginBottom: 24,
+    marginBottom: 20,
   },
   celebrationBadge: {
     alignItems: 'center',
-    marginBottom: 20,
+    marginBottom: 16,
   },
   celebrationIcon: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
+    width: 72,
+    height: 72,
+    borderRadius: 36,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 12,
+    marginBottom: 10,
   },
   celebrationBadgeName: {
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: '600',
     color: COLORS.text,
   },
   celebrationXP: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 8,
+    marginTop: 6,
   },
   celebrationXPText: {
-    fontSize: 16,
+    fontSize: 15,
     color: COLORS.warning,
     fontWeight: '600',
-    marginLeft: 6,
+    marginLeft: 5,
   },
   celebrationButton: {
-    marginTop: 16,
+    marginTop: 12,
     width: '100%',
   },
   celebrationButtonGradient: {
-    paddingVertical: 16,
+    paddingVertical: 14,
     borderRadius: 12,
     alignItems: 'center',
   },
   celebrationButtonText: {
-    fontSize: 18,
+    fontSize: 17,
     fontWeight: '600',
     color: COLORS.white,
   },
