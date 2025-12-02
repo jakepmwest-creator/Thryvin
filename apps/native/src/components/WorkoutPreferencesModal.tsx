@@ -403,6 +403,16 @@ export const WorkoutPreferencesModal = ({ visible, onClose, onSave }: WorkoutPre
           </ScrollView>
         </View>
       </View>
+      
+      {/* Custom Alert */}
+      <CustomAlert
+        visible={alertConfig.visible}
+        type={alertConfig.type}
+        title={alertConfig.title}
+        message={alertConfig.message}
+        buttons={alertConfig.buttons || [{ text: 'OK' }]}
+        onClose={hideAlert}
+      />
     </Modal>
   );
 };
