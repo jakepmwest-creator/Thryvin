@@ -399,7 +399,9 @@ export default function WorkoutsScreen() {
               </View>
               {MONTH_DATA.map((week, weekIndex) => (
                 <View key={weekIndex} style={styles.monthWeekRow}>
-                  {week.map((date, dayIndex) => (
+                  {week.map((date, dayIndex) => {
+                    const dateStatus = date ? getDateStatus(date) : 'none';
+                    return (
                     <TouchableOpacity
                       key={dayIndex}
                       style={[
@@ -426,20 +428,22 @@ export default function WorkoutsScreen() {
                           ]}>
                             {date}
                           </Text>
-                          {getDateStatus(date) === 'completed' ? (
+                          {/* Only show indicator if not a rest day and has workout */}
+                          {dateStatus === 'completed' ? (
                             <View style={styles.completedIconSmall}>
                               <Ionicons name="checkmark-circle" size={12} color={COLORS.success} />
                             </View>
-                          ) : (
+                          ) : dateStatus !== 'rest' && dateStatus !== 'none' ? (
                             <View style={[
                               styles.monthDayDot,
-                              { backgroundColor: getStatusColor(getDateStatus(date)) }
+                              { backgroundColor: getStatusColor(dateStatus) }
                             ]} />
-                          )}
+                          ) : null}
                         </>
                       )}
                     </TouchableOpacity>
-                  ))}
+                  );
+                  })}
                 </View>
               ))}
             </View>
