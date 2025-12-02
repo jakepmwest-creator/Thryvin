@@ -254,38 +254,105 @@ const islandStyles = StyleSheet.create({
   connectorDot: { position: 'absolute', width: 7, height: 7, borderRadius: 4, backgroundColor: COLORS.gradientEnd, left: -2 },
 });
 
-// Badge Card
+// Enhanced Badge Card with rarity-based styling and animations
 const BadgeCard = ({ badge, userBadge, onPress, isAvailable }: { badge: Badge; userBadge?: UserBadge; onPress: () => void; isAvailable: boolean }) => {
   const isUnlocked = userBadge?.completed;
   const progress = userBadge?.progress || 0;
   const progressPercent = Math.min((progress / badge.targetValue) * 100, 100);
   const rarityColor = RARITY_COLORS[badge.rarity];
+  const scaleAnim = useRef(new Animated.Value(1)).current;
+  const shineAnim = useRef(new Animated.Value(0)).current;
+  
+  // Legendary shimmer animation
+  useEffect(() => {
+    if (isUnlocked && badge.rarity === 'legendary') {
+      Animated.loop(
+        Animated.sequence([
+          Animated.timing(shineAnim, { toValue: 1, duration: 2000, useNativeDriver: true }),
+          Animated.timing(shineAnim, { toValue: 0, duration: 2000, useNativeDriver: true }),
+        ])
+      ).start();
+    }
+  }, [isUnlocked, badge.rarity]);
+  
+  const handlePressIn = () => {
+    Animated.spring(scaleAnim, { toValue: 0.95, useNativeDriver: true }).start();
+  };
+  
+  const handlePressOut = () => {
+    Animated.spring(scaleAnim, { toValue: 1, friction: 4, useNativeDriver: true }).start();
+  };
+  
+  const shineOpacity = shineAnim.interpolate({ inputRange: [0, 0.5, 1], outputRange: [0, 0.3, 0] });
+  
+  // Get category icon
+  const categoryInfo = CATEGORY_INFO[badge.category];
   
   return (
-    <TouchableOpacity style={styles.badgeCard} onPress={onPress} activeOpacity={0.8} disabled={!isAvailable}>
-      <View style={[styles.badgeCardInner, !isUnlocked && styles.badgeCardLocked, !isAvailable && styles.badgeCardUnavailable, isUnlocked && { borderColor: rarityColor.border, borderWidth: 2 }]}>
+    <TouchableOpacity 
+      style={styles.badgeCard} 
+      onPress={onPress} 
+      onPressIn={handlePressIn}
+      onPressOut={handlePressOut}
+      activeOpacity={1} 
+      disabled={!isAvailable}
+    >
+      <Animated.View style={[
+        styles.badgeCardInner, 
+        !isUnlocked && styles.badgeCardLocked, 
+        !isAvailable && styles.badgeCardUnavailable,
+        isUnlocked && { borderColor: rarityColor.border, borderWidth: 2 },
+        badge.rarity === 'legendary' && isUnlocked && styles.legendaryCard,
+        badge.rarity === 'epic' && isUnlocked && styles.epicCard,
+        { transform: [{ scale: scaleAnim }] }
+      ]}>
+        {/* Legendary shine effect */}
+        {isUnlocked && badge.rarity === 'legendary' && (
+          <Animated.View style={[styles.shineOverlay, { opacity: shineOpacity }]} />
+        )}
+        
+        {/* Rarity tag with icon */}
         <View style={[styles.rarityTag, { backgroundColor: rarityColor.bg }]}>
+          {badge.rarity === 'legendary' && <Ionicons name="diamond" size={8} color={rarityColor.text} style={{ marginRight: 2 }} />}
+          {badge.rarity === 'epic' && <Ionicons name="star" size={8} color={rarityColor.text} style={{ marginRight: 2 }} />}
           <Text style={[styles.rarityText, { color: rarityColor.text }]}>{RARITY_LABELS[badge.rarity]}</Text>
         </View>
         
+        {/* Category indicator */}
+        <View style={[styles.categoryIndicator, { backgroundColor: categoryInfo.color + '20' }]}>
+          <Ionicons name={categoryInfo.icon as any} size={10} color={categoryInfo.color} />
+        </View>
+        
+        {/* Badge icon */}
         <View style={styles.badgeIconContainer}>
           {isUnlocked ? (
             <LinearGradient colors={badge.gradient as any} style={styles.badgeIconGradient} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}>
-              <Ionicons name={badge.icon as any} size={26} color={COLORS.white} />
+              <Ionicons name={badge.icon as any} size={28} color={COLORS.white} />
             </LinearGradient>
           ) : (
             <View style={[styles.badgeIconLocked, !isAvailable && { opacity: 0.4 }]}>
-              <Ionicons name={badge.icon as any} size={26} color={COLORS.mediumGray} />
+              <Ionicons name={badge.icon as any} size={28} color={COLORS.mediumGray} />
+            </View>
+          )}
+          
+          {/* Unlocked checkmark */}
+          {isUnlocked && (
+            <View style={styles.checkmarkBadge}>
+              <Ionicons name="checkmark" size={10} color={COLORS.white} />
             </View>
           )}
         </View>
         
-        <Text style={[styles.badgeName, !isUnlocked && styles.badgeNameLocked]} numberOfLines={1}>{badge.name}</Text>
+        <Text style={[styles.badgeName, !isUnlocked && styles.badgeNameLocked]} numberOfLines={2}>{badge.name}</Text>
+        <Text style={styles.badgeDesc} numberOfLines={1}>{badge.description}</Text>
         
+        {/* Progress section */}
         {isUnlocked ? (
-          <View style={styles.unlockedBadge}>
-            <Ionicons name="checkmark-circle" size={14} color={COLORS.success} />
-            <Text style={styles.unlockedText}>Done</Text>
+          <View style={styles.unlockedSection}>
+            <LinearGradient colors={[COLORS.success + '20', COLORS.success + '10']} style={styles.unlockedBadge}>
+              <Ionicons name="checkmark-circle" size={12} color={COLORS.success} />
+              <Text style={styles.unlockedText}>Earned!</Text>
+            </LinearGradient>
           </View>
         ) : isAvailable ? (
           <View style={styles.progressSection}>
@@ -296,16 +363,17 @@ const BadgeCard = ({ badge, userBadge, onPress, isAvailable }: { badge: Badge; u
           </View>
         ) : (
           <View style={styles.lockedSection}>
-            <Ionicons name="lock-closed" size={11} color={COLORS.mediumGray} />
+            <Ionicons name="lock-closed" size={10} color={COLORS.mediumGray} />
             <Text style={styles.lockedText}>Island {badge.island}</Text>
           </View>
         )}
         
-        <View style={styles.xpBadge}>
-          <Ionicons name="star" size={10} color={COLORS.warning} />
-          <Text style={styles.xpText}>{badge.xp}</Text>
+        {/* XP badge */}
+        <View style={[styles.xpBadge, isUnlocked && styles.xpBadgeEarned]}>
+          <Ionicons name="star" size={9} color={isUnlocked ? '#FFD700' : COLORS.warning} />
+          <Text style={[styles.xpText, isUnlocked && styles.xpTextEarned]}>{badge.xp}</Text>
         </View>
-      </View>
+      </Animated.View>
     </TouchableOpacity>
   );
 };
