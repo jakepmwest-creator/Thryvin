@@ -406,3 +406,67 @@ agent_communication:
 agent_communication:
     - agent: "main"
       message: "MULTIPLE FIXES COMPLETE: (1) Progress rings now auto-update when workouts are completed via useEffect on completedWorkouts.length, (2) Calendar dots removed for rest days - shows bed icon instead, (3) Created CustomAlert component with rounded corners/icons for better UX, updated PINSetup to use it, (4) WorkoutPreferencesModal now confirms changes and regenerates workouts, (5) Created AI Coach floating button on home screen that can swap days, modify intensity, give form tips, regenerate workouts. Ready for user testing."
+
+---
+
+## Fork Session - Multiple Bug Fixes and Features (December 2025)
+
+### Changes Made:
+
+#### 1. Progress Rings Auto-Update Fix (P0)
+- **File**: `/app/apps/native/app/(tabs)/index.tsx`
+- **Changes**:
+  - Replaced single useWorkoutStore hook with individual selectors for better reactivity
+  - Added `statsVersion` state to force re-renders when stats update
+  - Created `weeklyCompletedCount` memoized value for proper dependency tracking
+  - Fixed useEffect dependency array to use stable references
+  - Added `actualTodayWorkout` memoized computed value from weekWorkouts
+
+#### 2. Today's Workout Card Fix (P1)
+- **File**: `/app/apps/native/app/(tabs)/index.tsx`
+- **Changes**:
+  - Now uses `actualTodayWorkout` (computed from weekWorkouts) instead of `todayWorkout`
+  - Added rest day display with bed icon and recovery message
+  - Shows accurate exercise count, duration, and difficulty
+
+#### 3. Explore Workouts Feature (P0)
+- **Files**: 
+  - `/app/apps/native/app/(tabs)/workouts.tsx`
+  - `/app/apps/native/src/components/ExploreWorkoutsModal.tsx`
+- **Changes**:
+  - Integrated ExploreWorkoutsModal with category cards
+  - Added `handleCategoryPress` to open modal with selected category
+  - Enhanced modal to pull real exercises from weekWorkouts
+  - Added video playback using expo-av Video component
+  - Shows sets, reps, and rest time for exercises when available
+
+#### 4. CustomAlert Integration (P1)
+- **File**: `/app/apps/native/app/workout-hub.tsx`
+- **Changes**:
+  - Replaced `Alert.alert` with `CustomAlert` component
+  - Added alert state management with `showAlert` and `hideAlert` functions
+  - All workout completion, exit, and validation alerts now use rounded styled alerts
+
+#### 5. FloatingCoachButton Enhancement (P1)
+- **File**: `/app/apps/native/src/components/FloatingCoachButton.tsx`
+- **Changes**:
+  - Added new intents: stats inquiry, today's workout, tomorrow's workout, reset program, help/commands
+  - Enhanced swap days to handle "today" and "tomorrow" keywords
+  - Added cancel action handling ("no", "cancel", "nevermind")
+  - Added reset program action with confirmation
+  - More verbose responses with workout details
+
+### Files Modified:
+1. `/app/apps/native/app/(tabs)/index.tsx` - Progress rings and today's workout fix
+2. `/app/apps/native/app/(tabs)/workouts.tsx` - Explore workouts integration
+3. `/app/apps/native/src/components/ExploreWorkoutsModal.tsx` - Real data integration + video
+4. `/app/apps/native/app/workout-hub.tsx` - CustomAlert integration
+5. `/app/apps/native/src/components/FloatingCoachButton.tsx` - More AI coach capabilities
+
+### Testing Required:
+- [ ] Home screen progress rings update automatically after workout completion
+- [ ] Today's workout card shows correct exercise count and duration
+- [ ] Explore Workouts modal opens when tapping category cards
+- [ ] CustomAlert displays for workout completion/exit confirmations
+- [ ] AI Coach responds to "show my stats", "what's today's workout", "help"
+
