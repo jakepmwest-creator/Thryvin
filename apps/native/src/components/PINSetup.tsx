@@ -5,11 +5,11 @@ import {
   StyleSheet,
   TouchableOpacity,
   Modal,
-  Alert,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import * as SecureStore from 'expo-secure-store';
+import { CustomAlert } from './CustomAlert';
 
 const COLORS = {
   accent: '#a259ff',
@@ -31,6 +31,30 @@ export function PINSetup({ visible, onClose, onSuccess }: PINSetupProps) {
   const [pin, setPin] = useState('');
   const [confirmPin, setConfirmPin] = useState('');
   const [step, setStep] = useState<'create' | 'confirm'>('create');
+  
+  // Custom alert state
+  const [alertConfig, setAlertConfig] = useState<{
+    visible: boolean;
+    type: 'success' | 'error' | 'warning' | 'info';
+    title: string;
+    message: string;
+    onClose?: () => void;
+  }>({
+    visible: false,
+    type: 'info',
+    title: '',
+    message: '',
+  });
+
+  const showAlert = (type: typeof alertConfig.type, title: string, message: string, onAlertClose?: () => void) => {
+    setAlertConfig({ visible: true, type, title, message, onClose: onAlertClose });
+  };
+
+  const hideAlert = () => {
+    const callback = alertConfig.onClose;
+    setAlertConfig(prev => ({ ...prev, visible: false }));
+    if (callback) callback();
+  };
 
   const handleNumberPress = (number: string) => {
     if (step === 'create' && pin.length < 6) {
@@ -46,10 +70,11 @@ export function PINSetup({ visible, onClose, onSuccess }: PINSetupProps) {
         if (newPin === pin) {
           savePIN(pin);
         } else {
-          Alert.alert('PIN Mismatch', 'PINs do not match. Please try again.');
-          setPin('');
-          setConfirmPin('');
-          setStep('create');
+          showAlert('error', 'PIN Mismatch', 'The PINs you entered do not match. Please try again.', () => {
+            setPin('');
+            setConfirmPin('');
+            setStep('create');
+          });
         }
       }
     }
@@ -67,14 +92,12 @@ export function PINSetup({ visible, onClose, onSuccess }: PINSetupProps) {
     try {
       await SecureStore.setItemAsync('user_pin', pinCode);
       await SecureStore.setItemAsync('pin_enabled', 'true');
-      Alert.alert('Success!', 'PIN has been set successfully', [
-        { text: 'OK', onPress: () => {
-          onSuccess();
-          resetModal();
-        }}
-      ]);
+      showAlert('success', 'PIN Set! 🔐', 'Your PIN has been set successfully. You can now use it for quick access.', () => {
+        onSuccess();
+        resetModal();
+      });
     } catch (error) {
-      Alert.alert('Error', 'Could not save PIN');
+      showAlert('error', 'Error', 'Could not save PIN. Please try again.');
     }
   };
 
@@ -103,69 +126,81 @@ export function PINSetup({ visible, onClose, onSuccess }: PINSetupProps) {
   };
 
   return (
-    <Modal
-      visible={visible}
-      animationType="slide"
-      transparent={true}
-      onRequestClose={resetModal}
-    >
-      <View style={styles.modalContainer}>
-        <View style={styles.modalContent}>
-          {/* Close Button */}
-          <TouchableOpacity style={styles.closeButton} onPress={resetModal}>
-            <Ionicons name="close" size={24} color={COLORS.mediumGray} />
-          </TouchableOpacity>
+    <>
+      <Modal
+        visible={visible}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={resetModal}
+      >
+        <View style={styles.modalContainer}>
+          <View style={styles.modalContent}>
+            {/* Close Button */}
+            <TouchableOpacity style={styles.closeButton} onPress={resetModal}>
+              <Ionicons name="close" size={24} color={COLORS.mediumGray} />
+            </TouchableOpacity>
 
-          {/* Title */}
-          <Text style={styles.title}>
-            {step === 'create' ? 'Create Your PIN' : 'Confirm Your PIN'}
-          </Text>
-          <Text style={styles.subtitle}>
-            {step === 'create' 
-              ? 'Enter a 6-digit PIN for quick access' 
-              : 'Re-enter your PIN to confirm'}
-          </Text>
+            {/* Title */}
+            <Text style={styles.title}>
+              {step === 'create' ? 'Create Your PIN' : 'Confirm Your PIN'}
+            </Text>
+            <Text style={styles.subtitle}>
+              {step === 'create' 
+                ? 'Enter a 6-digit PIN for quick access' 
+                : 'Re-enter your PIN to confirm'}
+            </Text>
 
-          {/* PIN Dots */}
-          {renderDots()}
+            {/* PIN Dots */}
+            {renderDots()}
 
-          {/* Number Pad */}
-          <View style={styles.numberPad}>
-            {[['1', '2', '3'], ['4', '5', '6'], ['7', '8', '9'], ['', '0', 'back']].map(
-              (row, rowIndex) => (
-                <View key={rowIndex} style={styles.numberRow}>
-                  {row.map((num) => {
-                    if (num === '') {
-                      return <View key="empty" style={styles.numberButton} />;
-                    }
-                    if (num === 'back') {
+            {/* Number Pad */}
+            <View style={styles.numberPad}>
+              {[['1', '2', '3'], ['4', '5', '6'], ['7', '8', '9'], ['', '0', 'back']].map(
+                (row, rowIndex) => (
+                  <View key={rowIndex} style={styles.numberRow}>
+                    {row.map((num) => {
+                      if (num === '') {
+                        return <View key="empty" style={styles.numberButton} />;
+                      }
+                      if (num === 'back') {
+                        return (
+                          <TouchableOpacity
+                            key="back"
+                            style={styles.numberButton}
+                            onPress={handleBackspace}
+                          >
+                            <Ionicons name="backspace-outline" size={28} color={COLORS.text} />
+                          </TouchableOpacity>
+                        );
+                      }
                       return (
                         <TouchableOpacity
-                          key="back"
+                          key={num}
                           style={styles.numberButton}
-                          onPress={handleBackspace}
+                          onPress={() => handleNumberPress(num)}
                         >
-                          <Ionicons name="backspace-outline" size={28} color={COLORS.text} />
+                          <Text style={styles.numberText}>{num}</Text>
                         </TouchableOpacity>
                       );
-                    }
-                    return (
-                      <TouchableOpacity
-                        key={num}
-                        style={styles.numberButton}
-                        onPress={() => handleNumberPress(num)}
-                      >
-                        <Text style={styles.numberText}>{num}</Text>
-                      </TouchableOpacity>
-                    );
-                  })}
-                </View>
-              )
-            )}
+                    })}
+                  </View>
+                )
+              )}
+            </View>
           </View>
         </View>
-      </View>
-    </Modal>
+      </Modal>
+      
+      {/* Custom Alert */}
+      <CustomAlert
+        visible={alertConfig.visible}
+        type={alertConfig.type}
+        title={alertConfig.title}
+        message={alertConfig.message}
+        buttons={[{ text: 'OK', style: 'default' }]}
+        onClose={hideAlert}
+      />
+    </>
   );
 }
 
