@@ -294,11 +294,11 @@ export default function HomeScreen() {
             <View style={styles.streakChips}>
               <View style={styles.streakChip}>
                 <Ionicons name="flame" size={14} color={COLORS.white} />
-                <Text style={styles.streakText}>{stats?.currentStreak || 7} day streak</Text>
+                <Text style={styles.streakText}>{displayStats.currentStreak} day streak</Text>
               </View>
               <View style={styles.streakChip}>
                 <Ionicons name="checkmark-circle" size={14} color={COLORS.white} />
-                <Text style={styles.streakText}>{stats?.weeklyWorkouts || 8} workouts</Text>
+                <Text style={styles.streakText}>{displayStats.totalWorkouts} workouts</Text>
               </View>
             </View>
           </View>
