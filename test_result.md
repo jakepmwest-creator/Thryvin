@@ -376,3 +376,33 @@ agent_communication:
 agent_communication:
     - agent: "main"
       message: "PROFILE SCREEN OVERHAUL COMPLETE: Created 9 new modal components for full Profile functionality. Removed edit button from header. Removed redundant stats row. All buttons now functional: Edit Profile (photo/name/bio), Workout Preferences (injuries/equipment/focus), Goals (fitness goals selection), Reset Program (AI chat to customize), Security (PIN already worked, now Biometrics too), View All Weeks (21-day calendar), Help & FAQ (comprehensive), Legal pages, Rate App, Contact Support. Notification toggles now persist. Ready for user testing."
+
+  - task: "Multiple UI/UX Fixes and AI Coach Implementation"
+    implemented: true
+    working: "NA"
+    files: 
+      - "/app/apps/native/app/(tabs)/index.tsx"
+      - "/app/apps/native/app/(tabs)/workouts.tsx"
+      - "/app/apps/native/src/components/PINSetup.tsx"
+      - "/app/apps/native/src/components/CustomAlert.tsx"
+      - "/app/apps/native/src/components/AICoachWidget.tsx"
+      - "/app/apps/native/src/components/WorkoutPreferencesModal.tsx"
+      - "/app/apps/native/src/stores/workout-store.ts"
+    stuck_count: 0
+    priority: "P0"
+    needs_retesting: true
+    status_history:
+        - working: "NA"
+          agent: "main"
+          comment: |
+            Multiple fixes implemented:
+            1. Progress rings auto-update: Added useEffect that listens to completedWorkouts.length changes and refreshes stats
+            2. Calendar rest day dots: Rest days no longer show dots in weekly/monthly view, shows bed icon instead
+            3. Custom rounded alerts: Created CustomAlert component with nice rounded styling, updated PINSetup to use it
+            4. Workout Preferences regeneration: Now asks "Are you sure?" and regenerates workouts with new preferences
+            5. AI Coach Widget: Created powerful floating AI button that opens chat interface to swap days, modify workouts, change intensity, etc.
+            6. swapWorkoutDays function: Added to workout store to enable day swapping
+
+agent_communication:
+    - agent: "main"
+      message: "MULTIPLE FIXES COMPLETE: (1) Progress rings now auto-update when workouts are completed via useEffect on completedWorkouts.length, (2) Calendar dots removed for rest days - shows bed icon instead, (3) Created CustomAlert component with rounded corners/icons for better UX, updated PINSetup to use it, (4) WorkoutPreferencesModal now confirms changes and regenerates workouts, (5) Created AI Coach floating button on home screen that can swap days, modify intensity, give form tips, regenerate workouts. Ready for user testing."
