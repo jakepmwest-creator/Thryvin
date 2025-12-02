@@ -572,6 +572,16 @@ export default function ProfileScreen() {
         visible={showAllWeeks}
         onClose={() => setShowAllWeeks(false)}
       />
+      
+      {/* Custom Alert */}
+      <CustomAlert
+        visible={alertConfig.visible}
+        type={alertConfig.type}
+        title={alertConfig.title}
+        message={alertConfig.message}
+        buttons={alertConfig.buttons || [{ text: 'OK', onPress: hideAlert }]}
+        onClose={hideAlert}
+      />
     </SafeAreaView>
   );
 }
