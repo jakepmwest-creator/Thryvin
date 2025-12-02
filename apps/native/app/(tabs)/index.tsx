@@ -16,7 +16,6 @@ import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { AppHeader } from '../../src/components/AppHeader';
 import { WorkoutDetailsModal } from '../../src/components/WorkoutDetailsModal';
-import { AICoachWidget, AICoachButton } from '../../src/components/AICoachWidget';
 import { PersonalBestChart } from '../../src/components/PersonalBestChart';
 import { useWorkoutStore } from '../../src/stores/workout-store';
 import { useAuthStore } from '../../src/stores/auth-store';
