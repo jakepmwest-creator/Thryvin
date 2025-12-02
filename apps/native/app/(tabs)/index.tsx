@@ -353,9 +353,9 @@ export default function HomeScreen() {
           {ringDetailsVisible && (
             <View style={styles.ringDetailsPopup}>
               <Text style={styles.ringDetailsText}>
-                {ringDetailsVisible === 'Weekly Goal' && `${stats?.weeklyWorkouts || 0} of ${stats?.weeklyGoal || 5} workouts`}
-                {ringDetailsVisible === 'Active Minutes' && `${stats?.weeklyMinutes || 0} of ${stats?.weeklyMinutesGoal || 225} mins`}
-                {ringDetailsVisible === 'Calories' && '1,820 of 2,500 kcal'}
+                {ringDetailsVisible === 'Weekly Goal' && `${displayStats.weeklyWorkouts} of ${displayStats.weeklyGoal} workouts`}
+                {ringDetailsVisible === 'Active Minutes' && `${displayStats.weeklyMinutes} of ${displayStats.weeklyMinutesGoal} mins`}
+                {ringDetailsVisible === 'Calories' && `${Math.round(displayStats.weeklyMinutes * 8)} of 2,000 kcal`}
               </Text>
             </View>
           )}
