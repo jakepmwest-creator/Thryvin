@@ -425,7 +425,45 @@ export function FloatingCoachButton() {
                   <Text style={styles.loadingText}>Thinking...</Text>
                 </View>
               )}
+              
+              {/* Action confirmation button */}
+              {pendingAction && !isLoading && (
+                <TouchableOpacity 
+                  style={styles.confirmActionButton}
+                  onPress={() => executeAction(pendingAction)}
+                >
+                  <LinearGradient
+                    colors={[COLORS.accent, COLORS.accentSecondary]}
+                    style={styles.confirmActionGradient}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 1 }}
+                  >
+                    <Ionicons name="checkmark-circle" size={18} color={COLORS.white} />
+                    <Text style={styles.confirmActionText}>
+                      {pendingAction.type === 'swap' ? 'Confirm Swap' : 'Confirm & Regenerate'}
+                    </Text>
+                  </LinearGradient>
+                </TouchableOpacity>
+              )}
             </ScrollView>
+            
+            {/* Quick Actions */}
+            {messages.length <= 2 && !isLoading && (
+              <View style={styles.quickActionsContainer}>
+                <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                  {QUICK_ACTIONS.map((action, index) => (
+                    <TouchableOpacity
+                      key={index}
+                      style={styles.quickAction}
+                      onPress={() => handleQuickAction(action)}
+                    >
+                      <Ionicons name={action.icon as any} size={16} color={COLORS.accent} />
+                      <Text style={styles.quickActionText}>{action.label}</Text>
+                    </TouchableOpacity>
+                  ))}
+                </ScrollView>
+              </View>
+            )}
 
             <View style={styles.inputContainer}>
               <View style={styles.inputWrapper}>
