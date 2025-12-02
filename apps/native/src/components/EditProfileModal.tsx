@@ -148,11 +148,11 @@ export const EditProfileModal = ({ visible, onClose, onSave }: EditProfileModalP
         await AsyncStorage.removeItem('user_profile_image');
       }
       
-      Alert.alert('Success', 'Profile updated successfully!');
+      showAlert('success', 'Success', 'Profile updated successfully!');
       onSave();
       onClose();
     } catch (error) {
-      Alert.alert('Error', 'Failed to save profile. Please try again.');
+      showAlert('error', 'Error', 'Failed to save profile. Please try again.');
     } finally {
       setIsSaving(false);
     }
@@ -177,6 +177,16 @@ export const EditProfileModal = ({ visible, onClose, onSave }: EditProfileModalP
               </Text>
             </TouchableOpacity>
           </View>
+          
+          {/* Custom Alert */}
+          <CustomAlert
+            visible={alertConfig.visible}
+            type={alertConfig.type}
+            title={alertConfig.title}
+            message={alertConfig.message}
+            buttons={alertConfig.buttons}
+            onClose={hideAlert}
+          />
 
           <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
             {/* Profile Photo */}
