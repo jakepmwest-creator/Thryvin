@@ -206,15 +206,17 @@ export default function ProfileScreen() {
   };
 
   const handleLogout = () => {
-    Alert.alert(
-      'Sign Out',
-      'Are you sure you want to sign out?',
-      [
-        { text: 'Cancel', style: 'cancel' },
+    showAlert({
+      type: 'warning',
+      title: 'Sign Out',
+      message: 'Are you sure you want to sign out?',
+      buttons: [
+        { text: 'Cancel', style: 'cancel', onPress: hideAlert },
         { 
           text: 'Sign Out', 
           style: 'destructive', 
           onPress: async () => {
+            hideAlert();
             try {
               await logout();
             } catch (error) {
@@ -223,40 +225,49 @@ export default function ProfileScreen() {
           }
         },
       ]
-    );
+    });
   };
 
   const handleDeleteAccount = () => {
-    Alert.alert(
-      'Delete Account',
-      'This action cannot be undone. All your data will be permanently deleted.',
-      [
-        { text: 'Cancel', style: 'cancel' },
+    showAlert({
+      type: 'error',
+      title: 'Delete Account',
+      message: 'This action cannot be undone. All your data will be permanently deleted.',
+      buttons: [
+        { text: 'Cancel', style: 'cancel', onPress: hideAlert },
         { 
           text: 'Delete', 
           style: 'destructive', 
           onPress: () => {
-            Alert.alert(
-              'Confirm Deletion',
-              'Type DELETE to confirm account deletion.',
-              [
-                { text: 'Cancel', style: 'cancel' },
-                { 
-                  text: 'I Understand', 
-                  style: 'destructive', 
-                  onPress: async () => {
-                    // Clear all local data
-                    await AsyncStorage.clear();
-                    Alert.alert('Account Deleted', 'Your account has been deleted.');
-                    await logout();
-                  }
-                },
-              ]
-            );
+            hideAlert();
+            setTimeout(() => {
+              showAlert({
+                type: 'error',
+                title: 'Confirm Deletion',
+                message: 'Are you absolutely sure? This will permanently delete all your workout data.',
+                buttons: [
+                  { text: 'Cancel', style: 'cancel', onPress: hideAlert },
+                  { 
+                    text: 'Delete Forever', 
+                    style: 'destructive', 
+                    onPress: async () => {
+                      hideAlert();
+                      await AsyncStorage.clear();
+                      showAlert({
+                        type: 'info',
+                        title: 'Account Deleted',
+                        message: 'Your account has been deleted.',
+                        buttons: [{ text: 'OK', onPress: async () => { hideAlert(); await logout(); } }]
+                      });
+                    }
+                  },
+                ]
+              });
+            }, 300);
           }
         },
       ]
-    );
+    });
   };
 
   const handleStartTour = async () => {
