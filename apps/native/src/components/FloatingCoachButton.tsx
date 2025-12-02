@@ -213,6 +213,68 @@ export function FloatingCoachButton() {
       }
     }
     
+    // Stats inquiry
+    if (lower.includes('my stats') || lower.includes('my progress') || lower.includes('how many workouts') || lower.includes('streak')) {
+      // Compute stats from weekWorkouts
+      const completedCount = weekWorkouts.filter(w => w.completed && !w.isRestDay).length;
+      const totalWorkouts = weekWorkouts.filter(w => !w.isRestDay).length;
+      const thisWeekCompleted = weekWorkouts.slice(0, 7).filter(w => w.completed && !w.isRestDay).length;
+      
+      return {
+        handled: true,
+        response: `📊 Here's your progress:\n\n• This week: ${thisWeekCompleted}/5 workouts\n• Total completed: ${completedCount} workouts\n• Upcoming: ${totalWorkouts - completedCount} workouts scheduled\n\nKeep crushing it! 💪`
+      };
+    }
+    
+    // Today's workout inquiry
+    if (lower.includes("today's workout") || lower.includes('what is today') || lower.includes('my workout today') || lower.includes('what workout')) {
+      const today = new Date().toDateString();
+      const todayWorkout = weekWorkouts.find(w => new Date(w.date).toDateString() === today);
+      
+      if (todayWorkout?.isRestDay) {
+        return {
+          handled: true,
+          response: "😴 Today is a rest day!\n\nTake time to recover, stretch, and rehydrate. Your body builds muscle during rest!"
+        };
+      } else if (todayWorkout) {
+        return {
+          handled: true,
+          response: `🏋️ Today's workout: **${todayWorkout.title}**\n\n• Duration: ${todayWorkout.duration} minutes\n• Exercises: ${todayWorkout.exercises?.length || 0}\n• Focus: ${todayWorkout.targetMuscles || todayWorkout.type}\n\nReady to crush it?`
+        };
+      }
+      return { handled: false };
+    }
+    
+    // Tomorrow's workout inquiry
+    if (lower.includes("tomorrow") && (lower.includes('workout') || lower.includes('what'))) {
+      const tomorrow = new Date();
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      const tomorrowStr = tomorrow.toDateString();
+      const tomorrowWorkout = weekWorkouts.find(w => new Date(w.date).toDateString() === tomorrowStr);
+      
+      if (tomorrowWorkout?.isRestDay) {
+        return {
+          handled: true,
+          response: "😴 Tomorrow is a rest day!\n\nEnjoy the recovery time."
+        };
+      } else if (tomorrowWorkout) {
+        return {
+          handled: true,
+          response: `📅 Tomorrow's workout: **${tomorrowWorkout.title}**\n\n• Duration: ${tomorrowWorkout.duration} minutes\n• Exercises: ${tomorrowWorkout.exercises?.length || 0}\n• Focus: ${tomorrowWorkout.targetMuscles || tomorrowWorkout.type}`
+        };
+      }
+      return { handled: false };
+    }
+    
+    // Reset program intent
+    if (lower.includes('reset') || lower.includes('start over') || lower.includes('new program') || lower.includes('restart')) {
+      return {
+        handled: true,
+        response: "🔄 Ready to reset your workout program?\n\nThis will:\n• Clear all current workouts\n• Generate a fresh 3-week plan\n• Keep your preferences and stats\n\n⚠️ This action cannot be undone.\n\nConfirm to reset?",
+        action: { type: 'reset' }
+      };
+    }
+    
     // Regenerate workout intent
     if (lower.includes('new workout') || lower.includes('regenerate') || lower.includes('different workout') || lower.includes('fresh workout')) {
       return {
@@ -240,9 +302,26 @@ export function FloatingCoachButton() {
       };
     }
     
+    // Help / capabilities
+    if (lower.includes('what can you do') || lower.includes('help') || lower.includes('commands')) {
+      return {
+        handled: true,
+        response: "🤖 I can help you with:\n\n• 📅 **Swap days** - 'Swap Monday with Wednesday'\n• 🔄 **New workout** - 'Generate a new workout'\n• 📊 **Stats** - 'Show my progress'\n• 💪 **Intensity** - 'Make it harder'\n• ⏱️ **Duration** - 'Make it shorter'\n• 🔁 **Reset** - 'Reset my program'\n• ❓ **Questions** - Ask anything fitness-related!\n\nWhat would you like to do?"
+      };
+    }
+    
     // Yes/confirm handling for pending action
-    if (pendingAction && (lower === 'yes' || lower === 'confirm' || lower === 'do it' || lower === 'go ahead')) {
+    if (pendingAction && (lower === 'yes' || lower === 'confirm' || lower === 'do it' || lower === 'go ahead' || lower === 'ok')) {
       return { handled: true, response: 'executing_action' };
+    }
+    
+    // Cancel pending action
+    if (pendingAction && (lower === 'no' || lower === 'cancel' || lower === 'nevermind')) {
+      setPendingAction(null);
+      return {
+        handled: true,
+        response: "No problem! Action cancelled. 👍\n\nWhat else can I help you with?"
+      };
     }
     
     return { handled: false };
