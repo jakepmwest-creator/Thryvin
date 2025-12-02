@@ -466,7 +466,7 @@ export default function ProfileScreen() {
         onClose={() => setShowPINSetup(false)}
         onSuccess={() => {
           setShowPINSetup(false);
-          Alert.alert('Success', 'PIN has been set successfully!');
+          // Custom alert is shown in PINSetup component
         }}
       />
       
