@@ -945,33 +945,42 @@ export default function AwardsScreen() {
       <AppHeader mode="fitness" />
       
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-        {/* Purple Island Banner */}
+        {/* Enhanced Purple Island Banner with particles */}
         <TouchableOpacity onPress={() => setShowIslandSelector(true)} activeOpacity={0.9}>
           <LinearGradient colors={[COLORS.gradientStart, COLORS.gradientEnd]} style={styles.islandBanner} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}>
+            {/* Floating particles for visual flair */}
+            <FloatingParticle delay={0} size={5} left={5} />
+            <FloatingParticle delay={800} size={4} left={25} />
+            <FloatingParticle delay={400} size={6} left={75} />
+            <FloatingParticle delay={1200} size={4} left={90} />
+            
             <View style={styles.islandBannerContent}>
-              <Text style={styles.islandBannerEmoji}>{island.emoji}</Text>
+              <View style={styles.islandEmojiContainer}>
+                <Text style={styles.islandBannerEmoji}>{island.emoji}</Text>
+              </View>
               <View style={styles.islandBannerInfo}>
                 <Text style={styles.islandBannerName}>{island.name}</Text>
                 <Text style={styles.islandBannerSubtitle}>{island.subtitle}</Text>
               </View>
               <View style={styles.islandBannerStats}>
-                <Text style={styles.islandBannerXP}>{totalXP}</Text>
+                <Text style={styles.islandBannerXP}>{totalXP.toLocaleString()}</Text>
                 <Text style={styles.islandBannerXPLabel}>XP</Text>
               </View>
             </View>
             
             <View style={styles.islandProgressSection}>
               <View style={styles.islandProgressBar}>
-                <View style={[styles.islandProgressFill, { width: `${islandProgress.percentage}%` }]} />
+                <Animated.View style={[styles.islandProgressFill, { width: `${islandProgress.percentage}%` }]} />
               </View>
               <Text style={styles.islandProgressText}>
-                {currentIsland < 10 ? `${islandProgress.current}/${islandProgress.required} to next island` : 'Max level! 🌟'}
+                {currentIsland < 10 ? `${islandProgress.current}/${islandProgress.required} badges to next island` : 'Max level reached! 🌟'}
               </Text>
             </View>
             
             <View style={styles.tapHint}>
-              <Text style={styles.tapHintText}>Tap to view all islands</Text>
-              <Ionicons name="chevron-up" size={16} color="rgba(255,255,255,0.8)" />
+              <Ionicons name="map" size={14} color="rgba(255,255,255,0.8)" />
+              <Text style={styles.tapHintText}>Tap to view your journey</Text>
+              <Ionicons name="chevron-forward" size={14} color="rgba(255,255,255,0.8)" />
             </View>
           </LinearGradient>
         </TouchableOpacity>
