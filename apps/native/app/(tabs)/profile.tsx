@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -8,11 +8,21 @@ import {
   Alert,
   Switch,
   Image,
+  Linking,
+  Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { PINSetup } from '../../src/components/PINSetup';
+import { EditProfileModal } from '../../src/components/EditProfileModal';
+import { WorkoutPreferencesModal } from '../../src/components/WorkoutPreferencesModal';
+import { GoalsProgressModal } from '../../src/components/GoalsProgressModal';
+import { ResetProgramModal } from '../../src/components/ResetProgramModal';
+import { BiometricSettingsModal } from '../../src/components/BiometricSettingsModal';
+import { HelpFAQModal } from '../../src/components/HelpFAQModal';
+import { LegalModal } from '../../src/components/LegalModal';
+import { ViewAllWeeksModal } from '../../src/components/ViewAllWeeksModal';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useAuthStore } from '../../src/stores/auth-store';
 import { useWorkoutStore } from '../../src/stores/workout-store';
