@@ -52,6 +52,7 @@ const SelectOption = ({ label, selected, onPress }: { label: string; selected: b
 
 export const WorkoutPreferencesModal = ({ visible, onClose, onSave }: WorkoutPreferencesModalProps) => {
   const { user } = useAuthStore();
+  const { resetProgram, forceRegenerateWeek } = useWorkoutStore();
   
   const [experience, setExperience] = useState(user?.experience || 'Intermediate');
   const [trainingType, setTrainingType] = useState(user?.trainingType || 'Mixed');
@@ -60,11 +61,36 @@ export const WorkoutPreferencesModal = ({ visible, onClose, onSave }: WorkoutPre
   const [trainingDays, setTrainingDays] = useState(user?.trainingDays?.toString() || '4');
   const [sessionDuration, setSessionDuration] = useState(user?.sessionDuration?.toString() || '45');
   const [isSaving, setIsSaving] = useState(false);
+  const [isRegenerating, setIsRegenerating] = useState(false);
+  const [hasChanges, setHasChanges] = useState(false);
+  const [originalPrefs, setOriginalPrefs] = useState<any>(null);
 
   // Training focus switches
   const [focusStrength, setFocusStrength] = useState(true);
   const [focusCardio, setFocusCardio] = useState(false);
   const [focusFlexibility, setFocusFlexibility] = useState(false);
+  
+  // Alert state
+  const [alertConfig, setAlertConfig] = useState<{
+    visible: boolean;
+    type: 'success' | 'error' | 'warning' | 'info';
+    title: string;
+    message: string;
+    buttons?: Array<{ text: string; onPress?: () => void; style?: 'default' | 'cancel' | 'destructive' }>;
+  }>({
+    visible: false,
+    type: 'info',
+    title: '',
+    message: '',
+  });
+
+  const showAlert = (config: Omit<typeof alertConfig, 'visible'>) => {
+    setAlertConfig({ ...config, visible: true });
+  };
+
+  const hideAlert = () => {
+    setAlertConfig(prev => ({ ...prev, visible: false }));
+  };
 
   useEffect(() => {
     loadPreferences();
@@ -84,11 +110,35 @@ export const WorkoutPreferencesModal = ({ visible, onClose, onSave }: WorkoutPre
         setFocusStrength(prefs.focusStrength ?? true);
         setFocusCardio(prefs.focusCardio ?? false);
         setFocusFlexibility(prefs.focusFlexibility ?? false);
+        setOriginalPrefs(prefs);
+      } else {
+        setOriginalPrefs({
+          experience, trainingType, equipment, injuries, 
+          trainingDays, sessionDuration, focusStrength, focusCardio, focusFlexibility
+        });
       }
+      setHasChanges(false);
     } catch (error) {
       console.error('Error loading preferences:', error);
     }
   };
+
+  // Track changes
+  useEffect(() => {
+    if (originalPrefs) {
+      const changed = 
+        experience !== originalPrefs.experience ||
+        trainingType !== originalPrefs.trainingType ||
+        JSON.stringify(equipment) !== JSON.stringify(originalPrefs.equipment) ||
+        JSON.stringify(injuries) !== JSON.stringify(originalPrefs.injuries) ||
+        trainingDays !== originalPrefs.trainingDays ||
+        sessionDuration !== originalPrefs.sessionDuration ||
+        focusStrength !== originalPrefs.focusStrength ||
+        focusCardio !== originalPrefs.focusCardio ||
+        focusFlexibility !== originalPrefs.focusFlexibility;
+      setHasChanges(changed);
+    }
+  }, [experience, trainingType, equipment, injuries, trainingDays, sessionDuration, focusStrength, focusCardio, focusFlexibility, originalPrefs]);
 
   const toggleEquipment = (item: string) => {
     setEquipment(prev => 
@@ -107,7 +157,34 @@ export const WorkoutPreferencesModal = ({ visible, onClose, onSave }: WorkoutPre
   };
 
   const handleSave = async () => {
+    if (!hasChanges) {
+      onClose();
+      return;
+    }
+    
+    // Show confirmation dialog
+    showAlert({
+      type: 'info',
+      title: 'Update Preferences?',
+      message: 'Changing your preferences will regenerate your workout program to match your new settings. Your current progress will be saved.\n\nDo you want to continue?',
+      buttons: [
+        { text: 'Cancel', style: 'cancel', onPress: hideAlert },
+        { 
+          text: 'Update & Regenerate', 
+          style: 'default', 
+          onPress: () => {
+            hideAlert();
+            saveAndRegenerate();
+          }
+        },
+      ]
+    });
+  };
+  
+  const saveAndRegenerate = async () => {
     setIsSaving(true);
+    setIsRegenerating(true);
+    
     try {
       const preferences = {
         experience,
@@ -124,16 +201,28 @@ export const WorkoutPreferencesModal = ({ visible, onClose, onSave }: WorkoutPre
       
       await AsyncStorage.setItem('workout_preferences', JSON.stringify(preferences));
       
-      Alert.alert(
-        'Preferences Saved',
-        'Your workout preferences have been updated. Your next workout will reflect these changes.',
-        [{ text: 'OK', onPress: onClose }]
-      );
-      onSave();
+      // Regenerate workouts with new preferences
+      await forceRegenerateWeek();
+      
+      setOriginalPrefs(preferences);
+      setHasChanges(false);
+      
+      showAlert({
+        type: 'success',
+        title: 'Preferences Updated! 🎯',
+        message: 'Your workout program has been regenerated with your new preferences. Check out your updated workouts!',
+        buttons: [{ text: 'Awesome!', onPress: () => { hideAlert(); onSave(); onClose(); } }]
+      });
     } catch (error) {
-      Alert.alert('Error', 'Failed to save preferences. Please try again.');
+      showAlert({
+        type: 'error',
+        title: 'Error',
+        message: 'Failed to update preferences. Please try again.',
+        buttons: [{ text: 'OK', onPress: hideAlert }]
+      });
     } finally {
       setIsSaving(false);
+      setIsRegenerating(false);
     }
   };
 
