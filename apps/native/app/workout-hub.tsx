@@ -898,6 +898,16 @@ export default function WorkoutHubScreen() {
           </TouchableOpacity>
         </TouchableOpacity>
       </Modal>
+      
+      {/* Custom Alert */}
+      <CustomAlert
+        visible={alertConfig.visible}
+        type={alertConfig.type}
+        title={alertConfig.title}
+        message={alertConfig.message}
+        buttons={alertConfig.buttons}
+        onClose={hideAlert}
+      />
     </SafeAreaView>
   );
 }
