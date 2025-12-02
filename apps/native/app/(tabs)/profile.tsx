@@ -121,6 +121,28 @@ export default function ProfileScreen() {
   const [bio, setBio] = useState('');
   const [userName, setUserName] = useState(user?.name || 'User');
   
+  // Custom alert state
+  const [alertConfig, setAlertConfig] = useState<{
+    visible: boolean;
+    type: 'success' | 'error' | 'warning' | 'info';
+    title: string;
+    message: string;
+    buttons?: Array<{ text: string; onPress?: () => void; style?: 'default' | 'cancel' | 'destructive' }>;
+  }>({
+    visible: false,
+    type: 'info',
+    title: '',
+    message: '',
+  });
+
+  const showAlert = (config: Partial<typeof alertConfig>) => {
+    setAlertConfig({ ...alertConfig, ...config, visible: true });
+  };
+
+  const hideAlert = () => {
+    setAlertConfig(prev => ({ ...prev, visible: false }));
+  };
+  
   // Load persisted settings
   useEffect(() => {
     loadSettings();
