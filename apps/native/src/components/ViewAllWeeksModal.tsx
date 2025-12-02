@@ -44,8 +44,10 @@ export const ViewAllWeeksModal = ({ visible, onClose }: ViewAllWeeksModalProps) 
       for (let day = 0; day < 7; day++) {
         const dayIndex = startDay + day;
         const workout = weekWorkouts[dayIndex];
-        const isCompleted = workout && completedWorkouts.includes(workout.id);
-        const isToday = dayIndex === 0; // Simplified - first day is today
+        const workoutId = workout?.id || `workout-${dayIndex}`;
+        const isCompleted = workout && completedWorkouts.some(cw => 
+          typeof cw === 'string' ? cw === workoutId : cw?.id === workoutId
+        );
         
         weekDays.push({
           dayName: DAYS[day],
