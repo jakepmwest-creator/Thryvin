@@ -116,7 +116,7 @@ const AlternativeCard: React.FC<AlternativeCardProps> = ({
   );
 };
 
-const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL || 'https://big-hairs-make.loca.lt';
+const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL || 'https://nasty-lizards-sing.loca.lt';
 
 export function EditWorkoutModal({
   visible,

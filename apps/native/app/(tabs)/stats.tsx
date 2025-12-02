@@ -32,7 +32,7 @@ const COLORS = {
   background: THEME_COLORS.background,
 };
 
-const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL || 'https://big-hairs-make.loca.lt';
+const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL || 'https://nasty-lizards-sing.loca.lt';
 
 // Pie chart colors
 const PIE_COLORS = [

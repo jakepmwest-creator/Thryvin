@@ -28,7 +28,7 @@ const COLORS = {
   mediumGray: '#8E8E93',
 };
 
-const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL || 'https://big-hairs-make.loca.lt';
+const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL || 'https://nasty-lizards-sing.loca.lt';
 
 // BeReal-style reactions
 const REACTION_TYPES = [

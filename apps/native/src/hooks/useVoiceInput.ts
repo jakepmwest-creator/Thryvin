@@ -2,7 +2,7 @@ import { useState, useRef, useCallback } from 'react';
 import { Audio } from 'expo-av';
 import { Alert, Platform } from 'react-native';
 
-const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL || 'https://big-hairs-make.loca.lt';
+const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL || 'https://nasty-lizards-sing.loca.lt';
 
 interface UseVoiceInputOptions {
   onTranscription?: (text: string) => void;
