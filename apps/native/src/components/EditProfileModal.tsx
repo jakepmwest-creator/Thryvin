@@ -108,7 +108,7 @@ export const EditProfileModal = ({ visible, onClose, onSave }: EditProfileModalP
     const { status } = await ImagePicker.requestCameraPermissionsAsync();
     
     if (status !== 'granted') {
-      Alert.alert('Permission needed', 'Please allow camera access to take a profile photo.');
+      showAlert('warning', 'Permission needed', 'Please allow camera access to take a profile photo.');
       return;
     }
 
@@ -124,21 +124,17 @@ export const EditProfileModal = ({ visible, onClose, onSave }: EditProfileModalP
   };
 
   const showImageOptions = () => {
-    Alert.alert(
-      'Change Profile Photo',
-      'Choose an option',
-      [
-        { text: 'Take Photo', onPress: takePhoto },
-        { text: 'Choose from Library', onPress: pickImage },
-        { text: 'Remove Photo', onPress: () => setProfileImage(null), style: 'destructive' },
-        { text: 'Cancel', style: 'cancel' },
-      ]
-    );
+    showAlert('info', 'Change Profile Photo', 'Choose an option', [
+      { text: 'Take Photo', onPress: takePhoto },
+      { text: 'Choose from Library', onPress: pickImage },
+      { text: 'Remove Photo', onPress: () => setProfileImage(null), style: 'destructive' },
+      { text: 'Cancel', style: 'cancel' },
+    ]);
   };
 
   const handleSave = async () => {
     if (!name.trim()) {
-      Alert.alert('Error', 'Please enter your name');
+      showAlert('error', 'Error', 'Please enter your name');
       return;
     }
 
