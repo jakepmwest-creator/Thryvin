@@ -378,57 +378,147 @@ const BadgeCard = ({ badge, userBadge, onPress, isAvailable }: { badge: Badge; u
   );
 };
 
-// Island Selector Modal (Vertical Scroll)
-const IslandSelectorModal = ({ visible, onClose, currentIsland, completedCount }: { visible: boolean; onClose: () => void; currentIsland: number; completedCount: number }) => {
+// Island Journey Modal (Beautiful Vertical Scroll Map)
+const IslandJourneyModal = ({ 
+  visible, 
+  onClose, 
+  currentIsland, 
+  completedCount,
+  userBadges 
+}: { 
+  visible: boolean; 
+  onClose: () => void; 
+  currentIsland: number; 
+  completedCount: number;
+  userBadges: UserBadge[];
+}) => {
   const scrollRef = useRef<ScrollView>(null);
+  const fadeAnim = useRef(new Animated.Value(0)).current;
   
   useEffect(() => {
-    if (visible && scrollRef.current) {
-      // Scroll to current island
+    if (visible) {
+      Animated.timing(fadeAnim, { toValue: 1, duration: 300, useNativeDriver: true }).start();
       setTimeout(() => {
-        scrollRef.current?.scrollTo({ y: (currentIsland - 1) * 220, animated: true });
-      }, 300);
+        const targetY = Math.max(0, (currentIsland - 1) * 260 - 50);
+        scrollRef.current?.scrollTo({ y: targetY, animated: true });
+      }, 400);
+    } else {
+      fadeAnim.setValue(0);
     }
   }, [visible, currentIsland]);
   
+  // Calculate badges per island
+  const getBadgeStatsForIsland = (islandId: number) => {
+    const islandBadges = BADGE_DEFINITIONS.filter(b => b.island === islandId);
+    const completed = islandBadges.filter(b => userBadges.find(ub => ub.badgeId === b.id)?.completed).length;
+    return { completed, total: islandBadges.length };
+  };
+  
   return (
     <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose}>
-      <View style={styles.islandModalOverlay}>
-        <View style={styles.islandModalContent}>
-          <View style={styles.islandModalHeader}>
-            <Text style={styles.islandModalTitle}>Your Journey</Text>
-            <TouchableOpacity onPress={onClose} style={styles.islandModalClose}>
-              <Ionicons name="close" size={24} color={COLORS.mediumGray} />
-            </TouchableOpacity>
-          </View>
+      <View style={journeyStyles.modalOverlay}>
+        <Animated.View style={[journeyStyles.modalContent, { opacity: fadeAnim }]}>
+          {/* Header */}
+          <LinearGradient colors={[COLORS.gradientStart, COLORS.gradientEnd]} style={journeyStyles.header}>
+            <View style={journeyStyles.headerContent}>
+              <View>
+                <Text style={journeyStyles.headerTitle}>Your Fitness Journey</Text>
+                <Text style={journeyStyles.headerSubtitle}>
+                  {completedCount} badges earned • {BADGE_DEFINITIONS.length - completedCount} to go
+                </Text>
+              </View>
+              <TouchableOpacity onPress={onClose} style={journeyStyles.closeButton}>
+                <Ionicons name="close" size={24} color={COLORS.white} />
+              </TouchableOpacity>
+            </View>
+            
+            {/* Overall progress */}
+            <View style={journeyStyles.overallProgress}>
+              <View style={journeyStyles.progressBarContainer}>
+                <View style={[journeyStyles.progressBarFill, { width: `${(currentIsland / 10) * 100}%` }]} />
+              </View>
+              <Text style={journeyStyles.progressLabel}>Island {currentIsland} of 10</Text>
+            </View>
+            
+            {/* Floating particles */}
+            <FloatingParticle delay={0} size={6} left={10} />
+            <FloatingParticle delay={500} size={4} left={30} />
+            <FloatingParticle delay={1000} size={8} left={70} />
+            <FloatingParticle delay={1500} size={5} left={85} />
+          </LinearGradient>
           
-          <Text style={styles.islandModalSubtitle}>
-            {completedCount} badges • Island {currentIsland} of 10
-          </Text>
-          
+          {/* Island Journey Scroll */}
           <ScrollView 
             ref={scrollRef}
             showsVerticalScrollIndicator={false}
-            contentContainerStyle={styles.islandScrollContent}
+            contentContainerStyle={journeyStyles.scrollContent}
           >
-            {ISLANDS.map((island) => {
+            {/* Journey background decoration */}
+            <View style={journeyStyles.journeyPath} />
+            
+            {ISLANDS.map((island, index) => {
               const isUnlocked = completedCount >= island.requiredBadges;
               const isCurrent = island.id === currentIsland;
+              const stats = getBadgeStatsForIsland(island.id);
+              const isCompleted = stats.completed === stats.total && stats.total > 0;
+              
               return (
-                <IslandVisual
-                  key={island.id}
-                  island={island}
-                  isUnlocked={isUnlocked}
-                  isCurrent={isCurrent}
-                />
+                <View key={island.id}>
+                  <IslandCard
+                    island={island}
+                    isUnlocked={isUnlocked}
+                    isCurrent={isCurrent}
+                    completedBadges={stats.completed}
+                    totalBadges={stats.total}
+                    onPress={() => {}}
+                  />
+                  {index < ISLANDS.length - 1 && (
+                    <IslandConnector isCompleted={isUnlocked && completedCount >= ISLANDS[index + 1].requiredBadges} />
+                  )}
+                </View>
               );
             })}
+            
+            {/* Final goal */}
+            <View style={journeyStyles.finalGoal}>
+              <LinearGradient colors={['#FFD700', '#FFA500']} style={journeyStyles.finalGoalBadge}>
+                <Ionicons name="trophy" size={32} color={COLORS.white} />
+              </LinearGradient>
+              <Text style={journeyStyles.finalGoalText}>Fitness Legend</Text>
+              <Text style={journeyStyles.finalGoalSubtext}>Complete all badges to achieve greatness</Text>
+            </View>
+            
+            <View style={{ height: 40 }} />
           </ScrollView>
-        </View>
+        </Animated.View>
       </View>
     </Modal>
   );
 };
+
+const journeyStyles = StyleSheet.create({
+  modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.6)' },
+  modalContent: { flex: 1, backgroundColor: '#F8F9FA', marginTop: 50, borderTopLeftRadius: 28, borderTopRightRadius: 28, overflow: 'hidden' },
+  
+  header: { paddingTop: 20, paddingBottom: 24, paddingHorizontal: 20, position: 'relative', overflow: 'hidden' },
+  headerContent: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' },
+  headerTitle: { fontSize: 24, fontWeight: '800', color: COLORS.white, letterSpacing: -0.5 },
+  headerSubtitle: { fontSize: 14, color: 'rgba(255,255,255,0.85)', marginTop: 4 },
+  closeButton: { padding: 4, backgroundColor: 'rgba(255,255,255,0.2)', borderRadius: 20 },
+  
+  overallProgress: { marginTop: 16 },
+  progressBarContainer: { height: 6, backgroundColor: 'rgba(255,255,255,0.3)', borderRadius: 3, overflow: 'hidden' },
+  progressBarFill: { height: '100%', backgroundColor: COLORS.white, borderRadius: 3 },
+  progressLabel: { fontSize: 12, color: 'rgba(255,255,255,0.9)', marginTop: 6, textAlign: 'center', fontWeight: '600' },
+  
+  scrollContent: { paddingTop: 24, paddingBottom: 20 },
+  journeyPath: { position: 'absolute', left: SCREEN_WIDTH / 2 - 2, top: 0, bottom: 0, width: 4, backgroundColor: '#E0E0E0', borderRadius: 2 },
+  
+  finalGoal: { alignItems: 'center', marginTop: 20, paddingVertical: 20 },
+  finalGoalBadge: { width: 72, height: 72, borderRadius: 36, justifyContent: 'center', alignItems: 'center', marginBottom: 12 },
+  finalGoalText: { fontSize: 20, fontWeight: '700', color: COLORS.text },
+  finalGoalSubtext: { fontSize: 13, color: COLORS.mediumGray, marginTop: 4, textAlign: 'center' },
+});
 
 // Badge Detail Modal
 const BadgeDetailModal = ({ visible, onClose, badge, userBadge, onShare }: { visible: boolean; onClose: () => void; badge: Badge | null; userBadge?: UserBadge; onShare: () => void }) => {
