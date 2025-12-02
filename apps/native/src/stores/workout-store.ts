@@ -483,36 +483,85 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
   // Fetch user stats
   fetchStats: async () => {
     try {
-      const stored = await getStorageItem('workout_stats');
       const storedUser = await getStorageItem('auth_user');
       
       if (storedUser) {
         const user = JSON.parse(storedUser);
         const completedWorkouts = get().completedWorkouts;
+        const weekWorkouts = get().weekWorkouts;
         
-        // Calculate stats from completed workouts
-        const thisWeek = completedWorkouts.filter(w => {
+        // Combine completed workouts from both sources
+        const allCompleted = [
+          ...completedWorkouts,
+          ...weekWorkouts.filter(w => w.completed && !w.isRestDay)
+        ];
+        
+        // Remove duplicates by ID
+        const uniqueCompleted = allCompleted.filter((workout, index, self) =>
+          index === self.findIndex(w => w.id === workout.id)
+        );
+        
+        // Calculate this week's workouts
+        const now = new Date();
+        const startOfThisWeek = new Date(now);
+        startOfThisWeek.setDate(now.getDate() - now.getDay());
+        startOfThisWeek.setHours(0, 0, 0, 0);
+        
+        const thisWeek = uniqueCompleted.filter(w => {
           const workoutDate = new Date(w.completedAt || w.date);
-          const weekAgo = new Date();
-          weekAgo.setDate(weekAgo.getDate() - 7);
-          return workoutDate >= weekAgo;
+          return workoutDate >= startOfThisWeek;
         });
         
-        const stats: WorkoutStats = stored ? JSON.parse(stored) : {
-          totalWorkouts: completedWorkouts.length,
+        // Calculate streak
+        let currentStreak = 0;
+        const sortedWorkouts = uniqueCompleted
+          .filter(w => w.completedAt || w.completed)
+          .sort((a, b) => new Date(b.completedAt || b.date).getTime() - new Date(a.completedAt || a.date).getTime());
+        
+        if (sortedWorkouts.length > 0) {
+          let checkDate = new Date();
+          checkDate.setHours(0, 0, 0, 0);
+          
+          for (let i = 0; i < 30; i++) {
+            const hasWorkout = sortedWorkouts.some(w => {
+              const wDate = new Date(w.completedAt || w.date);
+              wDate.setHours(0, 0, 0, 0);
+              return wDate.getTime() === checkDate.getTime();
+            });
+            
+            if (hasWorkout) {
+              currentStreak++;
+            } else if (currentStreak > 0) {
+              break;
+            }
+            
+            checkDate.setDate(checkDate.getDate() - 1);
+          }
+        }
+        
+        const weeklyGoal = parseInt(user.trainingDays) || 5;
+        const sessionDuration = parseInt(user.sessionDuration) || 45;
+        const weeklyMinutes = thisWeek.reduce((sum, w) => sum + (w.duration || sessionDuration), 0);
+        const weeklyMinutesGoal = sessionDuration * weeklyGoal;
+        const totalMinutes = uniqueCompleted.reduce((sum, w) => sum + (w.duration || sessionDuration), 0);
+        
+        const stats: WorkoutStats = {
+          totalWorkouts: uniqueCompleted.length,
           weeklyWorkouts: thisWeek.length,
-          weeklyGoal: parseInt(user.trainingDays) || 5,
-          weeklyMinutes: thisWeek.reduce((sum, w) => sum + (w.duration || 0), 0),
-          weeklyMinutesGoal: (parseInt(user.sessionDuration) || 45) * (parseInt(user.trainingDays) || 5),
-          currentStreak: calculateStreak(completedWorkouts),
-          longestStreak: 0,
-          totalMinutes: completedWorkouts.reduce((sum, w) => sum + (w.duration || 0), 0),
-          level: 'Bronze',
-          xpPoints: completedWorkouts.length * 100,
+          weeklyGoal,
+          weeklyMinutes,
+          weeklyMinutesGoal,
+          currentStreak,
+          longestStreak: Math.max(currentStreak, uniqueCompleted.length > 0 ? Math.min(uniqueCompleted.length, 30) : 0),
+          totalMinutes,
+          level: uniqueCompleted.length >= 50 ? 'Gold' : uniqueCompleted.length >= 20 ? 'Silver' : 'Bronze',
+          xpPoints: uniqueCompleted.length * 100,
         };
         
+        // Persist stats
+        await setStorageItem('workout_stats', JSON.stringify(stats));
         set({ stats });
-        console.log('Stats loaded:', stats);
+        console.log('📊 Stats calculated:', stats);
       }
     } catch (error) {
       console.error('Error fetching stats:', error);
