@@ -14,6 +14,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { AppHeader } from '../../src/components/AppHeader';
 import { useAuthStore } from '../../src/stores/auth-store';
+import { useWorkoutStore } from '../../src/stores/workout-store';
 
 const { width } = Dimensions.get('window');
 
@@ -32,8 +33,6 @@ const COLORS = {
   background: THEME_COLORS.background,
 };
 
-const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL || 'https://nasty-lizards-sing.loca.lt';
-
 // Pie chart colors
 const PIE_COLORS = [
   '#A22BF6', // Purple
@@ -43,47 +42,6 @@ const PIE_COLORS = [
   '#FF9500', // Orange
   '#FF3B30', // Red
 ];
-
-interface StatsSummary {
-  thisWeek: {
-    workoutsCompleted: number;
-    workoutsChange: number;
-    activeMinutes: number;
-    minutesChange: number;
-    caloriesBurned: number;
-    caloriesChange: number;
-    weeklyGoal: number;
-    goalProgress: number;
-  };
-  streaks: {
-    current: number;
-    best: number;
-  };
-  allTime: {
-    totalWorkouts: number;
-    totalMinutes: number;
-    totalCalories: number;
-  };
-}
-
-interface WeeklyTrend {
-  weeks: Array<{
-    weekStart: string;
-    weekLabel: string;
-    workouts: number;
-    minutes: number;
-    volume: number;
-  }>;
-}
-
-interface FocusBreakdown {
-  breakdown: Array<{
-    category: string;
-    sessions: number;
-    percentage: number;
-  }>;
-  insights: string[];
-}
 
 // Simple Bar Chart Component (Pure RN)
 const SimpleBarChart = ({ 
@@ -126,7 +84,7 @@ const SimpleBarChart = ({
   );
 };
 
-// Simple Line Chart Component (Pure RN - using dots and lines)
+// Simple Line Chart Component (Pure RN)
 const SimpleLineChart = ({ 
   data, 
   maxValue,
@@ -143,7 +101,6 @@ const SimpleLineChart = ({
   return (
     <View style={[simpleChartStyles.lineContainer, { height }]}>
       <View style={[simpleChartStyles.lineChartArea, { height: chartHeight }]}>
-        {/* Grid lines */}
         {[0, 1, 2, 3].map((i) => (
           <View 
             key={i} 
@@ -154,7 +111,6 @@ const SimpleLineChart = ({
           />
         ))}
         
-        {/* Area fill */}
         <View style={simpleChartStyles.areaFill}>
           {data.map((item, index) => {
             const pointHeight = maxValue > 0 ? (item.value / maxValue) * chartHeight : 0;
@@ -176,7 +132,6 @@ const SimpleLineChart = ({
           })}
         </View>
         
-        {/* Data points */}
         {data.map((item, index) => {
           const pointHeight = maxValue > 0 ? (item.value / maxValue) * chartHeight : 0;
           const left = pointSpacing * index;
@@ -196,7 +151,6 @@ const SimpleLineChart = ({
         })}
       </View>
       
-      {/* Values below */}
       <View style={simpleChartStyles.lineLabels}>
         {data.map((item, index) => (
           <Text key={index} style={simpleChartStyles.lineLabel}>
@@ -238,132 +192,29 @@ const FocusBarChart = ({
 };
 
 const simpleChartStyles = StyleSheet.create({
-  barContainer: {
-    width: '100%',
-    paddingHorizontal: 8,
-  },
-  barsRow: {
-    flexDirection: 'row',
-    alignItems: 'flex-end',
-    justifyContent: 'space-between',
-    flex: 1,
-  },
-  barWrapper: {
-    alignItems: 'center',
-    flex: 1,
-  },
-  barBackground: {
-    justifyContent: 'flex-end',
-    alignItems: 'center',
-    backgroundColor: '#F5F5F5',
-    borderRadius: 4,
-    overflow: 'hidden',
-  },
-  bar: {
-    borderRadius: 4,
-  },
-  barValue: {
-    fontSize: 10,
-    fontWeight: '600',
-    color: COLORS.text,
-    marginBottom: 4,
-  },
-  barLabel: {
-    fontSize: 9,
-    color: COLORS.mediumGray,
-    marginTop: 6,
-  },
-  lineContainer: {
-    width: '100%',
-    paddingHorizontal: 8,
-  },
-  lineChartArea: {
-    position: 'relative',
-    backgroundColor: '#FAFAFA',
-    borderRadius: 8,
-    overflow: 'hidden',
-  },
-  gridLine: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    height: 1,
-    backgroundColor: '#E5E5E5',
-  },
-  areaFill: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    flexDirection: 'row',
-  },
-  areaColumn: {
-    position: 'absolute',
-    bottom: 0,
-    backgroundColor: `${COLORS.accent}20`,
-  },
-  dataPoint: {
-    position: 'absolute',
-    width: 12,
-    height: 12,
-    borderRadius: 6,
-    backgroundColor: COLORS.accent,
-    borderWidth: 3,
-    borderColor: COLORS.white,
-  },
-  lineLabels: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginTop: 8,
-  },
-  lineLabel: {
-    fontSize: 10,
-    color: COLORS.mediumGray,
-    flex: 1,
-    textAlign: 'center',
-  },
-  focusContainer: {
-    width: '100%',
-  },
-  focusRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  focusLabelContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    width: 100,
-  },
-  focusDot: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-    marginRight: 8,
-  },
-  focusLabel: {
-    fontSize: 12,
-    color: COLORS.text,
-  },
-  focusBarContainer: {
-    flex: 1,
-    height: 8,
-    backgroundColor: '#F0F0F0',
-    borderRadius: 4,
-    marginHorizontal: 8,
-    overflow: 'hidden',
-  },
-  focusBar: {
-    height: '100%',
-    borderRadius: 4,
-  },
-  focusPercent: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: COLORS.text,
-    width: 40,
-    textAlign: 'right',
-  },
+  barContainer: { width: '100%', paddingHorizontal: 8 },
+  barsRow: { flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-between', flex: 1 },
+  barWrapper: { alignItems: 'center', flex: 1 },
+  barBackground: { justifyContent: 'flex-end', alignItems: 'center', backgroundColor: '#F5F5F5', borderRadius: 4, overflow: 'hidden' },
+  bar: { borderRadius: 4 },
+  barValue: { fontSize: 10, fontWeight: '600', color: COLORS.text, marginBottom: 4 },
+  barLabel: { fontSize: 9, color: COLORS.mediumGray, marginTop: 6 },
+  lineContainer: { width: '100%', paddingHorizontal: 8 },
+  lineChartArea: { position: 'relative', backgroundColor: '#FAFAFA', borderRadius: 8, overflow: 'hidden' },
+  gridLine: { position: 'absolute', left: 0, right: 0, height: 1, backgroundColor: '#E5E5E5' },
+  areaFill: { position: 'absolute', bottom: 0, left: 0, right: 0, flexDirection: 'row' },
+  areaColumn: { position: 'absolute', bottom: 0, backgroundColor: `${COLORS.accent}20` },
+  dataPoint: { position: 'absolute', width: 12, height: 12, borderRadius: 6, backgroundColor: COLORS.accent, borderWidth: 3, borderColor: COLORS.white },
+  lineLabels: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 8 },
+  lineLabel: { fontSize: 10, color: COLORS.mediumGray, flex: 1, textAlign: 'center' },
+  focusContainer: { width: '100%' },
+  focusRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 12 },
+  focusLabelContainer: { flexDirection: 'row', alignItems: 'center', width: 100 },
+  focusDot: { width: 10, height: 10, borderRadius: 5, marginRight: 8 },
+  focusLabel: { fontSize: 12, color: COLORS.text },
+  focusBarContainer: { flex: 1, height: 8, backgroundColor: '#F0F0F0', borderRadius: 4, marginHorizontal: 8, overflow: 'hidden' },
+  focusBar: { height: '100%', borderRadius: 4 },
+  focusPercent: { fontSize: 12, fontWeight: '600', color: COLORS.text, width: 40, textAlign: 'right' },
 });
 
 const StatCard = ({ 
@@ -412,11 +263,7 @@ const StatCard = ({
             <Ionicons name={icon as any} size={24} color={COLORS.white} />
             {trend && trendValue && (
               <View style={styles.trendContainer}>
-                <Ionicons 
-                  name={getTrendIcon() as any} 
-                  size={16} 
-                  color={COLORS.white} 
-                />
+                <Ionicons name={getTrendIcon() as any} size={16} color={COLORS.white} />
                 <Text style={styles.trendTextWhite}>{trendValue}</Text>
               </View>
             )}
@@ -437,14 +284,8 @@ const StatCard = ({
           <Ionicons name={icon as any} size={24} color={COLORS.accent} />
           {trend && trendValue && (
             <View style={styles.trendContainer}>
-              <Ionicons 
-                name={getTrendIcon() as any} 
-                size={16} 
-                color={getTrendColor()} 
-              />
-              <Text style={[styles.trendText, { color: getTrendColor() }]}>
-                {trendValue}
-              </Text>
+              <Ionicons name={getTrendIcon() as any} size={16} color={getTrendColor()} />
+              <Text style={[styles.trendText, { color: getTrendColor() }]}>{trendValue}</Text>
             </View>
           )}
         </View>
@@ -459,74 +300,188 @@ const StatCard = ({
 
 export default function StatsScreen() {
   const { user } = useAuthStore();
+  const { completedWorkouts, weekWorkouts, fetchCompletedWorkouts } = useWorkoutStore();
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const [summary, setSummary] = useState<StatsSummary | null>(null);
-  const [weeklyTrend, setWeeklyTrend] = useState<WeeklyTrend | null>(null);
-  const [focusBreakdown, setFocusBreakdown] = useState<FocusBreakdown | null>(null);
   const [activeChart, setActiveChart] = useState<'workouts' | 'minutes'>('workouts');
 
-  const fetchStats = useCallback(async () => {
-    try {
-      const headers = {
-        'Content-Type': 'application/json',
-        'Bypass-Tunnel-Reminder': 'true',
-      };
-
-      // Fetch all stats in parallel
-      const [summaryRes, trendRes, breakdownRes] = await Promise.all([
-        fetch(`${API_BASE_URL}/api/stats/summary`, { headers, credentials: 'include' }),
-        fetch(`${API_BASE_URL}/api/stats/weekly-trend`, { headers, credentials: 'include' }),
-        fetch(`${API_BASE_URL}/api/stats/focus-breakdown`, { headers, credentials: 'include' }),
-      ]);
-
-      if (summaryRes.ok) {
-        const summaryData = await summaryRes.json();
-        setSummary(summaryData);
+  // Calculate stats from LOCAL data (completedWorkouts from workout-store)
+  const calculateLocalStats = useCallback(() => {
+    const now = new Date();
+    
+    // Start of this week (Sunday)
+    const startOfThisWeek = new Date(now);
+    startOfThisWeek.setDate(now.getDate() - now.getDay());
+    startOfThisWeek.setHours(0, 0, 0, 0);
+    
+    // Start of last week
+    const startOfLastWeek = new Date(startOfThisWeek);
+    startOfLastWeek.setDate(startOfLastWeek.getDate() - 7);
+    
+    // Also count completed from weekWorkouts (current schedule)
+    const allCompleted = [
+      ...completedWorkouts,
+      ...weekWorkouts.filter(w => w.completed && !w.isRestDay)
+    ];
+    
+    // Remove duplicates by ID
+    const uniqueCompleted = allCompleted.filter((workout, index, self) =>
+      index === self.findIndex(w => w.id === workout.id)
+    );
+    
+    // This week's workouts
+    const thisWeekWorkouts = uniqueCompleted.filter(w => {
+      const completedDate = new Date(w.completedAt || w.date);
+      return completedDate >= startOfThisWeek;
+    });
+    
+    // Last week's workouts
+    const lastWeekWorkouts = uniqueCompleted.filter(w => {
+      const completedDate = new Date(w.completedAt || w.date);
+      return completedDate >= startOfLastWeek && completedDate < startOfThisWeek;
+    });
+    
+    // Calculate minutes (45 min average per workout)
+    const thisWeekMinutes = thisWeekWorkouts.reduce((sum, w) => sum + (w.duration || 45), 0);
+    const lastWeekMinutes = lastWeekWorkouts.reduce((sum, w) => sum + (w.duration || 45), 0);
+    
+    // Calories (8 cal/min average)
+    const thisWeekCalories = thisWeekMinutes * 8;
+    const lastWeekCalories = lastWeekMinutes * 8;
+    
+    // Weekly goal from user settings
+    const weeklyGoal = parseInt(String(user?.trainingDays)) || 5;
+    
+    // Calculate streak
+    let currentStreak = 0;
+    const sortedWorkouts = uniqueCompleted
+      .filter(w => w.completedAt || w.completed)
+      .sort((a, b) => new Date(b.completedAt || b.date).getTime() - new Date(a.completedAt || a.date).getTime());
+    
+    if (sortedWorkouts.length > 0) {
+      let checkDate = new Date();
+      checkDate.setHours(0, 0, 0, 0);
+      
+      for (let i = 0; i < 30; i++) {
+        const hasWorkout = sortedWorkouts.some(w => {
+          const wDate = new Date(w.completedAt || w.date);
+          wDate.setHours(0, 0, 0, 0);
+          return wDate.getTime() === checkDate.getTime();
+        });
+        
+        if (hasWorkout) {
+          currentStreak++;
+        } else if (currentStreak > 0) {
+          break;
+        }
+        
+        checkDate.setDate(checkDate.getDate() - 1);
       }
-
-      if (trendRes.ok) {
-        const trendData = await trendRes.json();
-        setWeeklyTrend(trendData);
-      }
-
-      if (breakdownRes.ok) {
-        const breakdownData = await breakdownRes.json();
-        setFocusBreakdown(breakdownData);
-      }
-    } catch (error) {
-      console.error('Error fetching stats:', error);
-    } finally {
-      setIsLoading(false);
-      setIsRefreshing(false);
     }
-  }, []);
+    
+    // Weekly data for charts (last 8 weeks)
+    const weeklyData: Array<{ label: string; workouts: number; minutes: number }> = [];
+    for (let i = 7; i >= 0; i--) {
+      const weekStart = new Date(now);
+      weekStart.setDate(now.getDate() - now.getDay() - (i * 7));
+      weekStart.setHours(0, 0, 0, 0);
+      
+      const weekEnd = new Date(weekStart);
+      weekEnd.setDate(weekStart.getDate() + 7);
+      
+      const weekWorkoutsCount = uniqueCompleted.filter(w => {
+        const wDate = new Date(w.completedAt || w.date);
+        return wDate >= weekStart && wDate < weekEnd;
+      });
+      
+      weeklyData.push({
+        label: `${weekStart.getMonth() + 1}/${weekStart.getDate()}`,
+        workouts: weekWorkoutsCount.length,
+        minutes: weekWorkoutsCount.reduce((sum, w) => sum + (w.duration || 45), 0),
+      });
+    }
+    
+    // Focus breakdown
+    const focusCount: Record<string, number> = {
+      'Upper Body': 0,
+      'Lower Body': 0,
+      'Full Body': 0,
+      'Core': 0,
+      'Cardio': 0,
+    };
+    
+    uniqueCompleted.forEach(w => {
+      const type = (w.type || '').toLowerCase();
+      if (type.includes('upper') || type.includes('push') || type.includes('pull') || type.includes('chest') || type.includes('back')) {
+        focusCount['Upper Body']++;
+      } else if (type.includes('lower') || type.includes('leg')) {
+        focusCount['Lower Body']++;
+      } else if (type.includes('cardio') || type.includes('hiit')) {
+        focusCount['Cardio']++;
+      } else if (type.includes('core') || type.includes('ab')) {
+        focusCount['Core']++;
+      } else {
+        focusCount['Full Body']++;
+      }
+    });
+    
+    const total = uniqueCompleted.length || 1;
+    const focusData = Object.entries(focusCount)
+      .filter(([_, count]) => count > 0)
+      .map(([category, count], index) => ({
+        category,
+        percentage: Math.round((count / total) * 100),
+        color: PIE_COLORS[index % PIE_COLORS.length],
+      }))
+      .sort((a, b) => b.percentage - a.percentage);
+    
+    return {
+      thisWeek: {
+        workoutsCompleted: thisWeekWorkouts.length,
+        workoutsChange: thisWeekWorkouts.length - lastWeekWorkouts.length,
+        activeMinutes: thisWeekMinutes,
+        minutesChange: thisWeekMinutes - lastWeekMinutes,
+        caloriesBurned: thisWeekCalories,
+        caloriesChange: thisWeekCalories - lastWeekCalories,
+        weeklyGoal,
+        goalProgress: Math.round((thisWeekWorkouts.length / weeklyGoal) * 100),
+      },
+      streaks: {
+        current: currentStreak,
+        best: Math.max(currentStreak, uniqueCompleted.length > 0 ? Math.min(uniqueCompleted.length, 30) : 0),
+      },
+      allTime: {
+        totalWorkouts: uniqueCompleted.length,
+        totalMinutes: uniqueCompleted.reduce((sum, w) => sum + (w.duration || 45), 0),
+      },
+      weeklyData,
+      focusData,
+    };
+  }, [completedWorkouts, weekWorkouts, user]);
 
   useEffect(() => {
-    fetchStats();
-  }, [fetchStats]);
+    const loadData = async () => {
+      await fetchCompletedWorkouts();
+      setIsLoading(false);
+    };
+    loadData();
+  }, []);
 
-  const onRefresh = useCallback(() => {
+  const onRefresh = useCallback(async () => {
     setIsRefreshing(true);
-    fetchStats();
-  }, [fetchStats]);
+    await fetchCompletedWorkouts();
+    setIsRefreshing(false);
+  }, [fetchCompletedWorkouts]);
+
+  const stats = calculateLocalStats();
 
   // Prepare chart data
-  const barChartData = weeklyTrend?.weeks.slice(-8).map(w => ({
-    label: w.weekLabel,
+  const barChartData = stats.weeklyData.map(w => ({
+    label: w.label,
     value: activeChart === 'workouts' ? w.workouts : w.minutes,
-  })) || [];
+  }));
 
-  const lineChartData = weeklyTrend?.weeks.slice(-8).map(w => ({
-    value: w.minutes || 0,
-  })) || [];
-
-  const focusData = focusBreakdown?.breakdown.map((item, index) => ({
-    category: item.category,
-    percentage: item.percentage,
-    color: PIE_COLORS[index % PIE_COLORS.length],
-  })) || [];
-
+  const lineChartData = stats.weeklyData.map(w => ({ value: w.minutes }));
   const maxBarValue = Math.max(...barChartData.map(d => d.value), 1);
   const maxLineValue = Math.max(...lineChartData.map(d => d.value), 1);
 
@@ -551,11 +506,7 @@ export default function StatsScreen() {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
         refreshControl={
-          <RefreshControl
-            refreshing={isRefreshing}
-            onRefresh={onRefresh}
-            tintColor={COLORS.accent}
-          />
+          <RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} tintColor={COLORS.accent} />
         }
       >
         {/* This Week Stats */}
@@ -565,40 +516,34 @@ export default function StatsScreen() {
           <View style={styles.statsGrid}>
             <StatCard
               title="Workouts Completed"
-              value={summary?.thisWeek.workoutsCompleted || 0}
+              value={stats.thisWeek.workoutsCompleted}
               icon="checkmark-circle"
-              trend={summary?.thisWeek.workoutsChange !== undefined ? 
-                (summary.thisWeek.workoutsChange > 0 ? 'up' : summary.thisWeek.workoutsChange < 0 ? 'down' : 'neutral') : undefined}
-              trendValue={summary?.thisWeek.workoutsChange !== undefined ? 
-                (summary.thisWeek.workoutsChange >= 0 ? `+${summary.thisWeek.workoutsChange}` : `${summary.thisWeek.workoutsChange}`) : undefined}
+              trend={stats.thisWeek.workoutsChange > 0 ? 'up' : stats.thisWeek.workoutsChange < 0 ? 'down' : 'neutral'}
+              trendValue={stats.thisWeek.workoutsChange >= 0 ? `+${stats.thisWeek.workoutsChange}` : `${stats.thisWeek.workoutsChange}`}
               gradient={true}
             />
             
             <StatCard
               title="Active Minutes"
-              value={summary?.thisWeek.activeMinutes || 0}
+              value={stats.thisWeek.activeMinutes}
               unit="min"
               icon="time"
-              trend={summary?.thisWeek.minutesChange !== undefined ?
-                (summary.thisWeek.minutesChange > 0 ? 'up' : summary.thisWeek.minutesChange < 0 ? 'down' : 'neutral') : undefined}
-              trendValue={summary?.thisWeek.minutesChange !== undefined ?
-                (summary.thisWeek.minutesChange >= 0 ? `+${summary.thisWeek.minutesChange}` : `${summary.thisWeek.minutesChange}`) : undefined}
+              trend={stats.thisWeek.minutesChange > 0 ? 'up' : stats.thisWeek.minutesChange < 0 ? 'down' : 'neutral'}
+              trendValue={stats.thisWeek.minutesChange >= 0 ? `+${stats.thisWeek.minutesChange}` : `${stats.thisWeek.minutesChange}`}
             />
             
             <StatCard
               title="Calories Burned"
-              value={summary?.thisWeek.caloriesBurned || 0}
+              value={stats.thisWeek.caloriesBurned}
               unit="kcal"
               icon="flame"
-              trend={summary?.thisWeek.caloriesChange !== undefined ?
-                (summary.thisWeek.caloriesChange > 0 ? 'up' : summary.thisWeek.caloriesChange < 0 ? 'down' : 'neutral') : undefined}
-              trendValue={summary?.thisWeek.caloriesChange !== undefined ?
-                (summary.thisWeek.caloriesChange >= 0 ? `+${summary.thisWeek.caloriesChange}` : `${summary.thisWeek.caloriesChange}`) : undefined}
+              trend={stats.thisWeek.caloriesChange > 0 ? 'up' : stats.thisWeek.caloriesChange < 0 ? 'down' : 'neutral'}
+              trendValue={stats.thisWeek.caloriesChange >= 0 ? `+${stats.thisWeek.caloriesChange}` : `${stats.thisWeek.caloriesChange}`}
             />
             
             <StatCard
               title="Current Streak"
-              value={summary?.streaks.current || 0}
+              value={stats.streaks.current}
               unit=" days"
               icon="flash"
             />
@@ -612,18 +557,16 @@ export default function StatsScreen() {
           <View style={styles.progressCard}>
             <View style={styles.progressHeader}>
               <Text style={styles.progressTitle}>
-                {summary?.thisWeek.workoutsCompleted || 0} of {summary?.thisWeek.weeklyGoal || 5} workouts
+                {stats.thisWeek.workoutsCompleted} of {stats.thisWeek.weeklyGoal} workouts
               </Text>
-              <Text style={styles.progressPercentage}>
-                {summary?.thisWeek.goalProgress || 0}%
-              </Text>
+              <Text style={styles.progressPercentage}>{stats.thisWeek.goalProgress}%</Text>
             </View>
             
             <View style={styles.progressBarContainer}>
               <View style={styles.progressBarBackground}>
                 <LinearGradient
                   colors={[COLORS.accent, COLORS.accentSecondary]}
-                  style={[styles.progressBarFill, { width: `${Math.min(summary?.thisWeek.goalProgress || 0, 100)}%` }]}
+                  style={[styles.progressBarFill, { width: `${Math.min(stats.thisWeek.goalProgress, 100)}%` }]}
                   start={{ x: 0, y: 0 }}
                   end={{ x: 1, y: 0 }}
                 />
@@ -631,9 +574,9 @@ export default function StatsScreen() {
             </View>
             
             <Text style={styles.progressSubtext}>
-              {summary?.thisWeek.goalProgress === 100 
+              {stats.thisWeek.goalProgress >= 100 
                 ? '🎉 Goal achieved! Keep it up!'
-                : `${(summary?.thisWeek.weeklyGoal || 5) - (summary?.thisWeek.workoutsCompleted || 0)} more to hit your goal`}
+                : `${stats.thisWeek.weeklyGoal - stats.thisWeek.workoutsCompleted} more to hit your goal`}
             </Text>
           </View>
         </View>
@@ -647,28 +590,20 @@ export default function StatsScreen() {
                 style={[styles.toggleButton, activeChart === 'workouts' && styles.toggleButtonActive]}
                 onPress={() => setActiveChart('workouts')}
               >
-                <Text style={[styles.toggleText, activeChart === 'workouts' && styles.toggleTextActive]}>
-                  Workouts
-                </Text>
+                <Text style={[styles.toggleText, activeChart === 'workouts' && styles.toggleTextActive]}>Workouts</Text>
               </TouchableOpacity>
               <TouchableOpacity 
                 style={[styles.toggleButton, activeChart === 'minutes' && styles.toggleButtonActive]}
                 onPress={() => setActiveChart('minutes')}
               >
-                <Text style={[styles.toggleText, activeChart === 'minutes' && styles.toggleTextActive]}>
-                  Minutes
-                </Text>
+                <Text style={[styles.toggleText, activeChart === 'minutes' && styles.toggleTextActive]}>Minutes</Text>
               </TouchableOpacity>
             </View>
           </View>
           
           <View style={styles.chartCard}>
-            {barChartData.length > 0 && barChartData.some(d => d.value > 0) ? (
-              <SimpleBarChart 
-                data={barChartData} 
-                maxValue={maxBarValue + Math.ceil(maxBarValue * 0.2)}
-                height={180}
-              />
+            {barChartData.some(d => d.value > 0) ? (
+              <SimpleBarChart data={barChartData} maxValue={maxBarValue + Math.ceil(maxBarValue * 0.2)} height={180} />
             ) : (
               <View style={styles.noDataContainer}>
                 <Ionicons name="bar-chart-outline" size={48} color={COLORS.mediumGray} />
@@ -683,12 +618,8 @@ export default function StatsScreen() {
           <Text style={styles.sectionTitle}>Training Minutes</Text>
           
           <View style={styles.chartCard}>
-            {lineChartData.length > 0 && lineChartData.some(d => d.value > 0) ? (
-              <SimpleLineChart 
-                data={lineChartData} 
-                maxValue={maxLineValue + Math.ceil(maxLineValue * 0.2)}
-                height={180}
-              />
+            {lineChartData.some(d => d.value > 0) ? (
+              <SimpleLineChart data={lineChartData} maxValue={maxLineValue + Math.ceil(maxLineValue * 0.2)} height={180} />
             ) : (
               <View style={styles.noDataContainer}>
                 <Ionicons name="trending-up-outline" size={48} color={COLORS.mediumGray} />
@@ -703,8 +634,8 @@ export default function StatsScreen() {
           <Text style={styles.sectionTitle}>Training Focus</Text>
           
           <View style={styles.chartCard}>
-            {focusData.length > 0 && focusData.some(d => d.percentage > 0) ? (
-              <FocusBarChart data={focusData} />
+            {stats.focusData.length > 0 ? (
+              <FocusBarChart data={stats.focusData} />
             ) : (
               <View style={styles.noDataContainer}>
                 <Ionicons name="pie-chart-outline" size={48} color={COLORS.mediumGray} />
@@ -714,22 +645,6 @@ export default function StatsScreen() {
           </View>
         </View>
 
-        {/* Insights Section */}
-        {focusBreakdown?.insights && focusBreakdown.insights.length > 0 && (
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Insights</Text>
-            
-            <View style={styles.insightsCard}>
-              {focusBreakdown.insights.map((insight, index) => (
-                <View key={index} style={styles.insightRow}>
-                  <Ionicons name="bulb" size={20} color={COLORS.accent} />
-                  <Text style={styles.insightText}>{insight}</Text>
-                </View>
-              ))}
-            </View>
-          </View>
-        )}
-
         {/* All-Time Stats */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>All-Time Stats</Text>
@@ -737,21 +652,19 @@ export default function StatsScreen() {
           <View style={styles.allTimeCard}>
             <View style={styles.allTimeStat}>
               <Ionicons name="trophy" size={28} color={COLORS.accent} />
-              <Text style={styles.allTimeValue}>{summary?.allTime.totalWorkouts || 0}</Text>
+              <Text style={styles.allTimeValue}>{stats.allTime.totalWorkouts}</Text>
               <Text style={styles.allTimeLabel}>Total Workouts</Text>
             </View>
             <View style={styles.allTimeDivider} />
             <View style={styles.allTimeStat}>
               <Ionicons name="time" size={28} color={COLORS.accentSecondary} />
-              <Text style={styles.allTimeValue}>
-                {Math.round((summary?.allTime.totalMinutes || 0) / 60)}h
-              </Text>
+              <Text style={styles.allTimeValue}>{Math.round(stats.allTime.totalMinutes / 60)}h</Text>
               <Text style={styles.allTimeLabel}>Total Hours</Text>
             </View>
             <View style={styles.allTimeDivider} />
             <View style={styles.allTimeStat}>
               <Ionicons name="flash" size={28} color={COLORS.warning} />
-              <Text style={styles.allTimeValue}>{summary?.streaks.best || 0}</Text>
+              <Text style={styles.allTimeValue}>{stats.streaks.best}</Text>
               <Text style={styles.allTimeLabel}>Best Streak</Text>
             </View>
           </View>
@@ -764,263 +677,47 @@ export default function StatsScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: COLORS.white,
-  },
-  scrollView: {
-    flex: 1,
-  },
-  scrollContent: {
-    paddingBottom: 32,
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  loadingText: {
-    marginTop: 16,
-    fontSize: 16,
-    color: COLORS.mediumGray,
-  },
-  section: {
-    paddingHorizontal: 24,
-    marginBottom: 24,
-  },
-  sectionTitle: {
-    fontSize: 20,
-    fontWeight: '600',
-    color: COLORS.text,
-    marginBottom: 16,
-  },
-  statsGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
-  },
-  statCard: {
-    width: (width - 56) / 2,
-    marginBottom: 16,
-    borderRadius: 16,
-    overflow: 'hidden',
-  },
-  gradientStatCard: {
-    padding: 16,
-    height: 120,
-    justifyContent: 'space-between',
-  },
-  regularStatCard: {
-    padding: 16,
-    height: 120,
-    justifyContent: 'space-between',
-    backgroundColor: COLORS.white,
-    borderWidth: 1,
-    borderColor: COLORS.lightGray,
-    borderRadius: 16,
-    shadowColor: COLORS.shadow,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 3,
-  },
-  statHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  statValue: {
-    fontSize: 24,
-    fontWeight: '700',
-    color: COLORS.text,
-  },
-  statValueGradient: {
-    fontSize: 24,
-    fontWeight: '700',
-    color: COLORS.white,
-  },
-  statUnit: {
-    fontSize: 16,
-    fontWeight: '400',
-    color: COLORS.mediumGray,
-  },
-  statUnitGradient: {
-    fontSize: 16,
-    fontWeight: '400',
-    color: 'rgba(255, 255, 255, 0.8)',
-  },
-  statTitle: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: COLORS.mediumGray,
-  },
-  statTitleGradient: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: 'rgba(255, 255, 255, 0.9)',
-  },
-  trendContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  trendText: {
-    fontSize: 12,
-    fontWeight: '500',
-    marginLeft: 4,
-  },
-  trendTextWhite: {
-    fontSize: 12,
-    fontWeight: '500',
-    marginLeft: 4,
-    color: COLORS.white,
-  },
-  progressCard: {
-    backgroundColor: COLORS.white,
-    borderRadius: 16,
-    padding: 20,
-    borderWidth: 1,
-    borderColor: COLORS.lightGray,
-    shadowColor: COLORS.shadow,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 3,
-  },
-  progressHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  progressTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: COLORS.text,
-  },
-  progressPercentage: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: COLORS.accent,
-  },
-  progressBarContainer: {
-    marginBottom: 12,
-  },
-  progressBarBackground: {
-    height: 8,
-    backgroundColor: COLORS.lightGray,
-    borderRadius: 4,
-    overflow: 'hidden',
-  },
-  progressBarFill: {
-    height: '100%',
-    borderRadius: 4,
-  },
-  progressSubtext: {
-    fontSize: 14,
-    color: COLORS.mediumGray,
-  },
-  chartHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  chartToggle: {
-    flexDirection: 'row',
-    backgroundColor: COLORS.lightGray,
-    borderRadius: 20,
-    padding: 4,
-  },
-  toggleButton: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 16,
-  },
-  toggleButtonActive: {
-    backgroundColor: COLORS.accent,
-  },
-  toggleText: {
-    fontSize: 12,
-    fontWeight: '500',
-    color: COLORS.mediumGray,
-  },
-  toggleTextActive: {
-    color: COLORS.white,
-  },
-  chartCard: {
-    backgroundColor: COLORS.white,
-    borderRadius: 16,
-    padding: 16,
-    borderWidth: 1,
-    borderColor: COLORS.lightGray,
-    shadowColor: COLORS.shadow,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 3,
-  },
-  noDataContainer: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    height: 150,
-    paddingHorizontal: 20,
-  },
-  noDataText: {
-    marginTop: 12,
-    fontSize: 14,
-    color: COLORS.mediumGray,
-    textAlign: 'center',
-  },
-  insightsCard: {
-    backgroundColor: `${COLORS.accent}08`,
-    borderRadius: 16,
-    padding: 16,
-    borderWidth: 1,
-    borderColor: `${COLORS.accent}20`,
-  },
-  insightRow: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    marginBottom: 12,
-  },
-  insightText: {
-    flex: 1,
-    marginLeft: 12,
-    fontSize: 14,
-    color: COLORS.text,
-    lineHeight: 20,
-  },
-  allTimeCard: {
-    flexDirection: 'row',
-    backgroundColor: COLORS.white,
-    borderRadius: 16,
-    padding: 20,
-    borderWidth: 1,
-    borderColor: COLORS.lightGray,
-    shadowColor: COLORS.shadow,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 3,
-  },
-  allTimeStat: {
-    flex: 1,
-    alignItems: 'center',
-  },
-  allTimeValue: {
-    fontSize: 24,
-    fontWeight: '700',
-    color: COLORS.text,
-    marginTop: 8,
-  },
-  allTimeLabel: {
-    fontSize: 12,
-    color: COLORS.mediumGray,
-    marginTop: 4,
-  },
-  allTimeDivider: {
-    width: 1,
-    backgroundColor: COLORS.lightGray,
-    marginHorizontal: 16,
-  },
+  container: { flex: 1, backgroundColor: COLORS.white },
+  scrollView: { flex: 1 },
+  scrollContent: { paddingBottom: 32 },
+  loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+  loadingText: { marginTop: 16, fontSize: 16, color: COLORS.mediumGray },
+  section: { paddingHorizontal: 24, marginBottom: 24 },
+  sectionTitle: { fontSize: 20, fontWeight: '600', color: COLORS.text, marginBottom: 16 },
+  statsGrid: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between' },
+  statCard: { width: (width - 56) / 2, marginBottom: 16, borderRadius: 16, overflow: 'hidden' },
+  gradientStatCard: { padding: 16, height: 120, justifyContent: 'space-between' },
+  regularStatCard: { padding: 16, height: 120, justifyContent: 'space-between', backgroundColor: COLORS.white, borderWidth: 1, borderColor: COLORS.lightGray, borderRadius: 16, shadowColor: COLORS.shadow, shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.1, shadowRadius: 8, elevation: 3 },
+  statHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  statValue: { fontSize: 24, fontWeight: '700', color: COLORS.text },
+  statValueGradient: { fontSize: 24, fontWeight: '700', color: COLORS.white },
+  statUnit: { fontSize: 16, fontWeight: '400', color: COLORS.mediumGray },
+  statUnitGradient: { fontSize: 16, fontWeight: '400', color: 'rgba(255, 255, 255, 0.8)' },
+  statTitle: { fontSize: 14, fontWeight: '500', color: COLORS.mediumGray },
+  statTitleGradient: { fontSize: 14, fontWeight: '500', color: 'rgba(255, 255, 255, 0.9)' },
+  trendContainer: { flexDirection: 'row', alignItems: 'center' },
+  trendText: { fontSize: 12, fontWeight: '500', marginLeft: 4 },
+  trendTextWhite: { fontSize: 12, fontWeight: '500', marginLeft: 4, color: COLORS.white },
+  progressCard: { backgroundColor: COLORS.white, borderRadius: 16, padding: 20, borderWidth: 1, borderColor: COLORS.lightGray, shadowColor: COLORS.shadow, shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.1, shadowRadius: 8, elevation: 3 },
+  progressHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 },
+  progressTitle: { fontSize: 16, fontWeight: '600', color: COLORS.text },
+  progressPercentage: { fontSize: 20, fontWeight: '700', color: COLORS.accent },
+  progressBarContainer: { marginBottom: 12 },
+  progressBarBackground: { height: 8, backgroundColor: COLORS.lightGray, borderRadius: 4, overflow: 'hidden' },
+  progressBarFill: { height: '100%', borderRadius: 4 },
+  progressSubtext: { fontSize: 14, color: COLORS.mediumGray },
+  chartHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 },
+  chartToggle: { flexDirection: 'row', backgroundColor: COLORS.lightGray, borderRadius: 20, padding: 4 },
+  toggleButton: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 16 },
+  toggleButtonActive: { backgroundColor: COLORS.accent },
+  toggleText: { fontSize: 12, fontWeight: '500', color: COLORS.mediumGray },
+  toggleTextActive: { color: COLORS.white },
+  chartCard: { backgroundColor: COLORS.white, borderRadius: 16, padding: 16, borderWidth: 1, borderColor: COLORS.lightGray, shadowColor: COLORS.shadow, shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.1, shadowRadius: 8, elevation: 3 },
+  noDataContainer: { alignItems: 'center', justifyContent: 'center', height: 150, paddingHorizontal: 20 },
+  noDataText: { marginTop: 12, fontSize: 14, color: COLORS.mediumGray, textAlign: 'center' },
+  allTimeCard: { flexDirection: 'row', backgroundColor: COLORS.white, borderRadius: 16, padding: 20, borderWidth: 1, borderColor: COLORS.lightGray, shadowColor: COLORS.shadow, shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.1, shadowRadius: 8, elevation: 3 },
+  allTimeStat: { flex: 1, alignItems: 'center' },
+  allTimeValue: { fontSize: 24, fontWeight: '700', color: COLORS.text, marginTop: 8 },
+  allTimeLabel: { fontSize: 12, color: COLORS.mediumGray, marginTop: 4 },
+  allTimeDivider: { width: 1, backgroundColor: COLORS.lightGray, marginHorizontal: 16 },
 });
