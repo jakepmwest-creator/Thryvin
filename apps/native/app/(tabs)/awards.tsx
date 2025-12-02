@@ -686,38 +686,201 @@ const detailStyles = StyleSheet.create({
   progressNumbers: { fontSize: 13, color: COLORS.mediumGray, textAlign: 'center', marginTop: 8 },
 });
 
-// Unlock Celebration
+// Epic Unlock Celebration Modal with Confetti
+const ConfettiParticle = ({ delay, startX }: { delay: number; startX: number }) => {
+  const animY = useRef(new Animated.Value(0)).current;
+  const animX = useRef(new Animated.Value(0)).current;
+  const animRotate = useRef(new Animated.Value(0)).current;
+  const animOpacity = useRef(new Animated.Value(1)).current;
+  
+  const color = useMemo(() => {
+    const colors = ['#FFD700', '#FF4EC7', '#A22BF6', '#34C759', '#5B8DEF', '#FF6B35'];
+    return colors[Math.floor(Math.random() * colors.length)];
+  }, []);
+  
+  const size = useMemo(() => 6 + Math.random() * 6, []);
+  
+  useEffect(() => {
+    const duration = 2000 + Math.random() * 1000;
+    setTimeout(() => {
+      Animated.parallel([
+        Animated.timing(animY, { toValue: SCREEN_HEIGHT * 0.7, duration, useNativeDriver: true }),
+        Animated.timing(animX, { toValue: (Math.random() - 0.5) * 200, duration, useNativeDriver: true }),
+        Animated.timing(animRotate, { toValue: 3 + Math.random() * 3, duration, useNativeDriver: true }),
+        Animated.timing(animOpacity, { toValue: 0, duration: duration * 0.8, delay: duration * 0.2, useNativeDriver: true }),
+      ]).start();
+    }, delay);
+  }, []);
+  
+  const rotate = animRotate.interpolate({ inputRange: [0, 1], outputRange: ['0deg', '360deg'] });
+  
+  return (
+    <Animated.View style={[
+      celebrationStyles.confetti,
+      { 
+        left: startX,
+        width: size,
+        height: size * 1.5,
+        backgroundColor: color,
+        opacity: animOpacity,
+        transform: [{ translateY: animY }, { translateX: animX }, { rotate }]
+      }
+    ]} />
+  );
+};
+
 const UnlockCelebrationModal = ({ visible, onClose, badges }: { visible: boolean; onClose: () => void; badges: Badge[] }) => {
   const scaleAnim = useRef(new Animated.Value(0)).current;
+  const glowAnim = useRef(new Animated.Value(0)).current;
+  const [showConfetti, setShowConfetti] = useState(false);
+  
+  const confettiPositions = useMemo(() => 
+    Array.from({ length: 30 }, (_, i) => ({
+      delay: i * 50,
+      startX: Math.random() * SCREEN_WIDTH
+    })), 
+  [visible]);
   
   useEffect(() => {
     if (visible) {
-      Animated.spring(scaleAnim, { toValue: 1, friction: 5, tension: 40, useNativeDriver: true }).start();
+      setShowConfetti(true);
+      Animated.parallel([
+        Animated.spring(scaleAnim, { toValue: 1, friction: 5, tension: 50, useNativeDriver: true }),
+        Animated.loop(
+          Animated.sequence([
+            Animated.timing(glowAnim, { toValue: 1, duration: 800, useNativeDriver: true }),
+            Animated.timing(glowAnim, { toValue: 0, duration: 800, useNativeDriver: true }),
+          ])
+        ),
+      ]).start();
     } else {
       scaleAnim.setValue(0);
+      glowAnim.setValue(0);
+      setShowConfetti(false);
     }
   }, [visible]);
   
   if (badges.length === 0) return null;
   
+  const totalXP = badges.reduce((sum, b) => sum + b.xp, 0);
+  const rarityColor = RARITY_COLORS[badges[0].rarity];
+  const glowOpacity = glowAnim.interpolate({ inputRange: [0, 1], outputRange: [0.3, 0.6] });
+  
   return (
     <Modal visible={visible} animationType="fade" transparent onRequestClose={onClose}>
-      <View style={styles.celebrationOverlay}>
-        <Animated.View style={[styles.celebrationContent, { transform: [{ scale: scaleAnim }] }]}>
-          <Text style={styles.celebrationEmoji}>🏆</Text>
-          <Text style={styles.celebrationTitle}>Badge Unlocked!</Text>
-          {badges.slice(0, 3).map((badge) => (
-            <View key={badge.id} style={styles.celebrationBadge}>
-              <LinearGradient colors={badge.gradient as any} style={styles.celebrationIcon} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}>
-                <Ionicons name={badge.icon as any} size={32} color={COLORS.white} />
-              </LinearGradient>
-              <Text style={styles.celebrationBadgeName}>{badge.name}</Text>
-              <Text style={styles.celebrationXPText}>+{badge.xp} XP</Text>
-            </View>
-          ))}
-          <TouchableOpacity style={styles.celebrationButton} onPress={onClose}>
-            <LinearGradient colors={[COLORS.gradientStart, COLORS.gradientEnd]} style={styles.celebrationButtonGradient} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}>
-              <Text style={styles.celebrationButtonText}>Awesome!</Text>
+      <View style={celebrationStyles.overlay}>
+        {/* Confetti */}
+        {showConfetti && confettiPositions.map((pos, i) => (
+          <ConfettiParticle key={i} delay={pos.delay} startX={pos.startX} />
+        ))}
+        
+        <Animated.View style={[celebrationStyles.content, { transform: [{ scale: scaleAnim }] }]}>
+          {/* Glowing background */}
+          <Animated.View style={[celebrationStyles.glowBackground, { opacity: glowOpacity }]}>
+            <LinearGradient 
+              colors={[badges[0].gradient[0] + '40', badges[0].gradient[1] + '20', 'transparent']} 
+              style={celebrationStyles.glowGradient}
+            />
+          </Animated.View>
+          
+          {/* Trophy emoji with sparkles */}
+          <View style={celebrationStyles.trophyContainer}>
+            <Text style={celebrationStyles.trophyEmoji}>🏆</Text>
+            <Text style={celebrationStyles.sparkle1}>✨</Text>
+            <Text style={celebrationStyles.sparkle2}>✨</Text>
+          </View>
+          
+          <Text style={celebrationStyles.title}>
+            {badges.length > 1 ? `${badges.length} Badges Unlocked!` : 'Badge Unlocked!'}
+          </Text>
+          
+          {/* Badge(s) display */}
+          <View style={celebrationStyles.badgesContainer}>
+            {badges.slice(0, 3).map((badge, index) => (
+              <View key={badge.id} style={[celebrationStyles.badgeItem, index > 0 && { marginTop: 12 }]}>
+                <LinearGradient 
+                  colors={badge.gradient as any} 
+                  style={celebrationStyles.badgeIcon}
+                  start={{ x: 0, y: 0 }} 
+                  end={{ x: 1, y: 1 }}
+                >
+                  <Ionicons name={badge.icon as any} size={28} color={COLORS.white} />
+                </LinearGradient>
+                <View style={celebrationStyles.badgeInfo}>
+                  <Text style={celebrationStyles.badgeName}>{badge.name}</Text>
+                  <View style={celebrationStyles.badgeMeta}>
+                    <View style={[celebrationStyles.rarityTag, { backgroundColor: RARITY_COLORS[badge.rarity].bg }]}>
+                      <Text style={[celebrationStyles.rarityText, { color: RARITY_COLORS[badge.rarity].text }]}>
+                        {RARITY_LABELS[badge.rarity]}
+                      </Text>
+                    </View>
+                    <View style={celebrationStyles.xpTag}>
+                      <Ionicons name="star" size={10} color={COLORS.warning} />
+                      <Text style={celebrationStyles.xpText}>+{badge.xp}</Text>
+                    </View>
+                  </View>
+                </View>
+              </View>
+            ))}
+          </View>
+          
+          {/* Total XP earned */}
+          <View style={celebrationStyles.totalXP}>
+            <Text style={celebrationStyles.totalXPLabel}>Total XP Earned</Text>
+            <Text style={celebrationStyles.totalXPValue}>+{totalXP}</Text>
+          </View>
+          
+          {/* Continue button */}
+          <TouchableOpacity onPress={onClose} activeOpacity={0.9} style={celebrationStyles.buttonWrapper}>
+            <LinearGradient 
+              colors={[COLORS.gradientStart, COLORS.gradientEnd]} 
+              style={celebrationStyles.button}
+              start={{ x: 0, y: 0 }} 
+              end={{ x: 1, y: 1 }}
+            >
+              <Text style={celebrationStyles.buttonText}>Awesome! 🎉</Text>
+            </LinearGradient>
+          </TouchableOpacity>
+        </Animated.View>
+      </View>
+    </Modal>
+  );
+};
+
+const celebrationStyles = StyleSheet.create({
+  overlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.8)', justifyContent: 'center', alignItems: 'center' },
+  confetti: { position: 'absolute', top: -20, borderRadius: 2 },
+  content: { width: SCREEN_WIDTH - 48, backgroundColor: COLORS.white, borderRadius: 28, padding: 28, alignItems: 'center', overflow: 'hidden' },
+  
+  glowBackground: { position: 'absolute', top: -50, left: -50, right: -50, height: 200 },
+  glowGradient: { flex: 1 },
+  
+  trophyContainer: { position: 'relative', marginBottom: 8 },
+  trophyEmoji: { fontSize: 56 },
+  sparkle1: { position: 'absolute', top: -5, right: -15, fontSize: 20 },
+  sparkle2: { position: 'absolute', top: 10, left: -20, fontSize: 16 },
+  
+  title: { fontSize: 24, fontWeight: '800', color: COLORS.text, marginBottom: 20, letterSpacing: -0.5 },
+  
+  badgesContainer: { width: '100%', marginBottom: 20 },
+  badgeItem: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#F8F9FA', borderRadius: 16, padding: 12 },
+  badgeIcon: { width: 52, height: 52, borderRadius: 26, justifyContent: 'center', alignItems: 'center' },
+  badgeInfo: { flex: 1, marginLeft: 14 },
+  badgeName: { fontSize: 16, fontWeight: '700', color: COLORS.text },
+  badgeMeta: { flexDirection: 'row', alignItems: 'center', marginTop: 4 },
+  rarityTag: { paddingHorizontal: 8, paddingVertical: 2, borderRadius: 8, marginRight: 8 },
+  rarityText: { fontSize: 10, fontWeight: '600' },
+  xpTag: { flexDirection: 'row', alignItems: 'center' },
+  xpText: { fontSize: 12, fontWeight: '700', color: COLORS.warning, marginLeft: 3 },
+  
+  totalXP: { backgroundColor: '#FFF8E1', paddingHorizontal: 20, paddingVertical: 10, borderRadius: 16, flexDirection: 'row', alignItems: 'center', marginBottom: 20 },
+  totalXPLabel: { fontSize: 13, color: '#F57F17', marginRight: 8 },
+  totalXPValue: { fontSize: 18, fontWeight: '800', color: '#F57F17' },
+  
+  buttonWrapper: { width: '100%' },
+  button: { paddingVertical: 16, borderRadius: 16, alignItems: 'center' },
+  buttonText: { fontSize: 17, fontWeight: '700', color: COLORS.white },
+});
             </LinearGradient>
           </TouchableOpacity>
         </Animated.View>
