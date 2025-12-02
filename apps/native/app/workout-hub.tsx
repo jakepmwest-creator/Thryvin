@@ -197,17 +197,17 @@ export default function WorkoutHubScreen() {
     // Validate based on exercise type
     if (exerciseType === 'strength' || exerciseType === 'hiit') {
       if (!reps) {
-        Alert.alert('Missing Data', 'Please enter reps');
+        showAlert('warning', 'Missing Data', 'Please enter reps');
         return;
       }
     } else if (exerciseType === 'cardio') {
       if (!duration) {
-        Alert.alert('Missing Data', 'Please enter time/duration');
+        showAlert('warning', 'Missing Data', 'Please enter time/duration');
         return;
       }
     } else if (exerciseType === 'yoga' || exerciseType === 'stretching') {
       if (!holdTime && !reps) {
-        Alert.alert('Missing Data', 'Please enter hold time or reps');
+        showAlert('warning', 'Missing Data', 'Please enter hold time or reps');
         return;
       }
     }
@@ -246,7 +246,7 @@ export default function WorkoutHubScreen() {
       setDistance('');
       setHoldTime('');
     } else {
-      Alert.alert('Exercise Complete!', 'Great work! Ready for the next one?', [
+      showAlert('success', 'Exercise Complete!', 'Great work! Ready for the next one?', [
         {
           text: 'Next',
           onPress: () => {
@@ -259,46 +259,38 @@ export default function WorkoutHubScreen() {
   };
 
   const handleFinishWorkout = async () => {
-    Alert.alert(
-      'Finish Workout?',
-      'Are you done with your training?',
-      [
-        { text: 'Not Yet', style: 'cancel' },
-        {
-          text: 'Finish',
-          onPress: async () => {
-            try {
-              await finishWorkoutSession();
-              console.log('✅ Workout finished successfully');
-            } catch (error) {
-              console.error('❌ Error finishing workout:', error);
-              // Don't show error to user, just log it
-            }
-            
-            // Show celebration regardless
-            setShowCelebration(true);
-            confettiRef.current?.start();
-            
-            // Navigate back after celebration
-            setTimeout(() => {
-              setShowCelebration(false);
-              router.replace('/(tabs)');
-            }, 3000);
-          },
+    showAlert('info', 'Finish Workout?', 'Are you done with your training?', [
+      { text: 'Not Yet', style: 'cancel' },
+      {
+        text: 'Finish',
+        onPress: async () => {
+          try {
+            await finishWorkoutSession();
+            console.log('✅ Workout finished successfully');
+          } catch (error) {
+            console.error('❌ Error finishing workout:', error);
+            // Don't show error to user, just log it
+          }
+          
+          // Show celebration regardless
+          setShowCelebration(true);
+          confettiRef.current?.start();
+          
+          // Navigate back after celebration
+          setTimeout(() => {
+            setShowCelebration(false);
+            router.replace('/(tabs)');
+          }, 3000);
         },
-      ]
-    );
+      },
+    ]);
   };
 
   const handleExit = () => {
-    Alert.alert(
-      'Exit Workout?',
-      "Your progress won't be saved.",
-      [
-        { text: 'Stay', style: 'cancel' },
-        { text: 'Exit', style: 'destructive', onPress: () => router.back() },
-      ]
-    );
+    showAlert('warning', 'Exit Workout?', "Your progress won't be saved.", [
+      { text: 'Stay', style: 'cancel' },
+      { text: 'Exit', style: 'destructive', onPress: () => router.back() },
+    ]);
   };
 
   // Safety check: if no workout, show message
