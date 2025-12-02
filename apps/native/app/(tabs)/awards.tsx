@@ -881,13 +881,6 @@ const celebrationStyles = StyleSheet.create({
   button: { paddingVertical: 16, borderRadius: 16, alignItems: 'center' },
   buttonText: { fontSize: 17, fontWeight: '700', color: COLORS.white },
 });
-            </LinearGradient>
-          </TouchableOpacity>
-        </Animated.View>
-      </View>
-    </Modal>
-  );
-};
 
 export default function AwardsScreen() {
   const { userBadges, newlyUnlocked, totalXP, currentIsland, loadUserBadges, checkBadges, clearNewlyUnlocked, getCompletedCount, getCurrentIsland, getIslandProgress, getBadgesForIsland } = useAwardsStore();
