@@ -159,10 +159,15 @@ export default function WorkoutsScreen() {
     const isToday = date.toDateString() === today.toDateString();
     const isPast = date < today && !isToday;
     const isCompleted = isDateCompleted(date);
+    const isRest = isRestDay(date);
+    const hasWorkoutForDay = hasWorkout(date);
     
     if (isCompleted) return 'completed';
+    if (isRest) return 'rest';
     if (isToday) return 'today';
+    if (isPast && !hasWorkoutForDay) return 'none';
     if (isPast) return 'incomplete';
+    if (!hasWorkoutForDay) return 'none';
     return 'upcoming';
   };
   
