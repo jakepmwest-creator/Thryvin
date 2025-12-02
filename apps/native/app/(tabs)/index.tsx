@@ -150,14 +150,19 @@ export default function HomeScreen() {
     loadAllData();
   }, []);
   
+  // Compute completed count for dependency tracking
+  const weeklyCompletedCount = useMemo(() => 
+    weekWorkouts.filter(w => w.completed).length, 
+  [weekWorkouts]);
+  
   // Auto-update stats when completed workouts or weekWorkouts change
   useEffect(() => {
-    console.log('📊 [HOME] Workouts changed - completedWorkouts:', completedWorkouts.length, 'weekWorkouts completed:', weekWorkouts.filter(w => w.completed).length);
+    console.log('📊 [HOME] Workouts changed - completedWorkouts:', completedWorkouts.length, 'weekWorkouts completed:', weeklyCompletedCount);
     // Only refetch stats, not workouts (to avoid regeneration)
     fetchStats().then(() => {
       setStatsVersion(v => v + 1); // Force re-render after stats update
     });
-  }, [completedWorkouts.length, weekWorkouts.filter(w => w.completed).length]);
+  }, [completedWorkouts.length, weeklyCompletedCount]);
   
   // Get today's actual workout from weekWorkouts (most accurate source)
   const actualTodayWorkout = useMemo(() => {
