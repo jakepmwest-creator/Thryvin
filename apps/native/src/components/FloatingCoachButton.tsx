@@ -18,6 +18,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import Constants from 'expo-constants';
 import { VoiceInputButton } from './VoiceInputButton';
+import { useWorkoutStore } from '../stores/workout-store';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
@@ -42,6 +43,14 @@ const OPENAI_API_KEY = Constants.expoConfig?.extra?.openaiApiKey;
 if (!OPENAI_API_KEY) {
   console.error('Missing OpenAI API key. Please set EXPO_PUBLIC_OPENAI_API_KEY in .env file');
 }
+
+// Quick action chips for common requests
+const QUICK_ACTIONS = [
+  { icon: 'swap-horizontal', label: 'Swap days', prompt: 'I need to swap my workout days' },
+  { icon: 'time', label: 'Shorter', prompt: 'Make my workout shorter today' },
+  { icon: 'flame', label: 'Harder', prompt: 'I want a more intense workout' },
+  { icon: 'refresh', label: 'New workout', prompt: 'Generate a new workout for today' },
+];
 
 export function FloatingCoachButton() {
   const [chatVisible, setChatVisible] = useState(false);
