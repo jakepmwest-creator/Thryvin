@@ -442,6 +442,12 @@ const styles = StyleSheet.create({
   videoPlaceholder: { borderRadius: 16, overflow: 'hidden', marginBottom: 24 },
   videoGradient: { height: 180, justifyContent: 'center', alignItems: 'center' },
   videoText: { color: 'rgba(255,255,255,0.6)', marginTop: 12, fontSize: 14 },
+  videoContainer: { borderRadius: 16, overflow: 'hidden', marginBottom: 24, backgroundColor: '#000' },
+  videoPlayer: { width: '100%', height: 200 },
+  
+  exerciseDetails: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginBottom: 20, justifyContent: 'center' },
+  detailChip: { flexDirection: 'row', alignItems: 'center', backgroundColor: `${COLORS.accent}10`, paddingHorizontal: 12, paddingVertical: 8, borderRadius: 20, gap: 6 },
+  detailChipText: { fontSize: 14, fontWeight: '600', color: COLORS.accent },
   
   tipsTitle: { fontSize: 18, fontWeight: '700', color: COLORS.text, marginBottom: 12 },
   tipItem: { flexDirection: 'row', alignItems: 'flex-start', marginBottom: 12, gap: 12 },
