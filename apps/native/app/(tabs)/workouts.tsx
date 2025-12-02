@@ -656,6 +656,10 @@ const styles = StyleSheet.create({
   completedIcon: {
     marginTop: 2,
   },
+  restDayIcon: {
+    marginTop: 2,
+    opacity: 0.6,
+  },
   completedIconSmall: {
     marginTop: 2,
   },
