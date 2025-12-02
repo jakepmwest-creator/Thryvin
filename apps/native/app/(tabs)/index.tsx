@@ -129,6 +129,7 @@ export default function HomeScreen() {
     fetchStats,
     fetchPersonalBests,
     completedWorkouts,
+    weekWorkouts,
   } = useWorkoutStore();
 
   const loadAllData = async () => {
@@ -148,11 +149,21 @@ export default function HomeScreen() {
   
   // Auto-update stats when completed workouts change
   useEffect(() => {
-    if (completedWorkouts.length > 0) {
-      console.log('📊 [HOME] Completed workouts changed, refreshing stats...');
-      fetchStats();
-    }
+    console.log('📊 [HOME] Completed workouts changed:', completedWorkouts.length);
+    // Only refetch stats, not workouts (to avoid regeneration)
+    fetchStats();
   }, [completedWorkouts.length]);
+  
+  // Compute workout count for display to ensure accuracy
+  const displayStats = {
+    weeklyWorkouts: stats?.weeklyWorkouts || 0,
+    weeklyGoal: stats?.weeklyGoal || 5,
+    currentStreak: stats?.currentStreak || 0,
+    weeklyMinutes: stats?.weeklyMinutes || 0,
+    weeklyMinutesGoal: stats?.weeklyMinutesGoal || 225,
+    totalWorkouts: stats?.totalWorkouts || 0,
+    totalMinutes: stats?.totalMinutes || 0,
+  };
   
   // Register tour elements and update positions
   useEffect(() => {
