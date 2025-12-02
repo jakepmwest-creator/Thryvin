@@ -53,13 +53,16 @@ const QUICK_ACTIONS = [
 ];
 
 export function FloatingCoachButton() {
+  const { swapWorkoutDays, forceRegenerateWeek, weekWorkouts } = useWorkoutStore();
+  
   const [chatVisible, setChatVisible] = useState(false);
   const [messages, setMessages] = useState([
-    { role: 'assistant', text: "Hey! I'm your AI coach. Ask me anything about workouts, nutrition, or how to crush your goals!" },
+    { role: 'assistant', text: "Hey! I'm your AI coach. 💪 I can help with workouts, swap your training days, adjust intensity, or answer fitness questions!" },
   ]);
   const [inputText, setInputText] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
+  const [pendingAction, setPendingAction] = useState<{ type: string; params?: any } | null>(null);
 
   const pan = useRef(new Animated.ValueXY({ 
     x: SCREEN_WIDTH - BUTTON_SIZE - EDGE_PADDING, 
