@@ -1041,7 +1041,7 @@ export default function AwardsScreen() {
         <View style={{ height: 32 }} />
       </ScrollView>
       
-      <IslandSelectorModal visible={showIslandSelector} onClose={() => setShowIslandSelector(false)} currentIsland={currentIsland} completedCount={completedCount} />
+      <IslandJourneyModal visible={showIslandSelector} onClose={() => setShowIslandSelector(false)} currentIsland={currentIsland} completedCount={completedCount} userBadges={userBadges} />
       <BadgeDetailModal visible={!!selectedBadge} onClose={() => setSelectedBadge(null)} badge={selectedBadge} userBadge={userBadges.find(ub => ub.badgeId === selectedBadge?.id)} onShare={handleShare} />
       <UnlockCelebrationModal visible={showCelebration} onClose={() => { setShowCelebration(false); clearNewlyUnlocked(); }} badges={newlyUnlockedBadges} />
     </SafeAreaView>
