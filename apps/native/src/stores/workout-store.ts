@@ -144,6 +144,7 @@ interface WorkoutStore {
   checkAndGenerateMoreWeeks: () => Promise<void>;
   resetProgram: () => Promise<void>;
   getAllWeekWorkouts: () => Workout[];
+  swapWorkoutDays: (fromIndex: number, toIndex: number) => Promise<void>;
 }
 
 export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
