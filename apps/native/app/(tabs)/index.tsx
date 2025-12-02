@@ -386,15 +386,29 @@ export default function HomeScreen() {
           </TouchableOpacity>
           {isLoading ? (
             <ActivityIndicator size="large" color={COLORS.gradientStart} style={{ marginTop: 20 }} />
+          ) : actualTodayWorkout?.isRestDay ? (
+            <View ref={todayWorkoutRef} style={styles.todayWorkoutCard}>
+              <View style={styles.workoutContent}>
+                <View style={styles.workoutHeader}>
+                  <View style={{ flex: 1, alignItems: 'center', paddingVertical: 20 }}>
+                    <Ionicons name="bed" size={48} color={COLORS.mediumGray} />
+                    <Text style={[styles.workoutTitle, { marginTop: 12 }]}>Rest Day</Text>
+                    <Text style={styles.workoutMeta}>
+                      Take time to recover. Stay hydrated! 💧
+                    </Text>
+                  </View>
+                </View>
+              </View>
+            </View>
           ) : (
             <View ref={todayWorkoutRef} style={styles.todayWorkoutCard}>
               <View style={styles.workoutContent}>
                 <View style={styles.workoutHeader}>
                   <View style={{ flex: 1 }}>
                     <Text style={styles.sectionLabel}>TODAY'S WORKOUT</Text>
-                    <Text style={styles.workoutTitle}>{todayWorkout?.title || 'Loading...'}</Text>
+                    <Text style={styles.workoutTitle}>{actualTodayWorkout?.title || 'Loading...'}</Text>
                     <Text style={styles.workoutMeta}>
-                      {todayWorkout?.duration || 45} min • {todayWorkout?.exercises?.length || 0} exercises • {todayWorkout?.difficulty || 'Intermediate'}
+                      {actualTodayWorkout?.duration || 45} min • {actualTodayWorkout?.exercises?.length || 0} exercises • {actualTodayWorkout?.difficulty || 'Intermediate'}
                     </Text>
                   </View>
                 </View>
