@@ -40,6 +40,33 @@ export const EditProfileModal = ({ visible, onClose, onSave }: EditProfileModalP
   const [bio, setBio] = useState('');
   const [profileImage, setProfileImage] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
+  
+  // CustomAlert state
+  const [alertConfig, setAlertConfig] = useState<{
+    visible: boolean;
+    type: 'success' | 'error' | 'warning' | 'info';
+    title: string;
+    message: string;
+    buttons?: Array<{ text: string; onPress?: () => void; style?: 'default' | 'cancel' | 'destructive' }>;
+  }>({
+    visible: false,
+    type: 'info',
+    title: '',
+    message: '',
+  });
+  
+  const showAlert = (
+    type: 'success' | 'error' | 'warning' | 'info',
+    title: string,
+    message: string,
+    buttons?: Array<{ text: string; onPress?: () => void; style?: 'default' | 'cancel' | 'destructive' }>
+  ) => {
+    setAlertConfig({ visible: true, type, title, message, buttons });
+  };
+  
+  const hideAlert = () => {
+    setAlertConfig(prev => ({ ...prev, visible: false }));
+  };
 
   useEffect(() => {
     loadProfile();
@@ -61,7 +88,7 @@ export const EditProfileModal = ({ visible, onClose, onSave }: EditProfileModalP
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     
     if (status !== 'granted') {
-      Alert.alert('Permission needed', 'Please allow access to your photos to change your profile picture.');
+      showAlert('warning', 'Permission needed', 'Please allow access to your photos to change your profile picture.');
       return;
     }
 
