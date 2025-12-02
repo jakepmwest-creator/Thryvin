@@ -51,6 +51,33 @@ export default function WorkoutHubScreen() {
   const [distanceUnit, setDistanceUnit] = useState<'mi' | 'km'>('mi');
   const [holdTime, setHoldTime] = useState(''); // For yoga - hold duration in seconds
   
+  // CustomAlert state
+  const [alertConfig, setAlertConfig] = useState<{
+    visible: boolean;
+    type: 'success' | 'error' | 'warning' | 'info';
+    title: string;
+    message: string;
+    buttons?: Array<{ text: string; onPress?: () => void; style?: 'default' | 'cancel' | 'destructive' }>;
+  }>({
+    visible: false,
+    type: 'info',
+    title: '',
+    message: '',
+  });
+  
+  const showAlert = (
+    type: 'success' | 'error' | 'warning' | 'info',
+    title: string,
+    message: string,
+    buttons?: Array<{ text: string; onPress?: () => void; style?: 'default' | 'cancel' | 'destructive' }>
+  ) => {
+    setAlertConfig({ visible: true, type, title, message, buttons });
+  };
+  
+  const hideAlert = () => {
+    setAlertConfig(prev => ({ ...prev, visible: false }));
+  };
+  
   const scrollX = useRef(new Animated.Value(0)).current;
   const confettiRef = useRef<any>(null);
 
