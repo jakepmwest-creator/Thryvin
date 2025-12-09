@@ -473,8 +473,8 @@ export default function StatsScreen() {
         totalWorkouts: uniqueCompleted.length,
         totalMinutes: uniqueCompleted.reduce((sum, w) => sum + (w.duration || 45), 0),
       },
-      weeklyData,
-      focusData,
+      dailyData,
+      muscleData,
     };
   }, [completedWorkouts, weekWorkouts, user]);
 
