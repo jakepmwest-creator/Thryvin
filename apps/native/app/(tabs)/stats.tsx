@@ -379,25 +379,27 @@ export default function StatsScreen() {
       }
     }
     
-    // Weekly data for charts (last 8 weeks)
-    const weeklyData: Array<{ label: string; workouts: number; minutes: number }> = [];
-    for (let i = 7; i >= 0; i--) {
-      const weekStart = new Date(now);
-      weekStart.setDate(now.getDate() - now.getDay() - (i * 7));
-      weekStart.setHours(0, 0, 0, 0);
+    // Daily data for charts (last 7 days)
+    const dailyData: Array<{ label: string; workouts: number; minutes: number }> = [];
+    const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    
+    for (let i = 6; i >= 0; i--) {
+      const dayDate = new Date(now);
+      dayDate.setDate(now.getDate() - i);
+      dayDate.setHours(0, 0, 0, 0);
       
-      const weekEnd = new Date(weekStart);
-      weekEnd.setDate(weekStart.getDate() + 7);
+      const dayEnd = new Date(dayDate);
+      dayEnd.setDate(dayDate.getDate() + 1);
       
-      const weekWorkoutsCount = uniqueCompleted.filter(w => {
+      const dayWorkouts = uniqueCompleted.filter(w => {
         const wDate = new Date(w.completedAt || w.date);
-        return wDate >= weekStart && wDate < weekEnd;
+        return wDate >= dayDate && wDate < dayEnd;
       });
       
-      weeklyData.push({
-        label: `${weekStart.getMonth() + 1}/${weekStart.getDate()}`,
-        workouts: weekWorkoutsCount.length,
-        minutes: weekWorkoutsCount.reduce((sum, w) => sum + (w.duration || 45), 0),
+      dailyData.push({
+        label: dayNames[dayDate.getDay()],
+        workouts: dayWorkouts.length,
+        minutes: dayWorkouts.reduce((sum, w) => sum + (w.duration || 45), 0),
       });
     }
     
