@@ -270,6 +270,20 @@ export default function WorkoutsScreen() {
                     Take time to recover. Stay hydrated! 💧
                   </Text>
                 </View>
+                <TouchableOpacity 
+                  style={styles.restDayAskButton}
+                  onPress={() => openChat("It's my rest day but I'm feeling energetic. Can you suggest something light I could do?")}
+                >
+                  <LinearGradient
+                    colors={[COLORS.gradientStart, COLORS.gradientEnd]}
+                    style={styles.restDayAskGradient}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 1 }}
+                  >
+                    <Ionicons name="chatbubble-ellipses" size={18} color={COLORS.white} />
+                    <Text style={styles.restDayAskText}>Feeling energetic?</Text>
+                  </LinearGradient>
+                </TouchableOpacity>
               </View>
             </View>
           ) : (
