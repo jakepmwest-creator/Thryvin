@@ -55,8 +55,8 @@ const QUICK_ACTIONS = [
 
 export function FloatingCoachButton() {
   const { swapWorkoutDays, forceRegenerateWeek, weekWorkouts, resetProgram } = useWorkoutStore();
+  const { chatVisible, initialMessage, openChat, closeChat } = useCoachStore();
   
-  const [chatVisible, setChatVisible] = useState(false);
   const [messages, setMessages] = useState([
     { role: 'assistant', text: "Hey! I'm your AI coach. 💪 I can help with workouts, swap your training days, adjust intensity, or answer fitness questions!" },
   ]);
@@ -64,6 +64,13 @@ export function FloatingCoachButton() {
   const [isLoading, setIsLoading] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const [pendingAction, setPendingAction] = useState<{ type: string; params?: any } | null>(null);
+  
+  // Handle initial message from context
+  useEffect(() => {
+    if (chatVisible && initialMessage) {
+      setInputText(initialMessage);
+    }
+  }, [chatVisible, initialMessage]);
 
   const pan = useRef(new Animated.ValueXY({ 
     x: SCREEN_WIDTH - BUTTON_SIZE - EDGE_PADDING, 
