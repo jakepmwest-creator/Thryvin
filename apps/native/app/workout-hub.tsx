@@ -316,12 +316,24 @@ export default function WorkoutHubScreen() {
     }
     
     showAlert('success', 'Finish Workout?', `Great effort! \ud83d\udcaa\n\nYou worked out for ${formatTimer(workoutElapsedSeconds)}.\n\nAre you sure you want to finish?`, [
-      { text: 'Not Yet', style: 'cancel', onPress: () => {
-        // Resume timer if they continue
-        if (timerPaused) {
-          setWorkoutStartTime(Date.now());
-          setTimerPaused(false);
+      { text: 'Continue Later', style: 'cancel', onPress: async () => {
+        // Save progress and exit
+        try {
+          await setStorageItem('saved_workout_session', JSON.stringify({
+            workoutId: currentWorkout?.id,
+            session: {
+              ...activeSession,
+              completedExercises: Array.from(activeSession?.completedExercises || []),
+              exerciseData: Array.from(activeSession?.exerciseData.entries() || []),
+            },
+            elapsedSeconds: workoutElapsedSeconds,
+            savedAt: new Date().toISOString(),
+          }));
+          console.log('✅ Progress saved');
+        } catch (error) {
+          console.error('Error saving progress:', error);
         }
+        router.back();
       }},
       {
         text: 'Finish',
