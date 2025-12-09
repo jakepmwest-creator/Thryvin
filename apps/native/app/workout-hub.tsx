@@ -350,10 +350,38 @@ export default function WorkoutHubScreen() {
   };
 
   const handleExit = () => {
-    showAlert('warning', 'Exit Workout?', "Your progress won't be saved.", [
-      { text: 'Stay', style: 'cancel' },
-      { text: 'Exit', style: 'destructive', onPress: () => router.back() },
-    ]);
+    // Check if any exercises have been completed
+    const hasProgress = activeSession && activeSession.completedExercises.size > 0;
+    
+    if (hasProgress) {
+      showAlert('info', 'Save Your Progress?', `You've completed ${activeSession.completedExercises.size} exercise(s).\n\nWould you like to save your progress?`, [
+        { text: 'Exit Without Saving', style: 'destructive', onPress: () => router.back() },
+        { text: 'Save Progress', onPress: async () => {
+          // Save the session but don't mark workout as complete
+          try {
+            // Just save the activeSession to storage for later
+            await setStorageItem('saved_workout_session', JSON.stringify({
+              workoutId: currentWorkout?.id,
+              session: {
+                ...activeSession,
+                completedExercises: Array.from(activeSession.completedExercises),
+                exerciseData: Array.from(activeSession.exerciseData.entries()),
+              },
+              savedAt: new Date().toISOString(),
+            }));
+            console.log('✅ Progress saved');
+          } catch (error) {
+            console.error('Error saving progress:', error);
+          }
+          router.back();
+        }},
+      ]);
+    } else {
+      showAlert('warning', 'Exit Workout?', "You haven't completed any exercises yet.", [
+        { text: 'Stay', style: 'cancel' },
+        { text: 'Exit', style: 'destructive', onPress: () => router.back() },
+      ]);
+    }
   };
 
   // Safety check: if no workout, show message
