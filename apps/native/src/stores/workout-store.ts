@@ -582,7 +582,7 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
   },
 
   // Complete a workout
-  completeWorkout: async (workoutId: string, exercises: any[]) => {
+  completeWorkout: async (workoutId: string, exercises: any[], actualDurationMinutes?: number) => {
     try {
       const { weekWorkouts, currentWorkout, todayWorkout } = get();
       const workout = currentWorkout || todayWorkout;
