@@ -554,6 +554,29 @@ const styles = StyleSheet.create({
   restDayTips: { width: '100%', gap: 16 },
   tipItem: { flexDirection: 'row', alignItems: 'center', gap: 16, backgroundColor: COLORS.lightGray, padding: 16, borderRadius: 12 },
   tipText: { fontSize: 16, fontWeight: '500', color: COLORS.text },
+  restDayCoachButton: { 
+    marginTop: 32, 
+    borderRadius: 16, 
+    overflow: 'hidden', 
+    elevation: 4, 
+    shadowColor: COLORS.gradientStart, 
+    shadowOffset: { width: 0, height: 2 }, 
+    shadowOpacity: 0.2, 
+    shadowRadius: 4 
+  },
+  restDayCoachGradient: { 
+    flexDirection: 'row', 
+    alignItems: 'center', 
+    justifyContent: 'center', 
+    paddingVertical: 16, 
+    paddingHorizontal: 24, 
+    gap: 8 
+  },
+  restDayCoachText: { 
+    fontSize: 16, 
+    fontWeight: '600', 
+    color: '#FFFFFF' 
+  },
   content: { flex: 1 },
   scrollView: { flex: 1 },
   section: { paddingHorizontal: 20, marginTop: 24 },
