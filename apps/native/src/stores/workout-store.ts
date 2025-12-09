@@ -137,7 +137,7 @@ interface WorkoutStore {
   addExerciseNote: (exerciseIndex: number, note: string) => void;
   navigateToExercise: (exerciseIndex: number) => void;
   finishWorkoutSession: () => Promise<void>;
-  completeWorkout: (workoutId: string, exercises: any[]) => Promise<void>;
+  completeWorkout: (workoutId: string, exercises: any[], actualDurationMinutes?: number) => Promise<void>;
   logManualWorkout: (workoutData: Partial<Workout>) => Promise<void>;
   clearError: () => void;
   forceRegenerateWeek: () => Promise<void>;
