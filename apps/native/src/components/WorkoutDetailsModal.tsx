@@ -188,7 +188,8 @@ export function WorkoutDetailsModal({
           { text: 'Cancel', style: 'cancel', onPress: () => setAlertConfig(prev => ({ ...prev, visible: false })) },
           { text: 'Ask Coach', onPress: () => {
             setAlertConfig(prev => ({ ...prev, visible: false }));
-            // User can use FloatingCoachButton
+            onClose();
+            openChat("I missed yesterday's workout. Can I still do it or should I move on?");
           }}
         ]
       });
@@ -196,7 +197,8 @@ export function WorkoutDetailsModal({
     }
     
     if (isFuture) {
-      // Show message about asking AI Coach to swap days
+      const workoutDay = new Date(currentWorkoutDate).toLocaleDateString('en-US', { weekday: 'long' });
+      const today = new Date().toLocaleDateString('en-US', { weekday: 'long' });
       setAlertConfig({
         visible: true,
         type: 'info',
@@ -206,7 +208,8 @@ export function WorkoutDetailsModal({
           { text: 'Cancel', style: 'cancel', onPress: () => setAlertConfig(prev => ({ ...prev, visible: false })) },
           { text: 'Ask Coach', onPress: () => {
             setAlertConfig(prev => ({ ...prev, visible: false }));
-            // User can use FloatingCoachButton
+            onClose();
+            openChat(`I want to swap ${workoutDay}'s workout with ${today}. Can we do that?`);
           }}
         ]
       });
