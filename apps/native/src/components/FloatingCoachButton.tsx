@@ -456,7 +456,7 @@ export function FloatingCoachButton() {
         visible={chatVisible}
         animationType="slide"
         transparent={true}
-        onRequestClose={() => setChatVisible(false)}
+        onRequestClose={closeChat}
       >
         <KeyboardAvoidingView
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -465,7 +465,7 @@ export function FloatingCoachButton() {
           <TouchableOpacity
             style={styles.backdrop}
             activeOpacity={1}
-            onPress={() => setChatVisible(false)}
+            onPress={closeChat}
           />
           
           <View style={styles.chatContainer}>
