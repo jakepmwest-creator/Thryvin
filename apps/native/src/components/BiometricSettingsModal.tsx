@@ -6,12 +6,12 @@ import {
   Modal,
   TouchableOpacity,
   Switch,
-  Alert,
   Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as LocalAuthentication from 'expo-local-authentication';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { CustomAlert } from './CustomAlert';
 
 const COLORS = {
   accent: '#A22BF6',
@@ -33,6 +33,20 @@ export const BiometricSettingsModal = ({ visible, onClose }: BiometricSettingsMo
   const [biometricType, setBiometricType] = useState<string>('Biometrics');
   const [biometricsEnabled, setBiometricsEnabled] = useState(false);
   const [isChecking, setIsChecking] = useState(true);
+  
+  // CustomAlert state
+  const [alertConfig, setAlertConfig] = useState<{
+    visible: boolean;
+    type: 'success' | 'error' | 'warning' | 'info';
+    title: string;
+    message: string;
+    buttons?: Array<{ text: string; onPress?: () => void; style?: 'default' | 'cancel' | 'destructive' }>;
+  }>({ visible: false, type: 'info', title: '', message: '' });
+  
+  const showAlert = (type: 'success' | 'error' | 'warning' | 'info', title: string, message: string, buttons?: any[]) => {
+    setAlertConfig({ visible: true, type, title, message, buttons });
+  };
+  const hideAlert = () => setAlertConfig(prev => ({ ...prev, visible: false }));
 
   useEffect(() => {
     checkBiometricSupport();
@@ -74,11 +88,7 @@ export const BiometricSettingsModal = ({ visible, onClose }: BiometricSettingsMo
 
   const toggleBiometrics = async () => {
     if (!hasBiometrics) {
-      Alert.alert(
-        'Biometrics Not Available',
-        `${biometricType} is not set up on this device. Please enable it in your device settings first.`,
-        [{ text: 'OK' }]
-      );
+      showAlert('warning', 'Biometrics Not Available', `${biometricType} is not set up on this device. Please enable it in your device settings first.`);
       return;
     }
 
@@ -94,28 +104,24 @@ export const BiometricSettingsModal = ({ visible, onClose }: BiometricSettingsMo
         if (result.success) {
           setBiometricsEnabled(true);
           await AsyncStorage.setItem('biometrics_enabled', 'true');
-          Alert.alert('Success! 🎉', `${biometricType} has been enabled for quick login.`);
+          showAlert('success', 'Success! 🎉', `${biometricType} has been enabled for quick login.`);
         }
       } catch (error) {
-        Alert.alert('Error', 'Failed to enable biometrics. Please try again.');
+        showAlert('error', 'Error', 'Failed to enable biometrics. Please try again.');
       }
     } else {
       // Disable biometrics
-      Alert.alert(
-        'Disable Biometrics',
-        `Are you sure you want to disable ${biometricType}?`,
-        [
-          { text: 'Cancel', style: 'cancel' },
-          {
-            text: 'Disable',
-            style: 'destructive',
-            onPress: async () => {
-              setBiometricsEnabled(false);
-              await AsyncStorage.setItem('biometrics_enabled', 'false');
-            },
+      showAlert('warning', 'Disable Biometrics', `Are you sure you want to disable ${biometricType}?`, [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Disable',
+          style: 'destructive',
+          onPress: async () => {
+            setBiometricsEnabled(false);
+            await AsyncStorage.setItem('biometrics_enabled', 'false');
           },
-        ]
-      );
+        },
+      ]);
     }
   };
 
@@ -129,6 +135,16 @@ export const BiometricSettingsModal = ({ visible, onClose }: BiometricSettingsMo
     <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose}>
       <View style={styles.overlay}>
         <View style={styles.container}>
+          {/* Custom Alert */}
+          <CustomAlert
+            visible={alertConfig.visible}
+            type={alertConfig.type}
+            title={alertConfig.title}
+            message={alertConfig.message}
+            buttons={alertConfig.buttons}
+            onClose={hideAlert}
+          />
+          
           {/* Header */}
           <View style={styles.header}>
             <TouchableOpacity onPress={onClose} style={styles.closeButton}>

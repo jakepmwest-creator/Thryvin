@@ -321,8 +321,14 @@ export default function ProfileScreen() {
     Linking.openURL('mailto:support@thryvin.app?subject=Support%20Request%20-%20Thryvin%20App');
   };
   
-  const handleProfileSave = () => {
-    loadSettings(); // Reload to get updated profile data
+  const handleProfileSave = async () => {
+    await loadSettings(); // Reload to get updated profile data
+    showAlert({
+      type: 'success',
+      title: 'Profile Updated!',
+      message: 'Your profile changes have been saved.',
+      buttons: [{ text: 'OK', onPress: hideAlert }]
+    });
   };
 
   return (

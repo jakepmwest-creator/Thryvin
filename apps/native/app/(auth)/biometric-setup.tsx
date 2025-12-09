@@ -3,7 +3,6 @@ import {
   View,
   StyleSheet,
   TouchableOpacity,
-  Alert,
   Image,
 } from 'react-native';
 import { Text } from 'react-native-paper';
@@ -13,6 +12,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import * as LocalAuthentication from 'expo-local-authentication';
 import * as SecureStore from 'expo-secure-store';
+import { CustomAlert } from '../../src/components/CustomAlert';
 
 const COLORS = {
   accent: '#a259ff',
@@ -28,6 +28,20 @@ export default function BiometricSetupScreen() {
   const router = useRouter();
   const [biometricType, setBiometricType] = useState<string>('');
   const [isAvailable, setIsAvailable] = useState(false);
+  
+  // CustomAlert state
+  const [alertConfig, setAlertConfig] = useState<{
+    visible: boolean;
+    type: 'success' | 'error' | 'warning' | 'info';
+    title: string;
+    message: string;
+    buttons?: Array<{ text: string; onPress?: () => void }>;
+  }>({ visible: false, type: 'info', title: '', message: '' });
+  
+  const showAlert = (type: 'success' | 'error' | 'warning' | 'info', title: string, message: string, buttons?: any[]) => {
+    setAlertConfig({ visible: true, type, title, message, buttons });
+  };
+  const hideAlert = () => setAlertConfig(prev => ({ ...prev, visible: false }));
 
   useEffect(() => {
     checkBiometricAvailability();
@@ -66,17 +80,15 @@ export default function BiometricSetupScreen() {
       if (result.success) {
         // Save biometric preference
         await SecureStore.setItemAsync('biometric_enabled', 'true');
-        Alert.alert(
-          'Success!',
-          `${biometricType} has been enabled for quick login`,
-          [{ text: 'OK', onPress: () => router.replace('/(tabs)') }]
-        );
+        showAlert('success', 'Success!', `${biometricType} has been enabled for quick login`, [
+          { text: 'OK', onPress: () => router.replace('/(tabs)') }
+        ]);
       } else {
-        Alert.alert('Authentication Failed', 'Please try again or skip for now');
+        showAlert('warning', 'Authentication Failed', 'Please try again or skip for now');
       }
     } catch (error) {
       console.error('Biometric setup failed:', error);
-      Alert.alert('Error', 'Could not enable biometric authentication');
+      showAlert('error', 'Error', 'Could not enable biometric authentication');
     }
   };
 
@@ -92,6 +104,16 @@ export default function BiometricSetupScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
+      {/* Custom Alert */}
+      <CustomAlert
+        visible={alertConfig.visible}
+        type={alertConfig.type}
+        title={alertConfig.title}
+        message={alertConfig.message}
+        buttons={alertConfig.buttons}
+        onClose={hideAlert}
+      />
+      
       <View style={styles.content}>
         {/* Logo */}
         <View style={styles.logoContainer}>

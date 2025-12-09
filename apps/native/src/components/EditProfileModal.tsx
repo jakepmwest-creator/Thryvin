@@ -148,7 +148,7 @@ export const EditProfileModal = ({ visible, onClose, onSave }: EditProfileModalP
         await AsyncStorage.removeItem('user_profile_image');
       }
       
-      showAlert('success', 'Success', 'Profile updated successfully!');
+      // Call onSave first to refresh parent data, then close
       onSave();
       onClose();
     } catch (error) {

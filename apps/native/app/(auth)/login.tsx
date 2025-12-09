@@ -10,7 +10,6 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
-  Alert,
   Animated,
   Dimensions
 } from 'react-native';
@@ -20,6 +19,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useAuthStore } from '../../src/stores/auth-store';
+import { CustomAlert } from '../../src/components/CustomAlert';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -47,6 +47,20 @@ export default function LoginScreen() {
   const [showPassword, setShowPassword] = useState(false);
   const [biometricAvailable, setBiometricAvailable] = useState(false);
   const [biometricEnabled, setBiometricEnabled] = useState(false);
+  
+  // CustomAlert state
+  const [alertConfig, setAlertConfig] = useState<{
+    visible: boolean;
+    type: 'success' | 'error' | 'warning' | 'info';
+    title: string;
+    message: string;
+    buttons?: Array<{ text: string; onPress?: () => void; style?: 'default' | 'cancel' | 'destructive' }>;
+  }>({ visible: false, type: 'info', title: '', message: '' });
+  
+  const showAlert = (type: 'success' | 'error' | 'warning' | 'info', title: string, message: string, buttons?: any[]) => {
+    setAlertConfig({ visible: true, type, title, message, buttons });
+  };
+  const hideAlert = () => setAlertConfig(prev => ({ ...prev, visible: false }));
 
   // Animation values
   const fadeAnim = useRef(new Animated.Value(0)).current;
@@ -145,13 +159,13 @@ export default function LoginScreen() {
       router.replace('/(tabs)');
     } catch (error) {
       console.error('Error creating test account:', error);
-      Alert.alert('Error', 'Failed to create test account');
+      showAlert('error', 'Error', 'Failed to create test account');
     }
   };
 
   const handleLogin = async () => {
     if (!email || !password) {
-      Alert.alert('Error', 'Please enter email and password');
+      showAlert('warning', 'Error', 'Please enter email and password');
       return;
     }
     
@@ -159,7 +173,7 @@ export default function LoginScreen() {
       await login({ email, password });
       router.replace('/(tabs)');
     } catch (error) {
-      Alert.alert('Login Failed', error instanceof Error ? error.message : 'Invalid credentials');
+      showAlert('error', 'Login Failed', error instanceof Error ? error.message : 'Invalid credentials');
     }
   };
 
@@ -182,16 +196,26 @@ export default function LoginScreen() {
           await login({ email: storedEmail, password: storedPassword });
           router.replace('/(tabs)');
         } else {
-          Alert.alert('Error', 'No saved credentials found. Please log in with email and password.');
+          showAlert('warning', 'Error', 'No saved credentials found. Please log in with email and password.');
         }
       }
     } catch (error) {
-      Alert.alert('Authentication Failed', 'Please try again or use password');
+      showAlert('error', 'Authentication Failed', 'Please try again or use password');
     }
   };
 
   return (
     <View style={styles.container}>
+      {/* Custom Alert */}
+      <CustomAlert
+        visible={alertConfig.visible}
+        type={alertConfig.type}
+        title={alertConfig.title}
+        message={alertConfig.message}
+        buttons={alertConfig.buttons}
+        onClose={hideAlert}
+      />
+      
       {/* Full Gradient Background */}
       <LinearGradient
         colors={[COLORS.gradientStart, COLORS.gradientEnd]}

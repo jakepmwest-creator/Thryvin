@@ -7,12 +7,12 @@ import {
   TouchableOpacity,
   ScrollView,
   TextInput,
-  Alert,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useAuthStore } from '../stores/auth-store';
+import { CustomAlert } from './CustomAlert';
 
 const COLORS = {
   accent: '#A22BF6',
@@ -68,6 +68,20 @@ export const GoalsProgressModal = ({ visible, onClose, onSave }: GoalsProgressMo
   const [weeklyWorkoutGoal, setWeeklyWorkoutGoal] = useState('4');
   const [customGoal, setCustomGoal] = useState('');
   const [isSaving, setIsSaving] = useState(false);
+  
+  // CustomAlert state
+  const [alertConfig, setAlertConfig] = useState<{
+    visible: boolean;
+    type: 'success' | 'error' | 'warning' | 'info';
+    title: string;
+    message: string;
+    buttons?: Array<{ text: string; onPress?: () => void; style?: 'default' | 'cancel' | 'destructive' }>;
+  }>({ visible: false, type: 'info', title: '', message: '' });
+  
+  const showAlert = (type: 'success' | 'error' | 'warning' | 'info', title: string, message: string, buttons?: any[]) => {
+    setAlertConfig({ visible: true, type, title, message, buttons });
+  };
+  const hideAlert = () => setAlertConfig(prev => ({ ...prev, visible: false }));
 
   useEffect(() => {
     loadGoals();
@@ -98,7 +112,7 @@ export const GoalsProgressModal = ({ visible, onClose, onSave }: GoalsProgressMo
 
   const handleSave = async () => {
     if (selectedGoals.length === 0) {
-      Alert.alert('Please select at least one goal', 'Choose what you want to achieve with your fitness journey.');
+      showAlert('warning', 'Please select at least one goal', 'Choose what you want to achieve with your fitness journey.');
       return;
     }
 
@@ -114,14 +128,12 @@ export const GoalsProgressModal = ({ visible, onClose, onSave }: GoalsProgressMo
       
       await AsyncStorage.setItem('user_goals', JSON.stringify(goals));
       
-      Alert.alert(
-        'Goals Updated! 🎯',
-        'Your fitness goals have been saved. Keep pushing towards them!',
-        [{ text: 'Let\'s Go!', onPress: onClose }]
-      );
+      showAlert('success', 'Goals Updated! 🎯', 'Your fitness goals have been saved. Keep pushing towards them!', [
+        { text: "Let's Go!", onPress: onClose }
+      ]);
       onSave();
     } catch (error) {
-      Alert.alert('Error', 'Failed to save goals. Please try again.');
+      showAlert('error', 'Error', 'Failed to save goals. Please try again.');
     } finally {
       setIsSaving(false);
     }
@@ -131,6 +143,16 @@ export const GoalsProgressModal = ({ visible, onClose, onSave }: GoalsProgressMo
     <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose}>
       <View style={styles.overlay}>
         <View style={styles.container}>
+          {/* Custom Alert */}
+          <CustomAlert
+            visible={alertConfig.visible}
+            type={alertConfig.type}
+            title={alertConfig.title}
+            message={alertConfig.message}
+            buttons={alertConfig.buttons}
+            onClose={hideAlert}
+          />
+          
           {/* Header */}
           <View style={styles.header}>
             <TouchableOpacity onPress={onClose} style={styles.closeButton}>

@@ -7,7 +7,6 @@ import {
   TextInput as RNTextInput,
   KeyboardAvoidingView,
   Platform,
-  Alert,
   Image,
 } from 'react-native';
 import { Text } from 'react-native-paper';
@@ -16,6 +15,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useAuthStore } from '../../src/stores/auth-store';
+import { CustomAlert } from '../../src/components/CustomAlert';
 
 const COLORS = {
   accent: '#a259ff',
@@ -35,22 +35,35 @@ export default function QuickSignupScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  
+  // CustomAlert state
+  const [alertConfig, setAlertConfig] = useState<{
+    visible: boolean;
+    type: 'success' | 'error' | 'warning' | 'info';
+    title: string;
+    message: string;
+  }>({ visible: false, type: 'info', title: '', message: '' });
+  
+  const showAlert = (type: 'success' | 'error' | 'warning' | 'info', title: string, message: string) => {
+    setAlertConfig({ visible: true, type, title, message });
+  };
+  const hideAlert = () => setAlertConfig(prev => ({ ...prev, visible: false }));
 
   const handleCreateAccount = async () => {
     // Validation
     if (!email || !password) {
-      Alert.alert('Error', 'Please enter email and password');
+      showAlert('warning', 'Error', 'Please enter email and password');
       return;
     }
 
     if (password.length < 6) {
-      Alert.alert('Error', 'Password must be at least 6 characters');
+      showAlert('warning', 'Error', 'Password must be at least 6 characters');
       return;
     }
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
-      Alert.alert('Error', 'Please enter a valid email address');
+      showAlert('warning', 'Error', 'Please enter a valid email address');
       return;
     }
 
@@ -75,12 +88,21 @@ export default function QuickSignupScreen() {
         params: { fromSignup: 'true' },
       });
     } catch (error) {
-      Alert.alert('Signup Failed', error instanceof Error ? error.message : 'Could not create account');
+      showAlert('error', 'Signup Failed', error instanceof Error ? error.message : 'Could not create account');
     }
   };
 
   return (
     <SafeAreaView style={styles.container}>
+      {/* Custom Alert */}
+      <CustomAlert
+        visible={alertConfig.visible}
+        type={alertConfig.type}
+        title={alertConfig.title}
+        message={alertConfig.message}
+        onClose={hideAlert}
+      />
+      
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={styles.keyboardView}

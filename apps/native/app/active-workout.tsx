@@ -6,13 +6,13 @@ import {
   ScrollView,
   TouchableOpacity,
   TextInput,
-  Alert,
   Dimensions,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
+import { CustomAlert } from '../src/components/CustomAlert';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -104,35 +104,44 @@ export default function ActiveWorkoutScreen() {
   const [activeTab, setActiveTab] = useState<TabType>('warmup');
   const [expandedExercise, setExpandedExercise] = useState<number | null>(null);
   const [exerciseData, setExerciseData] = useState<any>({});
+  
+  // CustomAlert state
+  const [alertConfig, setAlertConfig] = useState<{
+    visible: boolean;
+    type: 'success' | 'error' | 'warning' | 'info';
+    title: string;
+    message: string;
+    buttons?: Array<{ text: string; onPress?: () => void; style?: 'default' | 'cancel' | 'destructive' }>;
+  }>({ visible: false, type: 'info', title: '', message: '' });
+  
+  const showAlert = (type: 'success' | 'error' | 'warning' | 'info', title: string, message: string, buttons?: any[]) => {
+    setAlertConfig({ visible: true, type, title, message, buttons });
+  };
+  const hideAlert = () => setAlertConfig(prev => ({ ...prev, visible: false }));
 
   const handleBack = () => {
-    Alert.alert(
-      'Exit Workout',
-      'How would you like to exit?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        { 
-          text: 'Save Progress', 
-          onPress: () => {
-            console.log('Saving workout progress...');
-            router.back();
-          }
+    showAlert('info', 'Exit Workout', 'How would you like to exit?', [
+      { text: 'Cancel', style: 'cancel' },
+      { 
+        text: 'Save Progress', 
+        onPress: () => {
+          console.log('Saving workout progress...');
+          router.back();
+        }
+      },
+      { 
+        text: 'Mark as Complete', 
+        onPress: () => {
+          console.log('Marking workout as complete...');
+          router.back();
         },
-        { 
-          text: 'Mark as Complete', 
-          onPress: () => {
-            console.log('Marking workout as complete...');
-            router.back();
-          },
-          style: 'default'
-        },
-        { 
-          text: 'Leave Without Saving', 
-          onPress: () => router.back(),
-          style: 'destructive'
-        },
-      ]
-    );
+      },
+      { 
+        text: 'Leave Without Saving', 
+        onPress: () => router.back(),
+        style: 'destructive'
+      },
+    ]);
   };
 
   const updateExerciseSet = (exerciseIndex: number, setIndex: number, field: string, value: string) => {
@@ -288,6 +297,16 @@ export default function ActiveWorkoutScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
+      {/* Custom Alert */}
+      <CustomAlert
+        visible={alertConfig.visible}
+        type={alertConfig.type}
+        title={alertConfig.title}
+        message={alertConfig.message}
+        buttons={alertConfig.buttons}
+        onClose={hideAlert}
+      />
+      
       {/* Header with Back Button */}
       <View style={styles.header}>
         <TouchableOpacity style={styles.backButton} onPress={handleBack}>

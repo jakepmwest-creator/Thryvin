@@ -5,7 +5,6 @@ import {
   StyleSheet,
   TouchableOpacity,
   ScrollView,
-  Alert,
   Dimensions,
   ActivityIndicator,
 } from 'react-native';
@@ -14,9 +13,10 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { ExerciseVideoPlayer } from '../src/components/ExerciseVideoPlayer';
+import { CustomAlert } from '../src/components/CustomAlert';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
-const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL || 'https://tangy-cities-shop.loca.lt';
+const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL || 'https://fitness-explorer-2.preview.emergentagent.com';
 
 const COLORS = {
   accent: '#a259ff',
@@ -56,6 +56,20 @@ export default function ActiveWorkoutScreen() {
   const [currentExerciseIndex, setCurrentExerciseIndex] = useState(0);
   const [exerciseVideos, setExerciseVideos] = useState<Map<string, string>>(new Map());
   const [loadingVideos, setLoadingVideos] = useState(false);
+  
+  // CustomAlert state
+  const [alertConfig, setAlertConfig] = useState<{
+    visible: boolean;
+    type: 'success' | 'error' | 'warning' | 'info';
+    title: string;
+    message: string;
+    buttons?: Array<{ text: string; onPress?: () => void; style?: 'default' | 'cancel' | 'destructive' }>;
+  }>({ visible: false, type: 'info', title: '', message: '' });
+  
+  const showAlert = (type: 'success' | 'error' | 'warning' | 'info', title: string, message: string, buttons?: any[]) => {
+    setAlertConfig({ visible: true, type, title, message, buttons });
+  };
+  const hideAlert = () => setAlertConfig(prev => ({ ...prev, visible: false }));
 
   // Current exercise
   const currentExercise = workout?.exercises[currentExerciseIndex];
@@ -180,48 +194,24 @@ export default function ActiveWorkoutScreen() {
       setCurrentExerciseIndex(prev => prev + 1);
     } else {
       // Last exercise - show completion confirmation
-      Alert.alert(
-        'Workout Complete! 🎉',
-        'Ready to finish this workout?',
-        [
-          { text: 'Not Yet', style: 'cancel' },
-          {
-            text: 'Complete Workout',
-            style: 'default',
-            onPress: handleCompleteWorkout,
-          },
-        ]
-      );
+      showAlert('success', 'Workout Complete! 🎉', 'Ready to finish this workout?', [
+        { text: 'Not Yet', style: 'cancel' },
+        { text: 'Complete Workout', onPress: handleCompleteWorkout },
+      ]);
     }
   };
 
   const handleCompleteWorkout = () => {
-    // TODO: Save workout data to store
-    Alert.alert(
-      'Great Job! 💪',
-      'Workout completed successfully!',
-      [
-        {
-          text: 'Done',
-          onPress: () => router.back(),
-        },
-      ]
-    );
+    showAlert('success', 'Great Job! 💪', 'Workout completed successfully!', [
+      { text: 'Done', onPress: () => router.back() },
+    ]);
   };
 
   const handleBack = () => {
-    Alert.alert(
-      'Exit Workout?',
-      'Your progress won\'t be saved.',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Exit',
-          style: 'destructive',
-          onPress: () => router.back(),
-        },
-      ]
-    );
+    showAlert('warning', 'Exit Workout?', "Your progress won't be saved.", [
+      { text: 'Cancel', style: 'cancel' },
+      { text: 'Exit', style: 'destructive', onPress: () => router.back() },
+    ]);
   };
 
   if (!workout || !currentExercise) {
@@ -239,6 +229,16 @@ export default function ActiveWorkoutScreen() {
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
+      {/* Custom Alert */}
+      <CustomAlert
+        visible={alertConfig.visible}
+        type={alertConfig.type}
+        title={alertConfig.title}
+        message={alertConfig.message}
+        buttons={alertConfig.buttons}
+        onClose={hideAlert}
+      />
+      
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity style={styles.backButton} onPress={handleBack}>

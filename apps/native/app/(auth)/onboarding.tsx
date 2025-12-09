@@ -8,7 +8,6 @@ import {
   TextInput as RNTextInput,
   KeyboardAvoidingView,
   Platform,
-  Alert,
   Animated,
   Dimensions,
 } from 'react-native';
@@ -17,6 +16,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useAuthStore } from '../../src/stores/auth-store';
+import { CustomAlert } from '../../src/components/CustomAlert';
 import DateTimePicker from '@react-native-community/datetimepicker';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
@@ -361,6 +361,19 @@ export default function OnboardingScreen() {
     injuriesOther: '',
     coachingStyle: '',
   });
+  
+  // CustomAlert state
+  const [alertConfig, setAlertConfig] = useState<{
+    visible: boolean;
+    type: 'success' | 'error' | 'warning' | 'info';
+    title: string;
+    message: string;
+  }>({ visible: false, type: 'info', title: '', message: '' });
+  
+  const showAlert = (type: 'success' | 'error' | 'warning' | 'info', title: string, message: string) => {
+    setAlertConfig({ visible: true, type, title, message });
+  };
+  const hideAlert = () => setAlertConfig(prev => ({ ...prev, visible: false }));
 
   // Animation values
   const slideAnim = useRef(new Animated.Value(50)).current;
@@ -392,12 +405,12 @@ export default function OnboardingScreen() {
     // Validate current step
     if (currentStepData.type === 'select') {
       if (!formData[currentStepData.field]) {
-        Alert.alert('Required', 'Please select an option to continue');
+        showAlert('warning', 'Required', 'Please select an option to continue');
         return;
       }
     } else if (currentStepData.type === 'multiselect') {
       if (!formData[currentStepData.field] || formData[currentStepData.field].length === 0) {
-        Alert.alert('Required', 'Please select at least one option to continue');
+        showAlert('warning', 'Required', 'Please select at least one option to continue');
         return;
       }
     } else if (currentStepData.fields) {
@@ -413,7 +426,7 @@ export default function OnboardingScreen() {
       });
       
       if (!allFilled) {
-        Alert.alert('Required', 'Please fill in all fields to continue');
+        showAlert('warning', 'Required', 'Please fill in all fields to continue');
         return;
       }
     }
@@ -715,7 +728,7 @@ export default function OnboardingScreen() {
             [currentStepData.field]: [...currentValues, value],
           });
         } else {
-          Alert.alert('Limit Reached', `You can select up to ${maxSelect} options`);
+          showAlert('info', 'Limit Reached', `You can select up to ${maxSelect} options`);
         }
       }
     };
@@ -808,6 +821,15 @@ export default function OnboardingScreen() {
 
   return (
     <View style={styles.container}>
+      {/* Custom Alert */}
+      <CustomAlert
+        visible={alertConfig.visible}
+        type={alertConfig.type}
+        title={alertConfig.title}
+        message={alertConfig.message}
+        onClose={hideAlert}
+      />
+      
       {/* Gradient Background */}
       <LinearGradient
         colors={[COLORS.accent, COLORS.accentSecondary, COLORS.white]}

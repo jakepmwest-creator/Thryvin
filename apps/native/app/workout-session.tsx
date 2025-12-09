@@ -6,7 +6,6 @@ import {
   TouchableOpacity,
   ScrollView,
   TextInput,
-  Alert,
   Dimensions,
   ActivityIndicator,
 } from 'react-native';
@@ -15,6 +14,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { ExerciseVideoPlayer } from '../src/components/ExerciseVideoPlayer';
+import { CustomAlert } from '../src/components/CustomAlert';
 import { useWorkoutStore } from '../src/stores/workout-store';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
@@ -52,6 +52,20 @@ export default function WorkoutSessionScreen() {
   const [effort, setEffort] = useState<'Easy' | 'Medium' | 'Hard'>('Medium');
   const [note, setNote] = useState('');
   const [sessionStartTime] = useState(new Date());
+  
+  // CustomAlert state
+  const [alertConfig, setAlertConfig] = useState<{
+    visible: boolean;
+    type: 'success' | 'error' | 'warning' | 'info';
+    title: string;
+    message: string;
+    buttons?: Array<{ text: string; onPress?: () => void; style?: 'default' | 'cancel' | 'destructive' }>;
+  }>({ visible: false, type: 'info', title: '', message: '' });
+  
+  const showAlert = (type: 'success' | 'error' | 'warning' | 'info', title: string, message: string, buttons?: any[]) => {
+    setAlertConfig({ visible: true, type, title, message, buttons });
+  };
+  const hideAlert = () => setAlertConfig(prev => ({ ...prev, visible: false }));
 
   useEffect(() => {
     if (currentWorkout && !activeSession) {
@@ -80,7 +94,7 @@ export default function WorkoutSessionScreen() {
 
   const handleCompleteSet = () => {
     if (!reps || parseInt(reps) === 0) {
-      Alert.alert('Missing Data', 'Please enter the reps you completed');
+      showAlert('warning', 'Missing Data', 'Please enter the reps you completed');
       return;
     }
 
@@ -96,16 +110,9 @@ export default function WorkoutSessionScreen() {
       setReps('');
     } else {
       // Exercise complete
-      Alert.alert(
-        'Exercise Complete! 💪',
-        `Great work on ${currentExercise?.name}!`,
-        [
-          {
-            text: 'Next Exercise',
-            onPress: handleNextExercise,
-          },
-        ]
-      );
+      showAlert('success', 'Exercise Complete! 💪', `Great work on ${currentExercise?.name}!`, [
+        { text: 'Next Exercise', onPress: handleNextExercise },
+      ]);
     }
   };
 
@@ -134,54 +141,42 @@ export default function WorkoutSessionScreen() {
   const handleSaveNote = () => {
     if (note.trim()) {
       addExerciseNote(currentExerciseIndex, note);
-      Alert.alert('Note Saved', 'Your note has been saved');
+      showAlert('success', 'Note Saved', 'Your note has been saved');
     }
   };
 
   const handleFinishWorkout = async () => {
     const sessionDuration = Math.round((new Date().getTime() - sessionStartTime.getTime()) / 60000);
     
-    Alert.alert(
-      'Finish Workout?',
-      `You've been training for ${sessionDuration} minutes. Ready to wrap up?`,
-      [
-        { text: 'Keep Going', style: 'cancel' },
-        {
-          text: 'Finish Workout',
-          onPress: async () => {
-            try {
-              await finishWorkoutSession();
-              router.replace('/(tabs)');
-              
-              setTimeout(() => {
-                Alert.alert(
-                  'Workout Complete! 🎉',
-                  `Awesome job! You completed ${totalExercises} exercises in ${sessionDuration} minutes.`,
-                  [{ text: 'Done' }]
-                );
-              }, 500);
-            } catch (error) {
-              Alert.alert('Error', 'Failed to save workout. Please try again.');
-            }
-          },
+    showAlert('info', 'Finish Workout?', `You've been training for ${sessionDuration} minutes. Ready to wrap up?`, [
+      { text: 'Keep Going', style: 'cancel' },
+      {
+        text: 'Finish Workout',
+        onPress: async () => {
+          try {
+            await finishWorkoutSession();
+            router.replace('/(tabs)');
+            
+            setTimeout(() => {
+              showAlert('success', 'Workout Complete! 🎉', `Awesome job! You completed ${totalExercises} exercises in ${sessionDuration} minutes.`);
+            }, 500);
+          } catch (error) {
+            showAlert('error', 'Error', 'Failed to save workout. Please try again.');
+          }
         },
-      ]
-    );
+      },
+    ]);
   };
 
   const handleExit = () => {
-    Alert.alert(
-      'Exit Workout?',
-      'Your progress won\'t be saved if you leave now.',
-      [
-        { text: 'Stay', style: 'cancel' },
-        {
-          text: 'Exit',
-          style: 'destructive',
-          onPress: () => router.back(),
-        },
-      ]
-    );
+    showAlert('warning', 'Exit Workout?', "Your progress won't be saved if you leave now.", [
+      { text: 'Stay', style: 'cancel' },
+      {
+        text: 'Exit',
+        style: 'destructive',
+        onPress: () => router.back(),
+      },
+    ]);
   };
 
   if (!currentExercise) {
@@ -192,6 +187,16 @@ export default function WorkoutSessionScreen() {
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
+      {/* Custom Alert */}
+      <CustomAlert
+        visible={alertConfig.visible}
+        type={alertConfig.type}
+        title={alertConfig.title}
+        message={alertConfig.message}
+        buttons={alertConfig.buttons}
+        onClose={hideAlert}
+      />
+      
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity style={styles.exitButton} onPress={handleExit}>
