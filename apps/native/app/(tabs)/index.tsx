@@ -166,6 +166,16 @@ export default function HomeScreen() {
     });
   }, [completedWorkouts.length, weeklyCompletedCount]);
   
+  // Refresh stats when screen comes into focus (after completing workout)
+  useFocusEffect(
+    React.useCallback(() => {
+      console.log('📊 [HOME] Screen focused - refreshing stats');
+      fetchStats().then(() => {
+        setStatsVersion(v => v + 1);
+      });
+    }, [])
+  );
+  
   // Get today's actual workout from weekWorkouts (most accurate source)
   const actualTodayWorkout = useMemo(() => {
     const today = new Date().toDateString();
