@@ -1140,35 +1140,69 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
       return await get().addWorkoutToDate(restDayDate, workoutType, duration);
     }
     
-    // Generate new workout
-    try {
-      const response = await fetch(`${API_BASE_URL}/api/workouts/generate-single`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          date: restDayDate.toISOString(),
-          workoutType: workoutType,
-          duration: duration
-        }),
-      });
-      
-      if (!response.ok) throw new Error('Failed to generate workout');
-      
-      const newWorkout = await response.json();
-      newWorkout.date = restDayDate.toISOString();
-      
-      const updatedWorkouts = [...weekWorkouts];
-      updatedWorkouts[restDayIndex] = newWorkout;
-      
-      set({ weekWorkouts: updatedWorkouts });
-      await setStorageItem('week_workouts', JSON.stringify(updatedWorkouts));
-      
-      console.log('✅ [REPLACE] Rest day replaced with workout');
-      return newWorkout;
-    } catch (error) {
-      console.error('❌ [REPLACE] Failed to replace rest day:', error);
-      return null;
-    }
+    // Use the same template logic as addWorkoutToDate
+    const workoutTemplates: Record<string, any> = {
+      'yoga': {
+        title: `${duration}-Min Yoga Flow`,
+        type: 'Flexibility',
+        difficulty: 'Beginner',
+        exercises: [
+          { id: 'y1', name: 'Cat-Cow Stretch', sets: 3, reps: '10 breaths', restTime: 30, category: 'warmup' },
+          { id: 'y2', name: 'Downward Dog', sets: 3, reps: '5 breaths', restTime: 30, category: 'main' },
+          { id: 'y3', name: 'Warrior II', sets: 2, reps: '5 breaths each side', restTime: 30, category: 'main' },
+          { id: 'y4', name: 'Child\'s Pose', sets: 1, reps: '10 breaths', restTime: 0, category: 'cooldown' },
+        ],
+        overview: `A gentle ${duration}-minute yoga session focusing on flexibility and mindfulness.`,
+        targetMuscles: 'Full Body',
+      },
+      'cardio': {
+        title: `${duration}-Min Cardio Blast`,
+        type: 'Cardio',
+        difficulty: 'Moderate',
+        exercises: [
+          { id: 'c1', name: 'Jumping Jacks', sets: 3, reps: '30 seconds', restTime: 30, category: 'warmup' },
+          { id: 'c2', name: 'High Knees', sets: 3, reps: '45 seconds', restTime: 45, category: 'main' },
+          { id: 'c3', name: 'Burpees', sets: 3, reps: '10', restTime: 60, category: 'main' },
+          { id: 'c4', name: 'Walking', sets: 1, reps: '5 min', restTime: 0, category: 'cooldown' },
+        ],
+        overview: `High-energy ${duration}-minute cardio workout to boost your heart rate.`,
+        targetMuscles: 'Full Body',
+      },
+      'strength': {
+        title: `${duration}-Min Strength Training`,
+        type: 'Strength',
+        difficulty: 'Moderate',
+        exercises: [
+          { id: 's1', name: 'Push-ups', sets: 3, reps: '12', restTime: 60, category: 'main' },
+          { id: 's2', name: 'Squats', sets: 3, reps: '15', restTime: 60, category: 'main' },
+          { id: 's3', name: 'Plank', sets: 3, reps: '30 seconds', restTime: 45, category: 'main' },
+          { id: 's4', name: 'Stretching', sets: 1, reps: '5 min', restTime: 0, category: 'cooldown' },
+        ],
+        overview: `Build strength with this ${duration}-minute bodyweight workout.`,
+        targetMuscles: 'Full Body',
+      },
+    };
+    
+    const template = workoutTemplates[workoutType.toLowerCase()] || workoutTemplates['cardio'];
+    
+    const newWorkout = {
+      id: `replaced_${Date.now()}`,
+      date: restDayDate.toISOString(),
+      duration: duration,
+      caloriesBurn: Math.round(duration * 6),
+      completed: false,
+      isRestDay: false,
+      ...template,
+    };
+    
+    const updatedWorkouts = [...weekWorkouts];
+    updatedWorkouts[restDayIndex] = newWorkout;
+    
+    set({ weekWorkouts: updatedWorkouts });
+    await setStorageItem('week_workouts', JSON.stringify(updatedWorkouts));
+    
+    console.log('✅ [REPLACE] Rest day replaced with workout');
+    return newWorkout;
   },
 }));
 
