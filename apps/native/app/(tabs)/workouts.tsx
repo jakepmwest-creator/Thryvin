@@ -328,6 +328,7 @@ export default function WorkoutsScreen() {
                   ]}
                   onPress={() => {
                     setSelectedDayIndex(index);
+                    setSelectedFullDate(day.fullDate);
                     setModalVisible(true);
                   }}
                 >
