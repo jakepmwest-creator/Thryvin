@@ -17,6 +17,7 @@ import { ExerciseVideoPlayer } from './ExerciseVideoPlayer';
 import { useWorkoutStore } from '../stores/workout-store';
 import { EditWorkoutModal } from './EditWorkoutModal';
 import { CustomAlert } from './CustomAlert';
+import { useCoachStore } from '../stores/coach-store';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
