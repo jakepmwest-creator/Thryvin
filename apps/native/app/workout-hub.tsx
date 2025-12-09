@@ -319,7 +319,7 @@ export default function WorkoutHubScreen() {
       { text: 'Continue Later', style: 'cancel', onPress: async () => {
         // Save progress and exit
         try {
-          await setStorageItem('saved_workout_session', JSON.stringify({
+          await AsyncStorage.setItem('saved_workout_session', JSON.stringify({
             workoutId: currentWorkout?.id,
             session: {
               ...activeSession,
