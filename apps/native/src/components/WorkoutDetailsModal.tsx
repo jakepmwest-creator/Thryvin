@@ -57,6 +57,7 @@ export function WorkoutDetailsModal({
   initialDayIndex
 }: WorkoutDetailsModalProps) {
   const { weekWorkouts, updateWorkoutInWeek, setCurrentWorkout } = useWorkoutStore();
+  const { openChat } = useCoachStore();
   
   const [currentWorkoutIndex, setCurrentWorkoutIndex] = useState(0);
   const [expandedExerciseIndex, setExpandedExerciseIndex] = useState<number | null>(null);
