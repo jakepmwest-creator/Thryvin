@@ -403,36 +403,53 @@ export default function StatsScreen() {
       });
     }
     
-    // Focus breakdown
-    const focusCount: Record<string, number> = {
-      'Upper Body': 0,
-      'Lower Body': 0,
-      'Full Body': 0,
+    // Muscle group distribution (workout nerd metrics!)
+    const muscleGroupCount: Record<string, number> = {
+      'Chest': 0,
+      'Back': 0,
+      'Legs': 0,
+      'Shoulders': 0,
+      'Arms': 0,
       'Core': 0,
       'Cardio': 0,
     };
     
     uniqueCompleted.forEach(w => {
       const type = (w.type || '').toLowerCase();
-      if (type.includes('upper') || type.includes('push') || type.includes('pull') || type.includes('chest') || type.includes('back')) {
-        focusCount['Upper Body']++;
-      } else if (type.includes('lower') || type.includes('leg')) {
-        focusCount['Lower Body']++;
-      } else if (type.includes('cardio') || type.includes('hiit')) {
-        focusCount['Cardio']++;
-      } else if (type.includes('core') || type.includes('ab')) {
-        focusCount['Core']++;
-      } else {
-        focusCount['Full Body']++;
+      const title = (w.title || '').toLowerCase();
+      const target = (w.targetMuscles || '').toLowerCase();
+      const combined = `${type} ${title} ${target}`;
+      
+      // More precise muscle group detection
+      if (combined.includes('chest') || combined.includes('push') || combined.includes('bench')) {
+        muscleGroupCount['Chest']++;
+      }
+      if (combined.includes('back') || combined.includes('pull') || combined.includes('row') || combined.includes('lat')) {
+        muscleGroupCount['Back']++;
+      }
+      if (combined.includes('leg') || combined.includes('squat') || combined.includes('quad') || combined.includes('hamstring') || combined.includes('glute')) {
+        muscleGroupCount['Legs']++;
+      }
+      if (combined.includes('shoulder') || combined.includes('delt') || combined.includes('press')) {
+        muscleGroupCount['Shoulders']++;
+      }
+      if (combined.includes('arm') || combined.includes('bicep') || combined.includes('tricep') || combined.includes('curl')) {
+        muscleGroupCount['Arms']++;
+      }
+      if (combined.includes('core') || combined.includes('ab') || combined.includes('plank')) {
+        muscleGroupCount['Core']++;
+      }
+      if (combined.includes('cardio') || combined.includes('hiit') || combined.includes('run') || combined.includes('bike')) {
+        muscleGroupCount['Cardio']++;
       }
     });
     
-    const total = uniqueCompleted.length || 1;
-    const focusData = Object.entries(focusCount)
+    const totalMuscleWork = Object.values(muscleGroupCount).reduce((a, b) => a + b, 0) || 1;
+    const muscleData = Object.entries(muscleGroupCount)
       .filter(([_, count]) => count > 0)
       .map(([category, count], index) => ({
         category,
-        percentage: Math.round((count / total) * 100),
+        percentage: Math.round((count / totalMuscleWork) * 100),
         color: PIE_COLORS[index % PIE_COLORS.length],
       }))
       .sort((a, b) => b.percentage - a.percentage);
