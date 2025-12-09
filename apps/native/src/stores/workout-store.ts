@@ -829,7 +829,7 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
   },
 
   // Finish workout session
-  finishWorkoutSession: async () => {
+  finishWorkoutSession: async (actualDurationMinutes?: number) => {
     const session = get().activeSession;
     const workout = get().currentWorkout || get().todayWorkout;
     
@@ -846,8 +846,8 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
         };
       });
 
-      // Complete the workout
-      await get().completeWorkout(workout.id, exercises);
+      // Complete the workout with actual duration
+      await get().completeWorkout(workout.id, exercises, actualDurationMinutes);
 
       // Clear active session
       set({ activeSession: null });
