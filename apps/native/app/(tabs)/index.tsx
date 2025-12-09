@@ -13,7 +13,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
-import { router } from 'expo-router';
+import { router, useFocusEffect } from 'expo-router';
 import { AppHeader } from '../../src/components/AppHeader';
 import { WorkoutDetailsModal } from '../../src/components/WorkoutDetailsModal';
 import { PersonalBestChart } from '../../src/components/PersonalBestChart';
