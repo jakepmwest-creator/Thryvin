@@ -494,13 +494,13 @@ export default function StatsScreen() {
 
   const stats = calculateLocalStats();
 
-  // Prepare chart data
-  const barChartData = stats.weeklyData.map(w => ({
-    label: w.label,
-    value: activeChart === 'workouts' ? w.workouts : w.minutes,
+  // Prepare chart data - DAILY VIEW
+  const barChartData = stats.dailyData.map(d => ({
+    label: d.label,
+    value: activeChart === 'workouts' ? d.workouts : d.minutes,
   }));
 
-  const lineChartData = stats.weeklyData.map(w => ({ value: w.minutes }));
+  const lineChartData = stats.dailyData.map(d => ({ value: d.minutes }));
   const maxBarValue = Math.max(...barChartData.map(d => d.value), 1);
   const maxLineValue = Math.max(...lineChartData.map(d => d.value), 1);
 
