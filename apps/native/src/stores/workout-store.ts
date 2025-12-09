@@ -1025,20 +1025,60 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
     console.log('➕ [ADD] Adding workout for', targetDate.toDateString(), 'Type:', workoutType);
     
     try {
-      const response = await fetch(`${API_BASE_URL}/api/workouts/generate-single`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          date: targetDate.toISOString(),
-          workoutType: workoutType,
-          duration: duration
-        }),
-      });
+      // Create a basic workout structure
+      const workoutTemplates: Record<string, any> = {
+        'yoga': {
+          title: `${duration}-Min Yoga Flow`,
+          type: 'Flexibility',
+          difficulty: 'Beginner',
+          exercises: [
+            { id: 'y1', name: 'Cat-Cow Stretch', sets: 3, reps: '10 breaths', restTime: 30, category: 'warmup' },
+            { id: 'y2', name: 'Downward Dog', sets: 3, reps: '5 breaths', restTime: 30, category: 'main' },
+            { id: 'y3', name: 'Warrior II', sets: 2, reps: '5 breaths each side', restTime: 30, category: 'main' },
+            { id: 'y4', name: 'Child\'s Pose', sets: 1, reps: '10 breaths', restTime: 0, category: 'cooldown' },
+          ],
+          overview: `A gentle ${duration}-minute yoga session focusing on flexibility and mindfulness.`,
+          targetMuscles: 'Full Body',
+        },
+        'cardio': {
+          title: `${duration}-Min Cardio Blast`,
+          type: 'Cardio',
+          difficulty: 'Moderate',
+          exercises: [
+            { id: 'c1', name: 'Jumping Jacks', sets: 3, reps: '30 seconds', restTime: 30, category: 'warmup' },
+            { id: 'c2', name: 'High Knees', sets: 3, reps: '45 seconds', restTime: 45, category: 'main' },
+            { id: 'c3', name: 'Burpees', sets: 3, reps: '10', restTime: 60, category: 'main' },
+            { id: 'c4', name: 'Walking', sets: 1, reps: '5 min', restTime: 0, category: 'cooldown' },
+          ],
+          overview: `High-energy ${duration}-minute cardio workout to boost your heart rate.`,
+          targetMuscles: 'Full Body',
+        },
+        'strength': {
+          title: `${duration}-Min Strength Training`,
+          type: 'Strength',
+          difficulty: 'Moderate',
+          exercises: [
+            { id: 's1', name: 'Push-ups', sets: 3, reps: '12', restTime: 60, category: 'main' },
+            { id: 's2', name: 'Squats', sets: 3, reps: '15', restTime: 60, category: 'main' },
+            { id: 's3', name: 'Plank', sets: 3, reps: '30 seconds', restTime: 45, category: 'main' },
+            { id: 's4', name: 'Stretching', sets: 1, reps: '5 min', restTime: 0, category: 'cooldown' },
+          ],
+          overview: `Build strength with this ${duration}-minute bodyweight workout.`,
+          targetMuscles: 'Full Body',
+        },
+      };
       
-      if (!response.ok) throw new Error('Failed to generate workout');
+      const template = workoutTemplates[workoutType.toLowerCase()] || workoutTemplates['cardio'];
       
-      const newWorkout = await response.json();
-      newWorkout.date = targetDate.toISOString();
+      const newWorkout = {
+        id: `added_${Date.now()}`,
+        date: targetDate.toISOString(),
+        duration: duration,
+        caloriesBurn: Math.round(duration * 6), // Rough estimate
+        completed: false,
+        isRestDay: false,
+        ...template,
+      };
       
       // Find where to insert (keep chronological order)
       const updatedWorkouts = [...weekWorkouts];
