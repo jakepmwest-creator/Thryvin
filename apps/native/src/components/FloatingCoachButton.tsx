@@ -466,8 +466,8 @@ export function FloatingCoachButton() {
                 return w;
               });
               
-              await useWorkoutStore.getState().setWeekWorkouts(updatedWorkouts);
-              await setStorageItem('week_workouts', JSON.stringify(updatedWorkouts));
+              useWorkoutStore.getState().setWeekWorkouts(updatedWorkouts);
+              await AsyncStorage.setItem('week_workouts', JSON.stringify(updatedWorkouts));
               
               setMessages(prev => [...prev, { 
                 role: 'assistant', 
