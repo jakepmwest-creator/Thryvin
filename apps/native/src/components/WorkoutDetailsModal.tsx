@@ -332,6 +332,24 @@ export function WorkoutDetailsModal({
                     <Text style={styles.tipText}>Light stretching is okay</Text>
                   </View>
                 </View>
+                
+                <TouchableOpacity 
+                  style={styles.restDayCoachButton}
+                  onPress={() => {
+                    onClose();
+                    openChat("It's my rest day but I'm feeling energetic. Can you suggest something light I could do?");
+                  }}
+                >
+                  <LinearGradient
+                    colors={[COLORS.gradientStart, COLORS.gradientEnd]}
+                    style={styles.restDayCoachGradient}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 1 }}
+                  >
+                    <Ionicons name="chatbubble-ellipses" size={20} color="#FFFFFF" />
+                    <Text style={styles.restDayCoachText}>Feeling energetic?</Text>
+                  </LinearGradient>
+                </TouchableOpacity>
               </View>
             ) : (
               <>
