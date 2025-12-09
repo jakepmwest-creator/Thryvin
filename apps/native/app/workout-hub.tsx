@@ -51,6 +51,13 @@ export default function WorkoutHubScreen() {
   const [distanceUnit, setDistanceUnit] = useState<'mi' | 'km'>('mi');
   const [holdTime, setHoldTime] = useState(''); // For yoga - hold duration in seconds
   
+  // Workout timer state
+  const [workoutStartTime, setWorkoutStartTime] = useState<number>(Date.now());
+  const [workoutElapsedSeconds, setWorkoutElapsedSeconds] = useState(0);
+  const [timerPaused, setTimerPaused] = useState(false);
+  const [pausedAtSeconds, setPausedAtSeconds] = useState(0);
+  const timerIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  
   // CustomAlert state
   const [alertConfig, setAlertConfig] = useState<{
     visible: boolean;
