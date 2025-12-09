@@ -648,17 +648,17 @@ export default function StatsScreen() {
           </View>
         </View>
 
-        {/* Training Focus */}
+        {/* Muscle Group Distribution */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Training Focus</Text>
+          <Text style={styles.sectionTitle}>Muscle Group Distribution</Text>
           
           <View style={styles.chartCard}>
-            {stats.focusData.length > 0 ? (
-              <FocusBarChart data={stats.focusData} />
+            {stats.muscleData.length > 0 ? (
+              <FocusBarChart data={stats.muscleData} />
             ) : (
               <View style={styles.noDataContainer}>
                 <Ionicons name="pie-chart-outline" size={48} color={COLORS.mediumGray} />
-                <Text style={styles.noDataText}>Your workout focus will appear here</Text>
+                <Text style={styles.noDataText}>Your muscle group focus will appear here</Text>
               </View>
             )}
           </View>
