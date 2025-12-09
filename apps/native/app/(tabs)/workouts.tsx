@@ -80,6 +80,7 @@ const WORKOUT_CATEGORIES = [
 
 export default function WorkoutsScreen() {
   const router = useRouter();
+  const { openChat } = useCoachStore();
   const [calendarView, setCalendarView] = useState<'week' | 'month'>('week');
   const [selectedDate, setSelectedDate] = useState(new Date().getDate());
   const [selectedDayIndex, setSelectedDayIndex] = useState(0);
