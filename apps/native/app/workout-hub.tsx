@@ -308,14 +308,28 @@ export default function WorkoutHubScreen() {
   };
 
   const handleFinishWorkout = async () => {
-    showAlert('info', 'Finish Workout?', 'Are you done with your training?', [
-      { text: 'Not Yet', style: 'cancel' },
+    // Pause the timer first
+    if (!timerPaused) {
+      setPausedAtSeconds(workoutElapsedSeconds);
+      setTimerPaused(true);
+    }
+    
+    showAlert('success', 'Finish Workout?', `Great effort! \ud83d\udcaa\n\nYou worked out for ${formatTimer(workoutElapsedSeconds)}.\n\nReady to finish?`, [
+      { text: 'Not Yet', style: 'cancel', onPress: () => {
+        // Resume timer if they continue
+        if (timerPaused) {
+          setWorkoutStartTime(Date.now());
+          setTimerPaused(false);
+        }
+      }},
       {
         text: 'Finish',
         onPress: async () => {
           try {
-            await finishWorkoutSession();
-            console.log('✅ Workout finished successfully');
+            // Save actual workout duration (in minutes)
+            const actualDurationMinutes = Math.ceil(workoutElapsedSeconds / 60);
+            await finishWorkoutSession(actualDurationMinutes);
+            console.log(`✅ Workout finished successfully - Duration: ${actualDurationMinutes} minutes`);
           } catch (error) {
             console.error('❌ Error finishing workout:', error);
             // Don't show error to user, just log it
