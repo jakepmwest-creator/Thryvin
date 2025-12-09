@@ -561,5 +561,5 @@ const styles = StyleSheet.create({
   editButtonText: { fontSize: 16, fontWeight: '700', color: COLORS.primary },
   startButton: { flex: 1, borderRadius: 16, overflow: 'hidden', elevation: 8, shadowColor: COLORS.gradientStart, shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8 },
   startButtonGradient: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingVertical: 18, gap: 12 },
-  startButtonText: { fontSize: 18, fontWeight: '700', color: '#FFFFFF' },
+  startButtonText: { fontSize: 16, fontWeight: '700', color: '#FFFFFF' },
 });
