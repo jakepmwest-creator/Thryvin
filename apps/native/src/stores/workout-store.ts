@@ -1011,7 +1011,7 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
     
     // Persist to storage
     try {
-      await AsyncStorage.setItem('week_workouts', JSON.stringify(updatedWorkouts));
+      await setStorageItem('week_workouts', JSON.stringify(updatedWorkouts));
       console.log('✅ [SWAP] Swapped workouts between indices', fromIndex, 'and', toIndex);
     } catch (error) {
       console.error('❌ [SWAP] Failed to persist swapped workouts:', error);
