@@ -688,7 +688,11 @@ export function FloatingCoachButton() {
                   >
                     <Ionicons name="checkmark-circle" size={18} color={COLORS.white} />
                     <Text style={styles.confirmActionText}>
-                      {pendingAction.type === 'swap' ? 'Confirm Swap' : 'Confirm & Regenerate'}
+                      {pendingAction.type === 'swap' && 'Confirm Swap'}
+                      {pendingAction.type === 'add_workout' && `Add ${pendingAction.params?.workoutType} Session`}
+                      {pendingAction.type === 'remove_workout' && 'Remove Workout'}
+                      {pendingAction.type === 'regenerate' && 'Confirm & Regenerate'}
+                      {pendingAction.type === 'reset' && 'Reset Program'}
                     </Text>
                   </LinearGradient>
                 </TouchableOpacity>
