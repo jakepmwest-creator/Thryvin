@@ -442,6 +442,41 @@ export function FloatingCoachButton() {
   const executeAction = async (action: { type: string; params?: any }) => {
     try {
       switch (action.type) {
+        case 'unlock_workout':
+          if (action.params?.date) {
+            const targetDate = new Date(action.params.date);
+            const dateStr = targetDate.toDateString();
+            
+            setMessages(prev => [...prev, { 
+              role: 'assistant', 
+              text: `🔓 Unlocking your workout for ${targetDate.toLocaleDateString('en-US', { weekday: 'long' })}...` 
+            }]);
+            
+            // Find and unlock the workout
+            const workoutToUnlock = weekWorkouts.find(w => 
+              new Date(w.date).toDateString() === dateStr
+            );
+            
+            if (workoutToUnlock) {
+              const updatedWorkouts = weekWorkouts.map(w => {
+                if (new Date(w.date).toDateString() === dateStr) {
+                  return { ...w, completed: false, completedAt: undefined };
+                }
+                return w;
+              });
+              
+              await useWorkoutStore.getState().setWeekWorkouts(updatedWorkouts);
+              await setStorageItem('week_workouts', JSON.stringify(updatedWorkouts));
+              
+              setMessages(prev => [...prev, { 
+                role: 'assistant', 
+                text: `Done! ✅ Your workout is unlocked. Head to the Workouts tab to continue where you left off! 💪` 
+              }]);
+            } else {
+              throw new Error('Workout not found');
+            }
+          }
+          break;
         case 'add_workout':
           if (action.params?.date && action.params?.workoutType) {
             setMessages(prev => [...prev, { 
