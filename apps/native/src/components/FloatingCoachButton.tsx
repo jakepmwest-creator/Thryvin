@@ -412,6 +412,78 @@ export function FloatingCoachButton() {
   const executeAction = async (action: { type: string; params?: any }) => {
     try {
       switch (action.type) {
+        case 'add_workout':
+          if (action.params?.date && action.params?.workoutType) {
+            setMessages(prev => [...prev, { 
+              role: 'assistant', 
+              text: `🔄 Adding your ${action.params.workoutType} workout...` 
+            }]);
+            
+            const targetDate = new Date(action.params.date);
+            const today = new Date();
+            const isRestDay = weekWorkouts.find(w => 
+              new Date(w.date).toDateString() === targetDate.toDateString()
+            )?.isRestDay;
+            
+            let result;
+            if (isRestDay) {
+              // Replace rest day with workout
+              result = await useWorkoutStore.getState().replaceRestDayWithWorkout(
+                targetDate, 
+                action.params.workoutType, 
+                action.params.duration || 30
+              );
+            } else {
+              // Add new workout
+              result = await useWorkoutStore.getState().addWorkoutToDate(
+                targetDate, 
+                action.params.workoutType, 
+                action.params.duration || 30
+              );
+            }
+            
+            if (result) {
+              setMessages(prev => [...prev, { 
+                role: 'assistant', 
+                text: `Done! ✅ I've added a ${action.params.duration || 30}-minute ${action.params.workoutType} workout to your schedule.\n\nHead to the Workouts tab to start it when you're ready! 💪` 
+              }]);
+            } else {
+              throw new Error('Failed to add workout');
+            }
+          }
+          break;
+        case 'remove_workout':
+          if (action.params?.dayIndex !== undefined) {
+            const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+            const dayName = days[action.params.dayIndex];
+            
+            setMessages(prev => [...prev, { 
+              role: 'assistant', 
+              text: `🔄 Removing ${dayName}'s workout...` 
+            }]);
+            
+            // Find the workout for that day
+            const today = new Date();
+            const currentDay = today.getDay() === 0 ? 6 : today.getDay() - 1; // Convert to Monday = 0
+            const daysDiff = action.params.dayIndex - currentDay;
+            const targetDate = new Date(today);
+            targetDate.setDate(today.getDate() + daysDiff);
+            
+            const removed = await useWorkoutStore.getState().removeWorkoutFromDate(targetDate);
+            
+            if (removed) {
+              setMessages(prev => [...prev, { 
+                role: 'assistant', 
+                text: `Done! ✅ I've removed the workout scheduled for ${dayName}.\n\nYour schedule has been updated! 📅` 
+              }]);
+            } else {
+              setMessages(prev => [...prev, { 
+                role: 'assistant', 
+                text: `Hmm, I couldn't find a workout for ${dayName}. It might already be removed or it's a rest day. 🤔` 
+              }]);
+            }
+          }
+          break;
         case 'swap':
           if (action.params?.from !== undefined && action.params?.to !== undefined) {
             await swapWorkoutDays(action.params.from, action.params.to);
@@ -445,6 +517,7 @@ export function FloatingCoachButton() {
           break;
       }
     } catch (error) {
+      console.error('Action execution error:', error);
       setMessages(prev => [...prev, { 
         role: 'assistant', 
         text: "Oops, something went wrong. 😓 Please try again!" 
