@@ -20,7 +20,7 @@ import Constants from 'expo-constants';
 import { VoiceInputButton } from './VoiceInputButton';
 import { useWorkoutStore } from '../stores/workout-store';
 import { useCoachStore } from '../stores/coach-store';
-import { setStorageItem } from '../../lib/storage';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
