@@ -109,6 +109,7 @@ export default function HomeScreen() {
   const todayWorkoutRef = useRef(null);
 
   const { user } = useAuthStore();
+  const { openChat } = useCoachStore();
   const {
     showTour,
     currentStep,
