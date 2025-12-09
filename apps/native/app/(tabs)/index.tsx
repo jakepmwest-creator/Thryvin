@@ -736,6 +736,23 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: COLORS.white,
   },
+  restDayButton: {
+    borderRadius: 14,
+    overflow: 'hidden',
+    marginTop: 16,
+  },
+  restDayGradient: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 12,
+    gap: 8,
+  },
+  restDayButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: COLORS.white,
+  },
   activityScrollContainer: {
     paddingRight: 16,
   },
