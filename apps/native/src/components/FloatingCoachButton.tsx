@@ -127,7 +127,7 @@ export function FloatingCoachButton() {
 
   const handleButtonPress = () => {
     if (!isDragging) {
-      setChatVisible(true);
+      openChat();
     }
   };
 
