@@ -315,7 +315,7 @@ export default function WorkoutHubScreen() {
       setTimerPaused(true);
     }
     
-    showAlert('success', 'Finish Workout?', `Great effort! \ud83d\udcaa\n\nYou worked out for ${formatTimer(workoutElapsedSeconds)}.\n\nReady to finish?`, [
+    showAlert('success', 'Finish Workout?', `Great effort! \ud83d\udcaa\n\nYou worked out for ${formatTimer(workoutElapsedSeconds)}.\n\nAre you sure you want to finish?`, [
       { text: 'Not Yet', style: 'cancel', onPress: () => {
         // Resume timer if they continue
         if (timerPaused) {
