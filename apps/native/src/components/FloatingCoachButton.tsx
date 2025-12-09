@@ -181,13 +181,9 @@ export function FloatingCoachButton() {
     // ADD WORKOUT intent (rest day → active day, or extra workout)
     if ((lower.includes('add') || lower.includes('feeling energetic') || lower.includes('extra') || lower.includes('want to do')) && 
         (lower.includes('workout') || lower.includes('session') || lower.includes('training'))) {
-      // Check if it's a rest day request
-      const today = new Date();
-      const todayStr = today.toDateString();
-      const todayWorkout = weekWorkouts.find(w => new Date(w.date).toDateString() === todayStr);
       
       const workoutTypes = ['yoga', 'cardio', 'strength', 'hiit', 'flexibility', 'core'];
-      let detectedType = 'light cardio'; // default
+      let detectedType = 'cardio'; // default
       let duration = 30; // default
       
       // Detect workout type from message
@@ -204,16 +200,50 @@ export function FloatingCoachButton() {
         duration = parseInt(durationMatch[1]);
       }
       
-      if (todayWorkout?.isRestDay) {
+      // Detect target day
+      const days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+      const dayMap: Record<string, number> = { 
+        monday: 0, tuesday: 1, wednesday: 2, thursday: 3, 
+        friday: 4, saturday: 5, sunday: 6,
+        mon: 0, tue: 1, wed: 2, thu: 3, fri: 4, sat: 5, sun: 6
+      };
+      
+      let targetDate: Date | null = null;
+      
+      // Check for specific day mentions
+      for (const [key, index] of Object.entries(dayMap)) {
+        if (lower.includes(key)) {
+          const today = new Date();
+          const currentDay = today.getDay() === 0 ? 6 : today.getDay() - 1;
+          const daysDiff = index - currentDay;
+          targetDate = new Date(today);
+          targetDate.setDate(today.getDate() + daysDiff);
+          break;
+        }
+      }
+      
+      // Check for "today"
+      if (lower.includes('today') || !targetDate) {
+        targetDate = new Date();
+      }
+      
+      // Check if target date already has a completed workout
+      const targetDateStr = targetDate.toDateString();
+      const existingWorkout = weekWorkouts.find(w => new Date(w.date).toDateString() === targetDateStr);
+      
+      if (existingWorkout?.completed) {
+        // Unlock completed workout for additions
         return {
           handled: true,
-          response: `Love the energy! 🔥\n\nI'll add a ${duration}-minute ${detectedType} session to your schedule today.\n\nSay "yes" to confirm, and I'll get it ready for you!`,
-          action: { type: 'add_workout', params: { date: today, workoutType: detectedType, duration } }
+          response: `I can reopen your completed workout for ${targetDate.toLocaleDateString('en-US', { weekday: 'long' })}! 📝\n\nPress the button below to unlock it and add more exercises.`,
+          action: { type: 'unlock_workout', params: { date: targetDate } }
         };
       } else {
+        const dayName = targetDate.toLocaleDateString('en-US', { weekday: 'long' });
         return {
           handled: true,
-          response: `Great enthusiasm! 💪\n\nI can add an extra ${duration}-minute ${detectedType} workout. Which day would you like to add it to?\n\nOr say "today" to add it right now!`
+          response: `Perfect! I'll add a ${duration}-minute ${detectedType} session to ${dayName}. 💪\n\nPress the button below to confirm!`,
+          action: { type: 'add_workout', params: { date: targetDate, workoutType: detectedType, duration } }
         };
       }
     }
