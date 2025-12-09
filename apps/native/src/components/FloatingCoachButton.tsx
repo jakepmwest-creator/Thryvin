@@ -756,6 +756,7 @@ export function FloatingCoachButton() {
                     <Text style={styles.confirmActionText}>
                       {pendingAction.type === 'swap' && 'Confirm Swap'}
                       {pendingAction.type === 'add_workout' && `Add ${pendingAction.params?.workoutType} Session`}
+                      {pendingAction.type === 'unlock_workout' && 'Unlock Workout'}
                       {pendingAction.type === 'remove_workout' && 'Remove Workout'}
                       {pendingAction.type === 'regenerate' && 'Confirm & Regenerate'}
                       {pendingAction.type === 'reset' && 'Reset Program'}
