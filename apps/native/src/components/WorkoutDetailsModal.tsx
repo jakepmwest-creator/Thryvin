@@ -216,6 +216,25 @@ export function WorkoutDetailsModal({
       return;
     }
     
+    // Check if today's workout is already completed
+    if (currentWorkout?.completed) {
+      setAlertConfig({
+        visible: true,
+        type: 'success',
+        title: 'Already Completed! ✅',
+        message: "You've already completed today's session.\n\nWas there something you didn't complete? Ask the AI Coach for help!",
+        buttons: [
+          { text: 'OK', style: 'cancel', onPress: () => setAlertConfig(prev => ({ ...prev, visible: false })) },
+          { text: 'Ask Coach', onPress: () => {
+            setAlertConfig(prev => ({ ...prev, visible: false }));
+            onClose();
+            openChat("I completed today's workout but want to add something. Can you help?");
+          }}
+        ]
+      });
+      return;
+    }
+    
     // Today's workout - proceed normally
     if (currentWorkout) {
       setCurrentWorkout(currentWorkout);
