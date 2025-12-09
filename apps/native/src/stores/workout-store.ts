@@ -1017,6 +1017,118 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
       console.error('❌ [SWAP] Failed to persist swapped workouts:', error);
     }
   },
+  
+  // Add a new workout to a specific date (AI Coach can add workouts)
+  addWorkoutToDate: async (targetDate: Date, workoutType: string, duration: number = 30) => {
+    const { weekWorkouts } = get();
+    console.log('➕ [ADD] Adding workout for', targetDate.toDateString(), 'Type:', workoutType);
+    
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/workouts/generate-single`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          date: targetDate.toISOString(),
+          workoutType: workoutType,
+          duration: duration
+        }),
+      });
+      
+      if (!response.ok) throw new Error('Failed to generate workout');
+      
+      const newWorkout = await response.json();
+      newWorkout.date = targetDate.toISOString();
+      
+      // Find where to insert (keep chronological order)
+      const updatedWorkouts = [...weekWorkouts];
+      const insertIndex = updatedWorkouts.findIndex(w => new Date(w.date) > targetDate);
+      
+      if (insertIndex === -1) {
+        updatedWorkouts.push(newWorkout);
+      } else {
+        updatedWorkouts.splice(insertIndex, 0, newWorkout);
+      }
+      
+      set({ weekWorkouts: updatedWorkouts });
+      await setStorageItem('week_workouts', JSON.stringify(updatedWorkouts));
+      
+      console.log('✅ [ADD] Workout added successfully');
+      return newWorkout;
+    } catch (error) {
+      console.error('❌ [ADD] Failed to add workout:', error);
+      return null;
+    }
+  },
+  
+  // Remove a workout from a specific date (AI Coach can remove workouts)
+  removeWorkoutFromDate: async (targetDate: Date) => {
+    const { weekWorkouts } = get();
+    console.log('➖ [REMOVE] Removing workout for', targetDate.toDateString());
+    
+    const dateStr = targetDate.toDateString();
+    const updatedWorkouts = weekWorkouts.filter(w => {
+      const workoutDate = new Date(w.date);
+      return workoutDate.toDateString() !== dateStr;
+    });
+    
+    if (updatedWorkouts.length === weekWorkouts.length) {
+      console.log('⚠️ [REMOVE] No workout found for this date');
+      return false;
+    }
+    
+    set({ weekWorkouts: updatedWorkouts });
+    await setStorageItem('week_workouts', JSON.stringify(updatedWorkouts));
+    
+    console.log('✅ [REMOVE] Workout removed successfully');
+    return true;
+  },
+  
+  // Replace a rest day with a workout (AI Coach power)
+  replaceRestDayWithWorkout: async (restDayDate: Date, workoutType: string, duration: number = 30) => {
+    const { weekWorkouts } = get();
+    console.log('🔄 [REPLACE] Replacing rest day with workout:', restDayDate.toDateString());
+    
+    const dateStr = restDayDate.toDateString();
+    const restDayIndex = weekWorkouts.findIndex(w => {
+      const workoutDate = new Date(w.date);
+      return workoutDate.toDateString() === dateStr && w.isRestDay;
+    });
+    
+    if (restDayIndex === -1) {
+      console.log('⚠️ [REPLACE] No rest day found for this date');
+      return await get().addWorkoutToDate(restDayDate, workoutType, duration);
+    }
+    
+    // Generate new workout
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/workouts/generate-single`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          date: restDayDate.toISOString(),
+          workoutType: workoutType,
+          duration: duration
+        }),
+      });
+      
+      if (!response.ok) throw new Error('Failed to generate workout');
+      
+      const newWorkout = await response.json();
+      newWorkout.date = restDayDate.toISOString();
+      
+      const updatedWorkouts = [...weekWorkouts];
+      updatedWorkouts[restDayIndex] = newWorkout;
+      
+      set({ weekWorkouts: updatedWorkouts });
+      await setStorageItem('week_workouts', JSON.stringify(updatedWorkouts));
+      
+      console.log('✅ [REPLACE] Rest day replaced with workout');
+      return newWorkout;
+    } catch (error) {
+      console.error('❌ [REPLACE] Failed to replace rest day:', error);
+      return null;
+    }
+  },
 }));
 
 // Helper function to generate a single day's workout (for rolling generation)
