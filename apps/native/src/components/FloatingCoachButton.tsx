@@ -178,6 +178,79 @@ export function FloatingCoachButton() {
   const detectWorkoutIntent = (message: string): { handled: boolean; response?: string; action?: { type: string; params?: any } } => {
     const lower = message.toLowerCase();
     
+    // ADD WORKOUT intent (rest day → active day, or extra workout)
+    if ((lower.includes('add') || lower.includes('feeling energetic') || lower.includes('extra') || lower.includes('want to do')) && 
+        (lower.includes('workout') || lower.includes('session') || lower.includes('training'))) {
+      // Check if it's a rest day request
+      const today = new Date();
+      const todayStr = today.toDateString();
+      const todayWorkout = weekWorkouts.find(w => new Date(w.date).toDateString() === todayStr);
+      
+      const workoutTypes = ['yoga', 'cardio', 'strength', 'hiit', 'flexibility', 'core'];
+      let detectedType = 'light cardio'; // default
+      let duration = 30; // default
+      
+      // Detect workout type from message
+      for (const type of workoutTypes) {
+        if (lower.includes(type)) {
+          detectedType = type;
+          break;
+        }
+      }
+      
+      // Detect duration
+      const durationMatch = lower.match(/(\d+)\s*(min|minute)/);
+      if (durationMatch) {
+        duration = parseInt(durationMatch[1]);
+      }
+      
+      if (todayWorkout?.isRestDay) {
+        return {
+          handled: true,
+          response: `Love the energy! 🔥\n\nI'll add a ${duration}-minute ${detectedType} session to your schedule today.\n\nSay "yes" to confirm, and I'll get it ready for you!`,
+          action: { type: 'add_workout', params: { date: today, workoutType: detectedType, duration } }
+        };
+      } else {
+        return {
+          handled: true,
+          response: `Great enthusiasm! 💪\n\nI can add an extra ${duration}-minute ${detectedType} workout. Which day would you like to add it to?\n\nOr say "today" to add it right now!`
+        };
+      }
+    }
+    
+    // REMOVE WORKOUT intent
+    if ((lower.includes('remove') || lower.includes('skip') || lower.includes('cancel') || lower.includes('get rid')) && 
+        (lower.includes('workout') || lower.includes('day') || lower.includes('friday') || lower.includes('saturday'))) {
+      const days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+      const dayMap: Record<string, number> = { 
+        monday: 0, tuesday: 1, wednesday: 2, thursday: 3, 
+        friday: 4, saturday: 5, sunday: 6,
+        mon: 0, tue: 1, wed: 2, thu: 3, fri: 4, sat: 5, sun: 6
+      };
+      
+      let targetDay: number | null = null;
+      for (const [key, index] of Object.entries(dayMap)) {
+        if (lower.includes(key)) {
+          targetDay = index;
+          break;
+        }
+      }
+      
+      if (targetDay !== null) {
+        const dayName = days[targetDay];
+        return {
+          handled: true,
+          response: `Understood! 📅\n\nI'll remove the workout scheduled for ${dayName}.\n\nSay "yes" to confirm, and I'll update your plan.`,
+          action: { type: 'remove_workout', params: { dayIndex: targetDay } }
+        };
+      } else {
+        return {
+          handled: true,
+          response: "Which day's workout would you like to remove?\n\nJust tell me the day (e.g., 'Friday' or 'tomorrow')."
+        };
+      }
+    }
+    
     // Swap days intent
     if (lower.includes('swap') || lower.includes('switch') || lower.includes('move')) {
       const days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
