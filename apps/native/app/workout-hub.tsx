@@ -145,6 +145,48 @@ export default function WorkoutHubScreen() {
       startWorkoutSession(currentWorkout.id);
     }
   }, [currentWorkout, activeSession, startWorkoutSession]);
+  
+  // Workout timer effect
+  useEffect(() => {
+    if (!timerPaused) {
+      timerIntervalRef.current = setInterval(() => {
+        const now = Date.now();
+        const elapsed = Math.floor((now - workoutStartTime) / 1000) + pausedAtSeconds;
+        setWorkoutElapsedSeconds(elapsed);
+      }, 1000);
+    } else {
+      if (timerIntervalRef.current) {
+        clearInterval(timerIntervalRef.current);
+        timerIntervalRef.current = null;
+      }
+    }
+    
+    return () => {
+      if (timerIntervalRef.current) {
+        clearInterval(timerIntervalRef.current);
+      }
+    };
+  }, [timerPaused, workoutStartTime, pausedAtSeconds]);
+  
+  // Format timer display (MM:SS)
+  const formatTimer = (seconds: number): string => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  };
+  
+  // Toggle pause/resume
+  const togglePause = () => {
+    if (timerPaused) {
+      // Resume
+      setWorkoutStartTime(Date.now());
+      setTimerPaused(false);
+    } else {
+      // Pause
+      setPausedAtSeconds(workoutElapsedSeconds);
+      setTimerPaused(true);
+    }
+  };
 
   // Split exercises into blocks intelligently
   const exercises = currentWorkout?.exercises || [];
