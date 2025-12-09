@@ -405,6 +405,20 @@ export default function HomeScreen() {
                     </Text>
                   </View>
                 </View>
+                <TouchableOpacity 
+                  style={styles.restDayButton}
+                  onPress={() => openChat("It's my rest day but I'm feeling energetic. Can you suggest something light I could do?")}
+                >
+                  <LinearGradient
+                    colors={[COLORS.gradientStart, COLORS.gradientEnd]}
+                    style={styles.restDayGradient}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 1 }}
+                  >
+                    <Ionicons name="chatbubble-ellipses" size={18} color={COLORS.white} />
+                    <Text style={styles.restDayButtonText}>Feeling energetic?</Text>
+                  </LinearGradient>
+                </TouchableOpacity>
               </View>
             </View>
           ) : (
