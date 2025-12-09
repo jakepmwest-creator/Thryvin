@@ -1047,17 +1047,20 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
           targetMuscles: 'Full Body',
         },
         'cardio': {
-          title: `${duration}-Min Cardio Blast`,
+          title: duration >= 20 ? `${duration}-Min Cardio Run` : `${duration}-Min Cardio Session`,
           type: 'Cardio',
           difficulty: 'Moderate',
-          exercises: [
-            { id: 'c1', name: 'Jumping Jacks', sets: 3, reps: '30 seconds', restTime: 30, category: 'warmup' },
-            { id: 'c2', name: 'High Knees', sets: 3, reps: '45 seconds', restTime: 45, category: 'main' },
-            { id: 'c3', name: 'Burpees', sets: 3, reps: '10', restTime: 60, category: 'main' },
-            { id: 'c4', name: 'Walking', sets: 1, reps: '5 min', restTime: 0, category: 'cooldown' },
+          exercises: duration >= 20 ? [
+            { id: 'c1', name: 'Dynamic Stretching', sets: 1, reps: '3 minutes', restTime: 0, category: 'warmup' },
+            { id: 'c2', name: 'Running/Jogging', sets: 1, reps: `${duration - 8} minutes`, restTime: 0, category: 'main' },
+            { id: 'c3', name: 'Cool Down Walk', sets: 1, reps: '5 minutes', restTime: 0, category: 'cooldown' },
+          ] : [
+            { id: 'c1', name: 'Jumping Jacks', sets: 2, reps: '30 seconds', restTime: 20, category: 'warmup' },
+            { id: 'c2', name: 'High Knees', sets: 3, reps: '30 seconds', restTime: 30, category: 'main' },
+            { id: 'c3', name: 'Walking', sets: 1, reps: '2 min', restTime: 0, category: 'cooldown' },
           ],
-          overview: `High-energy ${duration}-minute cardio workout to boost your heart rate.`,
-          targetMuscles: 'Full Body',
+          overview: duration >= 20 ? `${duration}-minute outdoor or treadmill run to build endurance.` : `Quick ${duration}-minute cardio burst to elevate your heart rate.`,
+          targetMuscles: 'Cardiovascular System',
         },
         'strength': {
           title: `${duration}-Min Strength Training`,
