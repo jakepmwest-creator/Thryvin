@@ -16,6 +16,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { ExerciseVideoPlayer } from './ExerciseVideoPlayer';
 import { useWorkoutStore } from '../stores/workout-store';
 import { EditWorkoutModal } from './EditWorkoutModal';
+import { CustomAlert } from './CustomAlert';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -39,8 +40,8 @@ interface WorkoutDetailsModalProps {
   visible: boolean;
   onClose: () => void;
   onStartWorkout: () => void;
-  selectedDate?: number; // Day of month
-  selectedFullDate?: Date; // Full date object for 3-week navigation
+  selectedDate?: number;
+  selectedFullDate?: Date;
   workout?: any;
   initialDayIndex?: number;
 }
@@ -56,7 +57,20 @@ export function WorkoutDetailsModal({
 }: WorkoutDetailsModalProps) {
   const { weekWorkouts, updateWorkoutInWeek, setCurrentWorkout } = useWorkoutStore();
   
-  // Find workout by date from weekWorkouts (now has 21 days)
+  const [currentWorkoutIndex, setCurrentWorkoutIndex] = useState(0);
+  const [expandedExerciseIndex, setExpandedExerciseIndex] = useState<number | null>(null);
+  const [editModalVisible, setEditModalVisible] = useState(false);
+  const [alertConfig, setAlertConfig] = useState<{
+    visible: boolean;
+    type: 'success' | 'error' | 'warning' | 'info';
+    title: string;
+    message: string;
+    buttons?: Array<{ text: string; onPress?: () => void; style?: 'default' | 'cancel' | 'destructive' }>;
+  }>({ visible: false, type: 'info', title: '', message: '' });
+  
+  const swipeX = useRef(new Animated.Value(0)).current;
+  
+  // Helper functions
   const findWorkoutByDate = (date: Date) => {
     const dateStr = date.toDateString();
     return weekWorkouts.find((w: any) => {
@@ -65,7 +79,6 @@ export function WorkoutDetailsModal({
     });
   };
   
-  // Get workout index by date
   const getWorkoutIndexByDate = (date: Date) => {
     const dateStr = date.toDateString();
     return weekWorkouts.findIndex((w: any) => {
@@ -79,33 +92,37 @@ export function WorkoutDetailsModal({
     return getWorkoutIndexByDate(today);
   };
   
-  // State to track current workout index in the 21-day array
-  const [currentWorkoutIndex, setCurrentWorkoutIndex] = useState(0);
-  const [expandedExerciseIndex, setExpandedExerciseIndex] = useState<number | null>(null);
-  const [editModalVisible, setEditModalVisible] = useState(false);
-  const swipeX = useRef(new Animated.Value(0)).current;
+  // Check if workout date is in the past
+  const isPastWorkout = (workoutDate: Date) => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const compareDate = new Date(workoutDate);
+    compareDate.setHours(0, 0, 0, 0);
+    return compareDate < today;
+  };
   
-  // Get workout for current index
+  // Check if workout date is in the future
+  const isFutureWorkout = (workoutDate: Date) => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const compareDate = new Date(workoutDate);
+    compareDate.setHours(0, 0, 0, 0);
+    return compareDate > today;
+  };
+  
   const currentWorkout = weekWorkouts[currentWorkoutIndex] || workout;
   const currentWorkoutDate = currentWorkout?.date ? new Date(currentWorkout.date) : new Date();
   const dayName = DAYS[currentWorkoutDate.getDay() === 0 ? 6 : currentWorkoutDate.getDay() - 1];
   
-  // Debug logging
-  useEffect(() => {
-    console.log('📅 [MODAL] Current workout index:', currentWorkoutIndex);
-    console.log('📅 [MODAL] Week workouts count:', weekWorkouts?.length || 0);
-    console.log('📅 [MODAL] Current workout:', currentWorkout?.title || 'none');
-    console.log('📅 [MODAL] Is rest day:', currentWorkout?.isRestDay);
-  }, [currentWorkoutIndex, weekWorkouts, currentWorkout]);
+  const isPast = currentWorkout ? isPastWorkout(currentWorkoutDate) : false;
+  const isFuture = currentWorkout ? isFutureWorkout(currentWorkoutDate) : false;
   
   useEffect(() => {
     if (visible) {
       if (selectedFullDate) {
-        // Find index by full date
         const index = getWorkoutIndexByDate(selectedFullDate);
         setCurrentWorkoutIndex(index >= 0 ? index : 0);
       } else if (initialDayIndex !== undefined) {
-        // Fallback to day index for current week
         setCurrentWorkoutIndex(initialDayIndex);
       } else {
         const todayIndex = getTodayDayIndex();
@@ -126,10 +143,8 @@ export function WorkoutDetailsModal({
       },
       onPanResponderRelease: (_, gestureState) => {
         if (gestureState.dx > 80) {
-          // Swipe right - previous day
           handlePreviousDay();
         } else if (gestureState.dx < -80) {
-          // Swipe left - next day
           handleNextDay();
         }
         Animated.spring(swipeX, {
@@ -156,6 +171,51 @@ export function WorkoutDetailsModal({
       return date.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
     }
     return new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+  };
+  
+  // Handle start workout button
+  const handleStartWorkoutPress = () => {
+    if (isPast && !currentWorkout?.completed) {
+      // Show friendly message for past workouts
+      setAlertConfig({
+        visible: true,
+        type: 'info',
+        title: 'Previous Day',
+        message: "This is a previous day now. 📅\n\nWant to catch up or adjust your schedule? Ask the AI Coach for help!",
+        buttons: [
+          { text: 'Cancel', style: 'cancel', onPress: () => setAlertConfig(prev => ({ ...prev, visible: false })) },
+          { text: 'Ask Coach', onPress: () => {
+            setAlertConfig(prev => ({ ...prev, visible: false }));
+            // User can use FloatingCoachButton
+          }}
+        ]
+      });
+      return;
+    }
+    
+    if (isFuture) {
+      // Show message about asking AI Coach to swap days
+      setAlertConfig({
+        visible: true,
+        type: 'info',
+        title: 'Future Workout',
+        message: "Want to do this workout today? 🗓️\n\nAsk the AI Coach to swap your workout days!",
+        buttons: [
+          { text: 'Cancel', style: 'cancel', onPress: () => setAlertConfig(prev => ({ ...prev, visible: false })) },
+          { text: 'Ask Coach', onPress: () => {
+            setAlertConfig(prev => ({ ...prev, visible: false }));
+            // User can use FloatingCoachButton
+          }}
+        ]
+      });
+      return;
+    }
+    
+    // Today's workout - proceed normally
+    if (currentWorkout) {
+      setCurrentWorkout(currentWorkout);
+    }
+    onStartWorkout();
   };
   
   const warmupExercises = currentWorkout?.exercises?.filter((e: any) => e.category === 'warmup') || [];
@@ -186,7 +246,6 @@ export function WorkoutDetailsModal({
             <View style={styles.placeholder} />
           </View>
           
-          {/* Day Navigation */}
           <View style={styles.dayNavigation}>
             <TouchableOpacity 
               style={[styles.navButton, currentWorkoutIndex === 0 && styles.navButtonDisabled]} 
@@ -199,6 +258,8 @@ export function WorkoutDetailsModal({
             <View style={styles.dayInfo}>
               <Text style={styles.dayName}>{dayName}</Text>
               <Text style={styles.dateText}>{formatDate()}</Text>
+              {isPast && <Text style={styles.pastLabel}>Past</Text>}
+              {isFuture && <Text style={styles.futureLabel}>Upcoming</Text>}
             </View>
             
             <TouchableOpacity 
@@ -210,10 +271,8 @@ export function WorkoutDetailsModal({
             </TouchableOpacity>
           </View>
           
-          {/* Workout Title */}
           <Text style={styles.workoutTitle}>{currentWorkout?.title || 'Workout'}</Text>
           
-          {/* Rest Day or Stats Row */}
           {currentWorkout?.isRestDay ? (
             <View style={styles.restDayBanner}>
               <Ionicons name="bed-outline" size={24} color="#FFFFFF" />
@@ -239,7 +298,6 @@ export function WorkoutDetailsModal({
           )}
         </LinearGradient>
         
-        {/* Swipeable Content */}
         <Animated.View
           style={[styles.content, { transform: [{ translateX: swipeX }] }]}
           {...panResponder.panHandlers}
@@ -248,7 +306,6 @@ export function WorkoutDetailsModal({
             style={styles.scrollView}
             showsVerticalScrollIndicator={false}
           >
-            {/* Rest Day Content */}
             {currentWorkout?.isRestDay ? (
               <View style={styles.restDayContent}>
                 <Ionicons name="moon-outline" size={64} color={COLORS.gradientStart} />
@@ -273,7 +330,6 @@ export function WorkoutDetailsModal({
               </View>
             ) : (
               <>
-                {/* Overview */}
                 <View style={styles.section}>
                   <Text style={styles.sectionTitle}>Overview</Text>
                   <Text style={styles.overviewText}>
@@ -281,7 +337,6 @@ export function WorkoutDetailsModal({
                   </Text>
                 </View>
             
-            {/* Warmup */}
             {warmupExercises.length > 0 && (
               <View style={styles.section}>
                 <View style={styles.sectionHeader}>
@@ -303,7 +358,6 @@ export function WorkoutDetailsModal({
               </View>
             )}
             
-            {/* Main Workout */}
             {mainExercises.length > 0 && (
               <View style={styles.section}>
                 <View style={styles.sectionHeader}>
@@ -325,7 +379,6 @@ export function WorkoutDetailsModal({
               </View>
             )}
             
-            {/* Cooldown */}
             {cooldownExercises.length > 0 && (
               <View style={styles.section}>
                 <View style={styles.sectionHeader}>
@@ -353,25 +406,18 @@ export function WorkoutDetailsModal({
           </ScrollView>
         </Animated.View>
         
-        {/* Action Buttons - hide for rest days */}
         {!currentWorkout?.isRestDay && (
         <View style={styles.footer}>
           <TouchableOpacity style={styles.editButton} onPress={() => setEditModalVisible(true)}>
             <View style={styles.editButtonContent}>
               <Ionicons name="create-outline" size={20} color={COLORS.primary} />
-              <Text style={styles.editButtonText}>Edit Workout</Text>
+              <Text style={styles.editButtonText}>Edit</Text>
             </View>
           </TouchableOpacity>
           
           <TouchableOpacity 
             style={styles.startButton} 
-            onPress={() => {
-              // Set the current workout before starting
-              if (currentWorkout) {
-                setCurrentWorkout(currentWorkout);
-              }
-              onStartWorkout();
-            }}
+            onPress={handleStartWorkoutPress}
           >
             <LinearGradient
               colors={[COLORS.gradientStart, COLORS.gradientEnd]}
@@ -380,23 +426,30 @@ export function WorkoutDetailsModal({
               style={styles.startButtonGradient}
             >
               <Ionicons name="play" size={24} color="#FFFFFF" />
-              <Text style={styles.startButtonText}>Start Workout</Text>
+              <Text style={styles.startButtonText}>Start</Text>
             </LinearGradient>
           </TouchableOpacity>
         </View>
         )}
       </View>
       
-      {/* Edit Workout Modal */}
       <EditWorkoutModal
         visible={editModalVisible}
         onClose={() => setEditModalVisible(false)}
         workout={currentWorkout}
         onSaveWorkout={async (updated) => {
-          console.log('💾 Saving updated workout for index', currentWorkoutIndex);
           await updateWorkoutInWeek(currentWorkoutIndex, updated);
           setEditModalVisible(false);
         }}
+      />
+      
+      <CustomAlert
+        visible={alertConfig.visible}
+        type={alertConfig.type}
+        title={alertConfig.title}
+        message={alertConfig.message}
+        buttons={alertConfig.buttons}
+        onClose={() => setAlertConfig(prev => ({ ...prev, visible: false }))}
       />
     </Modal>
   );
@@ -451,293 +504,57 @@ function ExerciseCard({ exercise, index, isExpanded, onToggle }: any) {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: COLORS.background,
-  },
-  header: {
-    paddingTop: 60,
-    paddingBottom: 24,
-    paddingHorizontal: 20,
-    borderBottomLeftRadius: 30,
-    borderBottomRightRadius: 30,
-  },
-  headerTop: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 24,
-  },
-  closeButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  headerLabel: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#FFFFFF',
-  },
-  placeholder: {
-    width: 40,
-  },
-  dayNavigation: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 16,
-  },
-  navButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  dayInfo: {
-    marginHorizontal: 30,
-    alignItems: 'center',
-  },
-  dayName: {
-    fontSize: 28,
-    fontWeight: '700',
-    color: '#FFFFFF',
-    marginBottom: 4,
-  },
-  dateText: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: 'rgba(255, 255, 255, 0.8)',
-  },
-  workoutTitle: {
-    fontSize: 20,
-    fontWeight: '600',
-    color: '#FFFFFF',
-    textAlign: 'center',
-    marginBottom: 16,
-  },
-  statsRow: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  statItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-  },
-  statText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#FFFFFF',
-  },
-  statDivider: {
-    width: 1,
-    height: 16,
-    backgroundColor: 'rgba(255, 255, 255, 0.3)',
-    marginHorizontal: 16,
-  },
-  navButtonDisabled: {
-    opacity: 0.3,
-  },
-  restDayBanner: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-    paddingVertical: 8,
-  },
-  restDayText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#FFFFFF',
-  },
-  restDayContent: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 32,
-    paddingTop: 60,
-  },
-  restDayTitle: {
-    fontSize: 28,
-    fontWeight: '700',
-    color: COLORS.text,
-    marginTop: 24,
-    marginBottom: 12,
-  },
-  restDayDescription: {
-    fontSize: 16,
-    color: COLORS.mediumGray,
-    textAlign: 'center',
-    lineHeight: 24,
-    marginBottom: 32,
-  },
-  restDayTips: {
-    width: '100%',
-    gap: 16,
-  },
-  tipItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 16,
-    backgroundColor: COLORS.lightGray,
-    padding: 16,
-    borderRadius: 12,
-  },
-  tipText: {
-    fontSize: 16,
-    fontWeight: '500',
-    color: COLORS.text,
-  },
-  content: {
-    flex: 1,
-  },
-  scrollView: {
-    flex: 1,
-  },
-  section: {
-    paddingHorizontal: 20,
-    marginTop: 24,
-  },
-  sectionTitle: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: COLORS.text,
-    marginBottom: 12,
-  },
-  overviewText: {
-    fontSize: 15,
-    lineHeight: 22,
-    color: COLORS.mediumGray,
-  },
-  sectionHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  categoryBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    backgroundColor: COLORS.lightGray,
-    borderRadius: 20,
-  },
-  categoryText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: COLORS.gradientStart,
-  },
-  exerciseCount: {
-    fontSize: 13,
-    fontWeight: '500',
-    color: COLORS.mediumGray,
-  },
-  exerciseCard: {
-    backgroundColor: COLORS.cardBg,
-    borderRadius: 16,
-    marginBottom: 12,
-    overflow: 'hidden',
-  },
-  exerciseHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: 16,
-  },
-  exerciseInfo: {
-    flex: 1,
-  },
-  exerciseName: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: COLORS.text,
-    marginBottom: 8,
-  },
-  exerciseDetails: {
-    flexDirection: 'row',
-    gap: 16,
-  },
-  detailItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-  },
-  detailText: {
-    fontSize: 13,
-    color: COLORS.mediumGray,
-  },
-  videoContainer: {
-    marginTop: 12,
-    borderRadius: 12,
-    overflow: 'hidden',
-  },
-  noVideoContainer: {
-    height: 120,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: COLORS.lightGray,
-  },
-  noVideoText: {
-    fontSize: 14,
-    color: COLORS.mediumGray,
-    marginTop: 8,
-  },
-  footer: {
-    padding: 20,
-    paddingBottom: 40,
-    backgroundColor: COLORS.background,
-    borderTopWidth: 1,
-    borderTopColor: COLORS.lightGray,
-    flexDirection: 'row',
-    gap: 12,
-  },
-  editButton: {
-    flex: 1,
-    borderRadius: 16,
-    backgroundColor: COLORS.cardBg,
-    borderWidth: 2,
-    borderColor: COLORS.primary,
-  },
-  editButtonContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 18,
-    gap: 8,
-  },
-  editButtonText: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: COLORS.primary,
-  },
-  startButton: {
-    flex: 1,
-    borderRadius: 16,
-    overflow: 'hidden',
-    elevation: 8,
-    shadowColor: COLORS.gradientStart,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-  },
-  startButtonGradient: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 18,
-    gap: 12,
-  },
-  startButtonText: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#FFFFFF',
-  },
+  container: { flex: 1, backgroundColor: COLORS.background },
+  header: { paddingTop: 60, paddingBottom: 24, paddingHorizontal: 20, borderBottomLeftRadius: 30, borderBottomRightRadius: 30 },
+  headerTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 },
+  closeButton: { width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(255, 255, 255, 0.2)', justifyContent: 'center', alignItems: 'center' },
+  headerLabel: { fontSize: 16, fontWeight: '600', color: '#FFFFFF' },
+  placeholder: { width: 40 },
+  dayNavigation: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginBottom: 16 },
+  navButton: { width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(255, 255, 255, 0.2)', justifyContent: 'center', alignItems: 'center' },
+  dayInfo: { marginHorizontal: 30, alignItems: 'center' },
+  dayName: { fontSize: 28, fontWeight: '700', color: '#FFFFFF', marginBottom: 4 },
+  dateText: { fontSize: 14, fontWeight: '500', color: 'rgba(255, 255, 255, 0.8)' },
+  pastLabel: { fontSize: 12, fontWeight: '600', color: 'rgba(255, 255, 255, 0.7)', marginTop: 4 },
+  futureLabel: { fontSize: 12, fontWeight: '600', color: 'rgba(255, 255, 255, 0.7)', marginTop: 4 },
+  workoutTitle: { fontSize: 20, fontWeight: '600', color: '#FFFFFF', textAlign: 'center', marginBottom: 16 },
+  statsRow: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center' },
+  statItem: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  statText: { fontSize: 14, fontWeight: '600', color: '#FFFFFF' },
+  statDivider: { width: 1, height: 16, backgroundColor: 'rgba(255, 255, 255, 0.3)', marginHorizontal: 16 },
+  navButtonDisabled: { opacity: 0.3 },
+  restDayBanner: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, paddingVertical: 8 },
+  restDayText: { fontSize: 16, fontWeight: '600', color: '#FFFFFF' },
+  restDayContent: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 32, paddingTop: 60 },
+  restDayTitle: { fontSize: 28, fontWeight: '700', color: COLORS.text, marginTop: 24, marginBottom: 12 },
+  restDayDescription: { fontSize: 16, color: COLORS.mediumGray, textAlign: 'center', lineHeight: 24, marginBottom: 32 },
+  restDayTips: { width: '100%', gap: 16 },
+  tipItem: { flexDirection: 'row', alignItems: 'center', gap: 16, backgroundColor: COLORS.lightGray, padding: 16, borderRadius: 12 },
+  tipText: { fontSize: 16, fontWeight: '500', color: COLORS.text },
+  content: { flex: 1 },
+  scrollView: { flex: 1 },
+  section: { paddingHorizontal: 20, marginTop: 24 },
+  sectionTitle: { fontSize: 20, fontWeight: '700', color: COLORS.text, marginBottom: 12 },
+  overviewText: { fontSize: 15, lineHeight: 22, color: COLORS.mediumGray },
+  sectionHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 },
+  categoryBadge: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 12, paddingVertical: 6, backgroundColor: COLORS.lightGray, borderRadius: 20 },
+  categoryText: { fontSize: 14, fontWeight: '600', color: COLORS.gradientStart },
+  exerciseCount: { fontSize: 13, fontWeight: '500', color: COLORS.mediumGray },
+  exerciseCard: { backgroundColor: COLORS.cardBg, borderRadius: 16, marginBottom: 12, overflow: 'hidden' },
+  exerciseHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 16 },
+  exerciseInfo: { flex: 1 },
+  exerciseName: { fontSize: 16, fontWeight: '600', color: COLORS.text, marginBottom: 8 },
+  exerciseDetails: { flexDirection: 'row', gap: 16 },
+  detailItem: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+  detailText: { fontSize: 13, color: COLORS.mediumGray },
+  videoContainer: { marginTop: 12, borderRadius: 12, overflow: 'hidden' },
+  noVideoContainer: { height: 120, justifyContent: 'center', alignItems: 'center', backgroundColor: COLORS.lightGray },
+  noVideoText: { fontSize: 14, color: COLORS.mediumGray, marginTop: 8 },
+  footer: { padding: 20, paddingBottom: 40, backgroundColor: COLORS.background, borderTopWidth: 1, borderTopColor: COLORS.lightGray, flexDirection: 'row', gap: 12 },
+  editButton: { flex: 1, borderRadius: 16, backgroundColor: COLORS.cardBg, borderWidth: 2, borderColor: COLORS.primary },
+  editButtonContent: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingVertical: 18, gap: 8 },
+  editButtonText: { fontSize: 16, fontWeight: '700', color: COLORS.primary },
+  startButton: { flex: 1, borderRadius: 16, overflow: 'hidden', elevation: 8, shadowColor: COLORS.gradientStart, shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8 },
+  startButtonGradient: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingVertical: 18, gap: 12 },
+  startButtonText: { fontSize: 18, fontWeight: '700', color: '#FFFFFF' },
 });
