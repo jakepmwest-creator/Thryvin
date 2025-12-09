@@ -600,10 +600,10 @@ export default function StatsScreen() {
           </View>
         </View>
 
-        {/* Weekly Progress Bar Chart */}
+        {/* Daily Progress Bar Chart */}
         <View style={styles.section}>
           <View style={styles.chartHeader}>
-            <Text style={styles.sectionTitle}>Weekly Progress</Text>
+            <Text style={styles.sectionTitle}>Daily Progress</Text>
             <View style={styles.chartToggle}>
               <TouchableOpacity 
                 style={[styles.toggleButton, activeChart === 'workouts' && styles.toggleButtonActive]}
