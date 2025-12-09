@@ -866,6 +866,12 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
     console.log('✅ [WORKOUT] Set currentWorkout:', workout.title);
   },
   
+  // Set week workouts (for AI Coach modifications)
+  setWeekWorkouts: (workouts: Workout[]) => {
+    set({ weekWorkouts: workouts });
+    console.log('✅ [WORKOUT] Updated weekWorkouts');
+  },
+  
   // Update a specific workout in the week
   updateWorkoutInWeek: async (dayIndex: number, updatedWorkout: Workout) => {
     const { weekWorkouts, currentWorkout } = get();
