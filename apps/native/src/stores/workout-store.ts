@@ -593,6 +593,7 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
         completed: true,
         completedAt: new Date().toISOString(),
         exercises: exercises,
+        duration: actualDurationMinutes || workout.duration, // Use actual duration if provided
       };
       
       // Save to completed workouts
