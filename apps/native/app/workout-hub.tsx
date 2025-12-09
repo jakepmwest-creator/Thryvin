@@ -19,7 +19,7 @@ import { ExerciseVideoPlayer } from '../src/components/ExerciseVideoPlayer';
 import { VoiceInputButton } from '../src/components/VoiceInputButton';
 import { CustomAlert } from '../src/components/CustomAlert';
 import { useWorkoutStore } from '../src/stores/workout-store';
-import { setStorageItem } from '../lib/storage';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { COLORS } from '../src/constants/colors';
 import ConfettiCannon from 'react-native-confetti-cannon';
 
