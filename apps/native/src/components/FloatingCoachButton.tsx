@@ -179,19 +179,40 @@ export function FloatingCoachButton() {
   const detectWorkoutIntent = (message: string): { handled: boolean; response?: string; action?: { type: string; params?: any } } => {
     const lower = message.toLowerCase();
     
-    // ADD WORKOUT intent (rest day → active day, or extra workout)
-    if ((lower.includes('add') || lower.includes('feeling energetic') || lower.includes('extra') || lower.includes('want to do')) && 
-        (lower.includes('workout') || lower.includes('session') || lower.includes('training'))) {
+    // ADD WORKOUT intent (rest day → active day, or extra workout, or run/5K)
+    if ((lower.includes('add') || lower.includes('feeling energetic') || lower.includes('extra') || lower.includes('want to do') || 
+         lower.includes('5k') || lower.includes('run') || lower.includes('jog') || lower.includes('bike') || lower.includes('swim')) && 
+        (lower.includes('workout') || lower.includes('session') || lower.includes('training') || 
+         lower.includes('5k') || lower.includes('run') || lower.includes('jog') || lower.includes('cardio'))) {
       
       const workoutTypes = ['yoga', 'cardio', 'strength', 'hiit', 'flexibility', 'core'];
       let detectedType = 'cardio'; // default
       let duration = 30; // default
       
-      // Detect workout type from message
-      for (const type of workoutTypes) {
-        if (lower.includes(type)) {
-          detectedType = type;
+      // Detect cardio activities
+      const cardioKeywords = ['run', 'jog', '5k', '10k', 'bike', 'cycle', 'swim', 'rowing', 'elliptical', 'treadmill'];
+      let isCardio = false;
+      for (const keyword of cardioKeywords) {
+        if (lower.includes(keyword)) {
+          detectedType = 'cardio';
+          isCardio = true;
+          // For runs, estimate duration based on distance
+          if (lower.includes('5k')) {
+            duration = 25; // ~25 min for 5K
+          } else if (lower.includes('10k')) {
+            duration = 50; // ~50 min for 10K
+          }
           break;
+        }
+      }
+      
+      // Detect workout type from message
+      if (!isCardio) {
+        for (const type of workoutTypes) {
+          if (lower.includes(type)) {
+            detectedType = type;
+            break;
+          }
         }
       }
       
