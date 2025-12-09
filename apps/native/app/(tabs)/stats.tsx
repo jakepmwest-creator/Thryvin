@@ -632,9 +632,9 @@ export default function StatsScreen() {
           </View>
         </View>
 
-        {/* Training Minutes Line Chart */}
+        {/* Daily Training Minutes Line Chart */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Training Minutes</Text>
+          <Text style={styles.sectionTitle}>Daily Training Minutes</Text>
           
           <View style={styles.chartCard}>
             {lineChartData.some(d => d.value > 0) ? (
