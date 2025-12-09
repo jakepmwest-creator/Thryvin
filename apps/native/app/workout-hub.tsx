@@ -373,7 +373,7 @@ export default function WorkoutHubScreen() {
           // Save the session but don't mark workout as complete
           try {
             // Just save the activeSession to storage for later
-            await setStorageItem('saved_workout_session', JSON.stringify({
+            await AsyncStorage.setItem('saved_workout_session', JSON.stringify({
               workoutId: currentWorkout?.id,
               session: {
                 ...activeSession,
