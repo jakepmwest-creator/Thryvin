@@ -431,7 +431,7 @@ export function WorkoutDetailsModal({
               style={styles.startButtonGradient}
             >
               <Ionicons name="play" size={24} color="#FFFFFF" />
-              <Text style={styles.startButtonText}>Start</Text>
+              <Text style={styles.startButtonText}>Start Workout</Text>
             </LinearGradient>
           </TouchableOpacity>
         </View>
