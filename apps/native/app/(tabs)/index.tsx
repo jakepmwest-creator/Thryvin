@@ -133,6 +133,69 @@ export default function HomeScreen() {
   const fetchPersonalBests = useWorkoutStore(state => state.fetchPersonalBests);
   const forceRegenerateWeek = useWorkoutStore(state => state.forceRegenerateWeek);
 
+  // Generate dynamic activity cards
+  const dynamicActivityCards = React.useMemo(() => {
+    const cards = [];
+    
+    // Current streak
+    if (stats?.streaks?.current > 0) {
+      cards.push({
+        id: 'streak',
+        icon: 'flame',
+        title: `${stats.streaks.current} Day Streak`,
+        subtitle: 'Keep it going!',
+        gradient: ['#FF3B30', '#FF9500'],
+        action: 'stats'
+      });
+    }
+    
+    // Last completed workout
+    if (completedWorkouts.length > 0) {
+      const lastWorkout = completedWorkouts[0];
+      cards.push({
+        id: 'last-workout',
+        icon: 'barbell',
+        title: 'Last Workout',
+        subtitle: lastWorkout.title || 'View Details',
+        gradient: ['#A22BF6', '#FF4EC7'],
+        action: 'workouts'
+      });
+    }
+    
+    // Workouts this week
+    const thisWeekCompleted = completedWorkouts.filter(w => {
+      const wDate = new Date(w.completedAt || w.date);
+      const now = new Date();
+      const weekStart = new Date(now);
+      weekStart.setDate(now.getDate() - now.getDay());
+      return wDate >= weekStart;
+    }).length;
+    
+    if (thisWeekCompleted > 0) {
+      cards.push({
+        id: 'week-count',
+        icon: 'checkmark-circle',
+        title: `${thisWeekCompleted} Workouts`,
+        subtitle: 'This week',
+        gradient: ['#34C759', '#00C7BE'],
+        action: 'stats'
+      });
+    }
+    
+    // If no activity, show motivational card
+    if (cards.length === 0) {
+      cards.push({
+        id: 'start',
+        icon: 'rocket',
+        title: 'Start Your Journey',
+        subtitle: 'Complete your first workout!',
+        gradient: ['#5B8DEF', '#34C4E5'],
+        action: 'workouts'
+      });
+    }
+    
+    return cards;
+  }, [stats, completedWorkouts]);
   // Force re-render key when stats change
   const [statsVersion, setStatsVersion] = useState(0);
 
