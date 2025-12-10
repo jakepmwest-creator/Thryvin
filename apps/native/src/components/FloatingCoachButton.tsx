@@ -180,6 +180,16 @@ export function FloatingCoachButton() {
     const lower = message.toLowerCase();
     
     // ADD WORKOUT intent (rest day → active day, or extra workout, or run/5K)
+    // LOG UNEXPECTED WORKOUT intent
+    if ((lower.includes('unexpected workout') || lower.includes('did a workout') || lower.includes('forgot to log')) && 
+        (lower.includes('log') || lower.includes('track') || lower.includes('record') || lower.includes('today'))) {
+      return {
+        handled: true,
+        response: "Great! Let's log that workout. 📝\n\nTell me:\n1️⃣ What type? (Cardio, Strength, HIIT, Yoga, etc.)\n2️⃣ How long? (in minutes)\n3️⃣ Brief description of what you did\n\nJust type it all in one message, like: 'Strength workout, 45 mins, did chest and triceps'",
+      };
+    }
+    
+    // ADD WORKOUT intent (rest day → active day, or extra workout, or run/5K)
     const isAddWorkoutIntent = (
       (lower.includes('add') || lower.includes('feeling energetic') || lower.includes('extra') || 
        lower.includes('want to do') || lower.includes('suggest something') ||
