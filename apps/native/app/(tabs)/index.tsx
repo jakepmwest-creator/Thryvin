@@ -341,7 +341,7 @@ export default function HomeScreen() {
     }
   };
 
-  const currentQuote = useMemo(() => AI_QUOTES[Math.floor(Math.random() * AI_QUOTES.length)], []);
+  const currentQuote = AI_QUOTES[0]; // Use first quote to avoid impure function
 
   return (
     <SafeAreaView style={styles.container}>
