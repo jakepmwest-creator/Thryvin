@@ -498,7 +498,27 @@ export default function HomeScreen() {
           </Animated.ScrollView>
         </View>
 
-        {/* Today's Nutrition - GREEN GRADIENT */}
+        {/* Log Unexpected Workout */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Log Unexpected Workout</Text>
+          <TouchableOpacity 
+            style={styles.logWorkoutCard}
+            onPress={() => openChat("I did an unexpected workout today. Can I log it?")}
+          >
+            <View style={styles.logWorkoutContent}>
+              <View style={styles.logWorkoutIcon}>
+                <Ionicons name="add-circle" size={48} color={COLORS.gradientStart} />
+              </View>
+              <View style={styles.logWorkoutText}>
+                <Text style={styles.logWorkoutTitle}>Track Extra Activity</Text>
+                <Text style={styles.logWorkoutSubtitle}>Gym session, run, or other workout you did</Text>
+              </View>
+              <Ionicons name="chevron-forward" size={24} color={COLORS.mediumGray} />
+            </View>
+          </TouchableOpacity>
+        </View>
+
+        {/* Original Nutrition Card (keeping for reference, can be removed later) 
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>Today's Nutrition</Text>
