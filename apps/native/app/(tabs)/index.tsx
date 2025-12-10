@@ -103,7 +103,8 @@ export default function HomeScreen() {
   const [chartModalVisible, setChartModalVisible] = useState(false);
   const [selectedExercise, setSelectedExercise] = useState(null);
   const [refreshing, setRefreshing] = useState(false);
-  const scrollX = useRef(new Animated.Value(0)).current;
+  const scrollXRef = useRef(new Animated.Value(0));
+  const scrollX = scrollXRef.current;
   
   // Tour refs for highlighting
   const todayWorkoutRef = useRef(null);
