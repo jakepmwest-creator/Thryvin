@@ -437,15 +437,19 @@ export const useAwardsStore = create<AwardsState>((set, get) => ({
     const completedCount = updatedBadges.filter(b => b.completed).length;
     let newIsland = currentIsland;
     
-    // Check if user has completed ALL badges on current island to unlock next
+    // Check if user has completed ~80% of badges on current island to unlock next
+    // This allows users to skip badges that don't fit their workout style (e.g., cardio-only or strength-only)
     const currentIslandBadges = BADGE_DEFINITIONS.filter(b => b.island === currentIsland);
     const currentIslandCompletedCount = updatedBadges.filter(ub => {
       const badge = BADGE_DEFINITIONS.find(b => b.id === ub.badgeId && b.island === currentIsland);
       return badge && ub.completed;
     }).length;
     
-    // If all badges on current island are complete, check if we can move to next island
-    if (currentIslandCompletedCount === currentIslandBadges.length && currentIsland < ISLANDS.length) {
+    // Calculate required completion (80% of badges, minimum 1 badge)
+    const requiredCompletion = Math.max(1, Math.ceil(currentIslandBadges.length * 0.8));
+    
+    // If 80%+ of current island badges are complete, check if we can move to next island
+    if (currentIslandCompletedCount >= requiredCompletion && currentIsland < ISLANDS.length) {
       // Check total badges to see which island we qualify for
       for (let i = ISLANDS.length - 1; i >= 0; i--) {
         if (completedCount >= ISLANDS[i].requiredBadges && ISLANDS[i].id > currentIsland) {
