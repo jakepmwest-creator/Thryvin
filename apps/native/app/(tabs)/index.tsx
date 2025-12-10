@@ -407,7 +407,7 @@ export default function HomeScreen() {
             <View ref={todayWorkoutRef} style={styles.todayWorkoutCard}>
               <View style={styles.workoutContent}>
                 <View style={styles.workoutHeader}>
-                  <View style={{ flex: 1, alignItems: 'center', paddingVertical: 20 }}>
+                  <View style={{ flex: 1, alignItems: 'center' }}>
                     <Ionicons name="bed" size={48} color={COLORS.mediumGray} />
                     <Text style={[styles.workoutTitle, { marginTop: 12 }]}>Rest Day</Text>
                     <Text style={styles.workoutMeta}>
