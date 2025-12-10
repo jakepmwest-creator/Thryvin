@@ -154,10 +154,11 @@ export const ExploreWorkoutsModal = ({ visible, onClose, category, categoryGradi
       ) || category === 'Strength'; // Default to showing in Strength
       
       if (isMatchingCategory && workout.exercises) {
-        workout.exercises.forEach((ex: any) => {
-          if (!exerciseMap.has(ex.name)) {
-            exerciseMap.set(ex.name, {
-              id: ex.id || ex.name.replace(/\s+/g, '_'),
+        workout.exercises.forEach((ex: any, index: number) => {
+          const uniqueId = `${ex.id || ex.name.replace(/\s+/g, '_')}_${workout.id}_${index}`;
+          if (!exerciseMap.has(uniqueId)) {
+            exerciseMap.set(uniqueId, {
+              id: uniqueId,
               name: ex.name,
               muscleGroup: ex.targetMuscles || 'Full Body',
               equipment: ex.equipment || 'Various',
