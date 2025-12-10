@@ -500,12 +500,10 @@ export default function StatsScreen() {
   // Prepare chart data - DAILY VIEW
   const barChartData = stats.dailyData.map(d => ({
     label: d.label,
-    value: activeChart === 'workouts' ? d.workouts : d.minutes,
+    value: activeChart === 'minutes' ? d.minutes : d.calories,
   }));
 
-  const lineChartData = stats.dailyData.map(d => ({ value: d.minutes }));
   const maxBarValue = Math.max(...barChartData.map(d => d.value), 1);
-  const maxLineValue = Math.max(...lineChartData.map(d => d.value), 1);
 
   if (isLoading) {
     return (
