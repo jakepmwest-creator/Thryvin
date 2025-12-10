@@ -471,6 +471,26 @@ export default function WorkoutsScreen() {
             ))}
           </View>
         </View>
+
+        {/* Log Unexpected Workout */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Log Unexpected Workout</Text>
+          <TouchableOpacity 
+            style={styles.logWorkoutCard}
+            onPress={() => openChat("I did an unexpected workout today. Can I log it?")}
+          >
+            <View style={styles.logWorkoutContent}>
+              <View style={styles.logWorkoutIcon}>
+                <Ionicons name="add-circle" size={32} color={COLORS.accent} />
+              </View>
+              <View style={styles.logWorkoutText}>
+                <Text style={styles.logWorkoutTitle}>Track Extra Activity</Text>
+                <Text style={styles.logWorkoutSubtitle}>Gym session, run, or other workout you did</Text>
+              </View>
+              <Ionicons name="chevron-forward" size={20} color={COLORS.mediumGray} />
+            </View>
+          </TouchableOpacity>
+        </View>
       </ScrollView>
       
       <ExploreWorkoutsModal
