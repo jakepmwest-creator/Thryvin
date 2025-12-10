@@ -52,6 +52,7 @@ interface User {
   equipment?: string[];
   injuries?: string[];
   fitnessGoals?: string[];
+  pushToken?: string;
 }
 
 interface AuthState {
