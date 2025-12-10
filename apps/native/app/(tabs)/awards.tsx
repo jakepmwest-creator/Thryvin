@@ -317,9 +317,9 @@ const islandStyles = StyleSheet.create({
   
   // Connector
   connectorContainer: { height: 40, alignItems: 'center', justifyContent: 'center' },
-  connectorLine: { width: 3, height: '100%', backgroundColor: '#E0E0E0', borderRadius: 2 },
-  connectorLineCompleted: { backgroundColor: COLORS.gradientStart },
-  connectorDot: { position: 'absolute', width: 7, height: 7, borderRadius: 4, backgroundColor: COLORS.gradientEnd, left: -2 },
+  connectorLine: { width: 4, height: '100%', backgroundColor: '#E0E0E0', borderRadius: 2 },
+  connectorLineGradient: { width: 4, height: '100%', borderRadius: 2, position: 'relative' },
+  connectorDot: { position: 'absolute', width: 8, height: 8, borderRadius: 4, backgroundColor: COLORS.white, left: -2, borderWidth: 2, borderColor: COLORS.gradientEnd },
   
   // Themed island elements
   // Starting Line - Checkered flag
