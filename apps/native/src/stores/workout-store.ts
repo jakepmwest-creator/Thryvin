@@ -549,7 +549,6 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
         const weeklyMinutes = thisWeek.reduce((sum, w) => sum + (w.duration || sessionDuration), 0);
         const weeklyMinutesGoal = sessionDuration * weeklyGoal;
         const totalMinutes = uniqueCompleted.reduce((sum, w) => sum + (w.duration || sessionDuration), 0);
-        const totalMinutes = uniqueCompleted.reduce((sum, w) => sum + (w.duration || sessionDuration), 0);
         
         const stats: WorkoutStats = {
           totalWorkouts: uniqueCompleted.length,
