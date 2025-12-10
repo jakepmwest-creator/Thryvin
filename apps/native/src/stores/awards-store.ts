@@ -333,6 +333,7 @@ interface AwardsState {
   getCurrentIsland: () => Island;
   getIslandProgress: () => { current: number; required: number; percentage: number };
   getBadgesForIsland: (islandId: number) => Badge[];
+  resetToStartingLine: () => Promise<void>;
   updateBadgeProgress: (workoutStats: {
     totalWorkouts: number;
     currentStreak: number;
