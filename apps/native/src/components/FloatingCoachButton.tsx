@@ -514,6 +514,56 @@ export function FloatingCoachButton() {
   const executeAction = async (action: { type: string; params?: any }) => {
     try {
       switch (action.type) {
+        case 'log_workout':
+          if (action.params?.type && action.params?.duration) {
+            setMessages(prev => [...prev, { 
+              role: 'assistant', 
+              text: `💾 Logging your ${action.params.type} workout...` 
+            }]);
+            
+            // Create a workout entry
+            const loggedWorkout = {
+              id: `logged_${Date.now()}`,
+              title: `${action.params.type.charAt(0).toUpperCase() + action.params.type.slice(1)} Workout`,
+              type: action.params.type,
+              duration: action.params.duration,
+              date: action.params.date,
+              completedAt: new Date().toISOString(),
+              completed: true,
+              caloriesBurn: Math.round(action.params.duration * 6),
+              exercises: [
+                {
+                  id: '1',
+                  name: action.params.description || 'Custom workout',
+                  sets: 0,
+                  reps: '0',
+                  restTime: 0,
+                  category: 'main',
+                }
+              ],
+              overview: action.params.description || 'Logged manually',
+              difficulty: 'Custom',
+              targetMuscles: 'Various',
+              isRestDay: false,
+            };
+            
+            // Add to completed workouts
+            const currentCompleted = useWorkoutStore.getState().completedWorkouts;
+            const updatedCompleted = [loggedWorkout, ...currentCompleted];
+            useWorkoutStore.setState({ completedWorkouts: updatedCompleted });
+            
+            // Save to storage
+            await AsyncStorage.setItem('completed_workouts', JSON.stringify(updatedCompleted));
+            
+            // Refresh stats
+            await useWorkoutStore.getState().fetchStats();
+            
+            setMessages(prev => [...prev, { 
+              role: 'assistant', 
+              text: `Done! ✅ Your ${action.params.type} workout has been logged!\n\n💪 ${action.params.duration} minutes added to your stats\n🔥 ${Math.round(action.params.duration * 6)} calories burned\n\nKeep crushing it!` 
+            }]);
+          }
+          break;
         case 'unlock_workout':
           if (action.params?.date) {
             const targetDate = new Date(action.params.date);
