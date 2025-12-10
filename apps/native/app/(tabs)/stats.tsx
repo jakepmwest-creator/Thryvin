@@ -380,7 +380,7 @@ export default function StatsScreen() {
     }
     
     // Daily data for charts (last 7 days)
-    const dailyData: Array<{ label: string; workouts: number; minutes: number }> = [];
+    const dailyData: Array<{ label: string; workouts: number; minutes: number; calories: number }> = [];
     const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
     
     for (let i = 6; i >= 0; i--) {
@@ -396,10 +396,13 @@ export default function StatsScreen() {
         return wDate >= dayDate && wDate < dayEnd;
       });
       
+      const dayMinutes = dayWorkouts.reduce((sum, w) => sum + (w.duration || 45), 0);
+      
       dailyData.push({
         label: dayNames[dayDate.getDay()],
         workouts: dayWorkouts.length,
-        minutes: dayWorkouts.reduce((sum, w) => sum + (w.duration || 45), 0),
+        minutes: dayMinutes,
+        calories: Math.round(dayMinutes * 6), // 6 cals per minute
       });
     }
     
