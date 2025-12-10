@@ -464,7 +464,7 @@ export default function HomeScreen() {
             }}
             delayLongPress={2000}
           >
-            <Text style={styles.sectionTitle}>Today's Workout</Text>
+            <Text style={styles.sectionTitle}>Today&apos;s Workout</Text>
           </TouchableOpacity>
           {isLoading ? (
             <ActivityIndicator size="large" color={COLORS.gradientStart} style={{ marginTop: 20 }} />
