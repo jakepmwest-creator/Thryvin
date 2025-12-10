@@ -84,7 +84,7 @@ const PulsingGlow = () => {
   );
 };
 
-// Beautiful Island Card for Journey Map
+// Beautiful Island Card for Journey Map with Themed Designs
 const IslandCard = ({ island, isUnlocked, isCurrent, completedBadges, totalBadges, onPress }: { 
   island: Island; 
   isUnlocked: boolean; 
@@ -104,6 +104,65 @@ const IslandCard = ({ island, isUnlocked, isCurrent, completedBadges, totalBadge
     Animated.spring(scaleAnim, { toValue: 1, friction: 3, useNativeDriver: true }).start();
   };
   
+  // Get themed design based on island
+  const getIslandTheme = () => {
+    switch (island.id) {
+      case 1: // Starting Line - Checkered flag
+        return {
+          pattern: 'checkered',
+          accentColor: '#FFD700',
+          patternElements: (
+            <>
+              <View style={[islandStyles.checkeredSquare, { top: 70, left: 40, backgroundColor: '#333' }]} />
+              <View style={[islandStyles.checkeredSquare, { top: 70, left: 55, backgroundColor: '#FFF' }]} />
+              <View style={[islandStyles.checkeredSquare, { top: 85, left: 40, backgroundColor: '#FFF' }]} />
+              <View style={[islandStyles.checkeredSquare, { top: 85, left: 55, backgroundColor: '#333' }]} />
+              <View style={[islandStyles.flagPole, { left: 50 }]} />
+            </>
+          ),
+        };
+      case 2: // Newbie Gains - Bicep
+        return {
+          pattern: 'bicep',
+          accentColor: '#FF6B35',
+          patternElements: (
+            <>
+              <View style={[islandStyles.bicepShape, { bottom: 45 }]} />
+              <View style={[islandStyles.bicepHighlight, { bottom: 60 }]} />
+            </>
+          ),
+        };
+      case 3: // Grind Zone - Flames
+        return {
+          pattern: 'flames',
+          accentColor: '#FF4500',
+          patternElements: (
+            <>
+              <View style={[islandStyles.flame, { bottom: 40, left: 60, height: 35 }]} />
+              <View style={[islandStyles.flame, { bottom: 40, left: 80, height: 45 }]} />
+              <View style={[islandStyles.flame, { bottom: 40, left: 100, height: 30 }]} />
+            </>
+          ),
+        };
+      case 4: // Iron Paradise - Barbell
+        return {
+          pattern: 'barbell',
+          accentColor: '#455A64',
+          patternElements: (
+            <>
+              <View style={[islandStyles.barbellBar, { bottom: 50 }]} />
+              <View style={[islandStyles.barbellPlate, { bottom: 45, left: 50 }]} />
+              <View style={[islandStyles.barbellPlate, { bottom: 45, right: 50 }]} />
+            </>
+          ),
+        };
+      default:
+        return { pattern: 'default', accentColor: colors.accent, patternElements: null };
+    }
+  };
+  
+  const theme = getIslandTheme();
+  
   return (
     <TouchableOpacity 
       onPress={onPress} 
@@ -121,7 +180,7 @@ const IslandCard = ({ island, isUnlocked, isCurrent, completedBadges, totalBadge
           start={{ x: 0, y: 0 }}
           end={{ x: 0, y: 1 }}
         >
-          {/* Decorative elements */}
+          {/* Decorative clouds */}
           {isUnlocked && (
             <>
               <View style={[islandStyles.cloud, { top: 15, left: 20 }]} />
@@ -130,12 +189,15 @@ const IslandCard = ({ island, isUnlocked, isCurrent, completedBadges, totalBadge
             </>
           )}
           
-          {/* Island terrain */}
+          {/* Island terrain - enhanced with theme */}
           <View style={islandStyles.terrainContainer}>
-            <View style={[islandStyles.mountainLeft, { backgroundColor: isUnlocked ? colors.accent : '#999' }]} />
+            <View style={[islandStyles.mountainLeft, { backgroundColor: isUnlocked ? theme.accentColor : '#999' }]} />
             <View style={[islandStyles.mountainCenter, { backgroundColor: isUnlocked ? colors.ground : '#888' }]} />
-            <View style={[islandStyles.mountainRight, { backgroundColor: isUnlocked ? colors.accent : '#999' }]} />
+            <View style={[islandStyles.mountainRight, { backgroundColor: isUnlocked ? theme.accentColor : '#999' }]} />
           </View>
+          
+          {/* Themed pattern elements */}
+          {isUnlocked && theme.patternElements}
           
           {/* Island emoji badge */}
           <View style={[islandStyles.emojiContainer, !isUnlocked && { opacity: 0.5 }]}>
