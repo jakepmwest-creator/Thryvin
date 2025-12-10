@@ -1129,7 +1129,7 @@ Transform your fitness journey with personalized workouts and gamified progressi
         {/* Stats Row */}
         <View style={styles.statsRow}>
           <View style={styles.statBox}>
-            <Text style={styles.statNumber}>{completedCount}</Text>
+            <Text style={styles.statNumber}>{currentIslandCompletedCount}/{currentIslandBadges.length}</Text>
             <Text style={styles.statLabel}>Badges</Text>
           </View>
           <View style={styles.statDivider} />
