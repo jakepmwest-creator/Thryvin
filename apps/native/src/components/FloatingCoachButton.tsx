@@ -180,12 +180,45 @@ export function FloatingCoachButton() {
     const lower = message.toLowerCase();
     
     // ADD WORKOUT intent (rest day → active day, or extra workout, or run/5K)
-    // LOG UNEXPECTED WORKOUT intent
+    // LOG UNEXPECTED WORKOUT intent - Initial request
     if ((lower.includes('unexpected workout') || lower.includes('did a workout') || lower.includes('forgot to log')) && 
         (lower.includes('log') || lower.includes('track') || lower.includes('record') || lower.includes('today'))) {
       return {
         handled: true,
         response: "Great! Let's log that workout. 📝\n\nTell me:\n1️⃣ What type? (Cardio, Strength, HIIT, Yoga, etc.)\n2️⃣ How long? (in minutes)\n3️⃣ Brief description of what you did\n\nJust type it all in one message, like: 'Strength workout, 45 mins, did chest and triceps'",
+      };
+    }
+    
+    // PARSE LOG WORKOUT DETAILS - When user provides workout info
+    const workoutTypeKeywords = ['strength', 'cardio', 'hiit', 'yoga', 'flexibility', 'core', 'upper body', 'lower body', 'full body', 'legs', 'chest', 'back', 'arms'];
+    const hasWorkoutType = workoutTypeKeywords.some(type => lower.includes(type));
+    const durationMatch = message.match(/(\d+)\s*(min|mins|minute|minutes)/i);
+    
+    if (hasWorkoutType && durationMatch) {
+      // Extract workout details
+      let workoutType = 'workout';
+      for (const type of workoutTypeKeywords) {
+        if (lower.includes(type)) {
+          workoutType = type;
+          break;
+        }
+      }
+      
+      const duration = parseInt(durationMatch[1]);
+      const description = message.replace(/\d+\s*(min|mins|minute|minutes)/gi, '').trim();
+      
+      return {
+        handled: true,
+        response: `Awesome! Here's how I'll log it:\n\n📋 **${workoutType.charAt(0).toUpperCase() + workoutType.slice(1)} Workout**\n⏱️ Duration: ${duration} minutes\n📝 Notes: ${description}\n\nPress the button below to confirm and save it!`,
+        action: { 
+          type: 'log_workout', 
+          params: { 
+            type: workoutType, 
+            duration: duration, 
+            description: description,
+            date: new Date().toISOString()
+          } 
+        }
       };
     }
     
