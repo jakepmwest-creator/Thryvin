@@ -484,6 +484,27 @@ export const useAwardsStore = create<AwardsState>((set, get) => ({
   getBadgesForIsland: (islandId: number) => BADGE_DEFINITIONS.filter(b => b.island === islandId),
   
   // Calculate and update badge progress from workout data
+  // Reset badges to Starting Line (useful for testing or fixing progression issues)
+  resetToStartingLine: async () => {
+    const initialBadges: UserBadge[] = BADGE_DEFINITIONS.map(badge => ({
+      badgeId: badge.id,
+      progress: 0,
+      completed: false,
+    }));
+    set({ 
+      userBadges: initialBadges, 
+      totalXP: 0, 
+      currentIsland: 1,
+      newlyUnlocked: [],
+    });
+    await setStorageItem('user_badges_v3', JSON.stringify({ 
+      badges: initialBadges, 
+      totalXP: 0, 
+      currentIsland: 1 
+    }));
+    console.log('🔄 [AWARDS] Reset to Starting Line complete!');
+  },
+  
   updateBadgeProgress: async (workoutStats: {
     totalWorkouts: number;
     currentStreak: number;
