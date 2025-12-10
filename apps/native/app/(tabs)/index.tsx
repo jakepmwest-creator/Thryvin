@@ -281,7 +281,7 @@ export default function HomeScreen() {
     router.push('/workout-hub');
   };
 
-  const showRingDetails = (label: string) => {
+  const showRingDetails = (label) => {
     setRingDetailsVisible(label);
     setTimeout(() => setRingDetailsVisible(null), 3000);
   };
