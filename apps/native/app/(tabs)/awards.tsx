@@ -172,8 +172,6 @@ const IslandCard = ({ island, isUnlocked, isCurrent, completedBadges, totalBadge
       disabled={!isUnlocked}
     >
       <Animated.View style={[islandStyles.islandCard, { transform: [{ scale: scaleAnim }] }]}>
-        {isCurrent && <PulsingGlow />}
-        
         <LinearGradient
           colors={isUnlocked ? [colors.sky, colors.ground] : ['#E0E0E0', '#B0B0B0']}
           style={[islandStyles.islandGradient, isCurrent && islandStyles.islandCurrentBorder]}
