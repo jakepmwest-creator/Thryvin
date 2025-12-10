@@ -988,10 +988,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
           .json({ error: "Failed to process request. Please try again." });
       }
 
-      // Send email
+      // Send email (use mock if SendGrid not configured)
       try {
-        await sendPasswordResetEmail(email, resetToken);
-        console.log(`Password reset email sent to ${email}`);
+        if (process.env.SENDGRID_API_KEY) {
+          await sendPasswordResetEmail(email, resetToken, user[0].name || 'User');
+          console.log(`✅ Password reset email sent to ${email} via SendGrid`);
+        } else {
+          await sendPasswordResetEmailMock(email, resetToken, user[0].name || 'User');
+          console.log(`✅ Password reset email logged (MOCK MODE) for ${email}`);
+          console.log(`📧 Reset Code: ${resetToken}`);
+        }
       } catch (emailError) {
         console.error("Email error:", emailError);
         return res.status(500).json({
