@@ -235,17 +235,17 @@ const islandStyles = StyleSheet.create({
   youAreHereText: { fontSize: 9, fontWeight: '800', color: COLORS.white, marginLeft: 3, letterSpacing: 0.5 },
   
   // Island info
-  islandInfo: { backgroundColor: COLORS.white, padding: 14, borderBottomLeftRadius: 20, borderBottomRightRadius: 20, borderWidth: 1, borderTopWidth: 0, borderColor: COLORS.lightGray },
+  islandInfo: { backgroundColor: COLORS.white, padding: 16, borderBottomLeftRadius: 24, borderBottomRightRadius: 24, borderWidth: 1, borderTopWidth: 0, borderColor: COLORS.lightGray },
   islandNameRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  islandName: { fontSize: 17, fontWeight: '700', color: COLORS.text, flex: 1 },
-  xpBadge: { backgroundColor: '#FFF8E1', paddingHorizontal: 8, paddingVertical: 3, borderRadius: 8 },
-  xpText: { fontSize: 11, fontWeight: '700', color: '#F57F17' },
-  islandSubtitle: { fontSize: 12, color: COLORS.mediumGray, marginTop: 3 },
+  islandName: { fontSize: 18, fontWeight: '800', color: COLORS.text, flex: 1, letterSpacing: -0.3 },
+  xpBadge: { backgroundColor: '#FFF8E1', paddingHorizontal: 10, paddingVertical: 5, borderRadius: 10, shadowColor: '#F57F17', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.15, shadowRadius: 4, elevation: 2 },
+  xpText: { fontSize: 12, fontWeight: '800', color: '#F57F17' },
+  islandSubtitle: { fontSize: 13, color: COLORS.mediumGray, marginTop: 4, fontWeight: '500' },
   textLocked: { color: '#999' },
-  badgeProgress: { marginTop: 10, flexDirection: 'row', alignItems: 'center' },
-  badgeProgressBar: { flex: 1, height: 4, backgroundColor: '#E8E8E8', borderRadius: 2, marginRight: 10, overflow: 'hidden' },
-  badgeProgressFill: { height: '100%', backgroundColor: COLORS.gradientStart, borderRadius: 2 },
-  badgeProgressText: { fontSize: 11, color: COLORS.mediumGray, fontWeight: '500' },
+  badgeProgress: { marginTop: 12, flexDirection: 'row', alignItems: 'center' },
+  badgeProgressBar: { flex: 1, height: 6, backgroundColor: '#E8E8E8', borderRadius: 3, marginRight: 10, overflow: 'hidden' },
+  badgeProgressFill: { height: '100%', backgroundColor: COLORS.gradientStart, borderRadius: 3 },
+  badgeProgressText: { fontSize: 12, color: COLORS.mediumGray, fontWeight: '600' },
   
   // Connector
   connectorContainer: { height: 40, alignItems: 'center', justifyContent: 'center' },
