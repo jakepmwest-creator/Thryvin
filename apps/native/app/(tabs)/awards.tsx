@@ -949,12 +949,23 @@ export default function AwardsScreen() {
         {/* Enhanced Purple Island Banner with particles */}
         <TouchableOpacity 
           onPress={() => setShowIslandSelector(true)} 
-          onLongPress={async () => {
+          onLongPress={() => {
             // Long press to reset (useful for fixing progression issues)
-            if (confirm('Reset badges to Starting Line? This will clear all progress.')) {
-              await resetToStartingLine();
-              alert('✅ Reset complete! Badges cleared.');
-            }
+            Alert.alert(
+              'Reset Badge Progress?',
+              'This will reset you to Starting Line and clear all badge progress. Use this if you got moved to the wrong island.',
+              [
+                { text: 'Cancel', style: 'cancel' },
+                { 
+                  text: 'Reset', 
+                  style: 'destructive',
+                  onPress: async () => {
+                    await resetToStartingLine();
+                    Alert.alert('✅ Reset Complete', 'You are back on Starting Line!');
+                  }
+                },
+              ]
+            );
           }}
           activeOpacity={0.9}
         >
