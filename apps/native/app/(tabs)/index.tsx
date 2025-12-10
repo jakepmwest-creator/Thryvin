@@ -890,4 +890,18 @@ const styles = StyleSheet.create({
     color: COLORS.mediumGray,
     marginTop: 4,
   },
+  logWorkoutCard: {
+    backgroundColor: COLORS.white,
+    borderRadius: 20,
+    padding: 20,
+    borderWidth: 2,
+    borderColor: COLORS.lightGray,
+    borderStyle: 'dashed',
+    ...CARD_SHADOW,
+  },
+  logWorkoutContent: { flexDirection: 'row', alignItems: 'center' },
+  logWorkoutIcon: { marginRight: 16 },
+  logWorkoutText: { flex: 1 },
+  logWorkoutTitle: { fontSize: 18, fontWeight: '700', color: COLORS.text, marginBottom: 4 },
+  logWorkoutSubtitle: { fontSize: 14, color: COLORS.mediumGray },
 });
