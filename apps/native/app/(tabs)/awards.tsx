@@ -1008,8 +1008,34 @@ export default function AwardsScreen() {
   const handleShare = async () => {
     if (!selectedBadge) return;
     try {
-      await Share.share({ message: `🏆 I unlocked "${selectedBadge.name}" on Thryvin! #FitnessGoals` });
-    } catch (error) { console.error('Error sharing:', error); }
+      const rarityEmoji = selectedBadge.rarity === 'legendary' ? '💎' : selectedBadge.rarity === 'epic' ? '⭐' : selectedBadge.rarity === 'rare' ? '🔷' : '✨';
+      const island = ISLANDS.find(i => i.id === selectedBadge.island);
+      
+      // Rich share message with visual appeal
+      const shareMessage = `
+🏆 Achievement Unlocked! 🏆
+
+${rarityEmoji} ${selectedBadge.name.toUpperCase()} ${rarityEmoji}
+${selectedBadge.description}
+
+📍 Island: ${island?.name || 'Unknown'} ${island?.emoji || ''}
+${RARITY_LABELS[selectedBadge.rarity]} Badge
++${selectedBadge.xp} XP
+
+💪 Join me on Thryvin - Your AI Fitness Coach!
+Transform your fitness journey with personalized workouts and gamified progression.
+
+🔗 Download Thryvin (Coming Soon to App Store)
+#Thryvin #FitnessGoals #Achievement #WorkoutMotivation
+      `.trim();
+      
+      await Share.share({ 
+        message: shareMessage,
+        title: `${selectedBadge.name} - Thryvin Achievement`,
+      });
+    } catch (error) { 
+      console.error('Error sharing:', error); 
+    }
   };
   
   const island = getCurrentIsland();
