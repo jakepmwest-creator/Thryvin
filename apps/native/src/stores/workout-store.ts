@@ -853,6 +853,9 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
       // Immediately fetch updated stats to refresh rings
       await get().fetchStats();
       
+      // Update badge progress after workout completion
+      await updateBadgesAfterWorkout();
+      
       // Clear active session
       set({ activeSession: null });
     } catch (error) {
