@@ -192,75 +192,98 @@ const FocusBarChart = ({
   );
 };
 
-// Simple Pie/Donut Chart Component with Better Colors
+// Proper Pie/Donut Chart Component with True Slices
 const SimplePieChart = ({ 
   data 
 }: { 
   data: Array<{ category: string; percentage: number; color: string }>;
 }) => {
-  const size = 180;
-  const strokeWidth = 30;
+  const size = 200;
+  const strokeWidth = 35;
   const radius = (size - strokeWidth) / 2;
   const circumference = 2 * Math.PI * radius;
-  
-  let cumulativePercentage = 0;
+  const centerX = size / 2;
+  const centerY = size / 2;
   
   return (
     <View style={{ alignItems: 'center', marginTop: 32 }}>
-      {/* Donut Chart using multiple circles */}
-      <View style={{ width: size, height: size }}>
+      {/* Donut Chart using proper segments */}
+      <View style={{ width: size, height: size, position: 'relative' }}>
         <Svg width={size} height={size}>
-          {/* Background circle */}
-          <Circle
-            cx={size / 2}
-            cy={size / 2}
-            r={radius}
-            stroke={COLORS.lightGray}
-            strokeWidth={strokeWidth}
-            fill="transparent"
-          />
-          
-          {/* Data segments */}
+          {/* Draw each segment as a circle with stroke-dasharray */}
           {data.map((item, index) => {
-            const strokeDashoffset = circumference - (cumulativePercentage / 100) * circumference;
-            const strokeDasharray = `${(item.percentage / 100) * circumference} ${circumference}`;
-            cumulativePercentage += item.percentage;
+            // Calculate cumulative offset for this segment
+            const cumulativePercentage = data.slice(0, index).reduce((sum, d) => sum + d.percentage, 0);
+            const segmentLength = (item.percentage / 100) * circumference;
+            const segmentOffset = -(cumulativePercentage / 100) * circumference;
             
             return (
               <Circle
                 key={index}
-                cx={size / 2}
-                cy={size / 2}
+                cx={centerX}
+                cy={centerY}
                 r={radius}
                 stroke={item.color}
                 strokeWidth={strokeWidth}
                 fill="transparent"
-                strokeDasharray={strokeDasharray}
-                strokeDashoffset={-strokeDashoffset}
-                strokeLinecap="butt"
+                strokeDasharray={`${segmentLength} ${circumference}`}
+                strokeDashoffset={segmentOffset}
                 rotation="-90"
-                origin={`${size / 2}, ${size / 2}`}
+                origin={`${centerX}, ${centerY}`}
+                strokeLinecap="round"
               />
             );
           })}
         </Svg>
         
         {/* Center label */}
-        <View style={{ position: 'absolute', width: size, height: size, justifyContent: 'center', alignItems: 'center' }}>
-          <Text style={{ fontSize: 14, fontWeight: '600', color: COLORS.mediumGray }}>Muscle</Text>
-          <Text style={{ fontSize: 14, fontWeight: '600', color: COLORS.mediumGray }}>Balance</Text>
+        <View style={{ 
+          position: 'absolute', 
+          top: 0, 
+          left: 0, 
+          right: 0, 
+          bottom: 0, 
+          justifyContent: 'center', 
+          alignItems: 'center' 
+        }}>
+          <Text style={{ fontSize: 15, fontWeight: '700', color: COLORS.text }}>Muscle</Text>
+          <Text style={{ fontSize: 13, fontWeight: '600', color: COLORS.mediumGray }}>Balance</Text>
         </View>
       </View>
       
       {/* Legend with percentages */}
-      <View style={{ marginTop: 24, width: '100%' }}>
+      <View style={{ marginTop: 28, width: '100%' }}>
         {data.map((item, index) => (
-          <View key={index} style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+          <View key={index} style={{ 
+            flexDirection: 'row', 
+            alignItems: 'center', 
+            justifyContent: 'space-between', 
+            marginBottom: 14,
+            paddingVertical: 4 
+          }}>
             <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
-              <View style={{ width: 16, height: 16, borderRadius: 8, backgroundColor: item.color, marginRight: 10 }} />
-              <Text style={{ fontSize: 14, fontWeight: '500', color: COLORS.text }}>{item.category}</Text>
+              <View style={{ 
+                width: 18, 
+                height: 18, 
+                borderRadius: 9, 
+                backgroundColor: item.color, 
+                marginRight: 12,
+                shadowColor: item.color,
+                shadowOffset: { width: 0, height: 2 },
+                shadowOpacity: 0.3,
+                shadowRadius: 4,
+                elevation: 2
+              }} />
+              <Text style={{ fontSize: 15, fontWeight: '600', color: COLORS.text }}>{item.category}</Text>
             </View>
-            <Text style={{ fontSize: 16, fontWeight: '700', color: COLORS.text }}>{item.percentage}%</Text>
+            <View style={{
+              backgroundColor: item.color + '15',
+              paddingHorizontal: 12,
+              paddingVertical: 6,
+              borderRadius: 10
+            }}>
+              <Text style={{ fontSize: 16, fontWeight: '800', color: item.color }}>{item.percentage}%</Text>
+            </View>
           </View>
         ))}
       </View>
