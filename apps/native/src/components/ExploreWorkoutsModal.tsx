@@ -95,32 +95,74 @@ interface ExploreWorkoutsModalProps {
   categoryGradient: string[];
 }
 
-const ExerciseCard = ({ exercise, onPress }: { exercise: typeof EXERCISES_DATA['Strength'][0]; onPress: () => void }) => (
-  <TouchableOpacity style={styles.exerciseCard} onPress={onPress} activeOpacity={0.7}>
-    <View style={styles.exerciseIcon}>
-      <Ionicons name="barbell" size={24} color={COLORS.accent} />
-    </View>
-    <View style={styles.exerciseInfo}>
-      <Text style={styles.exerciseName}>{exercise.name}</Text>
-      <Text style={styles.exerciseMeta}>
-        {exercise.muscleGroup} • {exercise.difficulty}
-      </Text>
-    </View>
-    <View style={[
-      styles.difficultyBadge, 
-      exercise.difficulty === 'Beginner' && styles.difficultyBeginner,
-      exercise.difficulty === 'Advanced' && styles.difficultyAdvanced,
-    ]}>
-      <Text style={[
-        styles.difficultyText,
-        exercise.difficulty === 'Beginner' && styles.difficultyTextBeginner,
-        exercise.difficulty === 'Advanced' && styles.difficultyTextAdvanced,
+const ExerciseCard = ({ exercise, onPress }: { exercise: typeof EXERCISES_DATA['Strength'][0]; onPress: () => void }) => {
+  const { getPreference, likeExercise, dislikeExercise } = usePreferencesStore();
+  const preference = getPreference(exercise.id);
+  
+  const handleLike = (e: any) => {
+    e.stopPropagation();
+    if (preference === 'liked') {
+      usePreferencesStore.getState().removePreference(exercise.id);
+    } else {
+      likeExercise(exercise.id, exercise.name);
+    }
+  };
+  
+  const handleDislike = (e: any) => {
+    e.stopPropagation();
+    if (preference === 'disliked') {
+      usePreferencesStore.getState().removePreference(exercise.id);
+    } else {
+      dislikeExercise(exercise.id, exercise.name);
+    }
+  };
+  
+  return (
+    <TouchableOpacity style={styles.exerciseCard} onPress={onPress} activeOpacity={0.7}>
+      <View style={styles.exerciseIcon}>
+        <Ionicons name="barbell" size={24} color={COLORS.accent} />
+      </View>
+      <View style={styles.exerciseInfo}>
+        <Text style={styles.exerciseName}>{exercise.name}</Text>
+        <Text style={styles.exerciseMeta}>
+          {exercise.muscleGroup} • {exercise.difficulty}
+        </Text>
+      </View>
+      
+      {/* Like/Dislike Buttons */}
+      <View style={styles.preferencesContainer}>
+        <TouchableOpacity onPress={handleLike} style={styles.preferenceButton}>
+          <Ionicons 
+            name={preference === 'liked' ? 'heart' : 'heart-outline'} 
+            size={22} 
+            color={preference === 'liked' ? COLORS.success : COLORS.mediumGray} 
+          />
+        </TouchableOpacity>
+        <TouchableOpacity onPress={handleDislike} style={styles.preferenceButton}>
+          <Ionicons 
+            name={preference === 'disliked' ? 'thumbs-down' : 'thumbs-down-outline'} 
+            size={22} 
+            color={preference === 'disliked' ? '#FF3B30' : COLORS.mediumGray} 
+          />
+        </TouchableOpacity>
+      </View>
+      
+      <View style={[
+        styles.difficultyBadge, 
+        exercise.difficulty === 'Beginner' && styles.difficultyBeginner,
+        exercise.difficulty === 'Advanced' && styles.difficultyAdvanced,
       ]}>
-        {exercise.difficulty}
-      </Text>
-    </View>
-  </TouchableOpacity>
-);
+        <Text style={[
+          styles.difficultyText,
+          exercise.difficulty === 'Beginner' && styles.difficultyTextBeginner,
+          exercise.difficulty === 'Advanced' && styles.difficultyTextAdvanced,
+        ]}>
+          {exercise.difficulty}
+        </Text>
+      </View>
+    </TouchableOpacity>
+  );
+};
 
 export const ExploreWorkoutsModal = ({ visible, onClose, category, categoryGradient }: ExploreWorkoutsModalProps) => {
   const [searchQuery, setSearchQuery] = useState('');
