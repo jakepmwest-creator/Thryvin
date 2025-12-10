@@ -501,7 +501,7 @@ export default function HomeScreen() {
               <View style={styles.workoutContent}>
                 <View style={styles.workoutHeader}>
                   <View style={{ flex: 1 }}>
-                    <Text style={styles.sectionLabel}>TODAY'S WORKOUT</Text>
+                    <Text style={styles.sectionLabel}>TODAY&apos;S WORKOUT</Text>
                     <Text style={styles.workoutTitle}>{actualTodayWorkout?.title || 'Loading...'}</Text>
                     <Text style={styles.workoutMeta}>
                       {actualTodayWorkout?.duration || 45} min • {actualTodayWorkout?.exercises?.length || 0} exercises • {actualTodayWorkout?.difficulty || 'Intermediate'}
