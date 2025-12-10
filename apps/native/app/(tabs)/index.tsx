@@ -421,7 +421,7 @@ export default function HomeScreen() {
             />
             <ProgressRing
               label="Active Minutes"
-              progress={displayStats.weeklyMinutesGoal > 0 ? displayStats.weeklyMinutes / displayStats.weeklyMinutesGoal : 0}
+              progress={displayStats.weeklyMinutesGoal > 0 ? Math.min(displayStats.weeklyMinutes / displayStats.weeklyMinutesGoal, 1) : 0}
               colors={['#FF6B6B', '#FF8E53']}
               size={85}
               onPress={() => showRingDetails('Active Minutes')}
