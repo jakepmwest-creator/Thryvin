@@ -315,6 +315,22 @@ const islandStyles = StyleSheet.create({
   connectorLine: { width: 3, height: '100%', backgroundColor: '#E0E0E0', borderRadius: 2 },
   connectorLineCompleted: { backgroundColor: COLORS.gradientStart },
   connectorDot: { position: 'absolute', width: 7, height: 7, borderRadius: 4, backgroundColor: COLORS.gradientEnd, left: -2 },
+  
+  // Themed island elements
+  // Starting Line - Checkered flag
+  checkeredSquare: { position: 'absolute', width: 15, height: 15, borderRadius: 2 },
+  flagPole: { position: 'absolute', bottom: 60, width: 3, height: 50, backgroundColor: '#8B4513' },
+  
+  // Newbie Gains - Bicep
+  bicepShape: { position: 'absolute', left: '40%', width: 50, height: 40, backgroundColor: '#FFB380', borderTopLeftRadius: 25, borderTopRightRadius: 25, borderBottomRightRadius: 15 },
+  bicepHighlight: { position: 'absolute', left: '45%', width: 20, height: 15, backgroundColor: '#FFC9A3', borderRadius: 10, opacity: 0.7 },
+  
+  // Grind Zone - Flames
+  flame: { position: 'absolute', width: 20, backgroundColor: '#FF6B35', borderTopLeftRadius: 10, borderTopRightRadius: 10, borderBottomLeftRadius: 5, borderBottomRightRadius: 5 },
+  
+  // Iron Paradise - Barbell
+  barbellBar: { position: 'absolute', left: '30%', right: '30%', height: 5, backgroundColor: '#607D8B', borderRadius: 3 },
+  barbellPlate: { position: 'absolute', width: 25, height: 25, backgroundColor: '#455A64', borderRadius: 13, borderWidth: 3, borderColor: '#78909C' },
 });
 
 // Enhanced Badge Card with rarity-based styling and animations
