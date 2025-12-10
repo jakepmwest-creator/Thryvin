@@ -946,7 +946,17 @@ export default function AwardsScreen() {
       
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
         {/* Enhanced Purple Island Banner with particles */}
-        <TouchableOpacity onPress={() => setShowIslandSelector(true)} activeOpacity={0.9}>
+        <TouchableOpacity 
+          onPress={() => setShowIslandSelector(true)} 
+          onLongPress={async () => {
+            // Long press to reset (useful for fixing progression issues)
+            if (confirm('Reset badges to Starting Line? This will clear all progress.')) {
+              await resetToStartingLine();
+              alert('✅ Reset complete! Badges cleared.');
+            }
+          }}
+          activeOpacity={0.9}
+        >
           <LinearGradient colors={[COLORS.gradientStart, COLORS.gradientEnd]} style={styles.islandBanner} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}>
             {/* Floating particles for visual flair */}
             <FloatingParticle delay={0} size={5} left={5} />
