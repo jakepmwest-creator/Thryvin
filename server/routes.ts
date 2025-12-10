@@ -49,6 +49,7 @@ import {
   exercises,
 } from "@shared/schema";
 import { sendPasswordResetEmail } from "./email-service";
+import { sendPasswordResetEmailMock } from "./email-service-mock";
 import { generateSecureToken, hashPassword } from "./crypto-utils";
 import multer from "multer";
 import fs from "fs";
