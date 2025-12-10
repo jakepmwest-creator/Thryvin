@@ -541,7 +541,9 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
           }
         }
         
-        const weeklyGoal = parseInt(user.trainingDays) || 5;
+        // Use the ACTUAL workout plan's training days (count non-rest days in week plan)
+        const planWorkoutDays = weekWorkouts.filter(w => !w.isRestDay).length;
+        const weeklyGoal = planWorkoutDays > 0 ? planWorkoutDays : (parseInt(user.trainingDays) || 3);
         const sessionDuration = parseInt(user.sessionDuration) || 45;
         const weeklyMinutes = thisWeek.reduce((sum, w) => sum + (w.duration || sessionDuration), 0);
         const weeklyMinutesGoal = sessionDuration * weeklyGoal;
