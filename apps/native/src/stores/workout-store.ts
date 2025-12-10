@@ -1352,6 +1352,78 @@ async function generateSingleDay(date: Date, dayIndex: number) {
   }
 }
 
+// Function to update badges after workout completion
+async function updateBadgesAfterWorkout() {
+  try {
+    const workoutStore = useWorkoutStore.getState();
+    const { stats, completedWorkouts } = workoutStore;
+    
+    if (!stats) {
+      console.log('⚠️ [BADGES] No stats available for badge update');
+      return;
+    }
+    
+    // Calculate additional stats needed for badges
+    const strengthSessions = completedWorkouts.filter(w => 
+      w.type?.toLowerCase().includes('strength') || 
+      w.type?.toLowerCase().includes('upper') || 
+      w.type?.toLowerCase().includes('lower')
+    ).length;
+    
+    const cardioSessions = completedWorkouts.filter(w => 
+      w.type?.toLowerCase().includes('cardio')
+    ).length;
+    
+    const upperBodySessions = completedWorkouts.filter(w => 
+      w.type?.toLowerCase().includes('upper') ||
+      w.targetMuscles?.toLowerCase().includes('upper')
+    ).length;
+    
+    const lowerBodySessions = completedWorkouts.filter(w => 
+      w.type?.toLowerCase().includes('lower') ||
+      w.targetMuscles?.toLowerCase().includes('lower') ||
+      w.targetMuscles?.toLowerCase().includes('legs')
+    ).length;
+    
+    const fullBodySessions = completedWorkouts.filter(w => 
+      w.type?.toLowerCase().includes('full') ||
+      w.targetMuscles?.toLowerCase().includes('full')
+    ).length;
+    
+    const cardioMinutes = completedWorkouts
+      .filter(w => w.type?.toLowerCase().includes('cardio'))
+      .reduce((sum, w) => sum + (w.duration || 0), 0);
+    
+    // Prepare workout stats for badge system
+    const workoutStats = {
+      totalWorkouts: stats.totalWorkouts,
+      currentStreak: stats.currentStreak,
+      totalSets: 0, // We don't track this in current stats, could be enhanced
+      totalReps: 0, // We don't track this in current stats, could be enhanced
+      totalMinutes: stats.totalMinutes,
+      cardioMinutes,
+      strengthSessions,
+      cardioSessions,
+      upperBodySessions,
+      lowerBodySessions,
+      fullBodySessions,
+    };
+    
+    console.log('🏆 [BADGES] Updating badges with workout stats:', workoutStats);
+    
+    // Update badges using the awards store
+    const awardsStore = useAwardsStore.getState();
+    const newlyUnlocked = await awardsStore.updateBadgeProgress(workoutStats);
+    
+    if (newlyUnlocked.length > 0) {
+      console.log('🎉 [BADGES] New badges unlocked:', newlyUnlocked.map(b => b.name));
+    }
+    
+  } catch (error) {
+    console.error('❌ [BADGES] Error updating badges after workout:', error);
+  }
+}
+
 // Helper Functions
 
 function generateExercises(user: any, dayIndex: number = 0): Exercise[] {
