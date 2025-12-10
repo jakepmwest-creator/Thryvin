@@ -850,6 +850,9 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
       // Complete the workout with actual duration
       await get().completeWorkout(workout.id, exercises, actualDurationMinutes);
 
+      // Immediately fetch updated stats to refresh rings
+      await get().fetchStats();
+      
       // Clear active session
       set({ activeSession: null });
     } catch (error) {
