@@ -731,7 +731,10 @@ export default function StatsScreen() {
           
           <View style={styles.chartCard}>
             {stats.muscleData.length > 0 ? (
-              <FocusBarChart data={stats.muscleData} />
+              <>
+                <FocusBarChart data={stats.muscleData} />
+                <SimplePieChart data={stats.muscleData} />
+              </>
             ) : (
               <View style={styles.noDataContainer}>
                 <Ionicons name="pie-chart-outline" size={48} color={COLORS.mediumGray} />
