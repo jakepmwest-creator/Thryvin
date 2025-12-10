@@ -333,6 +333,19 @@ interface AwardsState {
   getCurrentIsland: () => Island;
   getIslandProgress: () => { current: number; required: number; percentage: number };
   getBadgesForIsland: (islandId: number) => Badge[];
+  updateBadgeProgress: (workoutStats: {
+    totalWorkouts: number;
+    currentStreak: number;
+    totalSets: number;
+    totalReps: number;
+    totalMinutes: number;
+    cardioMinutes: number;
+    strengthSessions: number;
+    cardioSessions: number;
+    upperBodySessions: number;
+    lowerBodySessions: number;
+    fullBodySessions: number;
+  }) => Promise<Badge[]>;
 }
 
 interface WorkoutDataForBadges {
