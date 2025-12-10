@@ -539,7 +539,7 @@ export default function HomeScreen() {
               { useNativeDriver: false }
             )}
           >
-            {ACTIVITY_CARDS.map((card) => (
+            {dynamicActivityCards.map((card) => (
               <TouchableOpacity
                 key={card.id}
                 style={styles.activityCard}
