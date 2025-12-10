@@ -454,4 +454,88 @@ export const useAwardsStore = create<AwardsState>((set, get) => ({
   },
 
   getBadgesForIsland: (islandId: number) => BADGE_DEFINITIONS.filter(b => b.island === islandId),
+  
+  // Calculate and update badge progress from workout data
+  updateBadgeProgress: async (workoutStats: {
+    totalWorkouts: number;
+    currentStreak: number;
+    totalSets: number;
+    totalReps: number;
+    totalMinutes: number;
+    cardioMinutes: number;
+    strengthSessions: number;
+    cardioSessions: number;
+    upperBodySessions: number;
+    lowerBodySessions: number;
+    fullBodySessions: number;
+  }) => {
+    const { userBadges } = get();
+    const updatedBadges: UserBadge[] = [];
+    let newlyUnlocked: Badge[] = [];
+    
+    console.log('🏆 [AWARDS] Updating badge progress with stats:', workoutStats);
+    
+    BADGE_DEFINITIONS.forEach((badge) => {
+      const existing = userBadges.find(ub => ub.badgeId === badge.id);
+      
+      let currentProgress = 0;
+      
+      // Calculate progress based on target type
+      switch (badge.targetType) {
+        case 'workouts':
+          currentProgress = workoutStats.totalWorkouts;
+          break;
+        case 'streak':
+          currentProgress = workoutStats.currentStreak;
+          break;
+        case 'totalSets':
+          currentProgress = workoutStats.totalSets;
+          break;
+        case 'totalReps':
+          currentProgress = workoutStats.totalReps;
+          break;
+        case 'totalMinutes':
+          if (badge.targetCategory === 'cardio') {
+            currentProgress = workoutStats.cardioMinutes;
+          } else {
+            currentProgress = workoutStats.totalMinutes;
+          }
+          break;
+        case 'categorySessions':
+          if (badge.targetCategory === 'upper') {
+            currentProgress = workoutStats.upperBodySessions;
+          } else if (badge.targetCategory === 'lower') {
+            currentProgress = workoutStats.lowerBodySessions;
+          } else if (badge.targetCategory === 'full') {
+            currentProgress = workoutStats.fullBodySessions;
+          } else if (badge.targetCategory === 'cardio') {
+            currentProgress = workoutStats.cardioSessions;
+          }
+          break;
+      }
+      
+      const completed = currentProgress >= badge.targetValue;
+      const wasCompleted = existing?.completed || false;
+      
+      // Newly unlocked!
+      if (completed && !wasCompleted) {
+        newlyUnlocked.push(badge);
+        console.log('🎉 [AWARDS] Badge unlocked:', badge.name);
+      }
+      
+      updatedBadges.push({
+        badgeId: badge.id,
+        progress: currentProgress,
+        completed: completed,
+        unlockedAt: completed && !wasCompleted ? new Date().toISOString() : existing?.unlockedAt,
+      });
+    });
+    
+    set({ userBadges: updatedBadges });
+    await setStorageItem('user_badges', JSON.stringify(updatedBadges));
+    
+    console.log('✅ [AWARDS] Badge progress updated. Newly unlocked:', newlyUnlocked.length);
+    
+    return newlyUnlocked;
+  },
 }));
