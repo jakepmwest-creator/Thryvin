@@ -46,7 +46,7 @@ const AI_QUOTES = [
 ];
 
 // Progress Ring with SVG for proper arc rendering
-const ProgressRing = ({ label, progress, colors, size = 70, onPress, details }: any) => {
+const ProgressRing = ({ label, progress, colors, size = 70, onPress, details }) => {
   const strokeWidth = 8;
   const radius = (size - strokeWidth) / 2;
   const circumference = radius * 2 * Math.PI;
