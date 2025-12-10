@@ -209,9 +209,9 @@ const islandStyles = StyleSheet.create({
   pulsingGlowInner: { flex: 1, borderRadius: 30 },
   
   // Island card
-  islandCard: { width: SCREEN_WIDTH - 56, marginBottom: 8, borderRadius: 20, overflow: 'visible', alignSelf: 'center' },
-  islandGradient: { height: 140, borderTopLeftRadius: 20, borderTopRightRadius: 20, overflow: 'hidden', position: 'relative' },
-  islandCurrentBorder: { borderWidth: 2, borderColor: COLORS.gradientStart, borderBottomWidth: 0 },
+  islandCard: { width: SCREEN_WIDTH - 56, marginBottom: 8, borderRadius: 24, overflow: 'visible', alignSelf: 'center', ...CARD_SHADOW },
+  islandGradient: { height: 160, borderTopLeftRadius: 24, borderTopRightRadius: 24, overflow: 'hidden', position: 'relative' },
+  islandCurrentBorder: { borderWidth: 3, borderColor: COLORS.gradientStart, borderBottomWidth: 0, shadowColor: COLORS.gradientStart, shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.4, shadowRadius: 12, elevation: 8 },
   
   // Clouds
   cloud: { position: 'absolute', width: 40, height: 16, backgroundColor: 'rgba(255,255,255,0.6)', borderRadius: 8 },
