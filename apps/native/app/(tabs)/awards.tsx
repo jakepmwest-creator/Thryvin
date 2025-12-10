@@ -251,18 +251,23 @@ const IslandCard = ({ island, isUnlocked, isCurrent, completedBadges, totalBadge
   );
 };
 
-// Connector line between islands
+// Connector line between islands - Gradient Progress Bar
 const IslandConnector = ({ isCompleted }: { isCompleted: boolean }) => (
   <View style={islandStyles.connectorContainer}>
-    <View style={[islandStyles.connectorLine, isCompleted && islandStyles.connectorLineCompleted]}>
-      {isCompleted && (
-        <>
-          <View style={[islandStyles.connectorDot, { top: 0 }]} />
-          <View style={[islandStyles.connectorDot, { top: '50%' }]} />
-          <View style={[islandStyles.connectorDot, { bottom: 0 }]} />
-        </>
-      )}
-    </View>
+    {isCompleted ? (
+      <LinearGradient
+        colors={[COLORS.gradientStart, COLORS.gradientEnd]}
+        style={islandStyles.connectorLineGradient}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 0, y: 1 }}
+      >
+        <View style={[islandStyles.connectorDot, { top: 0 }]} />
+        <View style={[islandStyles.connectorDot, { top: '50%' }]} />
+        <View style={[islandStyles.connectorDot, { bottom: 0 }]} />
+      </LinearGradient>
+    ) : (
+      <View style={islandStyles.connectorLine} />
+    )}
   </View>
 );
 
