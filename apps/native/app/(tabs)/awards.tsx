@@ -883,7 +883,7 @@ const celebrationStyles = StyleSheet.create({
 });
 
 export default function AwardsScreen() {
-  const { userBadges, newlyUnlocked, totalXP, currentIsland, loadUserBadges, checkBadges, clearNewlyUnlocked, getCompletedCount, getCurrentIsland, getIslandProgress, getBadgesForIsland } = useAwardsStore();
+  const { userBadges, newlyUnlocked, totalXP, currentIsland, loadUserBadges, checkBadges, clearNewlyUnlocked, getCompletedCount, getCurrentIsland, getIslandProgress, getBadgesForIsland, resetToStartingLine } = useAwardsStore();
   const { completedWorkouts, weekWorkouts, stats } = useWorkoutStore();
   
   const [selectedBadge, setSelectedBadge] = useState<Badge | null>(null);
