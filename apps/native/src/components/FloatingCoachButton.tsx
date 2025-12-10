@@ -547,16 +547,22 @@ export function FloatingCoachButton() {
               isRestDay: false,
             };
             
-            // Add to completed workouts
+            // Add to completed workouts and save
             const currentCompleted = useWorkoutStore.getState().completedWorkouts;
             const updatedCompleted = [loggedWorkout, ...currentCompleted];
+            
+            // Update store
             useWorkoutStore.setState({ completedWorkouts: updatedCompleted });
             
             // Save to storage
             await AsyncStorage.setItem('completed_workouts', JSON.stringify(updatedCompleted));
             
-            // Refresh stats
+            // Force refresh all workout data and stats
+            await useWorkoutStore.getState().fetchCompletedWorkouts();
+            await useWorkoutStore.getState().fetchWeekWorkouts();
             await useWorkoutStore.getState().fetchStats();
+            
+            console.log('✅ Logged workout saved and stats refreshed');
             
             setMessages(prev => [...prev, { 
               role: 'assistant', 
