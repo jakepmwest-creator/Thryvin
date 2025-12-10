@@ -633,23 +633,7 @@ export default function StatsScreen() {
           </View>
         </View>
 
-        {/* Daily Training Minutes Line Chart */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Daily Training Minutes</Text>
-          
-          <View style={styles.chartCard}>
-            {lineChartData.some(d => d.value > 0) ? (
-              <SimpleLineChart data={lineChartData} maxValue={maxLineValue + Math.ceil(maxLineValue * 0.2)} height={180} />
-            ) : (
-              <View style={styles.noDataContainer}>
-                <Ionicons name="trending-up-outline" size={48} color={COLORS.mediumGray} />
-                <Text style={styles.noDataText}>Track your consistency over time</Text>
-              </View>
-            )}
-          </View>
-        </View>
-
-        {/* Muscle Group Distribution */}
+        {/* Muscle Group Distribution (Pie Chart for Workout Nerds!) */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Muscle Group Distribution</Text>
           
