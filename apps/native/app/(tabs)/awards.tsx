@@ -995,7 +995,9 @@ export default function AwardsScreen() {
                 <Animated.View style={[styles.islandProgressFill, { width: `${islandProgress.percentage}%` }]} />
               </View>
               <Text style={styles.islandProgressText}>
-                {currentIsland < 10 ? `${islandProgress.current}/${islandProgress.required} badges to next island` : 'Max level reached! 🌟'}
+                {currentIsland < 10 
+                  ? `${islandProgress.current}/${islandProgress.required} badges to next island (80% required)` 
+                  : 'Max level reached! 🌟'}
               </Text>
             </View>
             
