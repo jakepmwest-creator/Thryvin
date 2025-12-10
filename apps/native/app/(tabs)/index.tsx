@@ -550,6 +550,7 @@ export default function HomeScreen() {
             </LinearGradient>
           </TouchableOpacity>
         </View>
+        */}
 
         {/* Personal Bests */}
         <View style={[styles.section, { paddingBottom: 100 }]}>
