@@ -852,15 +852,15 @@ const celebrationStyles = StyleSheet.create({
   confetti: { position: 'absolute', top: -20, borderRadius: 2 },
   content: { width: SCREEN_WIDTH - 32, maxWidth: 420, backgroundColor: COLORS.white, borderRadius: 32, padding: 36, alignItems: 'center', overflow: 'hidden', ...CARD_SHADOW },
   
-  glowBackground: { position: 'absolute', top: -50, left: -50, right: -50, height: 200 },
+  glowBackground: { position: 'absolute', top: -60, left: -60, right: -60, height: 250 },
   glowGradient: { flex: 1 },
   
-  trophyContainer: { position: 'relative', marginBottom: 8 },
-  trophyEmoji: { fontSize: 56 },
-  sparkle1: { position: 'absolute', top: -5, right: -15, fontSize: 20 },
-  sparkle2: { position: 'absolute', top: 10, left: -20, fontSize: 16 },
+  trophyContainer: { position: 'relative', marginBottom: 12 },
+  trophyEmoji: { fontSize: 72 },
+  sparkle1: { position: 'absolute', top: -8, right: -18, fontSize: 26 },
+  sparkle2: { position: 'absolute', top: 12, left: -24, fontSize: 22 },
   
-  title: { fontSize: 24, fontWeight: '800', color: COLORS.text, marginBottom: 20, letterSpacing: -0.5 },
+  title: { fontSize: 28, fontWeight: '800', color: COLORS.text, marginBottom: 24, letterSpacing: -0.7 },
   
   badgesContainer: { width: '100%', marginBottom: 20 },
   badgeItem: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#F8F9FA', borderRadius: 16, padding: 12 },
