@@ -1041,6 +1041,14 @@ Transform your fitness journey with personalized workouts and gamified progressi
   const island = getCurrentIsland();
   const islandProgress = getIslandProgress();
   const completedCount = getCompletedCount();
+  
+  // Get completed badges for CURRENT island only
+  const currentIslandBadges = BADGE_DEFINITIONS.filter(b => b.island === currentIsland);
+  const currentIslandCompletedCount = userBadges.filter(ub => {
+    const badge = BADGE_DEFINITIONS.find(b => b.id === ub.badgeId && b.island === currentIsland);
+    return badge && ub.completed;
+  }).length;
+  
   const newlyUnlockedBadges = BADGE_DEFINITIONS.filter(b => newlyUnlocked.includes(b.id));
   
   // Get badges for current island and apply filters
