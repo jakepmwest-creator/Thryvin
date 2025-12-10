@@ -848,9 +848,9 @@ const UnlockCelebrationModal = ({ visible, onClose, badges }: { visible: boolean
 };
 
 const celebrationStyles = StyleSheet.create({
-  overlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.8)', justifyContent: 'center', alignItems: 'center' },
+  overlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.85)', justifyContent: 'center', alignItems: 'center' },
   confetti: { position: 'absolute', top: -20, borderRadius: 2 },
-  content: { width: SCREEN_WIDTH - 48, backgroundColor: COLORS.white, borderRadius: 28, padding: 28, alignItems: 'center', overflow: 'hidden' },
+  content: { width: SCREEN_WIDTH - 32, maxWidth: 420, backgroundColor: COLORS.white, borderRadius: 32, padding: 36, alignItems: 'center', overflow: 'hidden', ...CARD_SHADOW },
   
   glowBackground: { position: 'absolute', top: -50, left: -50, right: -50, height: 200 },
   glowGradient: { flex: 1 },
