@@ -409,7 +409,7 @@ export default function HomeScreen() {
           <View style={styles.ringsContainer}>
             <ProgressRing
               label="Weekly Goal"
-              progress={displayStats.weeklyGoal > 0 ? displayStats.weeklyWorkouts / displayStats.weeklyGoal : 0}
+              progress={displayStats.weeklyGoal > 0 ? Math.min(displayStats.weeklyWorkouts / displayStats.weeklyGoal, 1) : 0}
               colors={[COLORS.gradientStart, COLORS.gradientEnd]}
               size={85}
               onPress={() => showRingDetails('Weekly Goal')}
