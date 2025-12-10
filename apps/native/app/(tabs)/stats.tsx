@@ -191,91 +191,75 @@ const FocusBarChart = ({
   );
 };
 
-// Simple Pie Chart Component
+// Simple Pie/Donut Chart Component with Better Colors
 const SimplePieChart = ({ 
   data 
 }: { 
   data: Array<{ category: string; percentage: number; color: string }>;
 }) => {
-  const size = 200;
-  const radius = 80;
-  const center = size / 2;
+  const size = 180;
+  const strokeWidth = 30;
+  const radius = (size - strokeWidth) / 2;
+  const circumference = 2 * Math.PI * radius;
   
-  let currentAngle = -90; // Start from top
+  let cumulativePercentage = 0;
   
   return (
-    <View style={{ alignItems: 'center', marginTop: 24 }}>
-      <View style={{ width: size, height: size, position: 'relative' }}>
-        {data.map((item, index) => {
-          const angle = (item.percentage / 100) * 360;
-          const startAngle = currentAngle;
-          currentAngle += angle;
+    <View style={{ alignItems: 'center', marginTop: 32 }}>
+      {/* Donut Chart using multiple circles */}
+      <View style={{ width: size, height: size }}>
+        <Svg width={size} height={size}>
+          {/* Background circle */}
+          <Circle
+            cx={size / 2}
+            cy={size / 2}
+            r={radius}
+            stroke={COLORS.lightGray}
+            strokeWidth={strokeWidth}
+            fill="transparent"
+          />
           
-          // Calculate slice position
-          const x1 = center + radius * Math.cos((startAngle * Math.PI) / 180);
-          const y1 = center + radius * Math.sin((startAngle * Math.PI) / 180);
-          const x2 = center + radius * Math.cos((currentAngle * Math.PI) / 180);
-          const y2 = center + radius * Math.sin((currentAngle * Math.PI) / 180);
-          
-          const midAngle = startAngle + angle / 2;
-          const labelRadius = radius * 0.65;
-          const labelX = center + labelRadius * Math.cos((midAngle * Math.PI) / 180);
-          const labelY = center + labelRadius * Math.sin((midAngle * Math.PI) / 180);
-          
-          return (
-            <View key={index}>
-              {/* Pie slice - simplified as a View with border radius */}
-              <View
-                style={{
-                  position: 'absolute',
-                  width: radius * 2,
-                  height: radius * 2,
-                  left: center - radius,
-                  top: center - radius,
-                  backgroundColor: item.color,
-                  borderRadius: radius,
-                  transform: [
-                    { rotate: `${startAngle}deg` },
-                  ],
-                  opacity: 0.2 + (index * 0.15),
-                }}
+          {/* Data segments */}
+          {data.map((item, index) => {
+            const strokeDashoffset = circumference - (cumulativePercentage / 100) * circumference;
+            const strokeDasharray = `${(item.percentage / 100) * circumference} ${circumference}`;
+            cumulativePercentage += item.percentage;
+            
+            return (
+              <Circle
+                key={index}
+                cx={size / 2}
+                cy={size / 2}
+                r={radius}
+                stroke={item.color}
+                strokeWidth={strokeWidth}
+                fill="transparent"
+                strokeDasharray={strokeDasharray}
+                strokeDashoffset={-strokeDashoffset}
+                strokeLinecap="butt"
+                rotation="-90"
+                origin={`${size / 2}, ${size / 2}`}
               />
-              {/* Label */}
-              {item.percentage >= 8 && (
-                <View
-                  style={{
-                    position: 'absolute',
-                    left: labelX - 20,
-                    top: labelY - 10,
-                  }}
-                >
-                  <Text style={{ fontSize: 12, fontWeight: '700', color: COLORS.white, textAlign: 'center' }}>
-                    {item.percentage}%
-                  </Text>
-                </View>
-              )}
-            </View>
-          );
-        })}
-        {/* Center circle */}
-        <View
-          style={{
-            position: 'absolute',
-            width: radius,
-            height: radius,
-            left: center - radius / 2,
-            top: center - radius / 2,
-            backgroundColor: COLORS.background,
-            borderRadius: radius / 2,
-          }}
-        />
+            );
+          })}
+        </Svg>
+        
+        {/* Center label */}
+        <View style={{ position: 'absolute', width: size, height: size, justifyContent: 'center', alignItems: 'center' }}>
+          <Text style={{ fontSize: 14, fontWeight: '600', color: COLORS.mediumGray }}>Muscle</Text>
+          <Text style={{ fontSize: 14, fontWeight: '600', color: COLORS.mediumGray }}>Balance</Text>
+        </View>
       </View>
-      {/* Legend */}
-      <View style={{ flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', marginTop: 16, gap: 12 }}>
+      
+      {/* Legend with percentages */}
+      <View style={{ marginTop: 24, width: '100%' }}>
         {data.map((item, index) => (
-          <View key={index} style={{ flexDirection: 'row', alignItems: 'center', marginRight: 12 }}>
-            <View style={{ width: 12, height: 12, borderRadius: 6, backgroundColor: item.color, marginRight: 6 }} />
-            <Text style={{ fontSize: 11, color: COLORS.text }}>{item.category}</Text>
+          <View key={index} style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
+              <View style={{ width: 16, height: 16, borderRadius: 8, backgroundColor: item.color, marginRight: 10 }} />
+              <Text style={{ fontSize: 14, fontWeight: '500', color: COLORS.text }}>{item.category}</Text>
+            </View>
+            <Text style={{ fontSize: 16, fontWeight: '700', color: COLORS.text }}>{item.percentage}%</Text>
           </View>
         ))}
       </View>
