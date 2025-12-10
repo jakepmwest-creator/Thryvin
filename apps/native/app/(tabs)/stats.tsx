@@ -12,6 +12,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
+import Svg, { Circle } from 'react-native-svg';
 import { AppHeader } from '../../src/components/AppHeader';
 import { useAuthStore } from '../../src/stores/auth-store';
 import { useWorkoutStore } from '../../src/stores/workout-store';
