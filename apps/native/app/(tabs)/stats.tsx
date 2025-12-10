@@ -607,16 +607,16 @@ export default function StatsScreen() {
             <Text style={styles.sectionTitle}>Daily Progress</Text>
             <View style={styles.chartToggle}>
               <TouchableOpacity 
-                style={[styles.toggleButton, activeChart === 'workouts' && styles.toggleButtonActive]}
-                onPress={() => setActiveChart('workouts')}
-              >
-                <Text style={[styles.toggleText, activeChart === 'workouts' && styles.toggleTextActive]}>Workouts</Text>
-              </TouchableOpacity>
-              <TouchableOpacity 
                 style={[styles.toggleButton, activeChart === 'minutes' && styles.toggleButtonActive]}
                 onPress={() => setActiveChart('minutes')}
               >
                 <Text style={[styles.toggleText, activeChart === 'minutes' && styles.toggleTextActive]}>Minutes</Text>
+              </TouchableOpacity>
+              <TouchableOpacity 
+                style={[styles.toggleButton, activeChart === 'calories' && styles.toggleButtonActive]}
+                onPress={() => setActiveChart('calories')}
+              >
+                <Text style={[styles.toggleText, activeChart === 'calories' && styles.toggleTextActive]}>Calories</Text>
               </TouchableOpacity>
             </View>
           </View>
