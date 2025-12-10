@@ -263,7 +263,7 @@ export default function WorkoutsScreen() {
           ) : actualTodayWorkout?.isRestDay ? (
             <View style={styles.workoutCard}>
               <View style={styles.workoutCardContent}>
-                <View style={{ alignItems: 'center', paddingVertical: 20 }}>
+                <View style={{ alignItems: 'center' }}>
                   <Ionicons name="bed" size={48} color={COLORS.mediumGray} />
                   <Text style={[styles.workoutName, { marginTop: 12 }]}>Rest Day</Text>
                   <Text style={styles.workoutMeta}>
