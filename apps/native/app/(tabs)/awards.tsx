@@ -873,13 +873,13 @@ const celebrationStyles = StyleSheet.create({
   xpTag: { flexDirection: 'row', alignItems: 'center' },
   xpText: { fontSize: 12, fontWeight: '700', color: COLORS.warning, marginLeft: 3 },
   
-  totalXP: { backgroundColor: '#FFF8E1', paddingHorizontal: 20, paddingVertical: 10, borderRadius: 16, flexDirection: 'row', alignItems: 'center', marginBottom: 20 },
-  totalXPLabel: { fontSize: 13, color: '#F57F17', marginRight: 8 },
-  totalXPValue: { fontSize: 18, fontWeight: '800', color: '#F57F17' },
+  totalXP: { backgroundColor: '#FFF8E1', paddingHorizontal: 24, paddingVertical: 14, borderRadius: 18, flexDirection: 'row', alignItems: 'center', marginBottom: 24 },
+  totalXPLabel: { fontSize: 15, color: '#F57F17', marginRight: 10, fontWeight: '600' },
+  totalXPValue: { fontSize: 22, fontWeight: '800', color: '#F57F17' },
   
   buttonWrapper: { width: '100%' },
-  button: { paddingVertical: 16, borderRadius: 16, alignItems: 'center' },
-  buttonText: { fontSize: 17, fontWeight: '700', color: COLORS.white },
+  button: { paddingVertical: 18, borderRadius: 18, alignItems: 'center' },
+  buttonText: { fontSize: 19, fontWeight: '700', color: COLORS.white },
 });
 
 export default function AwardsScreen() {
