@@ -509,6 +509,11 @@ export default function WorkoutsScreen() {
         category={selectedCategory}
         categoryGradient={selectedCategoryGradient}
       />
+      
+      <LikedDislikedModal
+        visible={likedDislikedModalVisible}
+        onClose={() => setLikedDislikedModalVisible(false)}
+      />
     </SafeAreaView>
   );
 }
