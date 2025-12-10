@@ -17,7 +17,7 @@ import { useRouter } from 'expo-router';
 import * as SecureStore from 'expo-secure-store';
 import { CustomAlert } from '../../src/components/CustomAlert';
 
-const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL || 'https://fitness-awards.preview.emergentagent.com';
+const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL || 'https://thryvin-app.preview.emergentagent.com';
 
 const COLORS = {
   accent: '#a259ff',

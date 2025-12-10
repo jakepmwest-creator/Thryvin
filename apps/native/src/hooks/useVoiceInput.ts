@@ -2,7 +2,7 @@ import { useState, useRef, useCallback } from 'react';
 import { Audio } from 'expo-av';
 import { Alert, Platform } from 'react-native';
 
-const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL || 'https://fitness-awards.preview.emergentagent.com';
+const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL || 'https://thryvin-app.preview.emergentagent.com';
 
 interface UseVoiceInputOptions {
   onTranscription?: (text: string) => void;

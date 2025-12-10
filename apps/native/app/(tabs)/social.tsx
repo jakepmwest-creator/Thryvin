@@ -28,7 +28,7 @@ const COLORS = {
   mediumGray: '#8E8E93',
 };
 
-const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL || 'https://fitness-awards.preview.emergentagent.com';
+const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL || 'https://thryvin-app.preview.emergentagent.com';
 
 // BeReal-style reactions
 const REACTION_TYPES = [

@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import * as SecureStore from 'expo-secure-store';
 import { notificationService } from '../services/notificationService';
 
-const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL || 'https://fitness-awards.preview.emergentagent.com';
+const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL || 'https://thryvin-app.preview.emergentagent.com';
 
 // Web-compatible storage helpers
 const getStorageItem = async (key: string): Promise<string | null> => {
