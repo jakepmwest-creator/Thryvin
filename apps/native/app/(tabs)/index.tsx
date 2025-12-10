@@ -286,7 +286,7 @@ export default function HomeScreen() {
     setTimeout(() => setRingDetailsVisible(null), 3000);
   };
   
-  const handleTourNavigation = (stepId: string) => {
+  const handleTourNavigation = (stepId) => {
     console.log('🎯 Tour navigation:', stepId);
     
     if (stepId === 'tap-workouts-tab') {
