@@ -186,12 +186,12 @@ export const BADGE_DEFINITIONS: Badge[] = [
 
   // ==================== ISLAND 2: NEWBIE GAINS ====================
   // Consistency
-  { id: 'i2_streak_10', name: 'On a Roll', description: '10 day streak', category: 'consistency', rarity: 'common', icon: 'flame', targetType: 'streak', targetValue: 10, tier: 4, gradient: ['#FF6B35', '#FFD60A'], xp: 100, island: 2 },
-  { id: 'i2_streak_14', name: 'Two Week Titan', description: '14 day streak', category: 'consistency', rarity: 'rare', icon: 'flame', targetType: 'streak', targetValue: 14, tier: 5, gradient: ['#FF3B30', '#FF9500'], xp: 150, island: 2 },
+  { id: 'i2_streak_14', name: 'Two Week Fire', description: '14 day streak', category: 'consistency', rarity: 'common', icon: 'flame', targetType: 'streak', targetValue: 14, tier: 4, gradient: ['#FF6B35', '#FFD60A'], xp: 200, island: 2 },
+  { id: 'i2_streak_21', name: 'Three Week Titan', description: '21 day streak', category: 'consistency', rarity: 'rare', icon: 'flame', targetType: 'streak', targetValue: 21, tier: 5, gradient: ['#FF3B30', '#FF9500'], xp: 300, island: 2 },
   // Program  
-  { id: 'i2_workout_10', name: 'Double Digits', description: 'Complete 10 workouts', category: 'program', rarity: 'common', icon: 'medal', targetType: 'workouts', targetValue: 10, tier: 4, gradient: ['#5B8DEF', '#34C4E5'], xp: 100, island: 2 },
-  { id: 'i2_workout_15', name: 'Committed', description: 'Complete 15 workouts', category: 'program', rarity: 'common', icon: 'ribbon', targetType: 'workouts', targetValue: 15, tier: 5, gradient: ['#34C759', '#00C7BE'], xp: 125, island: 2 },
-  { id: 'i2_workout_20', name: 'Habit Forming', description: 'Complete 20 workouts', category: 'program', rarity: 'rare', icon: 'trophy', targetType: 'workouts', targetValue: 20, tier: 6, gradient: ['#FFD700', '#FFA500'], xp: 175, island: 2 },
+  { id: 'i2_workout_30', name: 'Month Master', description: 'Complete 30 workouts', category: 'program', rarity: 'common', icon: 'medal', targetType: 'workouts', targetValue: 30, tier: 4, gradient: ['#5B8DEF', '#34C4E5'], xp: 300, island: 2 },
+  { id: 'i2_workout_45', name: 'Committed', description: 'Complete 45 workouts', category: 'program', rarity: 'common', icon: 'ribbon', targetType: 'workouts', targetValue: 45, tier: 5, gradient: ['#34C759', '#00C7BE'], xp: 400, island: 2 },
+  { id: 'i2_workout_60', name: 'Habit Locked', description: 'Complete 60 workouts', category: 'program', rarity: 'rare', icon: 'trophy', targetType: 'workouts', targetValue: 60, tier: 6, gradient: ['#FFD700', '#FFA500'], xp: 500, island: 2 },
   // Volume
   { id: 'i2_sets_75', name: 'Set Builder', description: 'Complete 75 sets', category: 'volume', rarity: 'common', icon: 'layers', targetType: 'totalSets', targetValue: 75, tier: 2, gradient: ['#34C759', '#00C7BE'], xp: 75, island: 2 },
   { id: 'i2_sets_150', name: 'Set Stacker', description: 'Complete 150 sets', category: 'volume', rarity: 'rare', icon: 'layers', targetType: 'totalSets', targetValue: 150, tier: 3, gradient: ['#FF6B35', '#FFD60A'], xp: 125, island: 2 },
