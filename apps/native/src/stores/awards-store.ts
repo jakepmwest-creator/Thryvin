@@ -179,6 +179,10 @@ export const BADGE_DEFINITIONS: Badge[] = [
   // Volume
   { id: 'i1_sets_25', name: 'Set Starter', description: 'Complete 25 sets', category: 'volume', rarity: 'common', icon: 'layers', targetType: 'totalSets', targetValue: 25, tier: 1, gradient: ['#5B8DEF', '#34C4E5'], xp: 30, island: 1 },
   { id: 'i1_reps_250', name: 'Rep Rookie', description: 'Complete 250 reps', category: 'volume', rarity: 'common', icon: 'barbell', targetType: 'totalReps', targetValue: 250, tier: 1, gradient: ['#FF6B35', '#FFD60A'], xp: 30, island: 1 },
+  // Cardio (for cardio-focused users)
+  { id: 'i1_cardio_10min', name: 'Cardio Beginner', description: '10 minutes of cardio', category: 'focus', rarity: 'common', icon: 'heart', targetType: 'totalMinutes', targetValue: 10, targetCategory: 'cardio', tier: 1, gradient: ['#FF3B30', '#FF9500'], xp: 25, island: 1 },
+  { id: 'i1_cardio_20min', name: 'Cardio Starter', description: '20 minutes of cardio', category: 'focus', rarity: 'common', icon: 'heart', targetType: 'totalMinutes', targetValue: 20, targetCategory: 'cardio', tier: 2, gradient: ['#FF6B35', '#FFD60A'], xp: 40, island: 1 },
+  { id: 'i1_cardio_30min', name: 'Cardio Achiever', description: '30 minutes of cardio', category: 'focus', rarity: 'common', icon: 'heart-circle', targetType: 'totalMinutes', targetValue: 30, targetCategory: 'cardio', tier: 3, gradient: ['#34C759', '#00C7BE'], xp: 60, island: 1 },
 
   // ==================== ISLAND 2: NEWBIE GAINS ====================
   // Consistency
