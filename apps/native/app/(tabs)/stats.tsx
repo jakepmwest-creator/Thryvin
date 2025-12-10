@@ -191,6 +191,98 @@ const FocusBarChart = ({
   );
 };
 
+// Simple Pie Chart Component
+const SimplePieChart = ({ 
+  data 
+}: { 
+  data: Array<{ category: string; percentage: number; color: string }>;
+}) => {
+  const size = 200;
+  const radius = 80;
+  const center = size / 2;
+  
+  let currentAngle = -90; // Start from top
+  
+  return (
+    <View style={{ alignItems: 'center', marginTop: 24 }}>
+      <View style={{ width: size, height: size, position: 'relative' }}>
+        {data.map((item, index) => {
+          const angle = (item.percentage / 100) * 360;
+          const startAngle = currentAngle;
+          currentAngle += angle;
+          
+          // Calculate slice position
+          const x1 = center + radius * Math.cos((startAngle * Math.PI) / 180);
+          const y1 = center + radius * Math.sin((startAngle * Math.PI) / 180);
+          const x2 = center + radius * Math.cos((currentAngle * Math.PI) / 180);
+          const y2 = center + radius * Math.sin((currentAngle * Math.PI) / 180);
+          
+          const midAngle = startAngle + angle / 2;
+          const labelRadius = radius * 0.65;
+          const labelX = center + labelRadius * Math.cos((midAngle * Math.PI) / 180);
+          const labelY = center + labelRadius * Math.sin((midAngle * Math.PI) / 180);
+          
+          return (
+            <View key={index}>
+              {/* Pie slice - simplified as a View with border radius */}
+              <View
+                style={{
+                  position: 'absolute',
+                  width: radius * 2,
+                  height: radius * 2,
+                  left: center - radius,
+                  top: center - radius,
+                  backgroundColor: item.color,
+                  borderRadius: radius,
+                  transform: [
+                    { rotate: `${startAngle}deg` },
+                  ],
+                  opacity: 0.2 + (index * 0.15),
+                }}
+              />
+              {/* Label */}
+              {item.percentage >= 8 && (
+                <View
+                  style={{
+                    position: 'absolute',
+                    left: labelX - 20,
+                    top: labelY - 10,
+                  }}
+                >
+                  <Text style={{ fontSize: 12, fontWeight: '700', color: COLORS.white, textAlign: 'center' }}>
+                    {item.percentage}%
+                  </Text>
+                </View>
+              )}
+            </View>
+          );
+        })}
+        {/* Center circle */}
+        <View
+          style={{
+            position: 'absolute',
+            width: radius,
+            height: radius,
+            left: center - radius / 2,
+            top: center - radius / 2,
+            backgroundColor: COLORS.background,
+            borderRadius: radius / 2,
+          }}
+        />
+      </View>
+      {/* Legend */}
+      <View style={{ flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', marginTop: 16, gap: 12 }}>
+        {data.map((item, index) => (
+          <View key={index} style={{ flexDirection: 'row', alignItems: 'center', marginRight: 12 }}>
+            <View style={{ width: 12, height: 12, borderRadius: 6, backgroundColor: item.color, marginRight: 6 }} />
+            <Text style={{ fontSize: 11, color: COLORS.text }}>{item.category}</Text>
+          </View>
+        ))}
+      </View>
+    </View>
+  );
+};
+
 const simpleChartStyles = StyleSheet.create({
   barContainer: { width: '100%', paddingHorizontal: 8 },
   barsRow: { flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-between', flex: 1 },
