@@ -303,7 +303,7 @@ export default function StatsScreen() {
   const { completedWorkouts, weekWorkouts, fetchCompletedWorkouts } = useWorkoutStore();
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const [activeChart, setActiveChart] = useState<'workouts' | 'minutes'>('workouts');
+  const [activeChart, setActiveChart] = useState<'minutes' | 'calories'>('minutes');
 
   // Calculate stats from LOCAL data (completedWorkouts from workout-store)
   const calculateLocalStats = useCallback(() => {
