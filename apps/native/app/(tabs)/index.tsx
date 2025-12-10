@@ -131,6 +131,7 @@ export default function HomeScreen() {
   const fetchWeekWorkouts = useWorkoutStore(state => state.fetchWeekWorkouts);
   const fetchStats = useWorkoutStore(state => state.fetchStats);
   const fetchPersonalBests = useWorkoutStore(state => state.fetchPersonalBests);
+  const fetchCompletedWorkouts = useWorkoutStore(state => state.fetchCompletedWorkouts);
   const forceRegenerateWeek = useWorkoutStore(state => state.forceRegenerateWeek);
 
   // Generate dynamic activity cards
