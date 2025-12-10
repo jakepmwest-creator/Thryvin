@@ -214,13 +214,13 @@ const islandStyles = StyleSheet.create({
   islandCurrentBorder: { borderWidth: 3, borderColor: COLORS.gradientStart, borderBottomWidth: 0, shadowColor: COLORS.gradientStart, shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.4, shadowRadius: 12, elevation: 8 },
   
   // Clouds
-  cloud: { position: 'absolute', width: 40, height: 16, backgroundColor: 'rgba(255,255,255,0.6)', borderRadius: 8 },
+  cloud: { position: 'absolute', width: 46, height: 18, backgroundColor: 'rgba(255,255,255,0.7)', borderRadius: 10, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.05, shadowRadius: 2 },
   
   // Terrain
-  terrainContainer: { position: 'absolute', bottom: 0, left: 0, right: 0, height: 60, flexDirection: 'row', justifyContent: 'center', alignItems: 'flex-end' },
-  mountainLeft: { width: 60, height: 40, borderTopLeftRadius: 30, borderTopRightRadius: 10, marginRight: -15 },
-  mountainCenter: { width: 80, height: 55, borderTopLeftRadius: 40, borderTopRightRadius: 40, zIndex: 1 },
-  mountainRight: { width: 50, height: 35, borderTopLeftRadius: 10, borderTopRightRadius: 25, marginLeft: -10 },
+  terrainContainer: { position: 'absolute', bottom: 0, left: 0, right: 0, height: 70, flexDirection: 'row', justifyContent: 'center', alignItems: 'flex-end' },
+  mountainLeft: { width: 70, height: 48, borderTopLeftRadius: 35, borderTopRightRadius: 12, marginRight: -18, shadowColor: '#000', shadowOffset: { width: -2, height: -2 }, shadowOpacity: 0.15, shadowRadius: 4 },
+  mountainCenter: { width: 90, height: 65, borderTopLeftRadius: 45, borderTopRightRadius: 45, zIndex: 1, shadowColor: '#000', shadowOffset: { width: 0, height: -3 }, shadowOpacity: 0.2, shadowRadius: 6 },
+  mountainRight: { width: 60, height: 42, borderTopLeftRadius: 12, borderTopRightRadius: 30, marginLeft: -12, shadowColor: '#000', shadowOffset: { width: 2, height: -2 }, shadowOpacity: 0.15, shadowRadius: 4 },
   
   // Emoji
   emojiContainer: { position: 'absolute', top: 15, left: 20, backgroundColor: 'rgba(255,255,255,0.9)', borderRadius: 20, padding: 8 },
