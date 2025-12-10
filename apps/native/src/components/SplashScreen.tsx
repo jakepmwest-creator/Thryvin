@@ -1,18 +1,18 @@
 import React, { useEffect, useRef } from 'react';
 import {
   View,
-  Text,
   StyleSheet,
   Animated,
   Dimensions,
   Image,
+  Easing,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 
-const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
+const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 const COLORS = {
-  gradientStart: '#A22BF6',
+  gradientStart: '#A259FF',
   gradientEnd: '#FF4EC7',
   white: '#FFFFFF',
 };
@@ -23,42 +23,56 @@ interface SplashScreenProps {
 
 export const SplashScreen: React.FC<SplashScreenProps> = ({ onAnimationComplete }) => {
   // Animation values
-  const logoScale = useRef(new Animated.Value(0.3)).current;
+  const logoScale = useRef(new Animated.Value(0.5)).current;
   const logoOpacity = useRef(new Animated.Value(0)).current;
-  const logoRotate = useRef(new Animated.Value(0)).current;
-  const textOpacity = useRef(new Animated.Value(0)).current;
-  const textTranslateY = useRef(new Animated.Value(30)).current;
-  const taglineOpacity = useRef(new Animated.Value(0)).current;
-  const taglineTranslateY = useRef(new Animated.Value(20)).current;
+  const logoBounce = useRef(new Animated.Value(0)).current;
+  const circleScale = useRef(new Animated.Value(0)).current;
+  const circleOpacity = useRef(new Animated.Value(0)).current;
   const containerOpacity = useRef(new Animated.Value(1)).current;
-  const pulseAnim = useRef(new Animated.Value(1)).current;
   const glowAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
-    // Start glow animation loop
+    // Continuous subtle glow animation
     Animated.loop(
       Animated.sequence([
         Animated.timing(glowAnim, {
           toValue: 1,
-          duration: 1000,
+          duration: 2000,
+          easing: Easing.inOut(Easing.ease),
           useNativeDriver: true,
         }),
         Animated.timing(glowAnim, {
           toValue: 0,
-          duration: 1000,
+          duration: 2000,
+          easing: Easing.inOut(Easing.ease),
           useNativeDriver: true,
         }),
       ])
     ).start();
 
-    // Main animation sequence (~2 seconds total)
+    // Main animation sequence
     Animated.sequence([
-      // Phase 1: Logo appears with scale and rotation (0-500ms)
+      // White circle appears
+      Animated.parallel([
+        Animated.spring(circleScale, {
+          toValue: 1,
+          tension: 40,
+          friction: 7,
+          useNativeDriver: true,
+        }),
+        Animated.timing(circleOpacity, {
+          toValue: 1,
+          duration: 400,
+          useNativeDriver: true,
+        }),
+      ]),
+      
+      // Logo appears and bounces
       Animated.parallel([
         Animated.spring(logoScale, {
           toValue: 1,
-          tension: 50,
-          friction: 7,
+          tension: 35,
+          friction: 6,
           useNativeDriver: true,
         }),
         Animated.timing(logoOpacity, {
@@ -66,64 +80,34 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ onAnimationComplete 
           duration: 400,
           useNativeDriver: true,
         }),
-        Animated.timing(logoRotate, {
-          toValue: 1,
-          duration: 500,
-          useNativeDriver: true,
-        }),
       ]),
-      
-      // Phase 2: Title text slides up (500-800ms)
-      Animated.parallel([
-        Animated.timing(textOpacity, {
-          toValue: 1,
-          duration: 250,
-          useNativeDriver: true,
-        }),
-        Animated.spring(textTranslateY, {
-          toValue: 0,
-          tension: 80,
-          friction: 8,
-          useNativeDriver: true,
-        }),
-      ]),
-      
-      // Phase 3: Tagline appears (800-1000ms)
-      Animated.parallel([
-        Animated.timing(taglineOpacity, {
-          toValue: 1,
-          duration: 200,
-          useNativeDriver: true,
-        }),
-        Animated.spring(taglineTranslateY, {
-          toValue: 0,
-          tension: 80,
-          friction: 8,
-          useNativeDriver: true,
-        }),
-      ]),
-      
-      // Phase 4: Pulse effect on logo (1000-1400ms)
-      Animated.sequence([
-        Animated.timing(pulseAnim, {
-          toValue: 1.15,
-          duration: 200,
-          useNativeDriver: true,
-        }),
-        Animated.timing(pulseAnim, {
-          toValue: 1,
-          duration: 200,
-          useNativeDriver: true,
-        }),
-      ]),
-      
-      // Phase 5: Hold for a moment (1400-1700ms)
-      Animated.delay(300),
-      
-      // Phase 6: Fade out everything (1700-2000ms)
+
+      // Bounce animation (3 times)
+      Animated.loop(
+        Animated.sequence([
+          Animated.timing(logoBounce, {
+            toValue: -15,
+            duration: 300,
+            easing: Easing.out(Easing.quad),
+            useNativeDriver: true,
+          }),
+          Animated.timing(logoBounce, {
+            toValue: 0,
+            duration: 300,
+            easing: Easing.in(Easing.quad),
+            useNativeDriver: true,
+          }),
+        ]),
+        { iterations: 3 }
+      ),
+
+      // Hold for a moment
+      Animated.delay(400),
+
+      // Fade out
       Animated.timing(containerOpacity, {
         toValue: 0,
-        duration: 300,
+        duration: 400,
         useNativeDriver: true,
       }),
     ]).start(() => {
@@ -131,14 +115,14 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ onAnimationComplete 
     });
   }, []);
 
-  const rotateInterpolate = logoRotate.interpolate({
-    inputRange: [0, 1],
-    outputRange: ['-15deg', '0deg'],
-  });
-
   const glowOpacity = glowAnim.interpolate({
     inputRange: [0, 1],
-    outputRange: [0.3, 0.8],
+    outputRange: [0.3, 0.6],
+  });
+
+  const glowScale = glowAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [1, 1.1],
   });
 
   return (
@@ -153,57 +137,51 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ onAnimationComplete 
         <Animated.View style={[styles.bgCircle, styles.bgCircle1, { opacity: glowOpacity }]} />
         <Animated.View style={[styles.bgCircle, styles.bgCircle2, { opacity: glowOpacity }]} />
 
-        {/* Content */}
+        {/* Content - Just logo on white circle */}
         <View style={styles.content}>
-          {/* Logo with glow effect */}
           <Animated.View
             style={[
-              styles.logoContainer,
+              styles.logoCircleContainer,
               {
-                opacity: logoOpacity,
-                transform: [
-                  { scale: Animated.multiply(logoScale, pulseAnim) },
-                  { rotate: rotateInterpolate },
-                ],
+                opacity: circleOpacity,
+                transform: [{ scale: circleScale }],
               },
             ]}
           >
-            {/* Glow behind logo */}
-            <Animated.View style={[styles.logoGlow, { opacity: glowOpacity }]} />
-            
-            <Image
-              source={require('../../assets/images/thryvin-logo-new.png')}
-              style={styles.logo}
-              resizeMode="contain"
+            {/* Animated glow */}
+            <Animated.View
+              style={[
+                styles.logoGlow,
+                {
+                  opacity: glowOpacity,
+                  transform: [{ scale: glowScale }],
+                },
+              ]}
             />
-          </Animated.View>
 
-          {/* App Name */}
-          <Animated.View
-            style={{
-              opacity: textOpacity,
-              transform: [{ translateY: textTranslateY }],
-            }}
-          >
-            <Text style={styles.appName}>THRYVIN'</Text>
-          </Animated.View>
+            {/* White circle background */}
+            <View style={styles.whiteCircle} />
 
-          {/* Tagline */}
-          <Animated.View
-            style={{
-              opacity: taglineOpacity,
-              transform: [{ translateY: taglineTranslateY }],
-            }}
-          >
-            <Text style={styles.tagline}>AI-Powered Fitness Coaching</Text>
+            {/* Your actual Thryvin logo */}
+            <Animated.View
+              style={[
+                styles.logoWrapper,
+                {
+                  opacity: logoOpacity,
+                  transform: [
+                    { scale: logoScale },
+                    { translateY: logoBounce },
+                  ],
+                },
+              ]}
+            >
+              <Image
+                source={require('../../assets/images/thryvin-logo-final.png')}
+                style={styles.logo}
+                resizeMode="contain"
+              />
+            </Animated.View>
           </Animated.View>
-        </View>
-
-        {/* Bottom decorative dots */}
-        <View style={styles.bottomDecor}>
-          <Animated.View style={[styles.decorDot, { opacity: taglineOpacity }]} />
-          <Animated.View style={[styles.decorDot, styles.decorDotMiddle, { opacity: taglineOpacity }]} />
-          <Animated.View style={[styles.decorDot, { opacity: taglineOpacity }]} />
         </View>
       </LinearGradient>
     </Animated.View>
@@ -228,75 +206,59 @@ const styles = StyleSheet.create({
   bgCircle: {
     position: 'absolute',
     borderRadius: 999,
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    backgroundColor: 'rgba(255, 255, 255, 0.08)',
   },
   bgCircle1: {
-    width: SCREEN_WIDTH * 1.5,
-    height: SCREEN_WIDTH * 1.5,
-    top: -SCREEN_WIDTH * 0.5,
-    right: -SCREEN_WIDTH * 0.5,
+    width: SCREEN_WIDTH * 1.8,
+    height: SCREEN_WIDTH * 1.8,
+    top: -SCREEN_WIDTH * 0.6,
+    right: -SCREEN_WIDTH * 0.6,
   },
   bgCircle2: {
-    width: SCREEN_WIDTH,
-    height: SCREEN_WIDTH,
-    bottom: -SCREEN_WIDTH * 0.3,
-    left: -SCREEN_WIDTH * 0.3,
+    width: SCREEN_WIDTH * 1.2,
+    height: SCREEN_WIDTH * 1.2,
+    bottom: -SCREEN_WIDTH * 0.4,
+    left: -SCREEN_WIDTH * 0.4,
   },
   content: {
     alignItems: 'center',
     justifyContent: 'center',
   },
-  logoContainer: {
-    width: 160,
-    height: 160,
-    marginBottom: 28,
+  logoCircleContainer: {
+    width: 220,
+    height: 220,
     justifyContent: 'center',
     alignItems: 'center',
+    position: 'relative',
   },
   logoGlow: {
+    position: 'absolute',
+    width: 260,
+    height: 260,
+    borderRadius: 130,
+    backgroundColor: 'rgba(255, 255, 255, 0.15)',
+  },
+  whiteCircle: {
     position: 'absolute',
     width: 200,
     height: 200,
     borderRadius: 100,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 12 },
+    shadowOpacity: 0.3,
+    shadowRadius: 30,
+    elevation: 12,
+  },
+  logoWrapper: {
+    width: 180,
+    height: 180,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   logo: {
-    width: 140,
-    height: 140,
-  },
-  appName: {
-    fontSize: 44,
-    fontWeight: '900',
-    color: COLORS.white,
-    letterSpacing: 5,
-    textShadowColor: 'rgba(0, 0, 0, 0.25)',
-    textShadowOffset: { width: 0, height: 3 },
-    textShadowRadius: 6,
-  },
-  tagline: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: 'rgba(255, 255, 255, 0.95)',
-    marginTop: 14,
-    letterSpacing: 1.5,
-  },
-  bottomDecor: {
-    position: 'absolute',
-    bottom: 70,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-  },
-  decorDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: 'rgba(255, 255, 255, 0.5)',
-  },
-  decorDotMiddle: {
-    width: 28,
-    backgroundColor: 'rgba(255, 255, 255, 0.9)',
-    borderRadius: 14,
+    width: 160,
+    height: 160,
   },
 });
 

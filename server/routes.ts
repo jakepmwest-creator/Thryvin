@@ -48,8 +48,7 @@ import {
   workoutDays,
   exercises,
 } from "@shared/schema";
-import { sendPasswordResetEmail } from "./email-service";
-import { sendPasswordResetEmailMock } from "./email-service-mock";
+import { sendPasswordResetEmail } from "./email-service-resend";
 import { generateSecureToken, hashPassword } from "./crypto-utils";
 import multer from "multer";
 import fs from "fs";
@@ -955,14 +954,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "Email is required" });
       }
 
-      // Check if user exists
-      const user = await db
-        .select()
-        .from(users)
-        .where(eq(users.email, email))
-        .limit(1);
+      // Check if user exists (using storage instead of db)
+      const user = await storage.getUserByEmail(email);
 
-      if (user.length === 0) {
+      if (!user) {
         // For security, don't reveal if email exists or not
         return res.json({
           message:
@@ -970,36 +965,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      // Generate secure token
-      const resetToken = generateSecureToken();
-      const expiresAt = new Date(Date.now() + 60 * 60 * 1000); // 1 hour from now
-
-      // Save token to database
-      try {
-        await db.insert(passwordResetTokens).values({
-          email,
-          token: resetToken,
-          expiresAt,
-        });
-      } catch (dbError) {
-        console.error("Database error creating reset token:", dbError);
-        return res
-          .status(500)
-          .json({ error: "Failed to process request. Please try again." });
+      // Generate 6-digit code
+      const resetToken = Math.floor(100000 + Math.random() * 900000).toString();
+      
+      // Store token in memory (using a simple Map for now)
+      if (!global.passwordResetTokens) {
+        global.passwordResetTokens = new Map();
       }
+      
+      global.passwordResetTokens.set(email, {
+        token: resetToken,
+        expiresAt: Date.now() + 60 * 60 * 1000, // 1 hour from now
+      });
+      
+      console.log(`🔑 6-digit reset code generated for ${email}: ${resetToken}`);
 
-      // Send email (use mock if SendGrid not configured)
+      // Send email via Resend
       try {
-        if (process.env.SENDGRID_API_KEY) {
-          await sendPasswordResetEmail(email, resetToken, user[0].name || 'User');
-          console.log(`✅ Password reset email sent to ${email} via SendGrid`);
-        } else {
-          await sendPasswordResetEmailMock(email, resetToken, user[0].name || 'User');
-          console.log(`✅ Password reset email logged (MOCK MODE) for ${email}`);
-          console.log(`📧 Reset Code: ${resetToken}`);
-        }
+        await sendPasswordResetEmail(email, resetToken, user.name || 'User');
+        console.log(`✅ Password reset email sent to ${email} via Resend`);
       } catch (emailError) {
-        console.error("Email error:", emailError);
+        console.error("❌ Email error:", emailError);
         return res.status(500).json({
           error:
             "Failed to send reset email. Please check that your email is correct and try again.",
@@ -1035,43 +1021,49 @@ export async function registerRoutes(app: Express): Promise<Server> {
           .json({ error: "Password must be at least 6 characters long" });
       }
 
-      // Find valid token
-      const resetTokenRecord = await db
-        .select()
-        .from(passwordResetTokens)
-        .where(eq(passwordResetTokens.token, token))
-        .limit(1);
-
-      if (resetTokenRecord.length === 0) {
-        return res
-          .status(400)
-          .json({ error: "Invalid or expired reset token" });
+      // Find valid token (from memory store)
+      if (!global.passwordResetTokens) {
+        return res.status(400).json({ error: "Invalid or expired reset token" });
       }
 
-      const tokenData = resetTokenRecord[0];
+      let tokenData = null;
+      let tokenEmail = null;
+
+      // Find which email this token belongs to
+      for (const [email, data] of global.passwordResetTokens.entries()) {
+        if (data.token === token) {
+          tokenData = data;
+          tokenEmail = email;
+          break;
+        }
+      }
+
+      if (!tokenData) {
+        return res.status(400).json({ error: "Invalid or expired reset token" });
+      }
 
       // Check if token is expired
-      if (new Date() > tokenData.expiresAt) {
+      if (Date.now() > tokenData.expiresAt) {
         // Clean up expired token
-        await db
-          .delete(passwordResetTokens)
-          .where(eq(passwordResetTokens.token, token));
+        global.passwordResetTokens.delete(tokenEmail);
         return res.status(400).json({
           error: "Reset token has expired. Please request a new one.",
         });
       }
 
-      // Update user password
+      // Update user password using storage
+      const user = await storage.getUserByEmail(tokenEmail);
+      if (!user) {
+        return res.status(400).json({ error: "User not found" });
+      }
+
       const hashedPassword = hashPassword(newPassword);
-      await db
-        .update(users)
-        .set({ password: hashedPassword })
-        .where(eq(users.email, tokenData.email));
+      await storage.updateUser(user.id, { password: hashedPassword });
 
       // Delete used token
-      await db
-        .delete(passwordResetTokens)
-        .where(eq(passwordResetTokens.token, token));
+      global.passwordResetTokens.delete(tokenEmail);
+      
+      console.log(`✅ Password reset successfully for ${tokenEmail}`);
 
       res.json({
         message:
