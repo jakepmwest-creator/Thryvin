@@ -552,4 +552,10 @@ const styles = StyleSheet.create({
   restDayAskButton: { borderRadius: 12, overflow: 'hidden', marginTop: 16 },
   restDayAskGradient: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingVertical: 12, gap: 8 },
   restDayAskText: { fontSize: 14, fontWeight: '600', color: COLORS.white },
+  logWorkoutCard: { backgroundColor: COLORS.white, borderRadius: 20, padding: 20, borderWidth: 2, borderColor: COLORS.lightGray, borderStyle: 'dashed' },
+  logWorkoutContent: { flexDirection: 'row', alignItems: 'center' },
+  logWorkoutIcon: { marginRight: 16 },
+  logWorkoutText: { flex: 1 },
+  logWorkoutTitle: { fontSize: 16, fontWeight: '700', color: COLORS.text, marginBottom: 4 },
+  logWorkoutSubtitle: { fontSize: 13, color: COLORS.mediumGray },
 });
