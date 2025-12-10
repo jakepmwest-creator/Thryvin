@@ -324,7 +324,7 @@ export default function HomeScreen() {
     }
   }, [currentStep, showTour]);
 
-  const handleActivityCardPress = (action: string) => {
+  const handleActivityCardPress = (action) => {
     switch (action) {
       case 'stats':
         router.push('/(tabs)/stats');
