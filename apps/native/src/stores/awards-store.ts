@@ -471,15 +471,26 @@ export const useAwardsStore = create<AwardsState>((set, get) => ({
   getCurrentIsland: () => ISLANDS.find(i => i.id === get().currentIsland) || ISLANDS[0],
   
   getIslandProgress: () => {
-    const { currentIsland } = get();
+    const { currentIsland, userBadges } = get();
     const completedCount = get().getCompletedCount();
     const nextIsland = ISLANDS.find(i => i.id === currentIsland + 1);
     if (!nextIsland) return { current: completedCount, required: completedCount, percentage: 100 };
-    const currentIslandData = ISLANDS.find(i => i.id === currentIsland);
-    const currentRequired = currentIslandData?.requiredBadges || 0;
-    const progressInIsland = completedCount - currentRequired;
-    const neededForNext = nextIsland.requiredBadges - currentRequired;
-    return { current: progressInIsland, required: neededForNext, percentage: Math.min(Math.round((progressInIsland / neededForNext) * 100), 100) };
+    
+    // Calculate progress based on current island completion (80% required)
+    const currentIslandBadges = BADGE_DEFINITIONS.filter(b => b.island === currentIsland);
+    const currentIslandCompletedCount = userBadges.filter(ub => {
+      const badge = BADGE_DEFINITIONS.find(b => b.id === ub.badgeId && b.island === currentIsland);
+      return badge && ub.completed;
+    }).length;
+    
+    const requiredCompletion = Math.max(1, Math.ceil(currentIslandBadges.length * 0.8));
+    const percentage = Math.min(Math.round((currentIslandCompletedCount / requiredCompletion) * 100), 100);
+    
+    return { 
+      current: currentIslandCompletedCount, 
+      required: requiredCompletion, 
+      percentage 
+    };
   },
 
   getBadgesForIsland: (islandId: number) => BADGE_DEFINITIONS.filter(b => b.island === islandId),
