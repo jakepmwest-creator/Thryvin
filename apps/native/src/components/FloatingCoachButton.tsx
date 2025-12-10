@@ -180,10 +180,17 @@ export function FloatingCoachButton() {
     const lower = message.toLowerCase();
     
     // ADD WORKOUT intent (rest day → active day, or extra workout, or run/5K)
-    if ((lower.includes('add') || lower.includes('feeling energetic') || lower.includes('extra') || lower.includes('want to do') || 
-         lower.includes('5k') || lower.includes('run') || lower.includes('jog') || lower.includes('bike') || lower.includes('swim')) && 
-        (lower.includes('workout') || lower.includes('session') || lower.includes('training') || 
-         lower.includes('5k') || lower.includes('run') || lower.includes('jog') || lower.includes('cardio'))) {
+    const isAddWorkoutIntent = (
+      (lower.includes('add') || lower.includes('feeling energetic') || lower.includes('extra') || 
+       lower.includes('want to do') || lower.includes('suggest something') ||
+       lower.includes('5k') || lower.includes('run') || lower.includes('jog') || 
+       lower.includes('bike') || lower.includes('swim')) && 
+      (lower.includes('workout') || lower.includes('session') || lower.includes('training') || 
+       lower.includes('5k') || lower.includes('run') || lower.includes('jog') || lower.includes('cardio') || 
+       lower.includes('something light') || lower.includes('rest day'))
+    );
+    
+    if (isAddWorkoutIntent) {
       
       const workoutTypes = ['yoga', 'cardio', 'strength', 'hiit', 'flexibility', 'core'];
       let detectedType = 'cardio'; // default
