@@ -449,7 +449,15 @@ export default function WorkoutsScreen() {
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Explore Workouts</Text>
+          <View style={styles.exploreTitleRow}>
+            <Text style={styles.sectionTitle}>Explore Workouts</Text>
+            <TouchableOpacity 
+              onPress={() => setLikedDislikedModalVisible(true)}
+              style={styles.heartButton}
+            >
+              <Ionicons name="heart" size={24} color={COLORS.accent} />
+            </TouchableOpacity>
+          </View>
           <View style={styles.categoriesGrid}>
             {WORKOUT_CATEGORIES.map((category) => (
               <TouchableOpacity
