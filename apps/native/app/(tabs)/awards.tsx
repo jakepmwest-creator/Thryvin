@@ -223,8 +223,8 @@ const islandStyles = StyleSheet.create({
   mountainRight: { width: 60, height: 42, borderTopLeftRadius: 12, borderTopRightRadius: 30, marginLeft: -12, shadowColor: '#000', shadowOffset: { width: 2, height: -2 }, shadowOpacity: 0.15, shadowRadius: 4 },
   
   // Emoji
-  emojiContainer: { position: 'absolute', top: 15, left: 20, backgroundColor: 'rgba(255,255,255,0.9)', borderRadius: 20, padding: 8 },
-  islandEmoji: { fontSize: 28 },
+  emojiContainer: { position: 'absolute', top: 18, left: 22, backgroundColor: 'rgba(255,255,255,0.95)', borderRadius: 24, padding: 10, shadowColor: '#000', shadowOffset: { width: 0, height: 3 }, shadowOpacity: 0.12, shadowRadius: 6, elevation: 4 },
+  islandEmoji: { fontSize: 32 },
   
   // Lock
   lockOverlay: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0,0,0,0.3)', justifyContent: 'center', alignItems: 'center' },
