@@ -193,14 +193,14 @@ export const BADGE_DEFINITIONS: Badge[] = [
   { id: 'i2_workout_45', name: 'Committed', description: 'Complete 45 workouts', category: 'program', rarity: 'common', icon: 'ribbon', targetType: 'workouts', targetValue: 45, tier: 5, gradient: ['#34C759', '#00C7BE'], xp: 400, island: 2 },
   { id: 'i2_workout_60', name: 'Habit Locked', description: 'Complete 60 workouts', category: 'program', rarity: 'rare', icon: 'trophy', targetType: 'workouts', targetValue: 60, tier: 6, gradient: ['#FFD700', '#FFA500'], xp: 500, island: 2 },
   // Volume
-  { id: 'i2_sets_75', name: 'Set Builder', description: 'Complete 75 sets', category: 'volume', rarity: 'common', icon: 'layers', targetType: 'totalSets', targetValue: 75, tier: 2, gradient: ['#34C759', '#00C7BE'], xp: 75, island: 2 },
-  { id: 'i2_sets_150', name: 'Set Stacker', description: 'Complete 150 sets', category: 'volume', rarity: 'rare', icon: 'layers', targetType: 'totalSets', targetValue: 150, tier: 3, gradient: ['#FF6B35', '#FFD60A'], xp: 125, island: 2 },
-  { id: 'i2_reps_750', name: 'Rep Builder', description: 'Complete 750 reps', category: 'volume', rarity: 'common', icon: 'barbell', targetType: 'totalReps', targetValue: 750, tier: 2, gradient: ['#5B8DEF', '#34C4E5'], xp: 75, island: 2 },
-  { id: 'i2_reps_1500', name: 'Rep Machine', description: 'Complete 1,500 reps', category: 'volume', rarity: 'rare', icon: 'barbell', targetType: 'totalReps', targetValue: 1500, tier: 3, gradient: ['#A22BF6', '#FF4EC7'], xp: 125, island: 2 },
-  { id: 'i2_hours_5', name: '5 Hour Mark', description: 'Train for 5 hours', category: 'volume', rarity: 'common', icon: 'time', targetType: 'totalMinutes', targetValue: 300, tier: 1, gradient: ['#5B8DEF', '#34C4E5'], xp: 100, island: 2 },
+  { id: 'i2_sets_150', name: 'Set Builder', description: 'Complete 150 sets', category: 'volume', rarity: 'common', icon: 'layers', targetType: 'totalSets', targetValue: 150, tier: 2, gradient: ['#34C759', '#00C7BE'], xp: 125, island: 2 },
+  { id: 'i2_sets_300', name: 'Set Stacker', description: 'Complete 300 sets', category: 'volume', rarity: 'rare', icon: 'layers', targetType: 'totalSets', targetValue: 300, tier: 3, gradient: ['#FF6B35', '#FFD60A'], xp: 200, island: 2 },
+  { id: 'i2_reps_1500', name: 'Rep Builder', description: 'Complete 1,500 reps', category: 'volume', rarity: 'common', icon: 'barbell', targetType: 'totalReps', targetValue: 1500, tier: 2, gradient: ['#5B8DEF', '#34C4E5'], xp: 125, island: 2 },
+  { id: 'i2_reps_3000', name: 'Rep Machine', description: 'Complete 3,000 reps', category: 'volume', rarity: 'rare', icon: 'barbell', targetType: 'totalReps', targetValue: 3000, tier: 3, gradient: ['#A22BF6', '#FF4EC7'], xp: 200, island: 2 },
+  { id: 'i2_hours_10', name: '10 Hour Mark', description: 'Train for 10 hours', category: 'volume', rarity: 'common', icon: 'time', targetType: 'totalMinutes', targetValue: 600, tier: 1, gradient: ['#5B8DEF', '#34C4E5'], xp: 150, island: 2 },
   // Focus
-  { id: 'i2_legs_3', name: 'Leg Day Starter', description: '3 leg sessions', category: 'focus', rarity: 'common', icon: 'body', targetType: 'categorySessions', targetValue: 3, targetCategory: 'lower', tier: 1, gradient: ['#34C759', '#00C7BE'], xp: 60, island: 2 },
-  { id: 'i2_upper_3', name: 'Upper Beginner', description: '3 upper body sessions', category: 'focus', rarity: 'common', icon: 'fitness', targetType: 'categorySessions', targetValue: 3, targetCategory: 'upper', tier: 1, gradient: ['#FF3B30', '#FF9500'], xp: 60, island: 2 },
+  { id: 'i2_legs_6', name: 'Leg Day Starter', description: '6 leg sessions', category: 'focus', rarity: 'common', icon: 'body', targetType: 'categorySessions', targetValue: 6, targetCategory: 'lower', tier: 1, gradient: ['#34C759', '#00C7BE'], xp: 100, island: 2 },
+  { id: 'i2_upper_6', name: 'Upper Beginner', description: '6 upper body sessions', category: 'focus', rarity: 'common', icon: 'fitness', targetType: 'categorySessions', targetValue: 6, targetCategory: 'upper', tier: 1, gradient: ['#FF3B30', '#FF9500'], xp: 100, island: 2 },
 
   // ==================== ISLAND 3: THE GRIND ZONE ====================
   // Consistency
