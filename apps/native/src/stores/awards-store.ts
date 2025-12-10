@@ -370,10 +370,45 @@ export const useAwardsStore = create<AwardsState>((set, get) => ({
       const stored = await getStorageItem('user_badges_v3');
       if (stored) {
         const data = JSON.parse(stored);
+        const userBadges = data.badges || [];
+        let currentIsland = data.currentIsland || 1;
+        
+        // AUTO-CORRECT: Verify user is on correct island based on 80% rule
+        let correctIsland = 1; // Start from island 1
+        
+        for (let islandNum = 1; islandNum <= 10; islandNum++) {
+          const islandBadges = BADGE_DEFINITIONS.filter(b => b.island === islandNum);
+          const completedCount = userBadges.filter((ub: UserBadge) => {
+            const badge = BADGE_DEFINITIONS.find(b => b.id === ub.badgeId && b.island === islandNum);
+            return badge && ub.completed;
+          }).length;
+          
+          const requiredCompletion = Math.max(1, Math.ceil(islandBadges.length * 0.8));
+          
+          // If user has completed 80%+ of this island, they qualify for next island
+          if (completedCount >= requiredCompletion && islandNum < 10) {
+            correctIsland = islandNum + 1;
+          } else {
+            // Stop at first island where they haven't met the 80% requirement
+            break;
+          }
+        }
+        
+        // If stored island doesn't match calculated correct island, fix it
+        if (currentIsland !== correctIsland) {
+          console.log(`🔧 [AWARDS] Auto-correcting island: ${currentIsland} → ${correctIsland}`);
+          currentIsland = correctIsland;
+          await setStorageItem('user_badges_v3', JSON.stringify({ 
+            badges: userBadges, 
+            totalXP: data.totalXP || 0, 
+            currentIsland: correctIsland 
+          }));
+        }
+        
         set({ 
-          userBadges: data.badges || [],
+          userBadges,
           totalXP: data.totalXP || 0,
-          currentIsland: data.currentIsland || 1,
+          currentIsland,
         });
       } else {
         const initialBadges: UserBadge[] = BADGE_DEFINITIONS.map(badge => ({
