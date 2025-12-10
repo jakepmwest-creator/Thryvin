@@ -206,6 +206,7 @@ export default function HomeScreen() {
       fetchWeekWorkouts(), // Generate full week of workouts
       fetchStats(),
       fetchPersonalBests(),
+      fetchCompletedWorkouts(),
     ]);
     setStatsVersion(v => v + 1); // Force re-render after data loads
   };
