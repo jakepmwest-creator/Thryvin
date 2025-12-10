@@ -554,7 +554,7 @@ export default function HomeScreen() {
                   end={{ x: 1, y: 1 }}
                   style={styles.activityGradient}
                 >
-                  <Ionicons name={card.icon as any} size={40} color={COLORS.white} />
+                  <Ionicons name={card.icon} size={40} color={COLORS.white} />
                   <Text style={styles.activityTitle}>{card.title}</Text>
                   <Text style={styles.activitySubtitle}>{card.subtitle}</Text>
                 </LinearGradient>
