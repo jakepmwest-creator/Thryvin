@@ -507,7 +507,7 @@ export default function HomeScreen() {
           >
             <View style={styles.logWorkoutContent}>
               <View style={styles.logWorkoutIcon}>
-                <Ionicons name="add-circle" size={48} color={COLORS.gradientStart} />
+                <Ionicons name="add-circle" size={32} color={COLORS.gradientStart} />
               </View>
               <View style={styles.logWorkoutText}>
                 <Text style={styles.logWorkoutTitle}>Track Extra Activity</Text>
