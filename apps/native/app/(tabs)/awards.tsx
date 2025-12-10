@@ -862,11 +862,11 @@ const celebrationStyles = StyleSheet.create({
   
   title: { fontSize: 28, fontWeight: '800', color: COLORS.text, marginBottom: 24, letterSpacing: -0.7 },
   
-  badgesContainer: { width: '100%', marginBottom: 20 },
-  badgeItem: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#F8F9FA', borderRadius: 16, padding: 12 },
-  badgeIcon: { width: 52, height: 52, borderRadius: 26, justifyContent: 'center', alignItems: 'center' },
-  badgeInfo: { flex: 1, marginLeft: 14 },
-  badgeName: { fontSize: 16, fontWeight: '700', color: COLORS.text },
+  badgesContainer: { width: '100%', marginBottom: 24 },
+  badgeItem: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#F8F9FA', borderRadius: 18, padding: 16 },
+  badgeIcon: { width: 64, height: 64, borderRadius: 32, justifyContent: 'center', alignItems: 'center' },
+  badgeInfo: { flex: 1, marginLeft: 16 },
+  badgeName: { fontSize: 18, fontWeight: '700', color: COLORS.text },
   badgeMeta: { flexDirection: 'row', alignItems: 'center', marginTop: 4 },
   rarityTag: { paddingHorizontal: 8, paddingVertical: 2, borderRadius: 8, marginRight: 8 },
   rarityText: { fontSize: 10, fontWeight: '600' },
