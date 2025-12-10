@@ -104,64 +104,127 @@ const IslandCard = ({ island, isUnlocked, isCurrent, completedBadges, totalBadge
     Animated.spring(scaleAnim, { toValue: 1, friction: 3, useNativeDriver: true }).start();
   };
   
-  // Get themed design based on island
-  const getIslandTheme = () => {
+  // Get COMPLETE visual design for each island - totally unique look
+  const getIslandDesign = () => {
+    const baseColors = isUnlocked ? colors : { sky: '#E0E0E0', ground: '#B0B0B0', accent: '#999' };
+    
     switch (island.id) {
-      case 1: // Starting Line - Checkered flag
+      case 1: // Starting Line - Racing track with checkered patterns
         return {
-          pattern: 'checkered',
-          accentColor: '#FFD700',
-          patternElements: (
-            <>
-              <View style={[islandStyles.checkeredSquare, { top: 70, left: 40, backgroundColor: '#333' }]} />
-              <View style={[islandStyles.checkeredSquare, { top: 70, left: 55, backgroundColor: '#FFF' }]} />
-              <View style={[islandStyles.checkeredSquare, { top: 85, left: 40, backgroundColor: '#FFF' }]} />
-              <View style={[islandStyles.checkeredSquare, { top: 85, left: 55, backgroundColor: '#333' }]} />
-              <View style={[islandStyles.flagPole, { left: 50 }]} />
-            </>
+          gradientColors: isUnlocked ? ['#87CEEB', '#FFD700', '#FFA500'] : ['#E0E0E0', '#B0B0B0'],
+          borderRadius: 28,
+          height: 180,
+          terrain: (
+            <View style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 80 }}>
+              {/* Racing track stripes */}
+              <View style={{ flex: 1, flexDirection: 'row', alignItems: 'flex-end' }}>
+                <View style={{ width: '20%', height: 50, backgroundColor: isUnlocked ? '#333' : '#999' }} />
+                <View style={{ width: '20%', height: 50, backgroundColor: isUnlocked ? '#FFF' : '#BBB' }} />
+                <View style={{ width: '20%', height: 50, backgroundColor: isUnlocked ? '#333' : '#999' }} />
+                <View style={{ width: '20%', height: 50, backgroundColor: isUnlocked ? '#FFF' : '#BBB' }} />
+                <View style={{ width: '20%', height: 50, backgroundColor: isUnlocked ? '#333' : '#999' }} />
+              </View>
+              {/* Finish line */}
+              <View style={{ position: 'absolute', right: 20, top: -30, width: 4, height: 60, backgroundColor: isUnlocked ? '#8B4513' : '#777' }} />
+              <View style={{ position: 'absolute', right: 15, top: -30, width: 30, height: 25, backgroundColor: isUnlocked ? '#FFD700' : '#999', borderTopLeftRadius: 4, borderTopRightRadius: 4 }}>
+                <View style={{ flexDirection: 'row', flexWrap: 'wrap' }}>
+                  {[0,1,2,3,4,5].map(i => (
+                    <View key={i} style={{ width: 10, height: 8, backgroundColor: i % 2 === 0 ? '#000' : '#FFF' }} />
+                  ))}
+                </View>
+              </View>
+            </View>
           ),
         };
-      case 2: // Newbie Gains - Bicep
+        
+      case 2: // Newbie Gains - Gym with dumbbells
         return {
-          pattern: 'bicep',
-          accentColor: '#FF6B35',
-          patternElements: (
-            <>
-              <View style={[islandStyles.bicepShape, { bottom: 45 }]} />
-              <View style={[islandStyles.bicepHighlight, { bottom: 60 }]} />
-            </>
+          gradientColors: isUnlocked ? ['#FF6B35', '#FFA500', '#FFD700'] : ['#E0E0E0', '#B0B0B0'],
+          borderRadius: 24,
+          height: 190,
+          terrain: (
+            <View style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 90 }}>
+              {/* Gym floor */}
+              <View style={{ flex: 1, backgroundColor: isUnlocked ? '#8B4513' : '#888', borderTopLeftRadius: 20, borderTopRightRadius: 20 }} />
+              {/* Big dumbbell */}
+              <View style={{ position: 'absolute', bottom: 20, left: '35%', flexDirection: 'row', alignItems: 'center' }}>
+                <View style={{ width: 18, height: 18, borderRadius: 9, backgroundColor: isUnlocked ? '#455A64' : '#666' }} />
+                <View style={{ width: 40, height: 10, backgroundColor: isUnlocked ? '#607D8B' : '#777', borderRadius: 2 }} />
+                <View style={{ width: 18, height: 18, borderRadius: 9, backgroundColor: isUnlocked ? '#455A64' : '#666' }} />
+              </View>
+              {/* Flexed arm silhouette */}
+              <View style={{ position: 'absolute', right: 40, bottom: 25, width: 50, height: 45 }}>
+                <View style={{ position: 'absolute', bottom: 0, left: 10, width: 30, height: 30, backgroundColor: isUnlocked ? '#FFB380' : '#999', borderTopLeftRadius: 15, borderTopRightRadius: 15, borderBottomRightRadius: 10 }} />
+                <View style={{ position: 'absolute', bottom: 5, left: 15, width: 15, height: 15, backgroundColor: isUnlocked ? '#FFC9A3' : '#AAA', borderRadius: 8, opacity: 0.8 }} />
+              </View>
+            </View>
           ),
         };
-      case 3: // Grind Zone - Flames
+        
+      case 3: // Grind Zone - Volcanic/Fire theme
         return {
-          pattern: 'flames',
-          accentColor: '#FF4500',
-          patternElements: (
-            <>
-              <View style={[islandStyles.flame, { bottom: 40, left: 60, height: 35 }]} />
-              <View style={[islandStyles.flame, { bottom: 40, left: 80, height: 45 }]} />
-              <View style={[islandStyles.flame, { bottom: 40, left: 100, height: 30 }]} />
-            </>
+          gradientColors: isUnlocked ? ['#FF4500', '#DC143C', '#8B0000'] : ['#E0E0E0', '#B0B0B0'],
+          borderRadius: 20,
+          height: 195,
+          terrain: (
+            <View style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 95 }}>
+              {/* Lava/volcanic ground */}
+              <LinearGradient colors={isUnlocked ? ['#FF4500', '#8B0000'] : ['#888', '#666']} style={{ flex: 1, borderTopLeftRadius: 15, borderTopRightRadius: 15 }} />
+              {/* Flames */}
+              {isUnlocked && (
+                <>
+                  <View style={{ position: 'absolute', bottom: 30, left: 50, width: 22, height: 40, backgroundColor: '#FF6B35', borderTopLeftRadius: 11, borderTopRightRadius: 11 }} />
+                  <View style={{ position: 'absolute', bottom: 30, left: 70, width: 26, height: 50, backgroundColor: '#FF4500', borderTopLeftRadius: 13, borderTopRightRadius: 13 }} />
+                  <View style={{ position: 'absolute', bottom: 30, left: 94, width: 20, height: 35, backgroundColor: '#FF8C00', borderTopLeftRadius: 10, borderTopRightRadius: 10 }} />
+                  {/* Inner flame glow */}
+                  <View style={{ position: 'absolute', bottom: 40, left: 75, width: 16, height: 30, backgroundColor: '#FFD700', borderTopLeftRadius: 8, borderTopRightRadius: 8, opacity: 0.7 }} />
+                </>
+              )}
+            </View>
           ),
         };
-      case 4: // Iron Paradise - Barbell
+        
+      case 4: // Iron Paradise - Steel/industrial
         return {
-          pattern: 'barbell',
-          accentColor: '#455A64',
-          patternElements: (
-            <>
-              <View style={[islandStyles.barbellBar, { bottom: 50 }]} />
-              <View style={[islandStyles.barbellPlate, { bottom: 45, left: 50 }]} />
-              <View style={[islandStyles.barbellPlate, { bottom: 45, right: 50 }]} />
-            </>
+          gradientColors: isUnlocked ? ['#607D8B', '#455A64', '#263238'] : ['#E0E0E0', '#B0B0B0'],
+          borderRadius: 26,
+          height: 185,
+          terrain: (
+            <View style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 90 }}>
+              {/* Metal platform */}
+              <View style={{ flex: 1, backgroundColor: isUnlocked ? '#37474F' : '#888' }} />
+              {/* Steel panels */}
+              {isUnlocked && (
+                <>
+                  <View style={{ position: 'absolute', top: 10, left: 10, width: 30, height: 30, backgroundColor: '#546E7A', borderWidth: 2, borderColor: '#78909C', borderRadius: 4 }} />
+                  <View style={{ position: 'absolute', top: 10, right: 10, width: 30, height: 30, backgroundColor: '#546E7A', borderWidth: 2, borderColor: '#78909C', borderRadius: 4 }} />
+                </>
+              )}
+              {/* Barbell */}
+              <View style={{ position: 'absolute', bottom: 25, left: '25%', right: '25%', flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}>
+                <View style={{ width: 28, height: 28, borderRadius: 14, backgroundColor: isUnlocked ? '#455A64' : '#666', borderWidth: 3, borderColor: isUnlocked ? '#78909C' : '#888' }} />
+                <View style={{ width: 80, height: 8, backgroundColor: isUnlocked ? '#607D8B' : '#777', borderRadius: 4, marginHorizontal: 2 }} />
+                <View style={{ width: 28, height: 28, borderRadius: 14, backgroundColor: isUnlocked ? '#455A64' : '#666', borderWidth: 3, borderColor: isUnlocked ? '#78909C' : '#888' }} />
+              </View>
+            </View>
           ),
         };
+        
       default:
-        return { pattern: 'default', accentColor: colors.accent, patternElements: null };
+        return {
+          gradientColors: [baseColors.sky, baseColors.ground],
+          borderRadius: 24,
+          height: 170,
+          terrain: (
+            <View style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 70 }}>
+              <View style={{ flex: 1, backgroundColor: baseColors.ground, borderTopLeftRadius: 20, borderTopRightRadius: 20 }} />
+            </View>
+          ),
+        };
     }
   };
   
-  const theme = getIslandTheme();
+  const design = getIslandDesign();
   
   return (
     <TouchableOpacity 
