@@ -234,34 +234,26 @@ const IslandCard = ({ island, isUnlocked, isCurrent, completedBadges, totalBadge
       activeOpacity={1}
       disabled={!isUnlocked}
     >
-      <Animated.View style={[islandStyles.islandCard, { transform: [{ scale: scaleAnim }] }]}>
+      <Animated.View style={[islandStyles.islandCard, { transform: [{ scale: scaleAnim }], borderRadius: design.borderRadius }]}>
         <LinearGradient
-          colors={isUnlocked ? [colors.sky, colors.ground] : ['#E0E0E0', '#B0B0B0']}
-          style={[islandStyles.islandGradient, isCurrent && islandStyles.islandCurrentBorder]}
+          colors={design.gradientColors}
+          style={[islandStyles.islandGradient, { height: design.height, borderTopLeftRadius: design.borderRadius, borderTopRightRadius: design.borderRadius }, isCurrent && islandStyles.islandCurrentBorder]}
           start={{ x: 0, y: 0 }}
           end={{ x: 0, y: 1 }}
         >
-          {/* Decorative clouds */}
-          {isUnlocked && (
+          {/* Clouds (only for unlocked islands) */}
+          {isUnlocked && island.id !== 3 && ( // No clouds in fire island
             <>
-              <View style={[islandStyles.cloud, { top: 15, left: 20 }]} />
-              <View style={[islandStyles.cloud, { top: 25, right: 30, transform: [{ scale: 0.7 }] }]} />
-              <View style={[islandStyles.cloud, { top: 10, right: 60, transform: [{ scale: 0.5 }] }]} />
+              <View style={[islandStyles.cloud, { top: 20, left: 25 }]} />
+              <View style={[islandStyles.cloud, { top: 30, right: 35, transform: [{ scale: 0.75 }] }]} />
             </>
           )}
           
-          {/* Island terrain - enhanced with theme */}
-          <View style={islandStyles.terrainContainer}>
-            <View style={[islandStyles.mountainLeft, { backgroundColor: isUnlocked ? theme.accentColor : '#999' }]} />
-            <View style={[islandStyles.mountainCenter, { backgroundColor: isUnlocked ? colors.ground : '#888' }]} />
-            <View style={[islandStyles.mountainRight, { backgroundColor: isUnlocked ? theme.accentColor : '#999' }]} />
-          </View>
-          
-          {/* Themed pattern elements */}
-          {isUnlocked && theme.patternElements}
+          {/* Unique terrain design per island */}
+          {design.terrain}
           
           {/* Island emoji badge */}
-          <View style={[islandStyles.emojiContainer, !isUnlocked && { opacity: 0.5 }]}>
+          <View style={[islandStyles.emojiContainer, !isUnlocked && { opacity: 0.5 }, { backgroundColor: isUnlocked ? 'rgba(255,255,255,0.95)' : 'rgba(200,200,200,0.8)' }]}>
             <Text style={islandStyles.islandEmoji}>{island.emoji}</Text>
           </View>
           
