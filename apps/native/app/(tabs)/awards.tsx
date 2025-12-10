@@ -274,10 +274,10 @@ const islandStyles = StyleSheet.create({
   pulsingGlow: { position: 'absolute', top: -20, left: -20, right: -20, bottom: -20, zIndex: -1 },
   pulsingGlowInner: { flex: 1, borderRadius: 30 },
   
-  // Island card
-  islandCard: { width: SCREEN_WIDTH - 56, marginBottom: 8, borderRadius: 24, overflow: 'visible', alignSelf: 'center', ...CARD_SHADOW },
-  islandGradient: { height: 160, borderTopLeftRadius: 24, borderTopRightRadius: 24, overflow: 'hidden', position: 'relative' },
-  islandCurrentBorder: { borderWidth: 3, borderColor: COLORS.gradientStart, borderBottomWidth: 0, shadowColor: COLORS.gradientStart, shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.4, shadowRadius: 12, elevation: 8 },
+  // Island card - base (will be customized per island)
+  islandCard: { width: SCREEN_WIDTH - 56, marginBottom: 8, borderRadius: 28, overflow: 'visible', alignSelf: 'center', ...CARD_SHADOW },
+  islandGradient: { height: 180, borderTopLeftRadius: 28, borderTopRightRadius: 28, overflow: 'hidden', position: 'relative' },
+  islandCurrentBorder: { borderWidth: 4, borderColor: COLORS.gradientStart, borderBottomWidth: 0, shadowColor: COLORS.gradientStart, shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.5, shadowRadius: 16, elevation: 10 },
   
   // Clouds
   cloud: { position: 'absolute', width: 46, height: 18, backgroundColor: 'rgba(255,255,255,0.7)', borderRadius: 10, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.05, shadowRadius: 2 },
