@@ -101,7 +101,7 @@ export default function HomeScreen() {
   const [modalVisible, setModalVisible] = useState(false);
   const [ringDetailsVisible, setRingDetailsVisible] = useState(null);
   const [chartModalVisible, setChartModalVisible] = useState(false);
-  const [selectedExercise, setSelectedExercise] = useState<any>(null);
+  const [selectedExercise, setSelectedExercise] = useState(null);
   const [refreshing, setRefreshing] = useState(false);
   const scrollX = useRef(new Animated.Value(0)).current;
   
