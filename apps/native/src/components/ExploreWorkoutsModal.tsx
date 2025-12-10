@@ -15,6 +15,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { Video, ResizeMode } from 'expo-av';
 import { useWorkoutStore } from '../stores/workout-store';
+import { usePreferencesStore } from '../stores/preferences-store';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
