@@ -128,12 +128,68 @@ export default function CoachRevealScreen() {
   const getCoachPersonality = () => {
     const style = onboardingData.coachingStyle || 'balanced';
     const personalities = {
-      motivational: 'I\'m here to pump you up and push you beyond your limits! Let\'s crush those goals together! 💪',
+      motivational: 'I\'m here to ignite your fire and push you beyond your limits! Let\'s crush those goals together! 💪',
       technical: 'I\'ll guide you with precision and form-perfect training. Every rep counts, every detail matters. 🎯',
       disciplined: 'No excuses, no shortcuts. We\'re building discipline and strength through structured training. ⚔️',
       balanced: 'Together we\'ll find the perfect balance between intensity and sustainability. Let\'s build lasting results! ⚖️',
     };
     return personalities[style as keyof typeof personalities] || personalities.balanced;
+  };
+
+  const getCoachDescription = () => {
+    const style = onboardingData.coachingStyle || 'balanced';
+    const descriptions = {
+      motivational: 'High-energy training focused on pushing limits and achieving peak performance through positive reinforcement.',
+      technical: 'Detail-oriented coaching emphasizing perfect form, biomechanics, and progressive overload principles.',
+      disciplined: 'Structured, no-nonsense approach building mental toughness and consistency through disciplined training protocols.',
+      balanced: 'Well-rounded methodology combining intensity with recovery, creating sustainable long-term fitness habits.',
+    };
+    return descriptions[style as keyof typeof descriptions] || descriptions.balanced;
+  };
+
+  const handleSwitchCoach = () => {
+    // Generate a new random coach from the same pool
+    const COACH_NAMES = {
+      male: {
+        motivational: ['Zo Blaze', 'Max Ryder', 'Chase Summit', 'Kai Storm'],
+        technical: ['Nathan Pierce', 'Ethan Cross', 'Lucas Kane', 'Owen Sharp'],
+        disciplined: ['Marcus Stone', 'Roman Steel', 'Miles Forge', 'Dex Iron'],
+        balanced: ['Jordan Rivers', 'Blake Harper', 'Cole Mason', 'Finn Carter'],
+      },
+      female: {
+        motivational: ['Luna Blaze', 'Aria Rush', 'Nova Flame', 'Maya Surge'],
+        technical: ['Sage Pierce', 'Quinn Atlas', 'Eva Cross', 'Iris Vale'],
+        disciplined: ['Reyna Stone', 'Phoenix Steel', 'Jade Archer', 'Raven Storm'],
+        balanced: ['Harper Lane', 'Riley Brooks', 'Skye Morgan', 'Eden Rivers'],
+      },
+    };
+
+    const gender = onboardingData.gender || 'other';
+    const style = onboardingData.coachingStyle || 'balanced';
+    
+    let coachPool;
+    if (gender === 'male') {
+      coachPool = COACH_NAMES.male[style] || COACH_NAMES.male.balanced;
+    } else if (gender === 'female') {
+      coachPool = COACH_NAMES.female[style] || COACH_NAMES.female.balanced;
+    } else {
+      const allMaleCoaches = Object.values(COACH_NAMES.male).flat();
+      const allFemaleCoaches = Object.values(COACH_NAMES.female).flat();
+      coachPool = [...allMaleCoaches, ...allFemaleCoaches];
+    }
+    
+    // Filter out current coach
+    const otherCoaches = coachPool.filter(name => name !== coachName);
+    if (otherCoaches.length > 0) {
+      const newCoach = otherCoaches[Math.floor(Math.random() * otherCoaches.length)];
+      router.replace({
+        pathname: '/(auth)/coach-reveal',
+        params: {
+          coachName: newCoach,
+          onboardingData: params.onboardingData,
+        },
+      });
+    }
   };
 
   const handleContinue = () => {
