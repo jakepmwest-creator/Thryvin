@@ -148,25 +148,27 @@ export const ExploreWorkoutsModal = ({ visible, onClose, category, categoryGradi
     }
   }, [visible]);
   
-  // Extract unique exercises from weekWorkouts that match the category
-  const realExercises = useMemo(() => {
-    const exerciseMap = new Map<string, any>();
-    
-    // Map category to workout types
-    const categoryTypeMap: Record<string, string[]> = {
-      'Strength': ['upper', 'lower', 'strength', 'full body', 'push', 'pull', 'legs'],
-      'HIIT': ['hiit', 'circuit', 'conditioning', 'interval'],
-      'Cardio': ['cardio', 'endurance', 'running', 'cycling'],
-      'Flexibility': ['stretch', 'flexibility', 'yoga', 'cooldown', 'recovery'],
-      'Mobility': ['mobility', 'warmup', 'warm-up', 'activation'],
-      'Conditioning': ['conditioning', 'metabolic', 'circuit', 'finisher'],
+  // Filter exercises by category
+  const filteredExercises = useMemo(() => {
+    // Map category to database categories
+    const categoryMap: Record<string, string[]> = {
+      'Strength': ['upper-body', 'lower-body', 'full-body'],
+      'HIIT': ['hiit', 'conditioning', 'circuit'],
+      'Cardio': ['cardio', 'endurance'],
+      'Flexibility': ['flexibility', 'stretching', 'yoga'],
+      'Mobility': ['mobility', 'warm-up', 'cooldown'],
+      'Conditioning': ['conditioning', 'metabolic'],
     };
     
-    const matchTypes = categoryTypeMap[category] || [];
+    const validCategories = categoryMap[category] || [];
     
-    weekWorkouts.forEach(workout => {
-      // Check if workout type matches category
-      const workoutType = workout.type?.toLowerCase() || '';
+    let filtered = exercises.filter(ex => {
+      // Match by category
+      const matchesCategory = validCategories.some(cat => 
+        ex.category?.toLowerCase().includes(cat.toLowerCase())
+      );
+      
+      if (!matchesCategory) return false;
       const workoutTitle = workout.title?.toLowerCase() || '';
       const isMatchingCategory = matchTypes.some(t => 
         workoutType.includes(t) || workoutTitle.includes(t)
