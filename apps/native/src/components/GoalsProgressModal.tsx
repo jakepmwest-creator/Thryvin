@@ -116,6 +116,23 @@ export const GoalsProgressModal = ({ visible, onClose, onSave }: GoalsProgressMo
       return;
     }
 
+    // Show confirmation before saving and regenerating
+    showAlert('info', 'Update Goals?', 
+      'Changing your goals will help the AI customize your workouts to match your new targets.\n\nYour workouts may be adjusted based on these changes.',
+      [
+        { text: 'Cancel', style: 'cancel', onPress: hideAlert },
+        { 
+          text: 'Update Goals', 
+          onPress: async () => {
+            hideAlert();
+            await saveGoals();
+          }
+        },
+      ]
+    );
+  };
+
+  const saveGoals = async () => {
     setIsSaving(true);
     try {
       const goals = {
@@ -128,7 +145,21 @@ export const GoalsProgressModal = ({ visible, onClose, onSave }: GoalsProgressMo
       
       await AsyncStorage.setItem('user_goals', JSON.stringify(goals));
       
-      showAlert('success', 'Goals Updated! 🎯', 'Your fitness goals have been saved. Keep pushing towards them!', [
+      // Notify AI about goal changes by saving to learning context
+      try {
+        const goalsText = selectedGoals.join(', ');
+        await AsyncStorage.setItem('ai_goals_context', JSON.stringify({
+          goals: goalsText,
+          targetWeight,
+          weeklyWorkoutGoal,
+          customGoal,
+          updatedAt: new Date().toISOString(),
+        }));
+      } catch (e) {
+        console.log('Could not save AI context');
+      }
+      
+      showAlert('success', 'Goals Updated! 🎯', 'Your fitness goals have been saved. The AI will personalize your workouts to help you achieve them!', [
         { text: "Let's Go!", onPress: onClose }
       ]);
       onSave();
