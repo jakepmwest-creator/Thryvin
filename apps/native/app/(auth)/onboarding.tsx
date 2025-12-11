@@ -289,6 +289,15 @@ const ONBOARDING_STEPS = [
     ],
   },
   {
+    id: 'trainingSchedule',
+    title: 'When Can You Train?',
+    subtitle: 'Select your preferred training days',
+    emoji: '📆',
+    type: 'trainingSchedule',
+    field: 'trainingSchedule',
+    icon: 'calendar-outline',
+  },
+  {
     id: 'injuries',
     title: 'Injuries or Limitations',
     subtitle: 'Help us keep you safe',
@@ -339,6 +348,10 @@ export default function OnboardingScreen() {
     equipment: [],
     trainingDays: '',
     sessionDuration: '',
+    // Training schedule fields
+    trainingSchedule: 'flexible', // 'flexible', 'specific', 'depends'
+    selectedDays: ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'], // Default all selected for flexible
+    specificDates: [], // For 'depends' - array of date strings
     injuries: [],
     injuriesOther: '',
     coachingStyle: '',
@@ -393,6 +406,17 @@ export default function OnboardingScreen() {
     } else if (currentStepData.type === 'multiselect') {
       if (!formData[currentStepData.field] || formData[currentStepData.field].length === 0) {
         showAlert('warning', 'Required', 'Please select at least one option to continue');
+        return;
+      }
+    } else if (currentStepData.type === 'trainingSchedule') {
+      // Validate training schedule
+      const scheduleType = formData.trainingSchedule;
+      if (scheduleType === 'specific' && (!formData.selectedDays || formData.selectedDays.length === 0)) {
+        showAlert('warning', 'Required', 'Please select at least one training day');
+        return;
+      }
+      if (scheduleType === 'depends' && (!formData.specificDates || formData.specificDates.length === 0)) {
+        showAlert('warning', 'Required', 'Please select at least one day in the calendar');
         return;
       }
     } else if (currentStepData.fields) {
@@ -832,6 +856,220 @@ export default function OnboardingScreen() {
     );
   };
 
+  // Training Schedule renderer - "When can you train?"
+  const renderTrainingSchedule = () => {
+    if (currentStepData.type !== 'trainingSchedule') return null;
+
+    const DAYS_OF_WEEK = [
+      { key: 'mon', label: 'Mon' },
+      { key: 'tue', label: 'Tue' },
+      { key: 'wed', label: 'Wed' },
+      { key: 'thu', label: 'Thu' },
+      { key: 'fri', label: 'Fri' },
+      { key: 'sat', label: 'Sat' },
+      { key: 'sun', label: 'Sun' },
+    ];
+
+    const scheduleType = formData.trainingSchedule || 'flexible';
+    const selectedDays = formData.selectedDays || [];
+
+    const handleScheduleTypeChange = (type: string) => {
+      if (type === 'flexible') {
+        setFormData({
+          ...formData,
+          trainingSchedule: 'flexible',
+          selectedDays: ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'],
+        });
+      } else if (type === 'specific') {
+        setFormData({
+          ...formData,
+          trainingSchedule: 'specific',
+          selectedDays: [],
+        });
+      } else if (type === 'depends') {
+        setFormData({
+          ...formData,
+          trainingSchedule: 'depends',
+          selectedDays: [],
+        });
+      }
+    };
+
+    const toggleDay = (dayKey: string) => {
+      const current = formData.selectedDays || [];
+      if (current.includes(dayKey)) {
+        setFormData({
+          ...formData,
+          selectedDays: current.filter((d: string) => d !== dayKey),
+        });
+      } else {
+        setFormData({
+          ...formData,
+          selectedDays: [...current, dayKey],
+        });
+      }
+    };
+
+    // Generate next 21 days for "It depends" option
+    const getNext21Days = () => {
+      const days = [];
+      const today = new Date();
+      for (let i = 0; i < 21; i++) {
+        const date = new Date(today);
+        date.setDate(today.getDate() + i);
+        days.push({
+          date: date.toISOString().split('T')[0],
+          dayName: date.toLocaleDateString('en-US', { weekday: 'short' }),
+          dayNum: date.getDate(),
+          month: date.toLocaleDateString('en-US', { month: 'short' }),
+          week: Math.floor(i / 7) + 1,
+        });
+      }
+      return days;
+    };
+
+    const toggleSpecificDate = (dateStr: string) => {
+      const current = formData.specificDates || [];
+      if (current.includes(dateStr)) {
+        setFormData({
+          ...formData,
+          specificDates: current.filter((d: string) => d !== dateStr),
+        });
+      } else {
+        setFormData({
+          ...formData,
+          specificDates: [...current, dateStr],
+        });
+      }
+    };
+
+    return (
+      <View style={styles.scheduleContainer}>
+        {/* Schedule Type Options */}
+        <View style={styles.scheduleTypeContainer}>
+          {/* Flexible - Any Time */}
+          <TouchableOpacity
+            style={[
+              styles.scheduleTypeButton,
+              scheduleType === 'flexible' && styles.scheduleTypeButtonSelected,
+            ]}
+            onPress={() => handleScheduleTypeChange('flexible')}
+          >
+            <View style={[styles.scheduleTypeIcon, scheduleType === 'flexible' && styles.scheduleTypeIconSelected]}>
+              <Ionicons name="infinite" size={20} color={scheduleType === 'flexible' ? COLORS.white : COLORS.accent} />
+            </View>
+            <Text style={[styles.scheduleTypeText, scheduleType === 'flexible' && styles.scheduleTypeTextSelected]}>
+              Flexible - Any Time
+            </Text>
+            {scheduleType === 'flexible' && (
+              <Ionicons name="checkmark-circle" size={20} color={COLORS.accent} style={{ marginLeft: 'auto' }} />
+            )}
+          </TouchableOpacity>
+
+          {/* Specific Days */}
+          <TouchableOpacity
+            style={[
+              styles.scheduleTypeButton,
+              scheduleType === 'specific' && styles.scheduleTypeButtonSelected,
+            ]}
+            onPress={() => handleScheduleTypeChange('specific')}
+          >
+            <View style={[styles.scheduleTypeIcon, scheduleType === 'specific' && styles.scheduleTypeIconSelected]}>
+              <Ionicons name="calendar" size={20} color={scheduleType === 'specific' ? COLORS.white : COLORS.accent} />
+            </View>
+            <Text style={[styles.scheduleTypeText, scheduleType === 'specific' && styles.scheduleTypeTextSelected]}>
+              Specific Days
+            </Text>
+            {scheduleType === 'specific' && (
+              <Ionicons name="checkmark-circle" size={20} color={COLORS.accent} style={{ marginLeft: 'auto' }} />
+            )}
+          </TouchableOpacity>
+
+          {/* It Depends */}
+          <TouchableOpacity
+            style={[
+              styles.scheduleTypeButton,
+              scheduleType === 'depends' && styles.scheduleTypeButtonSelected,
+            ]}
+            onPress={() => handleScheduleTypeChange('depends')}
+          >
+            <View style={[styles.scheduleTypeIcon, scheduleType === 'depends' && styles.scheduleTypeIconSelected]}>
+              <Ionicons name="help-circle" size={20} color={scheduleType === 'depends' ? COLORS.white : COLORS.accent} />
+            </View>
+            <Text style={[styles.scheduleTypeText, scheduleType === 'depends' && styles.scheduleTypeTextSelected]}>
+              It Depends Each Week
+            </Text>
+            {scheduleType === 'depends' && (
+              <Ionicons name="checkmark-circle" size={20} color={COLORS.accent} style={{ marginLeft: 'auto' }} />
+            )}
+          </TouchableOpacity>
+        </View>
+
+        {/* Day Selector for "Specific Days" */}
+        {scheduleType === 'specific' && (
+          <View style={styles.daysSelectorContainer}>
+            <Text style={styles.daysSelectorLabel}>Select your training days:</Text>
+            <View style={styles.daysGrid}>
+              {DAYS_OF_WEEK.map((day) => {
+                const isSelected = selectedDays.includes(day.key);
+                return (
+                  <TouchableOpacity
+                    key={day.key}
+                    style={[styles.dayButton, isSelected && styles.dayButtonSelected]}
+                    onPress={() => toggleDay(day.key)}
+                  >
+                    <Text style={[styles.dayButtonText, isSelected && styles.dayButtonTextSelected]}>
+                      {day.label}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+            <Text style={styles.selectedDaysCount}>
+              {selectedDays.length} day{selectedDays.length !== 1 ? 's' : ''} selected
+            </Text>
+          </View>
+        )}
+
+        {/* 21-Day Calendar for "It Depends" */}
+        {scheduleType === 'depends' && (
+          <View style={styles.calendarContainer}>
+            <Text style={styles.calendarLabel}>Select available days for the next 3 weeks:</Text>
+            {[1, 2, 3].map((week) => (
+              <View key={week} style={styles.weekContainer}>
+                <Text style={styles.weekLabel}>Week {week}</Text>
+                <View style={styles.weekDaysRow}>
+                  {getNext21Days()
+                    .filter((d) => d.week === week)
+                    .map((day) => {
+                      const isSelected = (formData.specificDates || []).includes(day.date);
+                      return (
+                        <TouchableOpacity
+                          key={day.date}
+                          style={[styles.calendarDay, isSelected && styles.calendarDaySelected]}
+                          onPress={() => toggleSpecificDate(day.date)}
+                        >
+                          <Text style={[styles.calendarDayName, isSelected && styles.calendarDayTextSelected]}>
+                            {day.dayName}
+                          </Text>
+                          <Text style={[styles.calendarDayNum, isSelected && styles.calendarDayTextSelected]}>
+                            {day.dayNum}
+                          </Text>
+                        </TouchableOpacity>
+                      );
+                    })}
+                </View>
+              </View>
+            ))}
+            <Text style={styles.selectedDaysCount}>
+              {(formData.specificDates || []).length} day{(formData.specificDates || []).length !== 1 ? 's' : ''} selected
+            </Text>
+          </View>
+        )}
+      </View>
+    );
+  };
+
   return (
     <View style={styles.container}>
       {/* Custom Alert */}
@@ -898,6 +1136,7 @@ export default function OnboardingScreen() {
                 {renderFields()}
                 {renderSelectOptions()}
                 {renderMultiSelectOptions()}
+                {renderTrainingSchedule()}
               </ScrollView>
 
               {/* Navigation Buttons - Always Visible */}
@@ -1020,9 +1259,6 @@ const styles = StyleSheet.create({
   scrollableContent: {
     flex: 1,
     marginBottom: 16,
-  },
-  scrollableContentInner: {
-    paddingBottom: 10,
   },
   scrollableContent: {
     maxHeight: '70%',
@@ -1291,6 +1527,147 @@ const styles = StyleSheet.create({
   nextButtonText: {
     fontSize: 16,
     fontWeight: '700',
+    color: COLORS.white,
+  },
+  // Training Schedule Styles
+  scheduleContainer: {
+    marginBottom: 16,
+  },
+  scheduleTypeContainer: {
+    gap: 10,
+    marginBottom: 16,
+  },
+  scheduleTypeButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: COLORS.lightGray,
+    borderRadius: 16,
+    padding: 14,
+    borderWidth: 2,
+    borderColor: 'transparent',
+  },
+  scheduleTypeButtonSelected: {
+    borderColor: COLORS.accent,
+    backgroundColor: `${COLORS.accent}08`,
+  },
+  scheduleTypeIcon: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: `${COLORS.accent}15`,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
+  },
+  scheduleTypeIconSelected: {
+    backgroundColor: COLORS.accent,
+  },
+  scheduleTypeText: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: COLORS.text,
+  },
+  scheduleTypeTextSelected: {
+    color: COLORS.accent,
+  },
+  daysSelectorContainer: {
+    backgroundColor: COLORS.lightGray,
+    borderRadius: 16,
+    padding: 16,
+  },
+  daysSelectorLabel: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: COLORS.text,
+    marginBottom: 12,
+  },
+  daysGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+    gap: 8,
+  },
+  dayButton: {
+    width: '13%',
+    aspectRatio: 1,
+    backgroundColor: COLORS.white,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 2,
+    borderColor: 'transparent',
+  },
+  dayButtonSelected: {
+    backgroundColor: COLORS.accent,
+    borderColor: COLORS.accent,
+  },
+  dayButtonText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: COLORS.text,
+  },
+  dayButtonTextSelected: {
+    color: COLORS.white,
+  },
+  selectedDaysCount: {
+    fontSize: 13,
+    fontWeight: '500',
+    color: COLORS.mediumGray,
+    textAlign: 'center',
+    marginTop: 12,
+  },
+  calendarContainer: {
+    backgroundColor: COLORS.lightGray,
+    borderRadius: 16,
+    padding: 16,
+  },
+  calendarLabel: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: COLORS.text,
+    marginBottom: 16,
+  },
+  weekContainer: {
+    marginBottom: 16,
+  },
+  weekLabel: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: COLORS.accent,
+    marginBottom: 8,
+  },
+  weekDaysRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    gap: 4,
+  },
+  calendarDay: {
+    flex: 1,
+    aspectRatio: 0.8,
+    backgroundColor: COLORS.white,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 2,
+    borderColor: 'transparent',
+    padding: 4,
+  },
+  calendarDaySelected: {
+    backgroundColor: COLORS.accent,
+    borderColor: COLORS.accent,
+  },
+  calendarDayName: {
+    fontSize: 10,
+    fontWeight: '600',
+    color: COLORS.mediumGray,
+  },
+  calendarDayNum: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: COLORS.text,
+    marginTop: 2,
+  },
+  calendarDayTextSelected: {
     color: COLORS.white,
   },
 });

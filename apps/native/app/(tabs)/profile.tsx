@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -23,6 +23,7 @@ import { HelpFAQModal } from '../../src/components/HelpFAQModal';
 import { LegalModal } from '../../src/components/LegalModal';
 import { ViewAllWeeksModal } from '../../src/components/ViewAllWeeksModal';
 import { CustomAlert } from '../../src/components/CustomAlert';
+import { AdvancedQuestionnaireModal, AdvancedQuestionnaireData } from '../../src/components/AdvancedQuestionnaireModal';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useAuthStore } from '../../src/stores/auth-store';
 import { useWorkoutStore } from '../../src/stores/workout-store';
@@ -111,6 +112,8 @@ export default function ProfileScreen() {
   const [showPrivacy, setShowPrivacy] = useState(false);
   const [showTerms, setShowTerms] = useState(false);
   const [showAllWeeks, setShowAllWeeks] = useState(false);
+  const [showAdvancedQuestionnaire, setShowAdvancedQuestionnaire] = useState(false);
+  const [hasCompletedQuestionnaire, setHasCompletedQuestionnaire] = useState(false);
   
   // Settings states (persisted)
   const [notifications, setNotifications] = useState(true);
@@ -155,15 +158,30 @@ export default function ProfileScreen() {
       const savedImage = await AsyncStorage.getItem('user_profile_image');
       const savedBio = await AsyncStorage.getItem('user_bio');
       const savedName = await AsyncStorage.getItem('user_name');
+      const advancedQuestionnaire = await AsyncStorage.getItem('advancedQuestionnaire');
       
       if (savedNotifications !== null) setNotifications(savedNotifications === 'true');
       if (savedReminders !== null) setWorkoutReminders(savedReminders === 'true');
       if (savedImage) setProfileImage(savedImage);
       if (savedBio) setBio(savedBio);
       if (savedName) setUserName(savedName);
+      if (advancedQuestionnaire) setHasCompletedQuestionnaire(true);
     } catch (error) {
       console.error('Error loading settings:', error);
     }
+  };
+
+  const handleQuestionnaireComplete = async (data: AdvancedQuestionnaireData) => {
+    console.log('Advanced Questionnaire completed from profile:', data);
+    setShowAdvancedQuestionnaire(false);
+    setHasCompletedQuestionnaire(true);
+    
+    showAlert({
+      type: 'success',
+      title: 'Preferences Saved',
+      message: 'Your advanced preferences have been saved. Your workouts will be even more personalized!',
+      buttons: [{ text: 'OK', onPress: hideAlert }]
+    });
   };
   
   const toggleNotifications = async () => {
@@ -398,6 +416,12 @@ export default function ProfileScreen() {
               subtitle={profileData.nextGoal}
               onPress={() => setShowGoals(true)}
             />
+            <MenuButton
+              icon="sparkles"
+              title="Advanced Questionnaire"
+              subtitle={hasCompletedQuestionnaire ? 'Edit your preferences' : 'Personalize your workouts'}
+              onPress={() => setShowAdvancedQuestionnaire(true)}
+            />
           </View>
         </View>
 
@@ -577,6 +601,12 @@ export default function ProfileScreen() {
       <ViewAllWeeksModal
         visible={showAllWeeks}
         onClose={() => setShowAllWeeks(false)}
+      />
+      
+      <AdvancedQuestionnaireModal
+        visible={showAdvancedQuestionnaire}
+        onClose={() => setShowAdvancedQuestionnaire(false)}
+        onComplete={handleQuestionnaireComplete}
       />
       
       {/* Custom Alert */}

@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, useMemo } from 'react';
+import React, { useState, useRef, useEffect, useMemo, useCallback } from 'react';
 import {
   View,
   Text,
@@ -14,9 +14,12 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { router, useFocusEffect } from 'expo-router';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { AppHeader } from '../../src/components/AppHeader';
 import { WorkoutDetailsModal } from '../../src/components/WorkoutDetailsModal';
 import { PersonalBestChart } from '../../src/components/PersonalBestChart';
+import { AdvancedQuestionnaireModal, AdvancedQuestionnaireData } from '../../src/components/AdvancedQuestionnaireModal';
+import { WeeklyScheduleCheckModal } from '../../src/components/WeeklyScheduleCheckModal';
 import { useWorkoutStore } from '../../src/stores/workout-store';
 import { useAuthStore } from '../../src/stores/auth-store';
 import { useCoachStore } from '../../src/stores/coach-store';
@@ -105,6 +108,11 @@ export default function HomeScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const scrollX = useMemo(() => new Animated.Value(0), []);
   
+  // Advanced Questionnaire state
+  const [showAdvancedQuestionnaire, setShowAdvancedQuestionnaire] = useState(false);
+  const [showWeeklyScheduleCheck, setShowWeeklyScheduleCheck] = useState(false);
+  const [hasCheckedQuestionnaire, setHasCheckedQuestionnaire] = useState(false);
+  
   // Tour refs for highlighting
   const todayWorkoutRef = useRef(null);
 
@@ -133,6 +141,86 @@ export default function HomeScreen() {
   const fetchPersonalBests = useWorkoutStore(state => state.fetchPersonalBests);
   const fetchCompletedWorkouts = useWorkoutStore(state => state.fetchCompletedWorkouts);
   const forceRegenerateWeek = useWorkoutStore(state => state.forceRegenerateWeek);
+
+  // Check if user should see Advanced Questionnaire
+  const checkAdvancedQuestionnaire = useCallback(async () => {
+    if (hasCheckedQuestionnaire) return;
+    
+    try {
+      // Check if questionnaire was already completed or skipped
+      const completed = await AsyncStorage.getItem('advancedQuestionnaire');
+      const skipped = await AsyncStorage.getItem('advancedQuestionnaireSkipped');
+      
+      // If user hasn't completed AND hasn't skipped, and has no workouts yet
+      if (!completed && !skipped && weekWorkouts.length === 0) {
+        // Show questionnaire popup after a short delay
+        setTimeout(() => {
+          setShowAdvancedQuestionnaire(true);
+        }, 1000);
+      }
+      
+      setHasCheckedQuestionnaire(true);
+    } catch (error) {
+      console.error('Error checking questionnaire status:', error);
+    }
+  }, [weekWorkouts.length, hasCheckedQuestionnaire]);
+
+  // Check for weekly schedule check (for "It depends" users)
+  const checkWeeklySchedule = useCallback(async () => {
+    try {
+      const scheduleType = user?.trainingSchedule;
+      if (scheduleType !== 'depends') return;
+      
+      // Check if snoozed
+      const snoozed = await AsyncStorage.getItem('weeklyScheduleCheckSnoozed');
+      if (snoozed) {
+        const snoozeDate = new Date(snoozed);
+        const weekAgo = new Date();
+        weekAgo.setDate(weekAgo.getDate() - 7);
+        if (snoozeDate > weekAgo) return; // Still snoozed
+      }
+      
+      // Check if it's the start of a new week (Monday)
+      const today = new Date();
+      if (today.getDay() === 1) { // Monday
+        const lastCheck = await AsyncStorage.getItem('lastWeeklyScheduleCheck');
+        const thisMonday = today.toISOString().split('T')[0];
+        
+        if (lastCheck !== thisMonday) {
+          setShowWeeklyScheduleCheck(true);
+          await AsyncStorage.setItem('lastWeeklyScheduleCheck', thisMonday);
+        }
+      }
+    } catch (error) {
+      console.error('Error checking weekly schedule:', error);
+    }
+  }, [user?.trainingSchedule]);
+
+  // Run checks when screen loads
+  useEffect(() => {
+    checkAdvancedQuestionnaire();
+    checkWeeklySchedule();
+  }, [checkAdvancedQuestionnaire, checkWeeklySchedule]);
+
+  // Handle questionnaire completion
+  const handleQuestionnaireComplete = async (data: AdvancedQuestionnaireData) => {
+    console.log('Advanced Questionnaire completed:', data);
+    setShowAdvancedQuestionnaire(false);
+    
+    // TODO: Use this data to generate personalized workouts
+    // The data should be sent to the AI workout generator
+  };
+
+  // Handle weekly schedule confirmation
+  const handleWeeklyScheduleConfirm = async (selectedDays: string[]) => {
+    console.log('Weekly schedule confirmed:', selectedDays);
+    setShowWeeklyScheduleCheck(false);
+    
+    // Save the selected days
+    await AsyncStorage.setItem('currentWeekDays', JSON.stringify(selectedDays));
+    
+    // TODO: Use these days to adjust the workout schedule
+  };
 
   // Generate dynamic activity cards
   const dynamicActivityCards = React.useMemo(() => {
@@ -709,6 +797,22 @@ export default function HomeScreen() {
         onSkip={skipTour}
         onComplete={completeTour}
         onNavigate={handleTourNavigation}
+      />
+      
+      {/* Advanced Questionnaire Modal */}
+      <AdvancedQuestionnaireModal
+        visible={showAdvancedQuestionnaire}
+        onClose={() => setShowAdvancedQuestionnaire(false)}
+        onComplete={handleQuestionnaireComplete}
+      />
+      
+      {/* Weekly Schedule Check Modal */}
+      <WeeklyScheduleCheckModal
+        visible={showWeeklyScheduleCheck}
+        onClose={() => setShowWeeklyScheduleCheck(false)}
+        onConfirm={handleWeeklyScheduleConfirm}
+        weekStartDate={new Date()}
+        suggestedDays={user?.selectedDays || []}
       />
     </SafeAreaView>
   );
