@@ -91,8 +91,9 @@ const SettingToggle = ({
     <Switch
       value={value}
       onValueChange={onToggle}
-      trackColor={{ false: COLORS.lightGray, true: `${COLORS.accent}30` }}
+      trackColor={{ false: COLORS.lightGray, true: COLORS.accentSecondary }}
       thumbColor={value ? COLORS.accent : COLORS.mediumGray}
+      ios_backgroundColor={COLORS.lightGray}
     />
   </View>
 );
