@@ -59,6 +59,7 @@ interface AICoachWidgetProps {
 
 export const AICoachWidget = ({ visible, onClose }: AICoachWidgetProps) => {
   const { weekWorkouts, swapWorkoutDays, forceRegenerateWeek, currentWorkout } = useWorkoutStore();
+  const { coachName, loadCoachName } = useCoachStore();
   
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputText, setInputText] = useState('');
@@ -67,6 +68,11 @@ export const AICoachWidget = ({ visible, onClose }: AICoachWidgetProps) => {
   const scrollViewRef = useRef<ScrollView>(null);
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(SCREEN_HEIGHT)).current;
+
+  // Load coach name on mount
+  useEffect(() => {
+    loadCoachName();
+  }, []);
   
   useEffect(() => {
     if (visible) {
