@@ -224,6 +224,64 @@ export default function ProfileScreen() {
     }
   };
   
+  const togglePinEnabled = async () => {
+    if (!hasPinSet) {
+      // No PIN set yet, open PIN setup
+      setShowPINSetup(true);
+      return;
+    }
+    
+    const newValue = !pinEnabled;
+    setPinEnabled(newValue);
+    await AsyncStorage.setItem('pin_enabled', newValue.toString());
+    
+    showAlert({
+      type: 'success',
+      title: newValue ? 'PIN Login Enabled' : 'PIN Login Disabled',
+      message: newValue 
+        ? 'You can now use your PIN code to log in quickly!' 
+        : 'PIN login has been disabled. You\'ll use your password instead.',
+      buttons: [{ text: 'OK', onPress: hideAlert }]
+    });
+  };
+  
+  const toggleBiometrics = async () => {
+    const newValue = !biometricsEnabled;
+    setBiometricsEnabled(newValue);
+    await AsyncStorage.setItem('biometrics_enabled', newValue.toString());
+    
+    if (newValue) {
+      showAlert({
+        type: 'success',
+        title: 'Biometric Login Enabled',
+        message: 'You can now use Face ID / Touch ID for quick and secure login!',
+        buttons: [{ text: 'OK', onPress: hideAlert }]
+      });
+    } else {
+      showAlert({
+        type: 'info',
+        title: 'Biometric Login Disabled',
+        message: 'Biometric login has been turned off.',
+        buttons: [{ text: 'OK', onPress: hideAlert }]
+      });
+    }
+  };
+
+  const handlePinSetupComplete = async (pin: string) => {
+    await AsyncStorage.setItem('user_pin', pin);
+    await AsyncStorage.setItem('pin_enabled', 'true');
+    setHasPinSet(true);
+    setPinEnabled(true);
+    setShowPINSetup(false);
+    
+    showAlert({
+      type: 'success',
+      title: 'PIN Code Set!',
+      message: 'Your 6-digit PIN has been saved. You can now use it for quick login!',
+      buttons: [{ text: 'OK', onPress: hideAlert }]
+    });
+  };
+  
   // Compute profile data
   const profileData = {
     name: userName || user?.name || 'User',
