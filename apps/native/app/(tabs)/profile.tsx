@@ -516,17 +516,34 @@ export default function ProfileScreen() {
         <View style={styles.menuSection}>
           <Text style={styles.sectionTitle}>Security</Text>
           <View style={styles.menuContainer}>
-            <MenuButton
-              icon="keypad"
-              title="Set PIN Code"
-              subtitle="Quick login with 6-digit PIN"
-              onPress={() => setShowPINSetup(true)}
-            />
-            <MenuButton
+            {/* PIN Code Section */}
+            <View style={styles.securityItem}>
+              <MenuButton
+                icon="keypad"
+                title={hasPinSet ? "Change PIN Code" : "Set PIN Code"}
+                subtitle={hasPinSet ? "Update your 6-digit PIN" : "Quick login with 6-digit PIN"}
+                onPress={() => setShowPINSetup(true)}
+              />
+              {hasPinSet && (
+                <View style={styles.toggleOverlay}>
+                  <Switch
+                    value={pinEnabled}
+                    onValueChange={togglePinEnabled}
+                    trackColor={{ false: COLORS.lightGray, true: COLORS.accentSecondary }}
+                    thumbColor={pinEnabled ? COLORS.accent : COLORS.mediumGray}
+                    ios_backgroundColor={COLORS.lightGray}
+                  />
+                </View>
+              )}
+            </View>
+            
+            {/* Biometrics Section */}
+            <SettingToggle
               icon="finger-print"
               title="Biometric Login"
-              subtitle="Manage Face ID / Touch ID"
-              onPress={() => setShowBiometrics(true)}
+              subtitle="Use Face ID / Touch ID"
+              value={biometricsEnabled}
+              onToggle={toggleBiometrics}
             />
           </View>
         </View>
