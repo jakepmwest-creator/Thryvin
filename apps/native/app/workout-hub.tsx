@@ -900,16 +900,25 @@ export default function WorkoutHubScreen() {
                             {completedSets.map((set, i) => {
                               const exType = getExerciseType(exercise);
                               return (
-                                <View key={i} style={styles.completedSet}>
-                                  <Ionicons name="checkmark-circle" size={20} color={COLORS.success} />
-                                  <Text style={styles.completedText}>
-                                    {exType === 'cardio' 
-                                      ? `${set.reps} min${set.weight ? ` • ${set.weight} ${distanceUnit}` : ''}`
-                                      : exType === 'yoga' || exType === 'stretching'
-                                        ? `Round ${set.setIndex + 1}: ${set.reps}s held`
-                                        : `Set ${set.setIndex + 1}: ${set.reps} reps${set.weight ? ` @ ${set.weight} ${weightUnit}` : ''}`
-                                    }
-                                  </Text>
+                                <View key={i} style={styles.completedSetWrapper}>
+                                  <View style={styles.completedSet}>
+                                    <Ionicons name="checkmark-circle" size={20} color={COLORS.success} />
+                                    <Text style={styles.completedText}>
+                                      {exType === 'cardio' 
+                                        ? `${set.reps} min${set.weight ? ` • ${set.weight} ${distanceUnit}` : ''}`
+                                        : exType === 'yoga' || exType === 'stretching'
+                                          ? `Round ${set.setIndex + 1}: ${set.reps}s held`
+                                          : `Set ${set.setIndex + 1}: ${set.reps} reps${set.weight ? ` @ ${set.weight} ${weightUnit}` : ''}`
+                                      }
+                                    </Text>
+                                  </View>
+                                  {/* Show notes if present */}
+                                  {set.note && (
+                                    <View style={styles.setNoteContainer}>
+                                      <Ionicons name="chatbubble-outline" size={14} color={COLORS.mediumGray} />
+                                      <Text style={styles.setNoteText}>{set.note}</Text>
+                                    </View>
+                                  )}
                                 </View>
                               );
                             })}
