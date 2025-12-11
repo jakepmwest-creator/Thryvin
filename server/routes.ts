@@ -6250,18 +6250,82 @@ Respond with a complete workout in JSON format:
   // GET /api/exercises - Fetch exercises with video URLs
   app.get("/api/exercises", async (req, res) => {
     try {
-      // TEMPORARY: Return empty array since database is not connected
-      // This needs to be replaced with actual database query when DB is set up
-      console.log('⚠️ WARNING: Returning empty exercises array - database not connected');
+      const { category, difficulty, equipment, search, limit = 500 } = req.query;
+      
+      console.log('📚 Fetching exercises from database...');
+      
+      // Query all exercises from database
+      const allExercises = await db
+        .select({
+          id: exercises.id,
+          name: exercises.name,
+          slug: exercises.slug,
+          bodyPart: exercises.body_part,
+          category: exercises.category,
+          muscleGroups: exercises.muscleGroups,
+          difficulty: exercises.difficulty,
+          equipment: exercises.equipment,
+          videoUrl: exercises.videoUrl,
+          thumbnailUrl: exercises.thumbnailUrl,
+          description: exercises.description,
+          instructions: exercises.instructions,
+          tips: exercises.tips,
+        })
+        .from(exercises)
+        .limit(Number(limit) || 500);
+      
+      let filteredExercises = allExercises;
+      
+      // Apply filters if provided
+      if (category && category !== 'All') {
+        filteredExercises = filteredExercises.filter(ex => 
+          ex.category?.toLowerCase() === String(category).toLowerCase() ||
+          ex.bodyPart?.toLowerCase() === String(category).toLowerCase()
+        );
+      }
+      
+      if (difficulty && difficulty !== 'All') {
+        filteredExercises = filteredExercises.filter(ex => 
+          ex.difficulty?.toLowerCase() === String(difficulty).toLowerCase()
+        );
+      }
+      
+      if (equipment) {
+        const equipmentList = String(equipment).split(',').map(e => e.trim().toLowerCase());
+        filteredExercises = filteredExercises.filter(ex => {
+          const exEquipment = Array.isArray(ex.equipment) ? ex.equipment : [];
+          return exEquipment.some((eq: string) => equipmentList.includes(eq?.toLowerCase()));
+        });
+      }
+      
+      if (search) {
+        const searchLower = String(search).toLowerCase();
+        filteredExercises = filteredExercises.filter(ex => 
+          ex.name?.toLowerCase().includes(searchLower) ||
+          ex.bodyPart?.toLowerCase().includes(searchLower) ||
+          ex.category?.toLowerCase().includes(searchLower)
+        );
+      }
+      
+      // Transform to frontend-expected format with proper tips array
+      const transformedExercises = filteredExercises.map(ex => ({
+        ...ex,
+        // Ensure tips is an array for the frontend
+        tips: ex.tips ? (typeof ex.tips === 'string' ? [ex.tips] : ex.tips) : ['Maintain proper form throughout the movement'],
+        // Capitalize difficulty for display
+        difficulty: ex.difficulty ? ex.difficulty.charAt(0).toUpperCase() + ex.difficulty.slice(1) : 'Intermediate',
+      }));
+      
+      console.log(`✅ Found ${transformedExercises.length} exercises (filtered from ${allExercises.length} total)`);
       
       res.json({
-        exercises: [],
-        total: 0,
-        message: "Database not connected - exercises endpoint temporarily disabled"
+        exercises: transformedExercises,
+        total: transformedExercises.length,
+        totalInDatabase: allExercises.length,
       });
     } catch (error) {
       console.error("Error fetching exercises:", error);
-      res.status(500).json({ error: "Failed to fetch exercises" });
+      res.status(500).json({ error: "Failed to fetch exercises", details: String(error) });
     }
   });
 
