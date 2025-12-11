@@ -648,13 +648,11 @@ export default function ProfileScreen() {
       </ScrollView>
 
       {/* Modals */}
-      <PINSetup
+      <PINSetupModal
         visible={showPINSetup}
         onClose={() => setShowPINSetup(false)}
-        onSuccess={() => {
-          setShowPINSetup(false);
-          // Custom alert is shown in PINSetup component
-        }}
+        onComplete={handlePinSetupComplete}
+        isChangingPin={hasPinSet}
       />
       
       <EditProfileModal
