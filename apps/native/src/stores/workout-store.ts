@@ -134,7 +134,7 @@ interface WorkoutStore {
   fetchPersonalBests: () => Promise<void>;
   updatePersonalBest: (exerciseName: string, weight: number, reps: number, date?: string) => Promise<void>;
   startWorkoutSession: (workoutId: string) => void;
-  completeSet: (exerciseIndex: number, setIndex: number, reps: number, weight: number | undefined, effort: string) => void;
+  completeSet: (exerciseIndex: number, setIndex: number, reps: number, weight: number | undefined, effort: string, note?: string) => void;
   addExerciseNote: (exerciseIndex: number, note: string) => void;
   navigateToExercise: (exerciseIndex: number) => void;
   finishWorkoutSession: () => Promise<void>;
