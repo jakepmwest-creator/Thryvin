@@ -332,16 +332,6 @@ export const ExploreWorkoutsModal = ({ visible, onClose, category, categoryGradi
                       </View>
                     ))}
                     
-                    <TouchableOpacity style={styles.addToWorkoutButton}>
-                      <LinearGradient
-                        colors={[COLORS.accent, COLORS.accentSecondary]}
-                        style={styles.addButtonGradient}
-                      >
-                        <Ionicons name="add-circle" size={20} color={COLORS.white} />
-                        <Text style={styles.addButtonText}>Add to Today's Workout</Text>
-                      </LinearGradient>
-                    </TouchableOpacity>
-                    
                     <View style={{ height: 40 }} />
                   </ScrollView>
                 </View>
