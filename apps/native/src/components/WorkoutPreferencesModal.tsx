@@ -44,8 +44,21 @@ const SelectOption = ({ label, selected, onPress }: { label: string; selected: b
     onPress={onPress}
     activeOpacity={0.7}
   >
-    <Text style={[styles.optionText, selected && styles.optionTextSelected]}>{label}</Text>
-    {selected && <Ionicons name="checkmark" size={16} color={COLORS.white} />}
+    {selected ? (
+      <LinearGradient
+        colors={[COLORS.accent, COLORS.accentSecondary]}
+        style={styles.optionGradient}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+      >
+        <Text style={styles.optionTextSelected}>{label}</Text>
+        <Ionicons name="checkmark" size={16} color={COLORS.white} />
+      </LinearGradient>
+    ) : (
+      <>
+        <Text style={styles.optionText}>{label}</Text>
+      </>
+    )}
   </TouchableOpacity>
 );
 
