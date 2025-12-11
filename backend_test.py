@@ -12,7 +12,7 @@ import re
 from typing import Dict, List, Any, Optional
 
 # Configuration - Use the provided API base URL from review request
-BASE_URL = "https://thryvin-explore.preview.emergentagent.com"
+BASE_URL = "https://fitness-ai-upgrade.preview.emergentagent.com"
 API_BASE = f"{BASE_URL}/api"
 
 # Test configuration

@@ -244,7 +244,7 @@ export const AdvancedQuestionnaireModal = ({
     
     // Also save to backend for AI learning (non-blocking)
     try {
-      const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL || 'https://thryvin-explore.preview.emergentagent.com';
+      const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL || 'https://fitness-ai-upgrade.preview.emergentagent.com';
       await fetch(`${API_BASE_URL}/api/user/advanced-questionnaire`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
