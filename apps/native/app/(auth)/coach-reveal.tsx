@@ -546,18 +546,36 @@ const styles = StyleSheet.create({
     height: 40,
     backgroundColor: COLORS.lightGray,
   },
+  switchButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 20,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    borderWidth: 2,
+    borderColor: 'rgba(255, 255, 255, 0.3)',
+    marginBottom: 16,
+  },
+  switchButtonText: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: COLORS.white,
+  },
   continueButton: {
     width: '100%',
     borderRadius: 20,
     overflow: 'hidden',
-    backgroundColor: COLORS.white,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.2,
+    shadowOpacity: 0.3,
     shadowRadius: 16,
     elevation: 10,
+    marginBottom: 16,
   },
-  continueButtonInner: {
+  continueGradient: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
@@ -567,7 +585,7 @@ const styles = StyleSheet.create({
   continueButtonText: {
     fontSize: 18,
     fontWeight: '700',
-    color: COLORS.accent,
+    color: COLORS.white,
   },
   hintText: {
     marginTop: 16,
