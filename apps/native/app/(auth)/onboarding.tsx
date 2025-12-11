@@ -33,37 +33,19 @@ const COLORS = {
   shadow: THEME_COLORS.cardShadow,
 };
 
-// AI Coach names database - matched by gender and style
+// AI Coach names database - cool, realistic names with subtle hints
 const COACH_NAMES = {
   male: {
-    motivational: ['Max Stone', 'Jake Powers', 'Ryan Steel', 'Marcus Blaze', 'Tyler Surge'],
-    technical: ['Dr. Alex Form', 'Coach Bennett', 'Prof. Carter', 'Brandon Analytics', 'Kevin Precision'],
-    disciplined: ['Commander Kane', 'Sgt. Marcus', 'Captain Ridge', 'Major Steel', 'Lt. Brooks'],
-    balanced: ['Coach Jordan', 'Mike Balance', 'Sam Wilson', 'Chris Morgan', 'Dean Foster'],
-    data_driven: ['Dr. Stats Wilson', 'Analytics Mike', 'Data Coach Ryan', 'Metrics Max', 'Numbers Nick'],
-    supportive: ['Coach Gentle Ben', 'Supportive Sam', 'Kind Kyle', 'Caring Chris', 'Nurturing Noah'],
-    aggressive: ['Beast Mode Brad', 'Intense Ivan', 'Hardcore Henry', 'Fierce Frank', 'Savage Steve'],
-    fun: ['Playful Pete', 'Fun Coach Felix', 'Joyful Jake', 'Happy Henry', 'Cheerful Charlie'],
+    motivational: ['Zo Blaze', 'Max Ryder', 'Chase Summit', 'Kai Storm'],
+    technical: ['Nathan Pierce', 'Ethan Cross', 'Lucas Kane', 'Owen Sharp'],
+    disciplined: ['Marcus Stone', 'Roman Steel', 'Miles Forge', 'Dex Iron'],
+    balanced: ['Jordan Rivers', 'Blake Harper', 'Cole Mason', 'Finn Carter'],
   },
   female: {
-    motivational: ['Luna Spark', 'Aria Power', 'Maya Blaze', 'Nova Strong', 'Stella Rise'],
-    technical: ['Dr. Sarah Form', 'Coach Emma', 'Prof. Lisa', 'Dana Analytics', 'Kelly Precision'],
-    disciplined: ['Captain Nova', 'Sgt. Riley', 'Major Storm', 'Lt. Phoenix', 'Commander Vale'],
-    balanced: ['Coach Alex', 'Jamie Brooks', 'Casey Morgan', 'Taylor Wilson', 'Morgan Reed'],
-    data_driven: ['Dr. Data Diana', 'Analytics Anna', 'Stats Sophia', 'Metrics Maya', 'Numbers Nina'],
-    supportive: ['Gentle Grace', 'Caring Clara', 'Kind Kara', 'Supportive Sophie', 'Nurturing Nora'],
-    aggressive: ['Beast Mode Bella', 'Fierce Fiona', 'Intense Ivy', 'Hardcore Hannah', 'Savage Sarah'],
-    fun: ['Playful Penny', 'Joyful Jess', 'Fun Coach Faye', 'Happy Haley', 'Cheerful Chloe'],
-  },
-  other: {
-    motivational: ['Sky Powers', 'Phoenix Rise', 'River Stone', 'Storm Surge', 'Ash Blaze'],
-    technical: ['Dr. Jordan', 'Coach Taylor', 'Prof. Morgan', 'Casey Analytics', 'Riley Form'],
-    disciplined: ['Captain Reed', 'Commander Sky', 'Major Phoenix', 'Lt. River', 'Sgt. Storm'],
-    balanced: ['Coach Casey', 'Jamie Phoenix', 'Alex River', 'Taylor Brooks', 'Morgan Sky'],
-    data_driven: ['Dr. Data Drew', 'Analytics Avery', 'Stats Sage', 'Metrics Morgan', 'Numbers Neo'],
-    supportive: ['Gentle Gray', 'Caring Cameron', 'Kind Kai', 'Supportive Sage', 'Nurturing Nova'],
-    aggressive: ['Beast Mode Blake', 'Fierce Phoenix', 'Intense Indigo', 'Hardcore Harper', 'Savage Sage'],
-    fun: ['Playful Parker', 'Joyful Jordan', 'Fun Coach Finley', 'Happy Hayden', 'Cheerful Charlie'],
+    motivational: ['Luna Blaze', 'Aria Rush', 'Nova Flame', 'Maya Surge'],
+    technical: ['Sage Pierce', 'Quinn Atlas', 'Eva Cross', 'Iris Vale'],
+    disciplined: ['Reyna Stone', 'Phoenix Steel', 'Jade Archer', 'Raven Storm'],
+    balanced: ['Harper Lane', 'Riley Brooks', 'Skye Morgan', 'Eden Rivers'],
   },
 };
 
