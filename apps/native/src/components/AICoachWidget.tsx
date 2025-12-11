@@ -248,6 +248,82 @@ export const AICoachWidget = ({ visible, onClose }: AICoachWidgetProps) => {
       return;
     }
     
+    // SMART INJURY/PREFERENCE DETECTION - Only regenerate affected workouts
+    const injuryKeywords = ['injury', 'injured', 'hurt', 'pain', 'sore', 'strain', 'sprain', 'pulled', 'torn', 'ache', 'aching'];
+    const bodyPartKeywords = {
+      lower: ['knee', 'leg', 'ankle', 'hip', 'foot', 'hamstring', 'quad', 'calf', 'glute', 'lower back'],
+      upper: ['shoulder', 'arm', 'wrist', 'elbow', 'chest', 'neck', 'upper back', 'tricep', 'bicep'],
+      core: ['back', 'spine', 'ab', 'core', 'stomach'],
+    };
+    
+    const hasInjuryKeyword = injuryKeywords.some(k => lowerMessage.includes(k));
+    
+    if (hasInjuryKeyword) {
+      // Determine which body area is affected
+      let affectedArea = '';
+      let affectedWorkouts: string[] = [];
+      
+      for (const [area, keywords] of Object.entries(bodyPartKeywords)) {
+        if (keywords.some(k => lowerMessage.includes(k))) {
+          affectedArea = area;
+          break;
+        }
+      }
+      
+      if (affectedArea === 'lower') {
+        affectedWorkouts = ['Leg Day', 'Lower Body', 'Running', 'Cardio', 'HIIT'];
+      } else if (affectedArea === 'upper') {
+        affectedWorkouts = ['Upper Body', 'Push Day', 'Pull Day', 'Chest Day', 'Back Day', 'Arm Day'];
+      } else if (affectedArea === 'core') {
+        affectedWorkouts = ['Core', 'Ab workout', 'Full Body'];
+      }
+      
+      setIsLoading(false);
+      
+      if (affectedArea) {
+        addMessage(
+          `Oh no, I'm sorry to hear that! 😔 Let me help you work around this.\n\nBased on your ${affectedArea} issue, I can:\n\n• Modify your ${affectedWorkouts.slice(0, 2).join(' and ')} workouts to avoid aggravating it\n• Substitute exercises with safer alternatives\n• Keep your other workouts (like ${affectedArea === 'lower' ? 'Upper Body days' : 'Leg days'}) unchanged\n\nI'll only update the affected workout days - not your entire program. Would you like me to adjust your plan?`,
+          true,
+          { 
+            type: 'smart_regenerate', 
+            params: { 
+              affectedArea, 
+              affectedWorkouts,
+              reason: 'injury'
+            }, 
+            label: `Update ${affectedArea.charAt(0).toUpperCase() + affectedArea.slice(1)} Workouts` 
+          }
+        );
+      } else {
+        addMessage(
+          `I'm sorry to hear you're dealing with an injury! 😔\n\nCan you tell me which body part is affected? For example:\n• Knee, leg, or lower body\n• Shoulder, arm, or upper body\n• Back or core\n\nOnce I know, I'll only update the relevant workout days while keeping everything else the same.`,
+          true
+        );
+      }
+      return;
+    }
+    
+    // Detect preference changes (equipment, style changes)
+    const preferenceKeywords = ['no equipment', 'home workout', 'gym only', 'bodyweight', 'dumbbells only', 'no running', 'hate cardio', 'prefer', 'want more', 'want less', 'focus on'];
+    const hasPreferenceChange = preferenceKeywords.some(k => lowerMessage.includes(k));
+    
+    if (hasPreferenceChange) {
+      setIsLoading(false);
+      addMessage(
+        `Got it! I'll note that preference. 📝\n\nWould you like me to update your workout plan to reflect this change?\n\nI'll only adjust the workouts that are affected - your other days will stay the same.`,
+        true,
+        { 
+          type: 'smart_regenerate', 
+          params: { 
+            preference: message,
+            reason: 'preference'
+          }, 
+          label: 'Update Affected Workouts' 
+        }
+      );
+      return;
+    }
+    
     // For all other fitness-related questions, call the backend API for personalized response
     try {
       const response = await fetch(`${API_BASE_URL}/api/coach/chat`, {
