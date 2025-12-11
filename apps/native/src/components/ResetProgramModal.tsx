@@ -104,6 +104,38 @@ export const ResetProgramModal = ({ visible, onClose, onReset }: ResetProgramMod
     await simulateAIResponse(userMessage);
   };
 
+  // Voice input handling
+  const startVoiceInput = () => {
+    setIsListening(true);
+    
+    // Start pulse animation
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(pulseAnim, { toValue: 1.2, duration: 500, useNativeDriver: true }),
+        Animated.timing(pulseAnim, { toValue: 1, duration: 500, useNativeDriver: true }),
+      ])
+    ).start();
+    
+    // Simulated voice recognition - in production this would use expo-speech or react-native-voice
+    // For now, show listening state and auto-stop after 3 seconds with a sample message
+    setTimeout(() => {
+      stopVoiceInput("I want more challenging workouts with variety");
+    }, 3000);
+  };
+
+  const stopVoiceInput = (recognizedText?: string) => {
+    setIsListening(false);
+    pulseAnim.stopAnimation();
+    pulseAnim.setValue(1);
+    
+    if (recognizedText) {
+      setInputText(recognizedText);
+      // Auto-send after voice input
+      addMessage(recognizedText, false);
+      simulateAIResponse(recognizedText);
+    }
+  };
+
   const simulateAIResponse = async (userMessage: string) => {
     setIsLoading(true);
     
