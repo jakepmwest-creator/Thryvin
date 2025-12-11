@@ -351,28 +351,6 @@ export default function LoginScreen() {
                     <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
                   </TouchableOpacity>
 
-                  {/* Test Account Button - Development Only */}
-                  <TouchableOpacity 
-                    style={styles.testAccountButton}
-                    onPress={createTestAccount}
-                  >
-                    <View style={styles.testAccountContent}>
-                      <Ionicons name="flask" size={18} color={COLORS.accent} />
-                      <Text style={styles.testAccountText}>Quick Test Login</Text>
-                    </View>
-                    <Text style={styles.testAccountSubtext}>Creates random test account</Text>
-                  </TouchableOpacity>
-
-                  {/* Biometric Login */}
-                  {biometricAvailable && biometricEnabled && (
-                    <TouchableOpacity style={styles.biometricButton} onPress={handleBiometricLogin}>
-                      <View style={styles.biometricCircle}>
-                        <Ionicons name="finger-print" size={28} color={COLORS.accent} />
-                      </View>
-                      <Text style={styles.biometricText}>Quick Login</Text>
-                    </TouchableOpacity>
-                  )}
-
                   {/* Divider */}
                   <View style={styles.divider}>
                     <View style={styles.dividerLine} />
@@ -412,14 +390,6 @@ export default function LoginScreen() {
                       <Text style={styles.startJourneyText}>Start Your Journey</Text>
                     </LinearGradient>
                   </TouchableOpacity>
-
-                  {/* Demo Hint */}
-                  <View style={styles.demoHint}>
-                    <Ionicons name="bulb-outline" size={14} color={COLORS.accent} />
-                    <Text style={styles.demoText}>
-                      Try: test@example.com / password123
-                    </Text>
-                  </View>
                 </View>
               </LinearGradient>
             </Animated.View>
