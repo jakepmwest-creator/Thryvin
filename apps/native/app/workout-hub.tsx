@@ -311,7 +311,7 @@ export default function WorkoutHubScreen() {
   const handleFinishWorkout = async () => {
     // Get completion stats
     const completedCount = activeSession?.completedExercises?.size || 0;
-    const totalExercises = (warmupExercises.length + mainExercises.length + cooldownExercises.length);
+    const totalExercises = (warmupExercises.length + mainExercises.length + recoveryExercises.length);
     const durationMinutes = Math.ceil(workoutElapsedSeconds / 60);
     
     // Pause the timer
