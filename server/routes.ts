@@ -6693,6 +6693,31 @@ async function getCoachResponse(
   userContext: string = '',
 ): Promise<string> {
   try {
+    // STRICT fitness-only enforcement
+    const fitnessKeywords = [
+      'workout', 'exercise', 'fitness', 'gym', 'training', 'muscle', 'cardio', 'strength',
+      'weight', 'rep', 'set', 'routine', 'schedule', 'body', 'chest', 'legs', 'arms',
+      'back', 'core', 'abs', 'run', 'jog', 'walk', 'swim', 'bike', 'yoga', 'pilates', 'squat',
+      'bench', 'deadlift', 'press', 'curl', 'pull', 'push', 'lunge', 'plank', 'burpee', 'hiit',
+      'nutrition', 'diet', 'protein', 'calories', 'carbs', 'food', 'meal', 'supplement', 'hydration',
+      'water', 'eat', 'eating', 'macros', 'fasting', 'bulk', 'cut', 'lean',
+      'health', 'injury', 'pain', 'stretch', 'rest', 'recovery', 'sleep', 'stress', 'energy',
+      'intense', 'light', 'heavy', 'form', 'technique', 'tired', 'motivation', 'goal',
+      'progress', 'beginner', 'advanced', 'intermediate', 'tone', 'fat', 'gain',
+      'today', 'tomorrow', 'week', 'day', 'swap', 'switch', 'change', 'modify', 'adjust',
+      'help', 'tips', 'advice', 'recommend', 'suggest', 'how', 'what', 'should',
+      // Greetings
+      'hi', 'hello', 'hey', 'thanks', 'thank'
+    ];
+    
+    const lowerMessage = userMessage.toLowerCase();
+    const hasFitnessKeyword = fitnessKeywords.some(keyword => lowerMessage.includes(keyword));
+    
+    // If not fitness-related and message is substantial, decline
+    if (!hasFitnessKeyword && lowerMessage.length > 15) {
+      return "I appreciate you reaching out! However, as your fitness coach, I'm specifically trained to help with health, fitness, nutrition, and workout-related questions. 💪\n\nI can help you with:\n• Workout advice and scheduling\n• Exercise form and technique\n• Nutrition and meal planning\n• Recovery and injury prevention\n• Fitness goals and motivation\n\nWhat fitness topic can I help you with?";
+    }
+    
     let systemPrompt = "";
 
     // Configure coach personality based on coach type and coaching style
@@ -6707,7 +6732,7 @@ async function getCoachResponse(
         systemPrompt = `You are Lumi, a wellness and mobility coach. You specialize in yoga, flexibility, recovery, and mindfulness practices.`;
         break;
       default:
-        systemPrompt = `You are a fitness coach specializing in ${trainingType}.`;
+        systemPrompt = `You are a fitness coach specializing in ${trainingType || 'general fitness'}.`;
     }
 
     // Add coaching style to system prompt
@@ -6728,7 +6753,20 @@ async function getCoachResponse(
       systemPrompt += `\n\n=== IMPORTANT: YOU KNOW THIS USER PERSONALLY ===\n${userContext}\n\nUse this information to give PERSONALIZED advice. Reference their specific goals, history, and preferences. Be their personal trainer who truly knows them.`;
     }
 
-    systemPrompt += `\n\nRespond in 1-3 paragraphs. Be concise but helpful. Never mention that you're an AI model. Be personal - use their name if you know it.`;
+    // CRITICAL: Add strict fitness-only instruction
+    systemPrompt += `\n\n=== CRITICAL RULE: FITNESS ONLY ===
+You are STRICTLY a fitness, health, and nutrition coach. You MUST ONLY answer questions about:
+- Workouts, exercises, and training
+- Nutrition, diet, and meal planning  
+- Health, recovery, and injury prevention
+- Fitness goals and motivation
+- Sleep and stress as they relate to fitness
+
+If the user asks about ANYTHING unrelated to health/fitness (like animals, random topics, jokes, etc.), you MUST politely redirect them back to fitness topics. Say something like: "That's an interesting question! But as your fitness coach, I'm here to help with your workouts, nutrition, and health goals. What can I help you with in those areas?"
+
+NEVER answer non-fitness questions, even if the user insists. Stay focused on being their fitness coach.
+
+Respond in 1-3 paragraphs. Be concise but helpful. Never mention that you're an AI model. Be personal - use their name if you know it.`;
 
     const response = await openai.chat.completions.create({
       model: "gpt-4o",
