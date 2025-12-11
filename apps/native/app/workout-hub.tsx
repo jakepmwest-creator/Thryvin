@@ -55,6 +55,14 @@ export default function WorkoutHubScreen() {
   const [distanceUnit, setDistanceUnit] = useState<'mi' | 'km'>('mi');
   const [holdTime, setHoldTime] = useState(''); // For yoga - hold duration in seconds
   
+  // Finish stats for celebration popup
+  const [finishStats, setFinishStats] = useState({
+    completedExercises: 0,
+    totalExercises: 0,
+    durationMinutes: 0,
+    caloriesBurned: 0,
+  });
+  
   // Workout timer state
   const [workoutStartTime, setWorkoutStartTime] = useState<number>(Date.now());
   const [workoutElapsedSeconds, setWorkoutElapsedSeconds] = useState(0);
