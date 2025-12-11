@@ -130,116 +130,188 @@ export const AICoachWidget = ({ visible, onClose }: AICoachWidgetProps) => {
   const processMessage = async (message: string) => {
     setIsLoading(true);
     
-    // Simulate AI processing
-    await new Promise(resolve => setTimeout(resolve, 1200));
-    
     const lowerMessage = message.toLowerCase();
     
-    // Check if message is fitness-related
+    // STRICT fitness-only filter - Must contain fitness-related content
     const fitnessKeywords = [
+      // Workout terms
       'workout', 'exercise', 'fitness', 'gym', 'training', 'muscle', 'cardio', 'strength',
-      'weight', 'rep', 'set', 'routine', 'schedule', 'nutrition', 'diet', 'protein', 'calories',
-      'health', 'injury', 'pain', 'stretch', 'rest', 'recovery', 'body', 'chest', 'legs', 'arms',
+      'weight', 'rep', 'set', 'routine', 'schedule', 'body', 'chest', 'legs', 'arms',
       'back', 'core', 'abs', 'run', 'jog', 'walk', 'swim', 'bike', 'yoga', 'pilates', 'squat',
       'bench', 'deadlift', 'press', 'curl', 'pull', 'push', 'lunge', 'plank', 'burpee', 'hiit',
-      'intense', 'light', 'heavy', 'form', 'technique', 'tired', 'energy', 'motivation', 'goal',
-      'progress', 'beginner', 'advanced', 'intermediate', 'today', 'tomorrow', 'week', 'day',
-      'swap', 'switch', 'change', 'modify', 'adjust', 'food', 'meal', 'supplement', 'hydration',
-      'water', 'sleep', 'stress', 'flex', 'pump', 'bulk', 'cut', 'lean', 'tone', 'fat', 'gain'
+      // Nutrition terms
+      'nutrition', 'diet', 'protein', 'calories', 'carbs', 'food', 'meal', 'supplement', 'hydration',
+      'water', 'eat', 'eating', 'macros', 'fasting', 'bulk', 'cut', 'lean',
+      // Health terms
+      'health', 'injury', 'pain', 'stretch', 'rest', 'recovery', 'sleep', 'stress', 'energy',
+      // Intensity and progress
+      'intense', 'light', 'heavy', 'form', 'technique', 'tired', 'motivation', 'goal',
+      'progress', 'beginner', 'advanced', 'intermediate', 'tone', 'fat', 'gain',
+      // Schedule terms
+      'today', 'tomorrow', 'week', 'day', 'swap', 'switch', 'change', 'modify', 'adjust',
+      // Coach interaction
+      'help', 'tips', 'advice', 'recommend', 'suggest', 'how', 'what', 'should',
     ];
     
-    const hasfitnessKeyword = fitnessKeywords.some(keyword => lowerMessage.includes(keyword));
+    // Check for greetings and basic interaction
+    const greetings = ['hi', 'hello', 'hey', 'good morning', 'good afternoon', 'good evening', 'thanks', 'thank you'];
+    const isGreeting = greetings.some(g => lowerMessage.includes(g));
     
-    // If not fitness-related, politely decline
-    if (!hasfitnessKeyword && lowerMessage.length > 3) {
+    const hasFitnessKeyword = fitnessKeywords.some(keyword => lowerMessage.includes(keyword));
+    
+    // If it's just a greeting, respond warmly
+    if (isGreeting && lowerMessage.length < 30) {
       setIsLoading(false);
       addMessage(
-        `I appreciate you reaching out, but I'm specifically here to help you with fitness, nutrition, and health-related questions! 💪\n\nFeel free to ask me about:\n• Your workouts and training\n• Exercise form and technique\n• Nutrition and meal planning\n• Recovery and injury prevention\n• Fitness goals and motivation\n\nWhat can I help you with today?`,
+        `Hey there! 💪 Great to see you!\n\nI'm your AI fitness coach, here to help with:\n• Your workout schedule\n• Exercise form and technique\n• Nutrition guidance\n• Fitness goals and motivation\n\nWhat can I help you with today?`,
         true
       );
       return;
     }
     
-    // Detect swap days intent
-    if (lowerMessage.includes('swap') || lowerMessage.includes('switch') || lowerMessage.includes('change')) {
+    // If NOT fitness-related, politely decline
+    if (!hasFitnessKeyword && lowerMessage.length > 10) {
+      setIsLoading(false);
+      addMessage(
+        `I appreciate you reaching out! However, I'm specifically trained to help with fitness, health, and nutrition topics only. 💪\n\nI can't help with questions about ${lowerMessage.split(' ').slice(0, 3).join(' ')}..., but I'd love to help you with:\n\n• Your workouts and training plans\n• Exercise form and technique\n• Nutrition and meal planning\n• Recovery and injury prevention\n• Fitness goals and motivation\n\nWhat fitness topic can I assist you with?`,
+        true
+      );
+      return;
+    }
+    
+    // Try to get user ID for personalized response
+    let userId: number | undefined;
+    try {
+      const storedUser = await SecureStore.getItemAsync('auth_user');
+      if (storedUser) {
+        const user = JSON.parse(storedUser);
+        userId = user.id;
+      }
+    } catch (e) {
+      console.log('Could not get user ID for coach chat');
+    }
+    
+    // Check for local action intents first (swap days, etc.)
+    if (lowerMessage.includes('swap') || lowerMessage.includes('switch')) {
       if (lowerMessage.includes('wednesday') && lowerMessage.includes('thursday')) {
+        setIsLoading(false);
         addMessage(
           "Got it! You want to swap Wednesday and Thursday workouts. 📅\n\nWednesday's workout will move to Thursday, and Thursday's will move to Wednesday.\n\nShall I make this swap?",
           true,
           { type: 'swap_days', params: { from: 2, to: 3 }, label: 'Swap Wed ↔ Thu' }
         );
+        return;
       } else if (lowerMessage.includes('today') && lowerMessage.includes('tomorrow')) {
         const today = new Date().getDay();
         const todayIndex = today === 0 ? 6 : today - 1;
         const tomorrowIndex = (todayIndex + 1) % 7;
+        setIsLoading(false);
         addMessage(
           "I can swap today's workout with tomorrow's. 📅\n\nThis will move your current workout to tomorrow.\n\nWant me to do this?",
           true,
           { type: 'swap_days', params: { from: todayIndex, to: tomorrowIndex }, label: 'Swap Today ↔ Tomorrow' }
         );
-      } else {
-        addMessage(
-          "Which days would you like to swap? You can say something like:\n\n• 'Swap Wednesday with Thursday'\n• 'Switch today with tomorrow'\n• 'Move Friday's workout to Saturday'",
-          true
-        );
+        return;
       }
     }
-    // Detect rest day intent
-    else if (lowerMessage.includes('rest') || lowerMessage.includes('skip') || lowerMessage.includes('day off')) {
-      addMessage(
-        "Taking a rest day is totally fine! 😌 Recovery is important.\n\nI can:\n1. Mark today as a rest day\n2. Move today's workout to another day\n\nWhat would you prefer?",
-        true
-      );
-    }
-    // Detect intensity change
-    else if (lowerMessage.includes('intense') || lowerMessage.includes('harder') || lowerMessage.includes('challenging')) {
+    
+    // Detect intensity change locally
+    if (lowerMessage.includes('more intense') || lowerMessage.includes('harder') || lowerMessage.includes('challenging')) {
+      setIsLoading(false);
       addMessage(
         "Let's crank up the intensity! 🔥\n\nFor today's workout, I can:\n• Add supersets\n• Reduce rest periods\n• Add extra sets\n• Include a finisher circuit\n\nYour workout will be regenerated with higher intensity. Ready?",
         true,
         { type: 'change_intensity', params: { level: 'high' }, label: 'Increase Intensity' }
       );
+      return;
     }
-    // Detect shorter workout
-    else if (lowerMessage.includes('short') || lowerMessage.includes('quick') || lowerMessage.includes('30 min') || lowerMessage.includes('less time')) {
+    
+    // Detect shorter workout locally
+    if (lowerMessage.includes('short') || lowerMessage.includes('quick') || lowerMessage.includes('30 min') || lowerMessage.includes('less time')) {
+      setIsLoading(false);
       addMessage(
         "Got it! Let me optimize your workout for time. ⏱️\n\nI'll:\n• Focus on compound movements\n• Use supersets to save time\n• Keep you moving with minimal rest\n\nYour workout will be ~30 minutes. Sound good?",
         true,
         { type: 'modify_workout', params: { duration: 30 }, label: 'Make It Quick' }
       );
+      return;
     }
-    // Detect regenerate intent
-    else if (lowerMessage.includes('new workout') || lowerMessage.includes('regenerate') || lowerMessage.includes('different')) {
+    
+    // Detect regenerate intent locally
+    if (lowerMessage.includes('new workout') || lowerMessage.includes('regenerate') || lowerMessage.includes('different workout')) {
+      setIsLoading(false);
       addMessage(
         "Fresh workout coming up! 💪\n\nI'll generate a brand new workout targeting the same muscle groups but with different exercises and structure.\n\nReady to regenerate?",
         true,
         { type: 'regenerate', label: 'Generate New Workout' }
       );
+      return;
     }
-    // Detect form/tips
-    else if (lowerMessage.includes('form') || lowerMessage.includes('tip') || lowerMessage.includes('how to')) {
-      const workout = currentWorkout;
-      if (workout && workout.exercises?.length > 0) {
-        const exercise = workout.exercises[0];
-        addMessage(
-          `Here are some key form tips for ${exercise.name || 'your exercises'}:\n\n• Keep your core tight throughout\n• Focus on controlled movements\n• Full range of motion is key\n• Breathe out on the effort\n\nWant tips for a specific exercise?`,
-          true
-        );
-      } else {
-        addMessage(
-          "I'd be happy to help with form tips! 📚\n\nWhich exercise would you like tips for? Some popular ones:\n• Squats\n• Deadlifts\n• Bench Press\n• Pull-ups",
-          true
-        );
+    
+    // For all other fitness-related questions, call the backend API for personalized response
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/coach/chat`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Bypass-Tunnel-Reminder': 'true',
+        },
+        body: JSON.stringify({
+          message,
+          coach: coachName,
+          trainingType: currentWorkout?.type,
+          userId,
+        }),
+      });
+      
+      if (!response.ok) {
+        throw new Error('API request failed');
       }
-    }
-    // General response
-    else {
+      
+      const data = await response.json();
+      
+      setIsLoading(false);
+      addMessage(data.response || "I'm here to help! What would you like to know about your fitness journey?", true);
+      
+    } catch (error) {
+      console.error('Error calling coach API:', error);
+      
+      // Fallback to local response if API fails
+      setIsLoading(false);
+      
+      // Detect rest day intent locally
+      if (lowerMessage.includes('rest') || lowerMessage.includes('skip') || lowerMessage.includes('day off')) {
+        addMessage(
+          "Taking a rest day is totally fine! 😌 Recovery is important.\n\nI can:\n1. Mark today as a rest day\n2. Move today's workout to another day\n\nWhat would you prefer?",
+          true
+        );
+        return;
+      }
+      
+      // Detect form/tips locally
+      if (lowerMessage.includes('form') || lowerMessage.includes('tip') || lowerMessage.includes('how to')) {
+        const workout = currentWorkout;
+        if (workout && workout.exercises?.length > 0) {
+          const exercise = workout.exercises[0];
+          addMessage(
+            `Here are some key form tips for ${exercise.name || 'your exercises'}:\n\n• Keep your core tight throughout\n• Focus on controlled movements\n• Full range of motion is key\n• Breathe out on the effort\n\nWant tips for a specific exercise?`,
+            true
+          );
+        } else {
+          addMessage(
+            "I'd be happy to help with form tips! 📚\n\nWhich exercise would you like tips for? Some popular ones:\n• Squats\n• Deadlifts\n• Bench Press\n• Pull-ups",
+            true
+          );
+        }
+        return;
+      }
+      
+      // Generic helpful response
       addMessage(
         "I can help with that! 🤔\n\nHere's what I can do:\n• Swap workout days\n• Adjust workout intensity\n• Make workouts shorter/longer\n• Give form tips\n• Regenerate today's workout\n\nTry asking specifically what you need!",
         true
       );
     }
-    
-    setIsLoading(false);
   };
   
   const executeAction = async (action: Message['action']) => {
