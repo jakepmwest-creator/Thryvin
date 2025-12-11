@@ -6474,6 +6474,7 @@ async function getCoachResponse(
   userMessage: string,
   trainingType: string,
   coachingStyle: string,
+  userContext: string = '',
 ): Promise<string> {
   try {
     let systemPrompt = "";
@@ -6505,8 +6506,13 @@ async function getCoachResponse(
         systemPrompt += ` Your coaching style is analytical and detailed. You focus on technique, form, and data-driven insights.`;
         break;
     }
+    
+    // Add user context for personalization
+    if (userContext) {
+      systemPrompt += `\n\n=== IMPORTANT: YOU KNOW THIS USER PERSONALLY ===\n${userContext}\n\nUse this information to give PERSONALIZED advice. Reference their specific goals, history, and preferences. Be their personal trainer who truly knows them.`;
+    }
 
-    systemPrompt += ` Respond in 1-3 paragraphs. Be concise but helpful. Never mention that you're an AI model.`;
+    systemPrompt += `\n\nRespond in 1-3 paragraphs. Be concise but helpful. Never mention that you're an AI model. Be personal - use their name if you know it.`;
 
     const response = await openai.chat.completions.create({
       model: "gpt-4o",
@@ -6514,7 +6520,7 @@ async function getCoachResponse(
         { role: "system", content: systemPrompt },
         { role: "user", content: userMessage },
       ],
-      max_tokens: 300,
+      max_tokens: 400,
     });
 
     return (
