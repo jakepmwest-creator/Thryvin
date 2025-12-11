@@ -673,11 +673,12 @@ const styles = StyleSheet.create({
   },
   // Content styles
   content: {
-    flex: 1,
-    maxHeight: 380,
+    flexGrow: 1,
+    flexShrink: 1,
   },
   contentInner: {
     padding: 24,
+    paddingBottom: 32,
   },
   questionContainer: {
     alignItems: 'center',
