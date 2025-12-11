@@ -921,5 +921,7 @@ const styles = StyleSheet.create({
   pbValue: { alignItems: 'flex-end' },
   pbNumber: { fontSize: 24, fontWeight: '700', color: COLORS.text },
   pbUnit: { fontSize: 12, color: COLORS.mediumGray, marginTop: 2 },
+  pbNumberEmpty: { fontSize: 24, fontWeight: '700', color: COLORS.lightGray },
+  pbUnitEmpty: { fontSize: 11, color: COLORS.mediumGray, marginTop: 2, fontStyle: 'italic' },
   pbDivider: { height: 1, backgroundColor: COLORS.lightGray, marginVertical: 16 },
 });
