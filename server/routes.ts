@@ -1919,6 +1919,79 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ error: "Failed to get workout profile" });
     }
   });
+  
+  // Save advanced questionnaire for AI learning
+  app.post("/api/user/advanced-questionnaire", async (req, res) => {
+    if (!req.isAuthenticated()) {
+      return res.sendStatus(401);
+    }
+    
+    try {
+      const questionnaire = req.body;
+      const userId = req.user!.id;
+      
+      // Store in user's onboarding responses
+      const existingResponses = req.user!.onboardingResponses 
+        ? JSON.parse(req.user!.onboardingResponses as string) 
+        : {};
+      
+      const updatedResponses = {
+        ...existingResponses,
+        advancedQuestionnaire: questionnaire,
+      };
+      
+      await storage.updateUser(userId, {
+        onboardingResponses: JSON.stringify(updatedResponses),
+      });
+      
+      // Also save key insights to AI learning context
+      if (questionnaire.enjoyedTraining) {
+        await db.insert(aiLearningContext).values({
+          userId,
+          category: 'preference',
+          insight: `User ENJOYS: ${questionnaire.enjoyedTraining}`,
+          confidence: 'high',
+          dataPoints: 1,
+        });
+      }
+      
+      if (questionnaire.dislikedTraining) {
+        await db.insert(aiLearningContext).values({
+          userId,
+          category: 'preference',
+          insight: `User DISLIKES: ${questionnaire.dislikedTraining}`,
+          confidence: 'high',
+          dataPoints: 1,
+        });
+      }
+      
+      if (questionnaire.weakAreas) {
+        await db.insert(aiLearningContext).values({
+          userId,
+          category: 'preference',
+          insight: `User wants to focus on WEAK AREAS: ${questionnaire.weakAreas}`,
+          confidence: 'high',
+          dataPoints: 1,
+        });
+      }
+      
+      if (questionnaire.targets) {
+        await db.insert(aiLearningContext).values({
+          userId,
+          category: 'preference',
+          insight: `User has TARGET/EVENT: ${questionnaire.targets}`,
+          confidence: 'high',
+          dataPoints: 1,
+        });
+      }
+      
+      console.log(`✅ Saved advanced questionnaire for user ${userId}`);
+      res.json({ success: true });
+    } catch (error: any) {
+      console.error("Error saving advanced questionnaire:", error);
+      res.status(500).json({ error: "Failed to save questionnaire" });
+    }
+  });
 
   // Social API routes
   app.get("/api/social/feed", async (req, res) => {
