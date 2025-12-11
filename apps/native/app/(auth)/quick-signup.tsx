@@ -16,6 +16,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useAuthStore } from '../../src/stores/auth-store';
 import { CustomAlert } from '../../src/components/CustomAlert';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const COLORS = {
   accent: '#a259ff',
