@@ -163,6 +163,9 @@ export default function ProfileScreen() {
       const savedBio = await AsyncStorage.getItem('user_bio');
       const savedName = await AsyncStorage.getItem('user_name');
       const advancedQuestionnaire = await AsyncStorage.getItem('advancedQuestionnaire');
+      const savedPin = await AsyncStorage.getItem('user_pin');
+      const savedPinEnabled = await AsyncStorage.getItem('pin_enabled');
+      const savedBiometrics = await AsyncStorage.getItem('biometrics_enabled');
       
       if (savedNotifications !== null) setNotifications(savedNotifications === 'true');
       if (savedReminders !== null) setWorkoutReminders(savedReminders === 'true');
@@ -170,6 +173,9 @@ export default function ProfileScreen() {
       if (savedBio) setBio(savedBio);
       if (savedName) setUserName(savedName);
       if (advancedQuestionnaire) setHasCompletedQuestionnaire(true);
+      if (savedPin) setHasPinSet(true);
+      if (savedPinEnabled !== null) setPinEnabled(savedPinEnabled === 'true');
+      if (savedBiometrics !== null) setBiometricsEnabled(savedBiometrics === 'true');
     } catch (error) {
       console.error('Error loading settings:', error);
     }
