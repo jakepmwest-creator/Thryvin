@@ -293,7 +293,15 @@ export default function CoachRevealScreen() {
                 {/* Coach Personality */}
                 <View style={styles.personalityBox}>
                   <Text style={styles.personalityText}>
-                    {getCoachPersonality()}
+                    "{getCoachPersonality()}"
+                  </Text>
+                </View>
+
+                {/* Training Style Description */}
+                <View style={styles.descriptionBox}>
+                  <Text style={styles.descriptionLabel}>Training Style</Text>
+                  <Text style={styles.descriptionText}>
+                    {getCoachDescription()}
                   </Text>
                 </View>
 
@@ -317,15 +325,29 @@ export default function CoachRevealScreen() {
               </LinearGradient>
             </View>
 
+            {/* Switch Coach Button */}
+            <TouchableOpacity
+              style={styles.switchButton}
+              onPress={handleSwitchCoach}
+            >
+              <Ionicons name="refresh" size={18} color={COLORS.accent} />
+              <Text style={styles.switchButtonText}>Switch Coach</Text>
+            </TouchableOpacity>
+
             {/* Continue Button */}
             <TouchableOpacity
               style={styles.continueButton}
               onPress={handleContinue}
             >
-              <View style={styles.continueButtonInner}>
+              <LinearGradient
+                colors={[COLORS.accent, COLORS.accentSecondary]}
+                style={styles.continueGradient}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+              >
                 <Text style={styles.continueButtonText}>Create My Account</Text>
-                <Ionicons name="arrow-forward" size={24} color={COLORS.accent} />
-              </View>
+                <Ionicons name="arrow-forward" size={24} color={COLORS.white} />
+              </LinearGradient>
             </TouchableOpacity>
 
             <Text style={styles.hintText}>
