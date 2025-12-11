@@ -1626,4 +1626,11 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
     letterSpacing: 0.5,
   },
+  celebrationTip: {
+    fontSize: 13,
+    color: COLORS.white,
+    opacity: 0.7,
+    marginTop: 20,
+    textAlign: 'center',
+  },
 });
