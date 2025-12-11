@@ -473,38 +473,6 @@ export default function ProfileScreen() {
               onPress={() => setShowEditProfile(true)}
             />
             <MenuButton
-              icon="fitness"
-              title="Workout Preferences"
-              subtitle="Customize your training settings"
-              onPress={() => {
-                showAlert({
-                  type: 'info',
-                  title: '💪 Workout Preferences',
-                  message: 'Customize your training settings including experience level, workout type, and equipment.\n\nChanging these may regenerate your workout plan.',
-                  buttons: [
-                    { text: 'Cancel', style: 'cancel', onPress: hideAlert },
-                    { text: 'Continue', onPress: () => { hideAlert(); setShowWorkoutPrefs(true); } }
-                  ]
-                });
-              }}
-            />
-            <MenuButton
-              icon="trophy"
-              title="Goals & Progress"
-              subtitle={profileData.nextGoal}
-              onPress={() => {
-                showAlert({
-                  type: 'info',
-                  title: '🎯 Goals & Progress',
-                  message: 'View and update your fitness goals and track your progress.\n\nNote: Changing your goals may adjust your workout plan.',
-                  buttons: [
-                    { text: 'Cancel', style: 'cancel', onPress: hideAlert },
-                    { text: 'Continue', onPress: () => { hideAlert(); setShowGoals(true); } }
-                  ]
-                });
-              }}
-            />
-            <MenuButton
               icon="sparkles"
               title="Advanced Questionnaire"
               subtitle={hasCompletedQuestionnaire ? 'Edit your preferences' : 'Personalize your workouts'}
