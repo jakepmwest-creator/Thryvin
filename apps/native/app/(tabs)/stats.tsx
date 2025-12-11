@@ -752,6 +752,88 @@ export default function StatsScreen() {
           </View>
         </View>
 
+        {/* Personal Bests Section */}
+        <View style={styles.section}>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>Personal Bests</Text>
+            <TouchableOpacity onPress={() => {/* Navigate to full PB list */}}>
+              <Text style={styles.viewAllText}>View All</Text>
+            </TouchableOpacity>
+          </View>
+          
+          <View style={styles.pbCard}>
+            {/* Bench Press - Empty State */}
+            <View style={styles.pbRow}>
+              <View style={styles.pbIconContainer}>
+                <LinearGradient
+                  colors={[COLORS.accent, COLORS.accentSecondary]}
+                  style={styles.pbIconGradient}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 1 }}
+                >
+                  <Ionicons name="barbell" size={24} color={COLORS.white} />
+                </LinearGradient>
+              </View>
+              <View style={styles.pbContent}>
+                <Text style={styles.pbExercise}>Bench Press</Text>
+                <Text style={styles.pbMeta}>Chest & Triceps</Text>
+              </View>
+              <View style={styles.pbValue}>
+                <Text style={styles.pbNumberEmpty}>—</Text>
+                <Text style={styles.pbUnitEmpty}>Not yet</Text>
+              </View>
+            </View>
+
+            <View style={styles.pbDivider} />
+
+            {/* 5K Run - Empty State */}
+            <View style={styles.pbRow}>
+              <View style={styles.pbIconContainer}>
+                <LinearGradient
+                  colors={['#34C759', '#30B650']}
+                  style={styles.pbIconGradient}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 1 }}
+                >
+                  <Ionicons name="fitness" size={24} color={COLORS.white} />
+                </LinearGradient>
+              </View>
+              <View style={styles.pbContent}>
+                <Text style={styles.pbExercise}>5K Run</Text>
+                <Text style={styles.pbMeta}>Cardio</Text>
+              </View>
+              <View style={styles.pbValue}>
+                <Text style={styles.pbNumberEmpty}>—</Text>
+                <Text style={styles.pbUnitEmpty}>Not yet</Text>
+              </View>
+            </View>
+
+            <View style={styles.pbDivider} />
+
+            {/* Squat - Empty State */}
+            <View style={styles.pbRow}>
+              <View style={styles.pbIconContainer}>
+                <LinearGradient
+                  colors={['#FF9500', '#FF8C00']}
+                  style={styles.pbIconGradient}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 1 }}
+                >
+                  <Ionicons name="body" size={24} color={COLORS.white} />
+                </LinearGradient>
+              </View>
+              <View style={styles.pbContent}>
+                <Text style={styles.pbExercise}>Squat</Text>
+                <Text style={styles.pbMeta}>Legs</Text>
+              </View>
+              <View style={styles.pbValue}>
+                <Text style={styles.pbNumberEmpty}>—</Text>
+                <Text style={styles.pbUnitEmpty}>Not yet</Text>
+              </View>
+            </View>
+          </View>
+        </View>
+
         {/* All-Time Stats */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>All-Time Stats</Text>
