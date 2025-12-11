@@ -73,6 +73,11 @@ export default function QuickSignupScreen() {
         ? JSON.parse(params.onboardingData as string) 
         : {};
 
+      // Save coach name to AsyncStorage
+      if (onboardingData.coachName) {
+        await AsyncStorage.setItem('coach_name', onboardingData.coachName);
+      }
+
       // Combine onboarding data with credentials
       const userData = {
         ...onboardingData,
