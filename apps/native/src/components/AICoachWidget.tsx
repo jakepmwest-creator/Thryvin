@@ -18,8 +18,11 @@ import { Ionicons } from '@expo/vector-icons';
 import { useWorkoutStore } from '../stores/workout-store';
 import { useCoachStore } from '../stores/coach-store';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as SecureStore from 'expo-secure-store';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
+
+const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL || 'https://fitness-ai-upgrade.preview.emergentagent.com';
 
 const COLORS = {
   accent: '#A22BF6',
