@@ -111,6 +111,7 @@ interface WorkoutSession {
       reps: number;
       weight?: number;
       effort: string; // "Easy" | "Medium" | "Hard"
+      note?: string; // User's notes for AI learning
     }>;
     notes?: string;
   }>;
