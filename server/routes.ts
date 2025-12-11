@@ -1993,6 +1993,148 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ error: "Failed to save questionnaire" });
     }
   });
+  
+  // Log workout set for AI learning (tracks weights, reps, and notes)
+  app.post("/api/workout/log-set", async (req, res) => {
+    if (!req.isAuthenticated()) {
+      return res.sendStatus(401);
+    }
+    
+    try {
+      const { exerciseName, setNumber, weight, reps, note, difficulty } = req.body;
+      const userId = req.user!.id;
+      
+      console.log(`📝 Logging set for user ${userId}: ${exerciseName} - Set ${setNumber}: ${weight}kg x ${reps}`);
+      
+      // Save strength data to AI learning context
+      if (weight && reps) {
+        // Check if we already have an insight for this exercise
+        const existingInsight = await db
+          .select()
+          .from(aiLearningContext)
+          .where(and(
+            eq(aiLearningContext.userId, userId),
+            eq(aiLearningContext.category, 'strength'),
+            eq(aiLearningContext.exerciseName, exerciseName)
+          ))
+          .limit(1);
+        
+        if (existingInsight.length > 0) {
+          // Update existing insight with new weight
+          const currentInsight = existingInsight[0];
+          const newDataPoints = (currentInsight.dataPoints || 1) + 1;
+          
+          await db.update(aiLearningContext)
+            .set({
+              insight: `Typically lifts ${weight}kg for ${reps} reps on ${exerciseName}`,
+              confidence: newDataPoints >= 5 ? 'high' : newDataPoints >= 3 ? 'medium' : 'low',
+              dataPoints: newDataPoints,
+              lastUpdated: new Date(),
+            })
+            .where(eq(aiLearningContext.id, currentInsight.id));
+        } else {
+          // Create new insight
+          await db.insert(aiLearningContext).values({
+            userId,
+            category: 'strength',
+            exerciseName,
+            insight: `Typically lifts ${weight}kg for ${reps} reps on ${exerciseName}`,
+            confidence: 'low',
+            dataPoints: 1,
+          });
+        }
+      }
+      
+      // Save difficulty feedback
+      if (difficulty) {
+        const difficultyMap: { [key: string]: string } = {
+          'easy': `User found ${exerciseName} EASY - can increase weight/intensity`,
+          'moderate': `User found ${exerciseName} at appropriate difficulty`,
+          'hard': `User found ${exerciseName} CHALLENGING - consider reducing or maintaining weight`,
+          'too_hard': `User is STRUGGLING with ${exerciseName} - reduce weight or modify exercise`,
+        };
+        
+        if (difficultyMap[difficulty]) {
+          await db.insert(aiLearningContext).values({
+            userId,
+            category: 'difficulty',
+            exerciseName,
+            insight: difficultyMap[difficulty],
+            confidence: 'high',
+            dataPoints: 1,
+          });
+        }
+      }
+      
+      // Save any notes as feedback
+      if (note && note.trim()) {
+        await db.insert(aiLearningContext).values({
+          userId,
+          category: 'feedback',
+          exerciseName,
+          insight: `User note during ${exerciseName}: "${note}"`,
+          confidence: 'medium',
+          dataPoints: 1,
+        });
+      }
+      
+      res.json({ success: true });
+    } catch (error: any) {
+      console.error("Error logging workout set:", error);
+      res.status(500).json({ error: "Failed to log set" });
+    }
+  });
+  
+  // Get AI weight suggestion for an exercise
+  app.get("/api/workout/suggested-weight/:exerciseName", async (req, res) => {
+    if (!req.isAuthenticated()) {
+      return res.sendStatus(401);
+    }
+    
+    try {
+      const { exerciseName } = req.params;
+      const userId = req.user!.id;
+      
+      // Find the most recent strength insight for this exercise
+      const insights = await db
+        .select()
+        .from(aiLearningContext)
+        .where(and(
+          eq(aiLearningContext.userId, userId),
+          eq(aiLearningContext.category, 'strength')
+        ))
+        .orderBy(sql`${aiLearningContext.lastUpdated} DESC`)
+        .limit(50);
+      
+      // Fuzzy match exercise name
+      const exerciseNameLower = exerciseName.toLowerCase();
+      const matchingInsight = insights.find(i => 
+        i.exerciseName?.toLowerCase().includes(exerciseNameLower) ||
+        exerciseNameLower.includes(i.exerciseName?.toLowerCase() || '')
+      );
+      
+      if (matchingInsight) {
+        // Parse weight from insight
+        const weightMatch = matchingInsight.insight.match(/(\d+)\s*kg/i);
+        const repsMatch = matchingInsight.insight.match(/for\s*(\d+)/);
+        
+        if (weightMatch) {
+          res.json({
+            suggestedWeight: parseInt(weightMatch[1]),
+            suggestedReps: repsMatch ? parseInt(repsMatch[1]) : 10,
+            confidence: matchingInsight.confidence,
+            source: 'history',
+          });
+          return;
+        }
+      }
+      
+      res.json({ suggestedWeight: null, suggestedReps: null, source: 'no_data' });
+    } catch (error: any) {
+      console.error("Error getting weight suggestion:", error);
+      res.status(500).json({ error: "Failed to get suggestion" });
+    }
+  });
 
   // Social API routes
   app.get("/api/social/feed", async (req, res) => {
