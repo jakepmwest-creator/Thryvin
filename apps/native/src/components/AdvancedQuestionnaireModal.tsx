@@ -379,7 +379,17 @@ export const AdvancedQuestionnaireModal = ({
   );
   
   // Main questionnaire content
-  const renderQuestionnaire = () => (
+  const renderQuestionnaire = () => {
+    // Safety check
+    if (!currentQuestion) {
+      return (
+        <View style={{ padding: 40, alignItems: 'center' }}>
+          <Text>Loading question...</Text>
+        </View>
+      );
+    }
+    
+    return (
     <>
       {/* Header */}
       <LinearGradient
@@ -421,23 +431,23 @@ export const AdvancedQuestionnaireModal = ({
         <View style={styles.questionContainer}>
           <View style={styles.questionIcon}>
             <Ionicons
-              name={currentQuestion.icon as any}
+              name={(currentQuestion.icon || 'help-circle') as any}
               size={28}
               color={COLORS.accent}
             />
           </View>
-          <Text style={styles.questionTitle}>{currentQuestion.title}</Text>
-          <Text style={styles.questionText}>{currentQuestion.question}</Text>
-          {currentQuestion.hint && (
+          <Text style={styles.questionTitle}>{currentQuestion.title || 'Question'}</Text>
+          <Text style={styles.questionText}>{currentQuestion.question || ''}</Text>
+          {currentQuestion.hint ? (
             <Text style={styles.questionHint}>{currentQuestion.hint}</Text>
-          )}
+          ) : null}
         </View>
         
         {/* Input Area */}
         {currentQuestion.isGoalDetails ? (
           renderGoalDetails()
         ) : (
-          renderTextInput(currentQuestion.id, currentQuestion.placeholder)
+          renderTextInput(currentQuestion.id, currentQuestion.placeholder || 'Type your answer...')
         )}
         
         {/* Voice Hint */}
@@ -485,7 +495,7 @@ export const AdvancedQuestionnaireModal = ({
         </View>
       </View>
     </>
-  );
+  )};
   
   return (
     <Modal visible={visible} animationType="fade" transparent onRequestClose={confirmExit}>
