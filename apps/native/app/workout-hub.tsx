@@ -244,6 +244,34 @@ export default function WorkoutHubScreen() {
     setSetNotes('');
   };
 
+  // Log set to backend for AI learning
+  const logSetToBackend = async (exerciseName: string, setNumber: number, weight: number | undefined, reps: number, note?: string, difficulty?: string) => {
+    try {
+      const authToken = await SecureStore.getItemAsync('auth_token');
+      if (!authToken) return;
+      
+      await fetch(`${API_BASE_URL}/api/workout/log-set`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${authToken}`,
+          'Bypass-Tunnel-Reminder': 'true',
+        },
+        body: JSON.stringify({
+          exerciseName,
+          setNumber,
+          weight,
+          reps,
+          note,
+          difficulty,
+        }),
+      });
+      console.log(`✅ Logged set to AI: ${exerciseName} Set ${setNumber}`);
+    } catch (error) {
+      console.error('Error logging set to backend:', error);
+    }
+  };
+
   const handleCompleteSet = (exerciseIndex: number, exercise: any) => {
     const exerciseType = getExerciseType(exercise);
     
