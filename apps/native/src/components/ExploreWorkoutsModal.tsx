@@ -123,11 +123,30 @@ const ExerciseCard = ({ exercise, onPress }: { exercise: typeof EXERCISES_DATA['
 
 export const ExploreWorkoutsModal = ({ visible, onClose, category, categoryGradient }: ExploreWorkoutsModalProps) => {
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedExercise, setSelectedExercise] = useState<(typeof EXERCISES_DATA)['Strength'][0] | null>(null);
+  const [selectedExercise, setSelectedExercise] = useState<any | null>(null);
   const [filterDifficulty, setFilterDifficulty] = useState<'All' | 'Beginner' | 'Intermediate' | 'Advanced'>('All');
+  const [exercises, setExercises] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   
-  // Get real exercises from the workout store
-  const { weekWorkouts } = useWorkoutStore();
+  // Fetch exercises from API on mount
+  useEffect(() => {
+    const fetchExercises = async () => {
+      try {
+        setIsLoading(true);
+        const response = await fetch(`${API_BASE_URL}/api/exercises`);
+        const data = await response.json();
+        setExercises(data.exercises || []);
+      } catch (error) {
+        console.error('Failed to fetch exercises:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    if (visible) {
+      fetchExercises();
+    }
+  }, [visible]);
   
   // Extract unique exercises from weekWorkouts that match the category
   const realExercises = useMemo(() => {
