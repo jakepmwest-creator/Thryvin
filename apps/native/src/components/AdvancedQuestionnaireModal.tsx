@@ -685,6 +685,7 @@ const styles = StyleSheet.create({
   content: {
     flexGrow: 1,
     flexShrink: 1,
+    minHeight: 250,
   },
   contentInner: {
     padding: 24,
@@ -693,6 +694,7 @@ const styles = StyleSheet.create({
   questionContainer: {
     alignItems: 'center',
     marginBottom: 24,
+    minHeight: 100,
   },
   questionIcon: {
     width: 60,
