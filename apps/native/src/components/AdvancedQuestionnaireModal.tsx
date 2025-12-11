@@ -174,13 +174,63 @@ export const AdvancedQuestionnaireModal = ({
   };
   
   const handleVoiceInput = async () => {
-    setIsRecording(!isRecording);
+    const currentQuestion = QUESTIONS[currentStep];
     
     if (isRecording) {
+      // Stop recording
+      setIsRecording(false);
       setIsTranscribing(true);
+      
+      // Simulate transcription result
       setTimeout(() => {
+        // Generate a sample transcription based on the question type
+        const sampleResponses: { [key: string]: string } = {
+          targets: "I'm training for a half marathon in 4 months and want to improve my overall fitness",
+          enjoyedTraining: "I really enjoy weightlifting and HIIT workouts. I also like outdoor running",
+          dislikedTraining: "I don't enjoy long, slow cardio sessions or repetitive exercises",
+          weakAreas: "My core strength and flexibility need the most work",
+          additionalInfo: "I have about 45 minutes per day to work out, usually in the mornings",
+        };
+        
+        const transcription = sampleResponses[currentQuestion.id] || "Voice input recorded";
+        
+        // Update the form with transcription
+        if (currentQuestion.id === 'goalDetails') {
+          const userGoals = formData.goalDetails || {};
+          const firstGoalKey = Object.keys(userGoals)[0];
+          if (firstGoalKey) {
+            setFormData(prev => ({
+              ...prev,
+              goalDetails: {
+                ...prev.goalDetails,
+                [firstGoalKey]: transcription
+              }
+            }));
+          }
+        } else {
+          setFormData(prev => ({
+            ...prev,
+            [currentQuestion.id]: transcription
+          }));
+        }
+        
         setIsTranscribing(false);
-      }, 1500);
+      }, 2000);
+    } else {
+      // Start recording
+      setIsRecording(true);
+      
+      // Auto-stop after 5 seconds
+      setTimeout(() => {
+        if (isRecording) {
+          setIsRecording(false);
+          setIsTranscribing(true);
+          
+          setTimeout(() => {
+            setIsTranscribing(false);
+          }, 1500);
+        }
+      }, 5000);
     }
   };
   
