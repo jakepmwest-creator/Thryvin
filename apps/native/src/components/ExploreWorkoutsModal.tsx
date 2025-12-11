@@ -260,7 +260,7 @@ export const ExploreWorkoutsModal = ({ visible, onClose, category, categoryGradi
                     <View style={styles.detailMeta}>
                       <View style={styles.detailMetaItem}>
                         <Ionicons name="body" size={16} color={COLORS.accent} />
-                        <Text style={styles.detailMetaText}>{selectedExercise.muscleGroup}</Text>
+                        <Text style={styles.detailMetaText}>{selectedExercise.muscleGroups?.join(', ') || selectedExercise.bodyPart || 'Full Body'}</Text>
                       </View>
                       <View style={styles.detailMetaItem}>
                         <Ionicons name="fitness" size={16} color={COLORS.accent} />
