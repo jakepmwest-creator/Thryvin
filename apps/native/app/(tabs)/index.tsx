@@ -566,21 +566,33 @@ export default function HomeScreen() {
         {/* Log Unexpected Workout */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Log Unexpected Workout</Text>
-          <TouchableOpacity 
-            style={styles.logWorkoutCard}
-            onPress={() => openChat("I did an unexpected workout today. Can I log it?")}
-          >
-            <View style={styles.logWorkoutContent}>
-              <View style={styles.logWorkoutIcon}>
-                <Ionicons name="add-circle" size={32} color={COLORS.gradientStart} />
+          <View style={styles.todayWorkoutCard}>
+            <View style={styles.workoutContent}>
+              <View style={styles.workoutHeader}>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.sectionLabel}>EXTRA ACTIVITY</Text>
+                  <Text style={styles.workoutTitle}>Track Unexpected Workout</Text>
+                  <Text style={styles.workoutMeta}>
+                    Log any extra gym session, run, or activity you did
+                  </Text>
+                </View>
               </View>
-              <View style={styles.logWorkoutText}>
-                <Text style={styles.logWorkoutTitle}>Track Extra Activity</Text>
-                <Text style={styles.logWorkoutSubtitle}>Gym session, run, or other workout you did</Text>
-              </View>
-              <Ionicons name="chevron-forward" size={24} color={COLORS.mediumGray} />
+              <TouchableOpacity 
+                style={styles.startButton}
+                onPress={() => openChat("I did an unexpected workout today. Can I log it?")}
+              >
+                <LinearGradient
+                  colors={[COLORS.gradientStart, COLORS.gradientEnd]}
+                  style={styles.startGradient}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 1 }}
+                >
+                  <Ionicons name="add-circle" size={20} color={COLORS.white} />
+                  <Text style={styles.startButtonText}>Log Activity</Text>
+                </LinearGradient>
+              </TouchableOpacity>
             </View>
-          </TouchableOpacity>
+          </View>
         </View>
 
         {/* Original Nutrition Card (keeping for reference, can be removed later) 
