@@ -13,7 +13,7 @@ from typing import Dict, List, Any, Optional
 
 # Configuration - Use the backend URL from environment
 import os
-BASE_URL = "https://thryvin-app.preview.emergentagent.com"
+BASE_URL = "https://thryvin-explore.preview.emergentagent.com"
 API_BASE = f"{BASE_URL}/api"
 
 # Test credentials - using the specific email that works with Resend sandbox
