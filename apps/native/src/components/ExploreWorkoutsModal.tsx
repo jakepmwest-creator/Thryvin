@@ -38,7 +38,7 @@ interface ExploreWorkoutsModalProps {
   categoryGradient: string[];
 }
 
-const ExerciseCard = ({ exercise, onPress }: { exercise: typeof EXERCISES_DATA['Strength'][0]; onPress: () => void }) => {
+const ExerciseCard = ({ exercise, onPress }: { exercise: any; onPress: () => void }) => {
   const { getPreference, likeExercise, dislikeExercise } = usePreferencesStore();
   const preference = getPreference(exercise.id);
   
