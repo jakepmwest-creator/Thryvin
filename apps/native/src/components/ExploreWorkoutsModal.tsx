@@ -459,6 +459,7 @@ const styles = StyleSheet.create({
   
   emptyState: { alignItems: 'center', paddingVertical: 60 },
   emptyStateText: { fontSize: 16, color: COLORS.mediumGray, marginTop: 12 },
+  emptyStateSubtext: { fontSize: 14, color: COLORS.mediumGray, marginTop: 4, opacity: 0.7 },
   
   // Detail modal
   detailOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.6)', justifyContent: 'flex-end' },
