@@ -277,6 +277,17 @@ export function SlidingTabBar({ state, descriptors, navigation }: BottomTabBarPr
           </TouchableOpacity>
         </View>
       </LinearGradient>
+      
+      {/* Coming Soon Modal */}
+      <ComingSoonModal
+        visible={showNutritionModal}
+        onClose={() => setShowNutritionModal(false)}
+        title="🥗 Nutrition Coming Soon!"
+        message="We're cooking up something amazing! The Nutrition feature is under development and will be available in a future update.
+
+Stay tuned for meal planning, calorie tracking, and more!"
+        icon="nutrition"
+      />
     </View>
   );
 }
