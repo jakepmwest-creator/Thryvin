@@ -117,6 +117,14 @@ export default function LoginScreen() {
 
   const createTestAccount = async () => {
     try {
+      // Quick login with test@example.com account (already exists in backend)
+      await login({ 
+        email: 'test@example.com', 
+        password: 'password123' 
+      });
+      return; // Exit early after successful login
+      
+      /* OLD CODE - REPLACED WITH DIRECT LOGIN
       // Create a fake test account with random onboarding data
       const testAccount = {
         id: Math.floor(Math.random() * 10000),
