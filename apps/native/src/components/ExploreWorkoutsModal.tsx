@@ -148,77 +148,30 @@ export const ExploreWorkoutsModal = ({ visible, onClose, category, categoryGradi
     }
   }, [visible]);
   
-  // Filter exercises by category
+  // Filter exercises by category and search
   const filteredExercises = useMemo(() => {
-    // Map category to database categories
-    const categoryMap: Record<string, string[]> = {
-      'Strength': ['upper-body', 'lower-body', 'full-body'],
-      'HIIT': ['hiit', 'conditioning', 'circuit'],
-      'Cardio': ['cardio', 'endurance'],
-      'Flexibility': ['flexibility', 'stretching', 'yoga'],
-      'Mobility': ['mobility', 'warm-up', 'cooldown'],
-      'Conditioning': ['conditioning', 'metabolic'],
-    };
+    if (isLoading) return [];
     
-    const validCategories = categoryMap[category] || [];
+    let filtered = exercises;
     
-    let filtered = exercises.filter(ex => {
-      // Match by category
-      const matchesCategory = validCategories.some(cat => 
-        ex.category?.toLowerCase().includes(cat.toLowerCase())
+    // Filter by search
+    if (searchQuery) {
+      filtered = filtered.filter(ex => 
+        ex.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        ex.muscleGroups?.some((mg: string) => mg.toLowerCase().includes(searchQuery.toLowerCase())) ||
+        ex.bodyPart?.toLowerCase().includes(searchQuery.toLowerCase())
       );
-      
-      if (!matchesCategory) return false;
-      const workoutTitle = workout.title?.toLowerCase() || '';
-      const isMatchingCategory = matchTypes.some(t => 
-        workoutType.includes(t) || workoutTitle.includes(t)
-      ) || category === 'Strength'; // Default to showing in Strength
-      
-      if (isMatchingCategory && workout.exercises) {
-        workout.exercises.forEach((ex: any, index: number) => {
-          const uniqueId = `${ex.id || ex.name.replace(/\s+/g, '_')}_${workout.id}_${index}`;
-          if (!exerciseMap.has(uniqueId)) {
-            exerciseMap.set(uniqueId, {
-              id: uniqueId,
-              name: ex.name,
-              muscleGroup: ex.targetMuscles || 'Full Body',
-              equipment: ex.equipment || 'Various',
-              difficulty: ex.difficulty || 'Intermediate',
-              description: ex.instructions || `Perform ${ex.name} with proper form.`,
-              tips: ex.tips || ['Focus on form', 'Control the movement', 'Breathe steadily'],
-              videoUrl: ex.videoUrl,
-              sets: ex.sets,
-              reps: ex.reps,
-              restTime: ex.restTime,
-            });
-          }
-        });
-      }
-    });
-    
-    return Array.from(exerciseMap.values());
-  }, [weekWorkouts, category]);
-  
-  // Combine real exercises with static data, prioritizing real ones
-  const exercises = useMemo(() => {
-    const staticExercises = EXERCISES_DATA[category] || [];
-    if (realExercises.length > 0) {
-      // Merge: real exercises first, then static ones not already present
-      const existingNames = new Set(realExercises.map(e => e.name.toLowerCase()));
-      const uniqueStatic = staticExercises.filter(e => !existingNames.has(e.name.toLowerCase()));
-      return [...realExercises, ...uniqueStatic];
     }
-    return staticExercises;
-  }, [realExercises, category]);
-  
-  const filteredExercises = useMemo(() => {
-    return exercises.filter(ex => {
-      const matchesSearch = ex.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                           ex.muscleGroup.toLowerCase().includes(searchQuery.toLowerCase());
-      const matchesDifficulty = filterDifficulty === 'All' || ex.difficulty === filterDifficulty;
-      return matchesSearch && matchesDifficulty;
-    });
-  }, [exercises, searchQuery, filterDifficulty]);
+    
+    // Filter by difficulty
+    if (filterDifficulty !== 'All') {
+      filtered = filtered.filter(ex => 
+        ex.difficulty?.toLowerCase() === filterDifficulty.toLowerCase()
+      );
+    }
+    
+    return filtered;
+  }, [exercises, searchQuery, filterDifficulty, isLoading]);
 
   return (
     <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose}>
