@@ -30,21 +30,7 @@ const COLORS = {
   success: '#34C759',
 };
 
-/* OLD SMALL DATABASE - REPLACED WITH COMPREHENSIVE ONE
-const EXERCISES_DATA: Record<string, Array<{
-  id: string;
-  name: string;
-  muscleGroup: string;
-  equipment: string;
-  difficulty: 'Beginner' | 'Intermediate' | 'Advanced';
-  description: string;
-  tips: string[];
-  videoUrl?: string;
-  sets?: number;
-  reps?: string | number;
-  restTime?: number;
-}>> = {
-*/
+// Using exercises from database via API
 interface ExploreWorkoutsModalProps {
   visible: boolean;
   onClose: () => void;
