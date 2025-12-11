@@ -451,16 +451,26 @@ export const AdvancedQuestionnaireModal = ({
         {/* Question */}
         <View style={styles.questionContainer}>
           <View style={styles.questionIcon}>
-            <Ionicons
-              name={(currentQuestion.icon || 'help-circle') as any}
-              size={28}
-              color={COLORS.accent}
-            />
+            <LinearGradient
+              colors={[`${COLORS.accent}20`, `${COLORS.accentSecondary}20`]}
+              style={styles.questionIconGradient}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+            >
+              <Ionicons
+                name={(currentQuestion.icon || 'help-circle') as any}
+                size={32}
+                color={COLORS.accent}
+              />
+            </LinearGradient>
           </View>
           <Text style={styles.questionTitle}>{currentQuestion.title || 'Question'}</Text>
           <Text style={styles.questionText}>{currentQuestion.question || ''}</Text>
           {currentQuestion.hint ? (
-            <Text style={styles.questionHint}>{currentQuestion.hint}</Text>
+            <View style={styles.hintBadge}>
+              <Ionicons name="bulb" size={14} color={COLORS.accent} />
+              <Text style={styles.questionHint}>{currentQuestion.hint}</Text>
+            </View>
           ) : null}
         </View>
         
