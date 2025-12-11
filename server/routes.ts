@@ -1815,13 +1815,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // AI Coach Chat endpoint
   app.post("/api/coach/chat", async (req, res) => {
     try {
-      const { message, coach, trainingType, coachingStyle } = req.body;
+      const { message, coach, trainingType, coachingStyle, userId } = req.body;
+      
+      // Get user context for personalized response if userId provided
+      let userContext = '';
+      if (userId) {
+        try {
+          const profile = await getComprehensiveUserContext(userId);
+          userContext = formatUserContextForAI(profile);
+        } catch (e) {
+          console.log('Could not load user context for chat');
+        }
+      }
+      
       const response = await getCoachResponse(
         coach,
         message,
         trainingType,
         coachingStyle,
+        userContext,
       );
+      
+      // Save chat for AI learning (non-blocking)
+      if (userId) {
+        saveChatForLearning(userId, message, response).catch(e => 
+          console.log('Non-critical: Could not save chat for learning')
+        );
+      }
+      
       res.json({ response });
     } catch (error: any) {
       console.error("AI Coach error:", error);
