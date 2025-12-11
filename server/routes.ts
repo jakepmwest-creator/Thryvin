@@ -964,24 +964,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      // Generate secure token for deep linking
-      const resetToken = generateSecureToken();
+      // Generate 6-digit code
+      const resetCode = Math.floor(100000 + Math.random() * 900000).toString();
       
-      // Store token in memory (using a simple Map for now)
+      // Store code in memory (using a simple Map for now)
       if (!global.passwordResetTokens) {
         global.passwordResetTokens = new Map();
       }
       
       global.passwordResetTokens.set(email, {
-        token: resetToken,
-        expiresAt: Date.now() + 60 * 60 * 1000, // 1 hour from now
+        token: resetCode,
+        expiresAt: Date.now() + 15 * 60 * 1000, // 15 minutes from now
       });
       
-      console.log(`🔑 Secure reset token generated for ${email}`);
+      console.log(`🔑 6-digit reset code generated for ${email}: ${resetCode}`);
 
       // Send email via Resend
       try {
-        await sendPasswordResetEmail(email, resetToken, user.name || 'User');
+        await sendPasswordResetEmail(email, resetCode, user.name || 'User');
         console.log(`✅ Password reset email sent to ${email} via Resend`);
       } catch (emailError) {
         console.error("❌ Email error:", emailError);
@@ -992,7 +992,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       res.json({
-        message: "Password reset email sent! Check your inbox.",
+        message: "Password reset code sent! Check your email for a 6-digit code.",
       });
     } catch (error) {
       console.error("Forgot password error:", error);
