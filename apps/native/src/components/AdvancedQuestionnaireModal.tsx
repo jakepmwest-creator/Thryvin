@@ -281,14 +281,28 @@ export const AdvancedQuestionnaireModal = ({
           onPress={handleVoiceInput}
           disabled={isTranscribing}
         >
-          {isTranscribing ? (
-            <ActivityIndicator size="small" color={COLORS.white} />
+          {isRecording ? (
+            <View style={[styles.voiceButtonGradient, { backgroundColor: COLORS.danger }]}>
+              <Ionicons name="stop" size={20} color={COLORS.white} />
+            </View>
+          ) : isTranscribing ? (
+            <LinearGradient
+              colors={[COLORS.accent, COLORS.accentSecondary]}
+              style={styles.voiceButtonGradient}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+            >
+              <ActivityIndicator size="small" color={COLORS.white} />
+            </LinearGradient>
           ) : (
-            <Ionicons
-              name={isRecording ? 'stop' : 'mic'}
-              size={20}
-              color={COLORS.white}
-            />
+            <LinearGradient
+              colors={[COLORS.accent, COLORS.accentSecondary]}
+              style={styles.voiceButtonGradient}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+            >
+              <Ionicons name="mic" size={20} color={COLORS.white} />
+            </LinearGradient>
           )}
         </TouchableOpacity>
       </View>
@@ -302,7 +316,14 @@ export const AdvancedQuestionnaireModal = ({
           <View key={goal} style={styles.goalItem}>
             <View style={styles.goalHeader}>
               <View style={styles.goalNumber}>
-                <Text style={styles.goalNumberText}>{index + 1}</Text>
+                <LinearGradient
+                  colors={[COLORS.accent, COLORS.accentSecondary]}
+                  style={styles.goalNumberGradient}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 1 }}
+                >
+                  <Text style={styles.goalNumberText}>{index + 1}</Text>
+                </LinearGradient>
               </View>
               <Text style={styles.goalLabel}>{goal}</Text>
             </View>
