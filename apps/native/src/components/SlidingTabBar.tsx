@@ -158,6 +158,7 @@ const NUTRITION_TABS = [
 export function SlidingTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
   const insets = useSafeAreaInsets();
   const [mode, setMode] = useState<AppMode>('fitness');
+  const [showNutritionModal, setShowNutritionModal] = useState(false);
   const slideAnim = useRef(new Animated.Value(0)).current;
   const colorAnim = useRef(new Animated.Value(0)).current;
 
