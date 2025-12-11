@@ -309,57 +309,48 @@ export default function WorkoutHubScreen() {
   };
 
   const handleFinishWorkout = async () => {
-    // Pause the timer first
+    // Get completion stats
+    const completedCount = activeSession?.completedExercises?.size || 0;
+    const totalExercises = (warmupExercises.length + mainExercises.length + cooldownExercises.length);
+    const durationMinutes = Math.ceil(workoutElapsedSeconds / 60);
+    
+    // Pause the timer
     if (!timerPaused) {
       setPausedAtSeconds(workoutElapsedSeconds);
       setTimerPaused(true);
     }
     
-    showAlert('success', 'Finish Workout?', `Great effort! \ud83d\udcaa\n\nYou worked out for ${formatTimer(workoutElapsedSeconds)}.\n\nAre you sure you want to finish?`, [
-      { text: 'Continue Later', style: 'cancel', onPress: async () => {
-        // Save progress and exit
-        try {
-          await AsyncStorage.setItem('saved_workout_session', JSON.stringify({
-            workoutId: currentWorkout?.id,
-            session: {
-              ...activeSession,
-              completedExercises: Array.from(activeSession?.completedExercises || []),
-              exerciseData: Array.from(activeSession?.exerciseData.entries() || []),
-            },
-            elapsedSeconds: workoutElapsedSeconds,
-            savedAt: new Date().toISOString(),
-          }));
-          console.log('✅ Progress saved');
-        } catch (error) {
-          console.error('Error saving progress:', error);
-        }
-        router.back();
-      }},
-      {
-        text: 'Finish',
-        onPress: async () => {
-          try {
-            // Save actual workout duration (in minutes)
-            const actualDurationMinutes = Math.ceil(workoutElapsedSeconds / 60);
-            await finishWorkoutSession(actualDurationMinutes);
-            console.log(`✅ Workout finished successfully - Duration: ${actualDurationMinutes} minutes`);
-          } catch (error) {
-            console.error('❌ Error finishing workout:', error);
-            // Don't show error to user, just log it
-          }
-          
-          // Show celebration regardless
-          setShowCelebration(true);
-          confettiRef.current?.start();
-          
-          // Navigate back after celebration
-          setTimeout(() => {
-            setShowCelebration(false);
-            router.replace('/(tabs)');
-          }, 3000);
+    // Show confirmation with stats
+    showAlert('success', 'Finish Workout?', 
+      `Are you sure you want to finish?\n\n` +
+      `✅ ${completedCount} of ${totalExercises} exercises completed\n` +
+      `⏱️ Duration: ${durationMinutes} min`, 
+      [
+        { text: 'Continue', style: 'cancel' },
+        {
+          text: 'Yes, Finish',
+          onPress: async () => {
+            // Immediately show celebration
+            setShowCelebration(true);
+            confettiRef.current?.start();
+            
+            // Save workout in background
+            try {
+              await finishWorkoutSession(durationMinutes);
+              console.log(`✅ Workout finished - ${completedCount} exercises, ${durationMinutes} min`);
+            } catch (error) {
+              console.error('❌ Error finishing workout:', error);
+            }
+            
+            // Navigate back after celebration
+            setTimeout(() => {
+              setShowCelebration(false);
+              router.replace('/(tabs)');
+            }, 3000);
+          },
         },
-      },
-    ]);
+      ]
+    );
   };
 
   const handleExit = () => {
