@@ -238,8 +238,23 @@ export const AdvancedQuestionnaireModal = ({
       completedAt: new Date().toISOString(),
     };
     
+    // Save locally
     await AsyncStorage.setItem('advancedQuestionnaire', JSON.stringify(completeData));
     await AsyncStorage.removeItem('advancedQuestionnaireSkipped');
+    
+    // Also save to backend for AI learning (non-blocking)
+    try {
+      const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL || 'https://thryvin-explore.preview.emergentagent.com';
+      await fetch(`${API_BASE_URL}/api/user/advanced-questionnaire`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(completeData),
+        credentials: 'include',
+      });
+      console.log('✅ Advanced questionnaire saved to backend for AI learning');
+    } catch (error) {
+      console.log('Could not sync questionnaire to backend (will use local)');
+    }
     
     onComplete(completeData);
   };
