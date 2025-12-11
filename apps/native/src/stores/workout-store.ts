@@ -846,10 +846,16 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
       // Convert session data to exercise format for completion
       const exercises = workout.exercises.map((exercise, index) => {
         const exerciseData = session.exerciseData.get(index);
+        // Combine all notes from completed sets
+        const setNotes = exerciseData?.completedSets
+          ?.filter(s => s.note)
+          ?.map(s => `Set ${s.setIndex + 1}: ${s.note}`)
+          ?.join('; ');
+        
         return {
           ...exercise,
           completedSets: exerciseData?.completedSets || [],
-          notes: exerciseData?.notes,
+          notes: setNotes || exerciseData?.notes, // Include notes from sets for AI learning
         };
       });
 
