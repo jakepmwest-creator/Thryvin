@@ -270,24 +270,54 @@ export const ResetProgramModal = ({ visible, onClose, onReset }: ResetProgramMod
 
           {/* Input Area */}
           <View style={styles.inputContainer}>
+            {/* Voice Button */}
+            <TouchableOpacity 
+              style={[styles.voiceButton, isListening && styles.voiceButtonActive]}
+              onPress={isListening ? () => stopVoiceInput() : startVoiceInput}
+              disabled={isLoading || isResetting}
+            >
+              <Animated.View style={{ transform: [{ scale: isListening ? pulseAnim : 1 }] }}>
+                {isListening ? (
+                  <LinearGradient
+                    colors={[COLORS.accent, COLORS.accentSecondary]}
+                    style={styles.voiceButtonGradient}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 1 }}
+                  >
+                    <Ionicons name="mic" size={22} color={COLORS.white} />
+                  </LinearGradient>
+                ) : (
+                  <Ionicons name="mic-outline" size={22} color={COLORS.accent} />
+                )}
+              </Animated.View>
+            </TouchableOpacity>
+            
             <TextInput
               style={styles.textInput}
               value={inputText}
               onChangeText={setInputText}
-              placeholder="Type your preferences..."
+              placeholder={isListening ? "Listening..." : "Type or tap mic to speak..."}
               placeholderTextColor={COLORS.mediumGray}
               multiline
               maxLength={500}
-              editable={!isLoading && !isResetting}
+              editable={!isLoading && !isResetting && !isListening}
             />
             <TouchableOpacity 
               style={[styles.sendButton, (!inputText.trim() || isLoading) && styles.sendButtonDisabled]}
               onPress={handleSend}
-              disabled={!inputText.trim() || isLoading}
+              disabled={!inputText.trim() || isLoading || isListening}
             >
               <Ionicons name="send" size={20} color={COLORS.white} />
             </TouchableOpacity>
           </View>
+
+          {/* Listening Indicator */}
+          {isListening && (
+            <View style={styles.listeningIndicator}>
+              <View style={styles.listeningDot} />
+              <Text style={styles.listeningText}>Listening... Tap mic to stop</Text>
+            </View>
+          )}
 
           {/* Generate Button */}
           {messages.length > 2 && !isResetting && (
