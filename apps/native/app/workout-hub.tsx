@@ -280,12 +280,14 @@ export default function WorkoutHubScreen() {
       performanceWeight = weight ? parseFloat(weight) : undefined;
     }
 
+    // Pass the notes along with the set data
     completeSet(
       actualIndex,
       currentSet,
       performanceValue,
       performanceWeight,
-      'Medium'
+      'Medium',
+      setNotes.trim() || undefined // Pass notes to the store
     );
 
     if (currentSet < (exercise?.sets || 1) - 1) {
@@ -295,6 +297,7 @@ export default function WorkoutHubScreen() {
       setDuration('');
       setDistance('');
       setHoldTime('');
+      setSetNotes(''); // Clear notes for next set
     } else {
       showAlert('success', 'Exercise Complete!', 'Great work! Ready for the next one?', [
         {
@@ -302,6 +305,7 @@ export default function WorkoutHubScreen() {
           onPress: () => {
             setExpandedExercise(null);
             setCurrentSet(0);
+            setSetNotes(''); // Clear notes when moving to next exercise
           },
         },
       ]);
