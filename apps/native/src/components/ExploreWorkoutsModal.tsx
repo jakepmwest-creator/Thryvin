@@ -16,6 +16,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { Video, ResizeMode } from 'expo-av';
 import { useWorkoutStore } from '../stores/workout-store';
 import { usePreferencesStore } from '../stores/preferences-store';
+import { EXERCISES_DATABASE } from '../data/exercises-database';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -29,7 +30,10 @@ const COLORS = {
   success: '#34C759',
 };
 
-// Sample exercises by category
+// Use comprehensive exercise database
+const EXERCISES_DATA = EXERCISES_DATABASE;
+
+/* OLD SMALL DATABASE - REPLACED WITH COMPREHENSIVE ONE
 const EXERCISES_DATA: Record<string, Array<{
   id: string;
   name: string;
