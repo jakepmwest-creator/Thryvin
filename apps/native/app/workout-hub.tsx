@@ -1420,7 +1420,24 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    marginBottom: 8,
+    marginBottom: 4,
+  },
+  completedSetWrapper: {
+    marginBottom: 12,
+  },
+  setNoteContainer: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 6,
+    marginLeft: 28,
+    marginTop: 4,
+    paddingRight: 8,
+  },
+  setNoteText: {
+    fontSize: 12,
+    color: COLORS.mediumGray,
+    fontStyle: 'italic',
+    flex: 1,
   },
   completedText: {
     fontSize: 14,
