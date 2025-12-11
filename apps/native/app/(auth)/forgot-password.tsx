@@ -8,13 +8,13 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
+  ActivityIndicator,
 } from 'react-native';
 import { Text } from 'react-native-paper';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import * as SecureStore from 'expo-secure-store';
 import { CustomAlert } from '../../src/components/CustomAlert';
 
 const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL || 'https://thryvin-app.preview.emergentagent.com';
@@ -31,9 +31,14 @@ const COLORS = {
 
 export default function ForgotPasswordScreen() {
   const router = useRouter();
+  const [step, setStep] = useState<'email' | 'code' | 'password'>('email');
   const [email, setEmail] = useState('');
+  const [code, setCode] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [emailSent, setEmailSent] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   
   // CustomAlert state
   const [alertConfig, setAlertConfig] = useState<{
@@ -48,7 +53,7 @@ export default function ForgotPasswordScreen() {
   };
   const hideAlert = () => setAlertConfig(prev => ({ ...prev, visible: false }));
 
-  const handleSendResetEmail = async () => {
+  const handleSendCode = async () => {
     if (!email) {
       showAlert('warning', 'Error', 'Please enter your email address');
       return;
@@ -63,7 +68,6 @@ export default function ForgotPasswordScreen() {
 
     setIsLoading(true);
     try {
-      // Call the backend API
       const response = await fetch(`${API_BASE_URL}/api/auth/forgot-password`, {
         method: 'POST',
         headers: {
@@ -75,16 +79,90 @@ export default function ForgotPasswordScreen() {
       const data = await response.json();
 
       if (response.ok) {
-        // Email exists and was sent successfully
-        setEmailSent(true);
+        // Move to code entry step
+        setStep('code');
+        showAlert('success', 'Code Sent!', 'Check your email for a 6-digit code.');
       } else {
-        // Show the specific error from the backend
         showAlert('error', 'Error', data.error || 'Something went wrong. Please try again.');
       }
       
     } catch (error) {
       console.error('Forgot password error:', error);
       showAlert('error', 'Connection Error', 'Unable to connect to the server. Please check your internet connection and try again.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleVerifyCode = async () => {
+    if (!code || code.length !== 6) {
+      showAlert('warning', 'Error', 'Please enter the 6-digit code from your email');
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/auth/verify-reset-code`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, code }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        // Code is valid, move to password reset
+        setStep('password');
+        showAlert('success', 'Verified!', 'Now enter your new password.');
+      } else {
+        showAlert('error', 'Invalid Code', data.error || 'The code is incorrect. Please try again.');
+      }
+      
+    } catch (error) {
+      console.error('Verify code error:', error);
+      showAlert('error', 'Connection Error', 'Unable to verify code. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleResetPassword = async () => {
+    if (!newPassword || newPassword.length < 6) {
+      showAlert('warning', 'Error', 'Password must be at least 6 characters');
+      return;
+    }
+
+    if (newPassword !== confirmPassword) {
+      showAlert('warning', 'Error', 'Passwords do not match');
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/auth/reset-password`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, code, newPassword }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        showAlert('success', 'Success!', 'Your password has been reset. You can now log in.');
+        setTimeout(() => {
+          router.replace('/(auth)/login');
+        }, 2000);
+      } else {
+        showAlert('error', 'Error', data.error || 'Failed to reset password. Please try again.');
+      }
+      
+    } catch (error) {
+      console.error('Reset password error:', error);
+      showAlert('error', 'Connection Error', 'Unable to reset password. Please try again.');
     } finally {
       setIsLoading(false);
     }
@@ -121,7 +199,18 @@ export default function ForgotPasswordScreen() {
             {/* Back Button */}
             <TouchableOpacity
               style={styles.backButton}
-              onPress={() => router.back()}
+              onPress={() => {
+                if (step === 'email') {
+                  router.back();
+                } else if (step === 'code') {
+                  setStep('email');
+                  setCode('');
+                } else {
+                  setStep('code');
+                  setNewPassword('');
+                  setConfirmPassword('');
+                }
+              }}
             >
               <Ionicons name="arrow-back" size={24} color={COLORS.white} />
             </TouchableOpacity>
@@ -142,18 +231,17 @@ export default function ForgotPasswordScreen() {
                   />
                 </View>
 
-                {!emailSent ? (
+                {/* STEP 1: EMAIL INPUT */}
+                {step === 'email' && (
                   <>
-                    {/* Header */}
                     <View style={styles.headerContainer}>
                       <Ionicons name="lock-open-outline" size={48} color={COLORS.accent} />
                       <Text style={styles.title}>Forgot Password?</Text>
                       <Text style={styles.subtitle}>
-                        No worries! Enter your email and we'll send you a reset link.
+                        Enter your email to receive a reset code
                       </Text>
                     </View>
 
-                    {/* Email Input */}
                     <View style={styles.inputWrapper}>
                       <View style={styles.inputIconContainer}>
                         <Ionicons name="mail-outline" size={20} color={COLORS.accent} />
@@ -171,10 +259,9 @@ export default function ForgotPasswordScreen() {
                       />
                     </View>
 
-                    {/* Send Button */}
                     <TouchableOpacity
                       style={styles.sendButton}
-                      onPress={handleSendResetEmail}
+                      onPress={handleSendCode}
                       disabled={isLoading || !email}
                       activeOpacity={0.8}
                     >
@@ -185,60 +272,182 @@ export default function ForgotPasswordScreen() {
                         end={{ x: 1, y: 1 }}
                       >
                         {isLoading ? (
-                          <Text style={styles.buttonText}>Sending...</Text>
+                          <ActivityIndicator color={COLORS.white} />
                         ) : (
                           <>
                             <Ionicons name="send" size={20} color={COLORS.white} />
-                            <Text style={styles.buttonText}>Send Reset Link</Text>
+                            <Text style={styles.buttonText}>Send Code</Text>
                           </>
                         )}
                       </LinearGradient>
                     </TouchableOpacity>
                   </>
-                ) : (
+                )}
+
+                {/* STEP 2: CODE INPUT */}
+                {step === 'code' && (
                   <>
-                    {/* Success State */}
-                    <View style={styles.successContainer}>
-                      <View style={styles.successIcon}>
-                        <Ionicons name="checkmark-circle" size={64} color={COLORS.success} />
-                      </View>
-                      <Text style={styles.successTitle}>Email Sent!</Text>
-                      <Text style={styles.successText}>
-                        If an account exists for {email}, you'll receive a password reset email
-                        shortly.
-                      </Text>
-                      <Text style={styles.successSubtext}>
-                        Check your inbox and spam folder.
+                    <View style={styles.headerContainer}>
+                      <Ionicons name="mail-open-outline" size={48} color={COLORS.accent} />
+                      <Text style={styles.title}>Enter Code</Text>
+                      <Text style={styles.subtitle}>
+                        We sent a 6-digit code to{'\n'}{email}
                       </Text>
                     </View>
 
-                    {/* Back to Login Button */}
+                    <View style={styles.codeInputWrapper}>
+                      <RNTextInput
+                        style={styles.codeInput}
+                        placeholder="000000"
+                        placeholderTextColor={COLORS.mediumGray}
+                        value={code}
+                        onChangeText={(text) => setCode(text.replace(/[^0-9]/g, '').slice(0, 6))}
+                        keyboardType="number-pad"
+                        maxLength={6}
+                        autoFocus
+                      />
+                    </View>
+
                     <TouchableOpacity
-                      style={styles.backToLoginButton}
-                      onPress={() => router.back()}
-                      activeOpacity={0.7}
+                      style={styles.sendButton}
+                      onPress={handleVerifyCode}
+                      disabled={isLoading || code.length !== 6}
+                      activeOpacity={0.8}
                     >
                       <LinearGradient
-                        colors={[`${COLORS.accent}15`, `${COLORS.accentSecondary}15`]}
-                        style={styles.backToLoginGradient}
+                        colors={[COLORS.accent, COLORS.accentSecondary]}
+                        style={styles.gradientButton}
                         start={{ x: 0, y: 0 }}
                         end={{ x: 1, y: 1 }}
                       >
-                        <Ionicons name="arrow-back" size={20} color={COLORS.accent} />
-                        <Text style={styles.backToLoginText}>Back to Login</Text>
+                        {isLoading ? (
+                          <ActivityIndicator color={COLORS.white} />
+                        ) : (
+                          <>
+                            <Ionicons name="checkmark" size={20} color={COLORS.white} />
+                            <Text style={styles.buttonText}>Verify Code</Text>
+                          </>
+                        )}
                       </LinearGradient>
+                    </TouchableOpacity>
+
+                    <TouchableOpacity
+                      style={styles.resendLink}
+                      onPress={() => {
+                        setStep('email');
+                        setCode('');
+                      }}
+                    >
+                      <Text style={styles.resendText}>Resend code</Text>
                     </TouchableOpacity>
                   </>
                 )}
 
-                {/* Resend Option (shown after email sent) */}
-                {emailSent && (
-                  <TouchableOpacity
-                    style={styles.resendLink}
-                    onPress={() => setEmailSent(false)}
-                  >
-                    <Text style={styles.resendText}>Didn't receive it? Try again</Text>
-                  </TouchableOpacity>
+                {/* STEP 3: PASSWORD RESET */}
+                {step === 'password' && (
+                  <>
+                    <View style={styles.headerContainer}>
+                      <Ionicons name="lock-closed-outline" size={48} color={COLORS.accent} />
+                      <Text style={styles.title}>New Password</Text>
+                      <Text style={styles.subtitle}>
+                        Enter your new password
+                      </Text>
+                    </View>
+
+                    <View style={styles.inputWrapper}>
+                      <View style={styles.inputIconContainer}>
+                        <Ionicons name="lock-closed-outline" size={20} color={COLORS.accent} />
+                      </View>
+                      <RNTextInput
+                        style={styles.input}
+                        placeholder="New Password"
+                        placeholderTextColor={COLORS.mediumGray}
+                        value={newPassword}
+                        onChangeText={setNewPassword}
+                        secureTextEntry={!showPassword}
+                        autoCapitalize="none"
+                        autoFocus
+                      />
+                      <TouchableOpacity
+                        onPress={() => setShowPassword(!showPassword)}
+                        style={styles.eyeIcon}
+                      >
+                        <Ionicons
+                          name={showPassword ? 'eye-outline' : 'eye-off-outline'}
+                          size={20}
+                          color={COLORS.mediumGray}
+                        />
+                      </TouchableOpacity>
+                    </View>
+
+                    <View style={styles.inputWrapper}>
+                      <View style={styles.inputIconContainer}>
+                        <Ionicons name="lock-closed-outline" size={20} color={COLORS.accent} />
+                      </View>
+                      <RNTextInput
+                        style={styles.input}
+                        placeholder="Confirm Password"
+                        placeholderTextColor={COLORS.mediumGray}
+                        value={confirmPassword}
+                        onChangeText={setConfirmPassword}
+                        secureTextEntry={!showConfirmPassword}
+                        autoCapitalize="none"
+                      />
+                      <TouchableOpacity
+                        onPress={() => setShowConfirmPassword(!showConfirmPassword)}
+                        style={styles.eyeIcon}
+                      >
+                        <Ionicons
+                          name={showConfirmPassword ? 'eye-outline' : 'eye-off-outline'}
+                          size={20}
+                          color={COLORS.mediumGray}
+                        />
+                      </TouchableOpacity>
+                    </View>
+
+                    {/* Password requirements */}
+                    <View style={styles.requirementsBox}>
+                      <View style={styles.requirementRow}>
+                        <Ionicons
+                          name={newPassword.length >= 6 ? 'checkmark-circle' : 'ellipse-outline'}
+                          size={16}
+                          color={newPassword.length >= 6 ? COLORS.success : COLORS.mediumGray}
+                        />
+                        <Text style={styles.requirementText}>At least 6 characters</Text>
+                      </View>
+                      <View style={styles.requirementRow}>
+                        <Ionicons
+                          name={newPassword === confirmPassword && newPassword.length > 0 ? 'checkmark-circle' : 'ellipse-outline'}
+                          size={16}
+                          color={newPassword === confirmPassword && newPassword.length > 0 ? COLORS.success : COLORS.mediumGray}
+                        />
+                        <Text style={styles.requirementText}>Passwords match</Text>
+                      </View>
+                    </View>
+
+                    <TouchableOpacity
+                      style={styles.sendButton}
+                      onPress={handleResetPassword}
+                      disabled={isLoading || !newPassword || !confirmPassword}
+                      activeOpacity={0.8}
+                    >
+                      <LinearGradient
+                        colors={[COLORS.accent, COLORS.accentSecondary]}
+                        style={styles.gradientButton}
+                        start={{ x: 0, y: 0 }}
+                        end={{ x: 1, y: 1 }}
+                      >
+                        {isLoading ? (
+                          <ActivityIndicator color={COLORS.white} />
+                        ) : (
+                          <>
+                            <Ionicons name="checkmark-done" size={20} color={COLORS.white} />
+                            <Text style={styles.buttonText}>Reset Password</Text>
+                          </>
+                        )}
+                      </LinearGradient>
+                    </TouchableOpacity>
+                  </>
                 )}
               </LinearGradient>
             </View>
@@ -328,7 +537,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.lightGray,
     borderRadius: 18,
     paddingHorizontal: 18,
-    marginBottom: 20,
+    marginBottom: 16,
     borderWidth: 2,
     borderColor: 'transparent',
   },
@@ -347,6 +556,23 @@ const styles = StyleSheet.create({
     color: COLORS.text,
     paddingVertical: 16,
     fontWeight: '500',
+  },
+  eyeIcon: {
+    padding: 8,
+  },
+  codeInputWrapper: {
+    marginBottom: 24,
+  },
+  codeInput: {
+    fontSize: 42,
+    fontWeight: '800',
+    color: COLORS.text,
+    textAlign: 'center',
+    letterSpacing: 12,
+    paddingVertical: 20,
+    backgroundColor: COLORS.lightGray,
+    borderRadius: 18,
+    fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace',
   },
   sendButton: {
     marginTop: 8,
@@ -372,50 +598,6 @@ const styles = StyleSheet.create({
     color: COLORS.white,
     letterSpacing: 0.5,
   },
-  successContainer: {
-    alignItems: 'center',
-    paddingVertical: 20,
-  },
-  successIcon: {
-    marginBottom: 20,
-  },
-  successTitle: {
-    fontSize: 26,
-    fontWeight: '700',
-    color: COLORS.text,
-    marginBottom: 12,
-  },
-  successText: {
-    fontSize: 15,
-    color: COLORS.text,
-    textAlign: 'center',
-    lineHeight: 22,
-    marginBottom: 8,
-    paddingHorizontal: 20,
-  },
-  successSubtext: {
-    fontSize: 13,
-    color: COLORS.mediumGray,
-    textAlign: 'center',
-    marginBottom: 32,
-  },
-  backToLoginButton: {
-    borderRadius: 18,
-    overflow: 'hidden',
-    marginBottom: 16,
-  },
-  backToLoginGradient: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 18,
-    gap: 8,
-  },
-  backToLoginText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: COLORS.accent,
-  },
   resendLink: {
     alignItems: 'center',
     paddingVertical: 12,
@@ -424,5 +606,21 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: COLORS.accent,
     fontWeight: '600',
+  },
+  requirementsBox: {
+    backgroundColor: '#F0F4FF',
+    padding: 16,
+    borderRadius: 12,
+    marginBottom: 24,
+  },
+  requirementRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  requirementText: {
+    fontSize: 14,
+    color: COLORS.mediumGray,
+    marginLeft: 8,
   },
 });
