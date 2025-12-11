@@ -447,27 +447,6 @@ const styles = StyleSheet.create({
     top: 8,
     right: 8,
   },
-    color: COLORS.text,
-  },
-  goalLabelSelected: {
-    color: COLORS.accent,
-  },
-  goalDescription: {
-    fontSize: 13,
-    color: COLORS.mediumGray,
-    marginTop: 2,
-  },
-  goalDescriptionSelected: {
-    color: COLORS.text,
-  },
-  checkBadge: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    backgroundColor: COLORS.accent,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
   inputRow: {
     flexDirection: 'row',
     alignItems: 'center',
