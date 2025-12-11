@@ -168,13 +168,9 @@ export function SlidingTabBar({ state, descriptors, navigation }: BottomTabBarPr
     : [COLORS.nutritionAccent, COLORS.nutritionSecondary];
 
   const handleToggle = () => {
-    // Show "Coming Soon" alert for Nutrition
+    // Show nice "Coming Soon" modal for Nutrition
     if (mode === 'fitness') {
-      Alert.alert(
-        '🥗 Nutrition Coming Soon!',
-        'We\'re cooking up something amazing! The Nutrition feature is under development and will be available in a future update.\n\nStay tuned for meal planning, calorie tracking, and more!',
-        [{ text: 'Got it!', style: 'default' }]
-      );
+      setShowNutritionModal(true);
       return;
     }
     
