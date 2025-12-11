@@ -1002,7 +1002,52 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Reset password endpoint (for when user clicks email link)
+  // Verify 6-digit code endpoint
+  app.post("/api/auth/verify-reset-code", async (req, res) => {
+    try {
+      const { email, code } = req.body;
+
+      if (!email || !code) {
+        return res.status(400).json({ error: "Email and code are required" });
+      }
+
+      // Check if code exists in memory
+      if (!global.passwordResetTokens) {
+        return res.status(400).json({ error: "Invalid or expired reset code" });
+      }
+
+      const tokenData = global.passwordResetTokens.get(email);
+
+      if (!tokenData) {
+        return res.status(400).json({ error: "Invalid or expired reset code" });
+      }
+
+      // Check if code matches
+      if (tokenData.token !== code) {
+        return res.status(400).json({ error: "Incorrect code. Please try again." });
+      }
+
+      // Check if code is expired
+      if (Date.now() > tokenData.expiresAt) {
+        global.passwordResetTokens.delete(email);
+        return res.status(400).json({
+          error: "Reset code has expired. Please request a new one.",
+        });
+      }
+
+      console.log(`✅ Code verified successfully for ${email}`);
+
+      res.json({
+        message: "Code verified successfully. You can now reset your password.",
+        verified: true,
+      });
+    } catch (error) {
+      console.error("Verify code error:", error);
+      res.status(500).json({ error: "An error occurred. Please try again later." });
+    }
+  });
+
+  // Reset password endpoint (for when user enters new password)
   app.post("/api/auth/reset-password", async (req, res) => {
     try {
       const { token, newPassword } = req.body;
