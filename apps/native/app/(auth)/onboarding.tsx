@@ -464,42 +464,70 @@ export default function OnboardingScreen() {
   };
 
   const renderGenderSelect = () => (
-    <View style={styles.genderContainer}>
-      {['Male', 'Female', 'Other'].map((option) => {
-        const isSelected = formData.gender === option.toLowerCase();
-        return (
-          <TouchableOpacity
-            key={option}
-            style={[
-              styles.genderOption,
-              isSelected && styles.genderOptionSelected
-            ]}
-            onPress={() => setFormData({ ...formData, gender: option.toLowerCase() })}
-            activeOpacity={0.7}
-          >
-            <View style={[
-              styles.genderIconContainer,
-              isSelected && styles.genderIconContainerSelected
-            ]}>
-              <Ionicons 
-                name={
-                  option === 'Male' ? 'male' : 
-                  option === 'Female' ? 'female' : 
-                  'transgender'
-                }
-                size={20}
-                color={isSelected ? COLORS.white : COLORS.accent}
-              />
-            </View>
-            <Text style={[
-              styles.genderText,
-              isSelected && styles.genderTextSelected
-            ]}>
-              {option}
-            </Text>
-          </TouchableOpacity>
-        );
-      })}
+    <View>
+      {/* First row: Male and Female */}
+      <View style={styles.genderContainer}>
+        {['Male', 'Female'].map((option) => {
+          const isSelected = formData.gender === option.toLowerCase();
+          return (
+            <TouchableOpacity
+              key={option}
+              style={[
+                styles.genderOption,
+                isSelected && styles.genderOptionSelected
+              ]}
+              onPress={() => setFormData({ ...formData, gender: option.toLowerCase() })}
+              activeOpacity={0.7}
+            >
+              <View style={[
+                styles.genderIconContainer,
+                isSelected && styles.genderIconContainerSelected
+              ]}>
+                <Ionicons 
+                  name={option === 'Male' ? 'male' : 'female'}
+                  size={20}
+                  color={isSelected ? COLORS.white : COLORS.accent}
+                />
+              </View>
+              <Text style={[
+                styles.genderText,
+                isSelected && styles.genderTextSelected
+              ]}>
+                {option}
+              </Text>
+            </TouchableOpacity>
+          );
+        })}
+      </View>
+
+      {/* Second row: Other (centered) */}
+      <View style={styles.genderOtherContainer}>
+        <TouchableOpacity
+          style={[
+            styles.genderOptionOther,
+            formData.gender === 'other' && styles.genderOptionSelected
+          ]}
+          onPress={() => setFormData({ ...formData, gender: 'other' })}
+          activeOpacity={0.7}
+        >
+          <View style={[
+            styles.genderIconContainer,
+            formData.gender === 'other' && styles.genderIconContainerSelected
+          ]}>
+            <Ionicons 
+              name="transgender"
+              size={20}
+              color={formData.gender === 'other' ? COLORS.white : COLORS.accent}
+            />
+          </View>
+          <Text style={[
+            styles.genderText,
+            formData.gender === 'other' && styles.genderTextSelected
+          ]}>
+            Other
+          </Text>
+        </TouchableOpacity>
+      </View>
     </View>
   );
 
