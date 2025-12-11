@@ -13,9 +13,9 @@ import { Ionicons } from '@expo/vector-icons';
 
 const COLORS = {
   primary: '#A22BF6',
-  secondary: '#E94560',
+  secondary: '#FF4EC7',
   gradientStart: '#A22BF6',
-  gradientEnd: '#E94560',
+  gradientEnd: '#FF4EC7',
   background: '#FFFFFF',
   cardBg: '#F5F5F7',
   text: '#1C1C1E',

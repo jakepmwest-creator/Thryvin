@@ -427,7 +427,13 @@ export default function HomeScreen() {
         router.push('/(tabs)/workouts');
         break;
       case 'profile':
-        router.push('/(tabs)/profile');
+        // Show "Coming Soon" for Social feature
+        showAlert({
+          type: 'info',
+          title: '👥 Social Coming Soon!',
+          message: 'We\'re building something awesome! Social features like followers, sharing achievements, and connecting with workout buddies will be available in a future update.\n\nStay tuned!',
+          buttons: [{ text: 'Got it!', onPress: hideAlert }]
+        });
         break;
     }
   };

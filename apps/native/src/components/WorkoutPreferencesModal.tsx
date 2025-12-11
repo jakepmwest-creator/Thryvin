@@ -229,21 +229,32 @@ export const WorkoutPreferencesModal = ({ visible, onClose, onSave }: WorkoutPre
     <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose}>
       <View style={styles.overlay}>
         <View style={styles.container}>
-          {/* Header */}
-          <View style={styles.header}>
-            <TouchableOpacity onPress={onClose} style={styles.closeButton} disabled={isSaving}>
-              <Ionicons name="close" size={24} color={COLORS.mediumGray} />
-            </TouchableOpacity>
-            <Text style={styles.title}>Workout Preferences</Text>
-            <TouchableOpacity onPress={handleSave} disabled={isSaving || !hasChanges}>
-              <Text style={[
-                styles.saveButton, 
-                (isSaving || !hasChanges) && { opacity: 0.5 }
-              ]}>
-                {isSaving ? 'Saving...' : hasChanges ? 'Save' : 'Done'}
-              </Text>
-            </TouchableOpacity>
-          </View>
+          {/* Header with Gradient */}
+          <LinearGradient
+            colors={[COLORS.accent, COLORS.accentSecondary]}
+            style={styles.headerGradient}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+          >
+            <View style={styles.headerRow}>
+              <TouchableOpacity onPress={onClose} style={styles.closeButton} disabled={isSaving}>
+                <Ionicons name="close" size={24} color={COLORS.white} />
+              </TouchableOpacity>
+              <View style={styles.headerTitleContainer}>
+                <Ionicons name="fitness" size={24} color={COLORS.white} />
+                <Text style={styles.headerTitle}>Workout Preferences</Text>
+              </View>
+              <TouchableOpacity onPress={handleSave} disabled={isSaving || !hasChanges} style={styles.saveButtonContainer}>
+                <Text style={[
+                  styles.saveButton, 
+                  (isSaving || !hasChanges) && { opacity: 0.5 }
+                ]}>
+                  {isSaving ? 'Saving...' : hasChanges ? 'Save' : 'Done'}
+                </Text>
+              </TouchableOpacity>
+            </View>
+            <Text style={styles.headerSubtitle}>Customize your training experience</Text>
+          </LinearGradient>
           
           {/* Regenerating indicator */}
           {isRegenerating && (
@@ -427,27 +438,48 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     maxHeight: '90%',
+    overflow: 'hidden',
   },
-  header: {
+  headerGradient: {
+    paddingTop: 20,
+    paddingHorizontal: 20,
+    paddingBottom: 16,
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+  },
+  headerRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    padding: 20,
-    borderBottomWidth: 1,
-    borderBottomColor: COLORS.lightGray,
+    marginBottom: 8,
+  },
+  headerTitleContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  headerTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: COLORS.white,
+  },
+  headerSubtitle: {
+    fontSize: 14,
+    color: 'rgba(255, 255, 255, 0.85)',
+    textAlign: 'center',
   },
   closeButton: {
     padding: 4,
+    width: 50,
   },
-  title: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: COLORS.text,
+  saveButtonContainer: {
+    width: 50,
+    alignItems: 'flex-end',
   },
   saveButton: {
     fontSize: 16,
     fontWeight: '600',
-    color: COLORS.accent,
+    color: COLORS.white,
   },
   regeneratingBanner: {
     flexDirection: 'row',

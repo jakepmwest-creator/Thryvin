@@ -7,6 +7,7 @@ import {
   Animated,
   Dimensions,
   Platform,
+  Alert,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
@@ -58,6 +59,16 @@ export function SlidingTabBar({ state, descriptors, navigation }: BottomTabBarPr
     : [COLORS.nutritionAccent, COLORS.nutritionSecondary];
 
   const handleToggle = () => {
+    // Show "Coming Soon" alert for Nutrition
+    if (mode === 'fitness') {
+      Alert.alert(
+        '🥗 Nutrition Coming Soon!',
+        'We\'re cooking up something amazing! The Nutrition feature is under development and will be available in a future update.\n\nStay tuned for meal planning, calorie tracking, and more!',
+        [{ text: 'Got it!', style: 'default' }]
+      );
+      return;
+    }
+    
     const newMode: AppMode = mode === 'fitness' ? 'nutrition' : 'fitness';
     setMode(newMode);
 
