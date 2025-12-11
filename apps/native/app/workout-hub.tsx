@@ -320,6 +320,17 @@ export default function WorkoutHubScreen() {
       'Medium',
       setNotes.trim() || undefined // Pass notes to the store
     );
+    
+    // Log to backend for AI learning (including notes)
+    const exerciseName = exercise?.name || exercise?.exercise?.name || 'Unknown Exercise';
+    logSetToBackend(
+      exerciseName,
+      currentSet + 1,
+      performanceWeight,
+      performanceValue,
+      setNotes.trim() || undefined,
+      undefined // difficulty - could be added later
+    );
 
     if (currentSet < (exercise?.sets || 1) - 1) {
       setCurrentSet(currentSet + 1);
