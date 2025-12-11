@@ -559,6 +559,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       console.log('🎤 [TRANSCRIBE] Received audio file:', file.originalname, file.size, 'bytes');
       
+      // Voice transcription temporarily disabled - requires dedicated OpenAI API key
+      // Emergent universal key doesn't support Whisper API
+      fs.unlinkSync(file.path);
+      return res.status(503).json({ 
+        error: "Voice input temporarily unavailable",
+        message: "Please type your message instead. Voice feature will be available soon!" 
+      });
+      
+      /* DISABLED FOR NOW - Requires proper OpenAI API key
       // Check if OpenAI is available
       if (!process.env.OPENAI_API_KEY) {
         // Clean up file
@@ -598,6 +607,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           message: whisperError.message 
         });
       }
+      */
       
     } catch (error: any) {
       console.error('❌ [TRANSCRIBE] Error:', error);
