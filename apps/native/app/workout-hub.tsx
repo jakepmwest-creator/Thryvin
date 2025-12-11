@@ -1060,18 +1060,19 @@ export default function WorkoutHubScreen() {
               </Text>
               <View style={styles.celebrationStats}>
                 <View style={styles.celebrationStat}>
-                  <Text style={styles.celebrationStatValue}>{exercises.length}</Text>
+                  <Text style={styles.celebrationStatValue}>{finishStats.completedExercises}</Text>
                   <Text style={styles.celebrationStatLabel}>Exercises</Text>
                 </View>
                 <View style={styles.celebrationStat}>
-                  <Text style={styles.celebrationStatValue}>{currentWorkout?.duration || 45}</Text>
+                  <Text style={styles.celebrationStatValue}>{finishStats.durationMinutes}</Text>
                   <Text style={styles.celebrationStatLabel}>Minutes</Text>
                 </View>
                 <View style={styles.celebrationStat}>
-                  <Text style={styles.celebrationStatValue}>{completedCount}</Text>
-                  <Text style={styles.celebrationStatLabel}>Completed</Text>
+                  <Text style={styles.celebrationStatValue}>{finishStats.caloriesBurned}</Text>
+                  <Text style={styles.celebrationStatLabel}>Calories</Text>
                 </View>
               </View>
+              <Text style={styles.celebrationTip}>Tap anywhere to continue</Text>
             </LinearGradient>
           </Animated.View>
           </TouchableOpacity>
