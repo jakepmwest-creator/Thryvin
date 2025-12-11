@@ -4,6 +4,7 @@ import { exercises } from '../shared/schema';
 import { inArray } from 'drizzle-orm';
 import OpenAI from 'openai';
 import { getUserLearningContext, getPersonalizedAdjustments } from './ai-learning-service';
+import { getComprehensiveUserContext, formatUserContextForAI, getSuggestedWeight } from './ai-user-context';
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -19,6 +20,15 @@ interface UserProfile {
   equipment?: string[];
   injuries?: string[];
   userId?: number; // For personalized learning
+  // Advanced questionnaire data
+  advancedQuestionnaire?: {
+    targets?: string;
+    goalDetails?: { [goalKey: string]: string };
+    enjoyedTraining?: string;
+    dislikedTraining?: string;
+    weakAreas?: string;
+    additionalInfo?: string;
+  };
 }
 
 interface GeneratedWorkout {
@@ -35,7 +45,10 @@ interface GeneratedWorkout {
     videoUrl?: string;
     category: 'warmup' | 'main' | 'cooldown';
     suggestedWeight?: number;
+    suggestedReps?: number;
     aiNote?: string;
+    setType?: 'normal' | 'drop' | 'super' | 'giant'; // Different set types
+    supersetWith?: string; // For supersets
   }>;
   overview: string;
   targetMuscles: string;
