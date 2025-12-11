@@ -268,12 +268,35 @@ export const ExploreWorkoutsModal = ({ visible, onClose, category, categoryGradi
             </ScrollView>
           </View>
           
+          {/* Equipment Filter */}
+          <View style={styles.filterContainer}>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+              {EQUIPMENT_FILTERS.map(equip => (
+                <TouchableOpacity
+                  key={equip.id}
+                  style={[styles.filterChip, filterEquipment === equip.id && styles.filterChipActive]}
+                  onPress={() => setFilterEquipment(equip.id)}
+                >
+                  <Text style={[styles.filterChipText, filterEquipment === equip.id && styles.filterChipTextActive]}>
+                    {equip.label}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          </View>
+          
           {/* Exercise List */}
           <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-            {filteredExercises.length === 0 ? (
+            {isLoading ? (
+              <View style={styles.emptyState}>
+                <Ionicons name="fitness" size={48} color={COLORS.accent} />
+                <Text style={styles.emptyStateText}>Loading exercises...</Text>
+              </View>
+            ) : filteredExercises.length === 0 ? (
               <View style={styles.emptyState}>
                 <Ionicons name="search" size={48} color={COLORS.lightGray} />
                 <Text style={styles.emptyStateText}>No exercises found</Text>
+                <Text style={styles.emptyStateSubtext}>Try adjusting your filters</Text>
               </View>
             ) : (
               filteredExercises.map(exercise => (
