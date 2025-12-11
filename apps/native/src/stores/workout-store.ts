@@ -780,7 +780,7 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
   },
 
   // Complete a set
-  completeSet: (exerciseIndex: number, setIndex: number, reps: number, weight: number | undefined, effort: string) => {
+  completeSet: (exerciseIndex: number, setIndex: number, reps: number, weight: number | undefined, effort: string, note?: string) => {
     const session = get().activeSession;
     if (!session) return;
 
@@ -791,6 +791,7 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
       reps,
       weight,
       effort,
+      note, // Add note to the set
     });
 
     session.exerciseData.set(exerciseIndex, exerciseData);
