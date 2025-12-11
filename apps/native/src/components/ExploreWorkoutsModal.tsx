@@ -226,7 +226,11 @@ export const ExploreWorkoutsModal = ({ visible, onClose, category, categoryGradi
             </TouchableOpacity>
             <View style={styles.headerContent}>
               <Text style={styles.headerTitle}>{category}</Text>
-              <Text style={styles.headerSubtitle}>{exercises.length} exercises</Text>
+              <Text style={styles.headerSubtitle}>
+                {isLoading ? 'Loading...' : `${filteredExercises.length} exercises`}
+                {totalInDatabase > 0 && !isLoading && filteredExercises.length !== totalInDatabase && 
+                  ` (${totalInDatabase} total)`}
+              </Text>
             </View>
           </LinearGradient>
           
