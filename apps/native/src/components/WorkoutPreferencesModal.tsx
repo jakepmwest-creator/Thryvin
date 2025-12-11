@@ -321,8 +321,9 @@ export const WorkoutPreferencesModal = ({ visible, onClose, onSave }: WorkoutPre
                   <Switch
                     value={focusStrength}
                     onValueChange={setFocusStrength}
-                    trackColor={{ false: COLORS.lightGray, true: `${COLORS.accent}40` }}
+                    trackColor={{ false: COLORS.lightGray, true: COLORS.accentSecondary }}
                     thumbColor={focusStrength ? COLORS.accent : COLORS.mediumGray}
+                    ios_backgroundColor={COLORS.lightGray}
                   />
                 </View>
                 <View style={styles.toggleItem}>
@@ -333,8 +334,9 @@ export const WorkoutPreferencesModal = ({ visible, onClose, onSave }: WorkoutPre
                   <Switch
                     value={focusCardio}
                     onValueChange={setFocusCardio}
-                    trackColor={{ false: COLORS.lightGray, true: `${COLORS.accent}40` }}
+                    trackColor={{ false: COLORS.lightGray, true: COLORS.accentSecondary }}
                     thumbColor={focusCardio ? COLORS.accent : COLORS.mediumGray}
+                    ios_backgroundColor={COLORS.lightGray}
                   />
                 </View>
                 <View style={styles.toggleItem}>
@@ -345,8 +347,9 @@ export const WorkoutPreferencesModal = ({ visible, onClose, onSave }: WorkoutPre
                   <Switch
                     value={focusFlexibility}
                     onValueChange={setFocusFlexibility}
-                    trackColor={{ false: COLORS.lightGray, true: `${COLORS.accent}40` }}
+                    trackColor={{ false: COLORS.lightGray, true: COLORS.accentSecondary }}
                     thumbColor={focusFlexibility ? COLORS.accent : COLORS.mediumGray}
+                    ios_backgroundColor={COLORS.lightGray}
                   />
                 </View>
               </View>
