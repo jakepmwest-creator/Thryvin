@@ -264,7 +264,7 @@ export const ExploreWorkoutsModal = ({ visible, onClose, category, categoryGradi
                       </View>
                       <View style={styles.detailMetaItem}>
                         <Ionicons name="fitness" size={16} color={COLORS.accent} />
-                        <Text style={styles.detailMetaText}>{selectedExercise.equipment}</Text>
+                        <Text style={styles.detailMetaText}>{selectedExercise.equipment || 'Various'}</Text>
                       </View>
                       <View style={styles.detailMetaItem}>
                         <Ionicons name="speedometer" size={16} color={COLORS.accent} />
