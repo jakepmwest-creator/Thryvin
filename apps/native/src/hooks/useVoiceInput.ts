@@ -115,6 +115,10 @@ export function useVoiceInput(options: UseVoiceInputOptions = {}): UseVoiceInput
 
       if (!response.ok) {
         const error = await response.json();
+        // Show user-friendly message for voice unavailable
+        if (response.status === 503) {
+          throw new Error('Voice input is temporarily unavailable. Please type your message instead.');
+        }
         throw new Error(error.message || 'Transcription failed');
       }
 
