@@ -693,13 +693,6 @@ export default function ProfileScreen() {
         }}
       />
       
-      <PINSetupModal
-        visible={showPINSetup}
-        onClose={() => setShowPINSetup(false)}
-        onComplete={handlePinSetupComplete}
-        isChangingPin={hasPinSet}
-      />
-      
       <HelpFAQModal
         visible={showHelpFAQ}
         onClose={() => setShowHelpFAQ(false)}
