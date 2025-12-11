@@ -20,10 +20,13 @@ import { VoiceInputButton } from '../src/components/VoiceInputButton';
 import { CustomAlert } from '../src/components/CustomAlert';
 import { useWorkoutStore } from '../src/stores/workout-store';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as SecureStore from 'expo-secure-store';
 import { COLORS } from '../src/constants/colors';
 import ConfettiCannon from 'react-native-confetti-cannon';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
+
+const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL || 'https://fitness-ai-upgrade.preview.emergentagent.com';
 
 type TabType = 'warmup' | 'workout' | 'recovery';
 
