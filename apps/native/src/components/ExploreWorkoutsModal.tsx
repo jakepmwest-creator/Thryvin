@@ -68,7 +68,7 @@ const ExerciseCard = ({ exercise, onPress }: { exercise: typeof EXERCISES_DATA['
       <View style={styles.exerciseInfo}>
         <Text style={styles.exerciseName}>{exercise.name}</Text>
         <Text style={styles.exerciseMeta}>
-          {exercise.muscleGroup} • {exercise.difficulty}
+          {exercise.muscleGroups?.join(', ') || exercise.bodyPart || 'Full Body'} • {exercise.difficulty}
         </Text>
       </View>
       
