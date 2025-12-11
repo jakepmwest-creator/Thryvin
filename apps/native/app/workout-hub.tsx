@@ -469,24 +469,6 @@ export default function WorkoutHubScreen() {
           {completedCount} of {totalCount} exercises • {Math.round(progressPercentage)}%
         </Text>
       </View>
-      
-      {/* Workout Timer */}
-      <View style={styles.timerContainer}>
-        <View style={styles.timerContent}>
-          <Ionicons name="time-outline" size={20} color={COLORS.gradientStart} />
-          <Text style={styles.timerText}>{formatTimer(workoutElapsedSeconds)}</Text>
-          <TouchableOpacity 
-            style={styles.pauseButton}
-            onPress={togglePause}
-          >
-            <Ionicons 
-              name={timerPaused ? "play" : "pause"} 
-              size={16} 
-              color={COLORS.mediumGray} 
-            />
-          </TouchableOpacity>
-        </View>
-      </View>
 
       {/* Tabs */}
       <View style={styles.tabsContainer}>
