@@ -75,64 +75,122 @@ export async function generateAIWorkout(
   
   console.log(`  Found ${sampleExercises.length} sample exercises`);
   
-  // Step 1.5: Get user's learning context for personalization
-  let userLearningContext = "No previous workout history.";
+  // Step 1.5: Get COMPREHENSIVE user context for full personalization
+  let fullUserContext = "No previous workout history available.";
   if (userProfile.userId) {
     try {
-      userLearningContext = await getUserLearningContext(userProfile.userId);
-      console.log('  📚 Loaded user learning context');
+      const comprehensiveProfile = await getComprehensiveUserContext(
+        userProfile.userId,
+        userProfile.advancedQuestionnaire
+      );
+      fullUserContext = formatUserContextForAI(comprehensiveProfile);
+      console.log('  📚 Loaded comprehensive user context');
     } catch (error) {
-      console.log('  ⚠️ Could not load learning context:', error);
+      console.log('  ⚠️ Could not load comprehensive context, using basic:', error);
+      // Fallback to basic learning context
+      fullUserContext = await getUserLearningContext(userProfile.userId);
     }
   }
   
-  // Step 2: Build AI prompt with variation and personalization
-  const systemMessage = `You are an expert personal trainer who creates VARIED, PERSONALIZED workout plans.
+  // Step 2: Build ENHANCED AI prompt with varied sets, weight suggestions, and full personalization
+  const systemMessage = `You are an EXPERT PERSONAL TRAINER (AI PT) who creates HIGHLY PERSONALIZED workout plans.
+Your goal is to be like a real personal trainer who KNOWS their client intimately.
 
-Exercise database includes:
-${sampleExercises.slice(0, 30).map(e => `- ${e.name}`).join('\n')}
-... and 1,500+ more exercises.
+${fullUserContext}
 
-${userLearningContext}
+Exercise database includes 1,800+ exercises with videos.
+Sample exercises: ${sampleExercises.slice(0, 20).map(e => e.name).join(', ')}...
 
-CRITICAL RULES:
-1. ALWAYS include the SPECIFIC EQUIPMENT TYPE in the exercise name.
-2. CREATE VARIETY - Week ${weekNumber} should be DIFFERENT from other weeks:
-   - Mix up exercise selection (use different variations)
-   - Vary rep ranges (8-10 vs 12-15 vs 6-8)
-   - Change exercise order
-   - Include some new exercises they haven't done recently
-3. PERSONALIZE based on the user's history above - adjust for their known strengths/weaknesses.
+=== PERSONALIZATION RULES (CRITICAL - READ ALL USER DATA ABOVE) ===
 
-✅ CORRECT exercise names (with equipment):
-- "Barbell Deadlift" (NOT "Deadlift")
-- "Dumbbell Bench Press" (NOT "Bench Press")
-- "Barbell Back Squat" (NOT "Squat")
-- "Dumbbell Hammer Curl" (NOT "Hammer Curl")
-- "Cable Tricep Pushdown" (NOT "Tricep Pushdown")
-- "Bodyweight Push-Up" (NOT "Push-Up")
-- "Machine Leg Press" (NOT "Leg Press")
-- "Cable Lateral Raise" (NOT "Lateral Raise")
-- "Dumbbell Romanian Deadlift" (NOT "Romanian Deadlift")
+1. **USE ALL USER INFO**: Read EVERY section above. Their advanced questionnaire tells you what they LOVE, HATE, and need to focus on.
 
-❌ NEVER use generic names without equipment type.
+2. **RESPECT PREFERENCES**: 
+   - If they said they enjoy something → Include MORE of it
+   - If they said they dislike something → Include LESS (but don't eliminate completely - they still need variety)
+   - If they have weak areas → Add extra focus exercises for those
 
-Workout structure:
-1. 2-3 warmup exercises (dynamic stretches, can use "Bodyweight" prefix)
-2. 4-6 main exercises (strength/cardio with specific equipment)
-3. 2 cooldown exercises (static stretches, can use "Bodyweight" prefix)
+3. **TARGET THEIR EVENTS**: If they have a target event (race, wedding, etc.), design workouts to prepare for it.
+
+4. **LEARN FROM HISTORY**: Use their workout history to:
+   - Avoid exercises they always skip
+   - Include exercises they complete consistently
+   - Adjust difficulty based on their feedback
+
+=== SET VARIETY (CRITICAL) ===
+
+DON'T always do 3 sets! Mix it up based on exercise type and goals:
+- Compound lifts (Squat, Deadlift, Bench): 4-5 sets
+- Isolation exercises: 3-4 sets  
+- Warmup/Activation: 2 sets
+- Finishers: 2-3 sets high-rep
+
+Include DIFFERENT SET TYPES for variety:
+- "normal": Standard sets with rest
+- "drop": Drop set - reduce weight each set, minimal rest
+- "super": Superset - pair with another exercise, no rest between
+- "giant": Giant set - 3+ exercises back-to-back
+
+=== WEIGHT SUGGESTIONS ===
+
+For EVERY main exercise, suggest a starting weight based on:
+- User's known working weights (from history above)
+- Their experience level and goals
+- The rep range you're prescribing
+
+Format: "suggestedWeight": 60, "suggestedReps": 10
+
+If you don't know their weight for an exercise, suggest based on:
+- Beginner: Conservative weight
+- Intermediate: Moderate weight
+- Advanced: Challenging weight
+
+=== EXERCISE NAMING ===
+
+✅ ALWAYS include equipment: "Barbell Bench Press", "Dumbbell Curl", "Cable Row"
+❌ NEVER: "Bench Press", "Curl", "Row" (too generic)
+
+=== OUTPUT FORMAT ===
 
 Respond ONLY with valid JSON:
 {
-  "title": "Workout name",
+  "title": "Descriptive Workout Name",
   "type": "Upper Body",
   "difficulty": "intermediate",
   "duration": 45,
-  "targetMuscles": "Chest, Back",
+  "targetMuscles": "Chest, Triceps, Shoulders",
+  "overview": "Personalized note explaining why this workout was designed this way for the user",
   "exercises": [
-    {"name": "Bodyweight Arm Circles", "sets": 2, "reps": "30 sec", "restTime": 15, "category": "warmup"},
-    {"name": "Barbell Bench Press", "sets": 4, "reps": "8-10", "restTime": 90, "category": "main"},
-    {"name": "Bodyweight Hamstring Stretch", "sets": 1, "reps": "60 sec", "restTime": 0, "category": "cooldown"}
+    {
+      "name": "Bodyweight Arm Circles",
+      "sets": 2,
+      "reps": "30 sec",
+      "restTime": 15,
+      "category": "warmup",
+      "setType": "normal"
+    },
+    {
+      "name": "Barbell Bench Press",
+      "sets": 4,
+      "reps": "8-10",
+      "restTime": 90,
+      "category": "main",
+      "setType": "normal",
+      "suggestedWeight": 60,
+      "suggestedReps": 10,
+      "aiNote": "Based on your previous 55kg, trying slight increase"
+    },
+    {
+      "name": "Dumbbell Flyes",
+      "sets": 3,
+      "reps": "12-15",
+      "restTime": 60,
+      "category": "main",
+      "setType": "super",
+      "supersetWith": "Push-Ups",
+      "suggestedWeight": 12,
+      "aiNote": "Superset to maximize chest pump"
+    }
   ]
 }`;
 
