@@ -26,6 +26,7 @@ import {
 import OpenAI from "openai";
 import { z } from "zod";
 import { generateCoachImage } from "./generate-coach-image";
+import { saveChatForLearning, getComprehensiveUserContext, formatUserContextForAI } from "./ai-user-context";
 import {
   insertLoggedMealSchema,
   insertMealPlanSchema,
