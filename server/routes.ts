@@ -958,15 +958,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const user = await storage.getUserByEmail(email);
 
       if (!user) {
-        // For security, don't reveal if email exists or not
-        return res.json({
-          message:
-            "If an account with that email exists, you will receive a password reset email.",
+        // Tell user if email is not registered
+        return res.status(404).json({
+          error: "We don't recognize this email address. Please check your email or sign up for an account.",
         });
       }
 
-      // Generate 6-digit code
-      const resetToken = Math.floor(100000 + Math.random() * 900000).toString();
+      // Generate secure token for deep linking
+      const resetToken = generateSecureToken();
       
       // Store token in memory (using a simple Map for now)
       if (!global.passwordResetTokens) {
@@ -978,7 +977,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         expiresAt: Date.now() + 60 * 60 * 1000, // 1 hour from now
       });
       
-      console.log(`🔑 6-digit reset code generated for ${email}: ${resetToken}`);
+      console.log(`🔑 Secure reset token generated for ${email}`);
 
       // Send email via Resend
       try {
@@ -988,13 +987,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.error("❌ Email error:", emailError);
         return res.status(500).json({
           error:
-            "Failed to send reset email. Please check that your email is correct and try again.",
+            "Failed to send reset email. Please try again later.",
         });
       }
 
       res.json({
-        message:
-          "If an account with that email exists, you will receive a password reset email.",
+        message: "Password reset email sent! Check your inbox.",
       });
     } catch (error) {
       console.error("Forgot password error:", error);
@@ -1074,6 +1072,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res
         .status(500)
         .json({ error: "An error occurred. Please try again later." });
+    }
+  });
+
+  // Test endpoint to get reset tokens (for testing only)
+  app.get("/api/auth/test-tokens", async (req, res) => {
+    try {
+      if (process.env.NODE_ENV === "production") {
+        return res.status(404).json({ error: "Not found" });
+      }
+      
+      const tokens = {};
+      if (global.passwordResetTokens) {
+        for (const [email, data] of global.passwordResetTokens.entries()) {
+          tokens[email] = {
+            token: data.token,
+            expiresAt: data.expiresAt,
+            isExpired: Date.now() > data.expiresAt
+          };
+        }
+      }
+      
+      res.json({ tokens });
+    } catch (error) {
+      console.error("Test tokens error:", error);
+      res.status(500).json({ error: "Failed to get test tokens" });
     }
   });
 

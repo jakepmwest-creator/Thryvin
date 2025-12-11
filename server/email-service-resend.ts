@@ -1,10 +1,12 @@
 /**
  * Email Service using Resend
- * Modern, reliable email delivery
+ * Modern, reliable email delivery with embedded branding
  */
 
 import { Resend } from 'resend';
 import { generateSecureToken } from './crypto-utils';
+import fs from 'fs';
+import path from 'path';
 
 const RESEND_API_KEY = process.env.RESEND_API_KEY;
 const FROM_EMAIL = process.env.FROM_EMAIL || 'onboarding@resend.dev';
@@ -15,9 +17,18 @@ if (!RESEND_API_KEY) {
 
 const resend = RESEND_API_KEY ? new Resend(RESEND_API_KEY) : null;
 
-// Generate 6-digit reset code
-function generateResetCode(): string {
-  return Math.floor(100000 + Math.random() * 900000).toString();
+// Load and embed the logo as Base64
+function getEmbeddedLogo(): string {
+  try {
+    const logoPath = path.join(process.cwd(), 'apps/native/assets/images/thryvin-logo-final.png');
+    const logoBuffer = fs.readFileSync(logoPath);
+    const base64Logo = logoBuffer.toString('base64');
+    return `data:image/png;base64,${base64Logo}`;
+  } catch (error) {
+    console.error('❌ Could not load logo for email:', error);
+    // Return a fallback empty data URI
+    return 'data:image/png;base64,';
+  }
 }
 
 interface EmailParams {
@@ -60,8 +71,11 @@ export async function sendPasswordResetEmail(
   resetToken: string,
   userName: string = 'Champion'
 ): Promise<boolean> {
-  // Create deep link for the app
-  const resetLink = `exp://localhost:8081/--/(auth)/reset-password?token=${resetToken}`;
+  // Create proper deep link for the app (thryvin:// scheme)
+  const resetLink = `thryvin://reset-password?token=${resetToken}`;
+  
+  // Get embedded logo
+  const embeddedLogo = getEmbeddedLogo();
   
   const htmlContent = `
 <!DOCTYPE html>
@@ -71,20 +85,17 @@ export async function sendPasswordResetEmail(
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Reset Your Thryvin Password</title>
 </head>
-<body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background-color: #F5F5F5;">
-  <table role="presentation" style="width: 100%; border-collapse: collapse; background-color: #F5F5F5; padding: 40px 20px;">
+<body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background-color: #ffffff;">
+  <table role="presentation" style="width: 100%; border-collapse: collapse; background-color: #ffffff; padding: 40px 20px;">
     <tr>
       <td align="center">
         <!-- Main Card -->
-        <table role="presentation" style="max-width: 600px; width: 100%; background: #ffffff; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); overflow: hidden;">
+        <table role="presentation" style="max-width: 600px; width: 100%; background: #ffffff; border-radius: 16px; box-shadow: 0 2px 10px rgba(0,0,0,0.06); overflow: hidden; border: 1px solid #e8e8e8;">
           
-          <!-- Header with Gradient & Your Logo -->
+          <!-- Header with Logo (White Background) -->
           <tr>
-            <td style="background: linear-gradient(135deg, #A259FF 0%, #FF4EC7 100%); padding: 40px 30px; text-align: center;">
-              <!-- Your actual Thryvin logo -->
-              <div style="background: rgba(255,255,255,0.95); width: 120px; height: 120px; margin: 0 auto; border-radius: 60px; display: inline-flex; align-items: center; justify-content: center; box-shadow: 0 8px 25px rgba(0,0,0,0.15);">
-                <img src="https://i.imgur.com/placeholder-thryvin-logo.png" alt="Thryvin" style="width: 100px; height: 100px; object-fit: contain;" />
-              </div>
+            <td style="background: #ffffff; padding: 40px 30px; text-align: center; border-bottom: 2px solid #f5f5f5;">
+              <img src="${embeddedLogo}" alt="Thryvin" style="width: 150px; height: auto; object-fit: contain;" />
             </td>
           </tr>
           
@@ -109,7 +120,7 @@ export async function sendPasswordResetEmail(
               <table role="presentation" style="width: 100%; margin: 0 0 30px 0;">
                 <tr>
                   <td align="center">
-                    <a href="${resetLink}" style="display: inline-block; background: linear-gradient(135deg, #A259FF 0%, #FF4EC7 100%); color: #ffffff; text-decoration: none; padding: 18px 50px; border-radius: 50px; font-size: 18px; font-weight: 700; box-shadow: 0 8px 25px rgba(162, 89, 255, 0.35); text-align: center;">
+                    <a href="${resetLink}" style="display: inline-block; background: #A259FF; color: #ffffff; text-decoration: none; padding: 18px 50px; border-radius: 50px; font-size: 18px; font-weight: 700; box-shadow: 0 4px 15px rgba(162, 89, 255, 0.25); text-align: center;">
                       Reset My Password
                     </a>
                   </td>

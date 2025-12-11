@@ -1,7 +1,15 @@
-import { Tabs } from 'expo-router';
+import { Tabs, Redirect } from 'expo-router';
 import { SlidingTabBar } from '../../src/components/SlidingTabBar';
+import { useAuthStore } from '../../src/stores/auth-store';
 
 export default function TabLayout() {
+  const { user, isLoading } = useAuthStore();
+
+  // Protect all tabs - redirect to login if not authenticated
+  if (!isLoading && !user) {
+    return <Redirect href="/(auth)/login" />;
+  }
+
   return (
     <Tabs
       tabBar={(props) => <SlidingTabBar {...props} />}

@@ -74,55 +74,49 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   login: async (credentials: { email: string; password: string }) => {
     set({ isLoading: true, error: null });
     try {
-      await new Promise(resolve => setTimeout(resolve, 800)); // Simulate network delay
-      
-      // First check if there's a registered user with this email
-      const storedEmail = await getStorageItem('user_email');
-      const storedPassword = await getStorageItem('user_password');
-      const storedUser = await getStorageItem('auth_user');
-      
-      // Check if credentials match a registered user
-      if (storedEmail && storedPassword && storedUser) {
-        if (credentials.email === storedEmail && credentials.password === storedPassword) {
-          const userData = JSON.parse(storedUser);
-          set({ user: userData, isLoading: false });
-          console.log('Login successful (registered user):', userData.name);
-          return;
-        }
+      // Call the real backend API
+      const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(credentials),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Invalid email or password');
       }
-      
-      // If not found in storage, check against test account
-      const validEmail = 'test@example.com';
-      const validPassword = 'password123';
-      
-      if (credentials.email === validEmail && credentials.password === validPassword) {
-        const userData = {
-          id: 1,
-          name: 'Test User',
-          email: credentials.email,
-          trainingType: 'general-fitness',
-          goal: 'improve-health',
-          coachingStyle: 'encouraging-positive',
-          selectedCoach: 'nate-green',
-          hasCompletedOnboarding: true,
-        };
-        
-        set({ user: userData, isLoading: false });
-        
-        // Save credentials securely
-        await setStorageItem('user_email', credentials.email);
-        await setStorageItem('user_password', credentials.password);
-        await setStorageItem('auth_user', JSON.stringify(userData));
-        
-        console.log('Login successful (test account):', userData.name);
-        return;
-      }
-      
-      // If we get here, credentials don't match anything
-      throw new Error('Invalid email or password');
+
+      // Backend returns user data on successful login
+      const userData = {
+        id: data.user.id,
+        name: data.user.name,
+        email: data.user.email,
+        trainingType: data.user.trainingType,
+        goal: data.user.goal,
+        coachingStyle: data.user.coachingStyle,
+        trainingDays: data.user.trainingDays,
+        sessionDuration: data.user.sessionDuration,
+        experience: data.user.experience,
+        equipment: data.user.equipment,
+        injuries: data.user.injuries,
+        fitnessGoals: data.user.fitnessGoals,
+        hasCompletedOnboarding: true,
+      };
+
+      set({ user: userData, isLoading: false });
+
+      // Save user data securely for persistence
+      await setStorageItem('auth_user', JSON.stringify(userData));
+      await setStorageItem('user_email', credentials.email);
+
+      console.log('✅ Login successful:', userData.name);
+      return;
       
     } catch (error) {
-      console.error('Login failed:', error);
+      console.error('❌ Login failed:', error);
       set({ 
         error: error instanceof Error ? error.message : 'Login failed', 
         isLoading: false 
@@ -134,35 +128,49 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   register: async (userData: any) => {
     set({ isLoading: true, error: null });
     try {
-      // Simulate registration with local storage
-      await new Promise(resolve => setTimeout(resolve, 800)); // Simulate network delay
-      
+      // Call the real backend API
+      const response = await fetch(`${API_BASE_URL}/api/auth/register`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(userData),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Registration failed');
+      }
+
+      // Backend returns user data on successful registration
       const newUser = {
-        id: Date.now(),
-        name: userData.name || 'User',
-        email: userData.email,
-        // Save all onboarding data
-        ...userData,
+        id: data.user.id,
+        name: data.user.name || userData.name || 'User',
+        email: data.user.email,
+        trainingType: userData.trainingType,
+        goal: userData.goal,
+        coachingStyle: userData.coachingStyle,
+        trainingDays: userData.trainingDays,
+        sessionDuration: userData.sessionDuration,
+        experience: userData.experience,
+        equipment: userData.equipment,
+        injuries: userData.injuries,
+        fitnessGoals: userData.fitnessGoals,
         hasCompletedOnboarding: true,
         createdAt: new Date().toISOString(),
       };
-      
-      // Remove password from user object (keep secure)
-      delete newUser.password;
-      
+
       set({ user: newUser, isLoading: false });
-      
-      // Save user and credentials
+
+      // Save user data securely for persistence
       await setStorageItem('auth_user', JSON.stringify(newUser));
       await setStorageItem('user_email', userData.email);
-      if (userData.password) {
-        await setStorageItem('user_password', userData.password);
-      }
-      
-      console.log('Registration successful:', newUser.name);
+
+      console.log('✅ Registration successful:', newUser.name);
       console.log('Onboarding data saved:', Object.keys(newUser).join(', '));
     } catch (error) {
-      console.error('Registration failed:', error);
+      console.error('❌ Registration failed:', error);
       set({ 
         error: error instanceof Error ? error.message : 'Registration failed', 
         isLoading: false 

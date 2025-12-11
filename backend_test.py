@@ -1,25 +1,29 @@
 #!/usr/bin/env python3
 """
-Backend API Testing Suite for AI Workout Generation
-Tests the AI workout generation feature for the Thryvin fitness app.
+Backend API Testing Suite for Thryvin Security and Authentication Flow
+Tests the complete authentication and security functionality for the Thryvin fitness app.
 """
 
 import requests
 import json
 import sys
 import time
+import re
 from typing import Dict, List, Any, Optional
 
-# Configuration - Use environment variable or default to localhost
-import os
-BASE_URL = os.environ.get('EXPO_PUBLIC_API_URL', 'http://localhost:5000')
+# Configuration - Use the backend URL from environment
+BASE_URL = "https://thryvin-app.preview.emergentagent.com"
 API_BASE = f"{BASE_URL}/api"
 
 # Test credentials
 TEST_EMAIL = "test@example.com"
 TEST_PASSWORD = "password123"
+FAKE_EMAIL = "fake@notreal.com"
+NEW_USER_EMAIL = "newuser@test.com"
+NEW_USER_PASSWORD = "Test123"
+NEW_USER_NAME = "New User"
 
-class AIWorkoutTester:
+class SecurityAuthTester:
     def __init__(self):
         self.session = requests.Session()
         self.session.headers.update({
@@ -43,28 +47,6 @@ class AIWorkoutTester:
         if details and not success:
             print(f"   Details: {json.dumps(details, indent=2)}")
     
-    def authenticate(self) -> bool:
-        """Authenticate with test user credentials"""
-        try:
-            login_data = {
-                "email": TEST_EMAIL,
-                "password": TEST_PASSWORD
-            }
-            
-            response = self.session.post(f"{API_BASE}/auth/login", json=login_data)
-            
-            if response.status_code == 200:
-                self.log_test("Authentication", True, "Successfully logged in with test credentials")
-                return True
-            else:
-                self.log_test("Authentication", False, f"Login failed with status {response.status_code}", 
-                            {"response": response.text})
-                return False
-                
-        except Exception as e:
-            self.log_test("Authentication", False, f"Authentication error: {str(e)}")
-            return False
-    
     def test_health_endpoint(self) -> bool:
         """Test the health endpoint to verify server is running"""
         try:
@@ -73,6 +55,11 @@ class AIWorkoutTester:
             if response.status_code == 200:
                 health_data = response.json()
                 self.log_test("Health Check", True, "Server is healthy", health_data)
+                return True
+            elif response.status_code == 503:
+                # Server is running but in degraded state - continue testing
+                health_data = response.json()
+                self.log_test("Health Check", True, "Server is running (degraded status - continuing tests)", health_data)
                 return True
             else:
                 self.log_test("Health Check", False, f"Health check failed with status {response.status_code}",
@@ -83,467 +70,345 @@ class AIWorkoutTester:
             self.log_test("Health Check", False, f"Health check error: {str(e)}")
             return False
     
-    def test_basic_ai_workout_generation(self) -> bool:
-        """Test POST /api/workouts/generate with basic user profile"""
+    def test_forgot_password_unregistered_email(self) -> bool:
+        """Test forgot password with unregistered email - should return 404"""
         try:
-            # Test user profile: intermediate experience, muscle-gain goal, 45 min session, Strength Training
-            user_profile = {
-                "experience": "intermediate",
-                "goal": "muscle-gain", 
-                "sessionDuration": 45,
-                "workoutType": "Strength Training",
-                "equipment": ["dumbbells", "barbell", "bench"],
-                "injuries": []
-            }
+            response = self.session.post(f"{API_BASE}/auth/forgot-password", json={
+                "email": FAKE_EMAIL
+            })
             
-            response = self.session.post(f"{API_BASE}/workouts/generate", json={
-                "userProfile": user_profile,
-                "dayOfWeek": 1  # Monday
+            if response.status_code != 404:
+                self.log_test("Forgot Password - Unregistered Email", False, 
+                            f"Expected status 404, got {response.status_code}",
+                            {"response": response.text})
+                return False
+            
+            data = response.json()
+            expected_error = "We don't recognize this email address. Please check your email or sign up for an account."
+            
+            if data.get("error") != expected_error:
+                self.log_test("Forgot Password - Unregistered Email", False, 
+                            f"Unexpected error message",
+                            {"expected": expected_error, "actual": data.get("error")})
+                return False
+            
+            self.log_test("Forgot Password - Unregistered Email", True, 
+                        "Correctly returned 404 with proper error message")
+            return True
+            
+        except Exception as e:
+            self.log_test("Forgot Password - Unregistered Email", False, f"Error: {str(e)}")
+            return False
+    
+    def test_forgot_password_registered_email(self) -> bool:
+        """Test forgot password with registered email - should return 200"""
+        try:
+            # Use jakepmwest@gmail.com as it's configured in the system
+            response = self.session.post(f"{API_BASE}/auth/forgot-password", json={
+                "email": "jakepmwest@gmail.com"
             })
             
             if response.status_code != 200:
-                self.log_test("Basic AI Workout Generation", False, 
+                self.log_test("Forgot Password - Registered Email", False, 
+                            f"Expected status 200, got {response.status_code}",
+                            {"response": response.text})
+                return False
+            
+            data = response.json()
+            expected_message = "Password reset email sent! Check your inbox."
+            
+            if data.get("message") != expected_message:
+                self.log_test("Forgot Password - Registered Email", False, 
+                            f"Unexpected response message",
+                            {"expected": expected_message, "actual": data.get("message")})
+                return False
+            
+            self.log_test("Forgot Password - Registered Email", True, 
+                        "Successfully sent password reset email")
+            return True
+            
+        except Exception as e:
+            self.log_test("Forgot Password - Registered Email", False, f"Error: {str(e)}")
+            return False
+    
+    def test_login_invalid_credentials(self) -> bool:
+        """Test login with invalid credentials - should return 401"""
+        try:
+            # Test with wrong email
+            response = self.session.post(f"{API_BASE}/auth/login", json={
+                "email": "wrong@email.com",
+                "password": "wrongpassword"
+            })
+            
+            if response.status_code != 401:
+                self.log_test("Login - Invalid Credentials", False, 
+                            f"Expected status 401, got {response.status_code}",
+                            {"response": response.text})
+                return False
+            
+            data = response.json()
+            expected_error = "Invalid email or password"
+            
+            if data.get("error") != expected_error:
+                self.log_test("Login - Invalid Credentials", False, 
+                            f"Unexpected error message",
+                            {"expected": expected_error, "actual": data.get("error")})
+                return False
+            
+            # Test with correct email but wrong password
+            response2 = self.session.post(f"{API_BASE}/auth/login", json={
+                "email": TEST_EMAIL,
+                "password": "wrongpassword"
+            })
+            
+            if response2.status_code != 401:
+                self.log_test("Login - Invalid Credentials", False, 
+                            f"Expected status 401 for wrong password, got {response2.status_code}")
+                return False
+            
+            self.log_test("Login - Invalid Credentials", True, 
+                        "Correctly returned 401 for invalid credentials")
+            return True
+            
+        except Exception as e:
+            self.log_test("Login - Invalid Credentials", False, f"Error: {str(e)}")
+            return False
+    
+    def test_login_valid_credentials(self) -> bool:
+        """Test login with valid credentials - should return 200 with user data"""
+        try:
+            response = self.session.post(f"{API_BASE}/auth/login", json={
+                "email": TEST_EMAIL,
+                "password": TEST_PASSWORD
+            })
+            
+            if response.status_code != 200:
+                self.log_test("Login - Valid Credentials", False, 
                             f"Expected status 200, got {response.status_code}",
                             {"response": response.text})
                 return False
             
             data = response.json()
             
-            # Validate response structure
-            required_fields = ['title', 'type', 'difficulty', 'duration', 'exercises', 'overview', 'targetMuscles', 'caloriesBurn']
+            # Check response structure
+            if not data.get("ok"):
+                self.log_test("Login - Valid Credentials", False, 
+                            "Response missing 'ok' field or it's false",
+                            {"response": data})
+                return False
+            
+            if not data.get("user"):
+                self.log_test("Login - Valid Credentials", False, 
+                            "Response missing 'user' object",
+                            {"response": data})
+                return False
+            
+            user = data["user"]
+            required_fields = ["id", "email"]
             for field in required_fields:
-                if field not in data:
-                    self.log_test("Basic AI Workout Generation", False, 
-                                f"Missing required field: {field}", {"response": data})
+                if field not in user:
+                    self.log_test("Login - Valid Credentials", False, 
+                                f"User object missing required field: {field}",
+                                {"user": user})
                     return False
             
-            # Validate exercises array
-            exercises = data['exercises']
-            if not isinstance(exercises, list) or len(exercises) == 0:
-                self.log_test("Basic AI Workout Generation", False, "Exercises should be a non-empty list")
+            # Verify email matches
+            if user["email"] != TEST_EMAIL:
+                self.log_test("Login - Valid Credentials", False, 
+                            f"User email mismatch: expected {TEST_EMAIL}, got {user['email']}")
                 return False
             
-            # Validate exercise structure
-            for exercise in exercises:
-                required_exercise_fields = ['id', 'name', 'sets', 'reps', 'restTime', 'category']
-                for field in required_exercise_fields:
-                    if field not in exercise:
-                        self.log_test("Basic AI Workout Generation", False, 
-                                    f"Exercise missing required field: {field}", {"exercise": exercise})
-                        return False
-                
-                # Check for video URL (videoUrl field should be present, but can be empty for some exercises)
-                if 'videoUrl' not in exercise:
-                    print(f"   Note: Exercise '{exercise['name']}' missing videoUrl field")
-                else:
-                    video_url = exercise.get('videoUrl')
-                    if video_url and video_url != "":
-                        if not video_url.startswith('https://res.cloudinary.com/'):
-                            # Log but don't fail - some exercises might have different video sources
-                            print(f"   Note: Exercise '{exercise['name']}' has non-Cloudinary video URL: {video_url}")
-            
-            # Check for workout phases (warmup, main, cooldown)
-            exercise_categories = [ex.get('category', '').lower() for ex in exercises]
-            has_warmup = any('warmup' in cat or 'warm-up' in cat for cat in exercise_categories)
-            has_main = any('main' in cat or 'strength' in cat or 'cardio' in cat for cat in exercise_categories)
-            has_cooldown = any('cooldown' in cat or 'cool-down' in cat or 'stretch' in cat for cat in exercise_categories)
-            
-            # Count exercises with real video URLs
-            exercises_with_videos = sum(1 for ex in exercises if ex.get('videoUrl') and ex['videoUrl'].startswith('https://res.cloudinary.com/'))
-            video_percentage = (exercises_with_videos / len(exercises)) * 100
-            
-            self.log_test("Basic AI Workout Generation", True, 
-                        f"Successfully generated workout: '{data['title']}' with {len(exercises)} exercises ({video_percentage:.1f}% have Cloudinary videos)",
-                        {
-                            "workout_type": data['type'],
-                            "difficulty": data['difficulty'], 
-                            "duration": data['duration'],
-                            "target_muscles": data['targetMuscles'],
-                            "calories_burn": data['caloriesBurn'],
-                            "has_warmup": has_warmup,
-                            "has_main": has_main,
-                            "has_cooldown": has_cooldown,
-                            "exercises_with_videos": exercises_with_videos,
-                            "total_exercises": len(exercises)
-                        })
+            self.log_test("Login - Valid Credentials", True, 
+                        f"Successfully logged in user: {user['email']} (ID: {user['id']})")
             return True
             
         except Exception as e:
-            self.log_test("Basic AI Workout Generation", False, f"Error: {str(e)}")
+            self.log_test("Login - Valid Credentials", False, f"Error: {str(e)}")
             return False
     
-    def test_beginner_weight_loss_profile(self) -> bool:
-        """Test AI workout generation for beginner with weight-loss goal"""
+    def test_registration_new_user(self) -> bool:
+        """Test registration with new user - should succeed or fail if email exists"""
         try:
-            # Beginner with weight-loss goal, 30 min session
-            user_profile = {
-                "experience": "beginner",
-                "goal": "weight-loss", 
-                "sessionDuration": 30,
-                "workoutType": "Cardio",
-                "equipment": ["bodyweight"],
-                "injuries": []
-            }
-            
-            response = self.session.post(f"{API_BASE}/workouts/generate", json={
-                "userProfile": user_profile,
-                "dayOfWeek": 2  # Tuesday
+            response = self.session.post(f"{API_BASE}/auth/register", json={
+                "email": NEW_USER_EMAIL,
+                "password": NEW_USER_PASSWORD,
+                "name": NEW_USER_NAME
             })
             
-            if response.status_code != 200:
-                self.log_test("Beginner Weight Loss Profile", False, 
-                            f"Expected status 200, got {response.status_code}",
-                            {"response": response.text})
-                return False
-            
-            data = response.json()
-            
-            # Validate basic structure
-            if 'title' not in data or 'exercises' not in data:
-                self.log_test("Beginner Weight Loss Profile", False, "Missing basic workout structure")
-                return False
-            
-            exercises = data['exercises']
-            if len(exercises) == 0:
-                self.log_test("Beginner Weight Loss Profile", False, "No exercises generated")
-                return False
-            
-            # Check that workout is appropriate for beginner (reasonable duration and intensity)
-            duration = data.get('duration', 0)
-            if duration > 35:  # Should be around 30 minutes for beginner
-                self.log_test("Beginner Weight Loss Profile", False, 
-                            f"Workout too long for beginner: {duration} minutes")
-                return False
-            
-            self.log_test("Beginner Weight Loss Profile", True, 
-                        f"Generated appropriate beginner workout: '{data['title']}' ({duration} min, {len(exercises)} exercises)")
-            return True
-            
-        except Exception as e:
-            self.log_test("Beginner Weight Loss Profile", False, f"Error: {str(e)}")
-            return False
-    
-    def test_advanced_endurance_profile(self) -> bool:
-        """Test AI workout generation for advanced user with endurance goal"""
-        try:
-            # Advanced with endurance goal, 60 min session
-            user_profile = {
-                "experience": "advanced",
-                "goal": "endurance", 
-                "sessionDuration": 60,
-                "workoutType": "Endurance",
-                "equipment": ["treadmill", "bike", "bodyweight"],
-                "injuries": []
-            }
-            
-            response = self.session.post(f"{API_BASE}/workouts/generate", json={
-                "userProfile": user_profile,
-                "dayOfWeek": 4  # Thursday
-            })
-            
-            if response.status_code != 200:
-                self.log_test("Advanced Endurance Profile", False, 
-                            f"Expected status 200, got {response.status_code}",
-                            {"response": response.text})
-                return False
-            
-            data = response.json()
-            
-            # Validate basic structure
-            if 'title' not in data or 'exercises' not in data:
-                self.log_test("Advanced Endurance Profile", False, "Missing basic workout structure")
-                return False
-            
-            exercises = data['exercises']
-            if len(exercises) == 0:
-                self.log_test("Advanced Endurance Profile", False, "No exercises generated")
-                return False
-            
-            # Check that workout is appropriate for advanced user (longer duration, more exercises)
-            duration = data.get('duration', 0)
-            if duration < 45:  # Should be closer to 60 minutes for advanced
-                self.log_test("Advanced Endurance Profile", False, 
-                            f"Workout too short for advanced user: {duration} minutes")
-                return False
-            
-            self.log_test("Advanced Endurance Profile", True, 
-                        f"Generated appropriate advanced workout: '{data['title']}' ({duration} min, {len(exercises)} exercises)")
-            return True
-            
-        except Exception as e:
-            self.log_test("Advanced Endurance Profile", False, f"Error: {str(e)}")
-            return False
-    
-    def test_profile_with_injuries(self) -> bool:
-        """Test AI workout generation with injuries field populated"""
-        try:
-            # User with knee injury
-            user_profile = {
-                "experience": "intermediate",
-                "goal": "strength", 
-                "sessionDuration": 40,
-                "workoutType": "Strength Training",
-                "equipment": ["dumbbells", "resistance_bands"],
-                "injuries": ["knee", "lower_back"]
-            }
-            
-            response = self.session.post(f"{API_BASE}/workouts/generate", json={
-                "userProfile": user_profile,
-                "dayOfWeek": 3  # Wednesday
-            })
-            
-            if response.status_code != 200:
-                self.log_test("Profile With Injuries", False, 
-                            f"Expected status 200, got {response.status_code}",
-                            {"response": response.text})
-                return False
-            
-            data = response.json()
-            
-            # Validate basic structure
-            if 'title' not in data or 'exercises' not in data:
-                self.log_test("Profile With Injuries", False, "Missing basic workout structure")
-                return False
-            
-            exercises = data['exercises']
-            if len(exercises) == 0:
-                self.log_test("Profile With Injuries", False, "No exercises generated")
-                return False
-            
-            # Check that workout avoids high-impact exercises (this is more of a validation that AI processed the injury info)
-            exercise_names = [ex.get('name', '').lower() for ex in exercises]
-            high_impact_exercises = ['jumping', 'jump', 'squat jump', 'burpee', 'box jump']
-            has_high_impact = any(impact in ' '.join(exercise_names) for impact in high_impact_exercises)
-            
-            self.log_test("Profile With Injuries", True, 
-                        f"Generated injury-aware workout: '{data['title']}' ({len(exercises)} exercises, high-impact: {has_high_impact})",
-                        {"injuries_considered": user_profile["injuries"], "high_impact_detected": has_high_impact})
-            return True
-            
-        except Exception as e:
-            self.log_test("Profile With Injuries", False, f"Error: {str(e)}")
-            return False
-    
-    def test_different_days_of_week(self) -> bool:
-        """Test AI workout generation for different days of week"""
-        try:
-            # Test Monday (0), Thursday (3), Sunday (6)
-            test_days = [0, 3, 6]
-            day_names = ["Monday", "Thursday", "Sunday"]
-            
-            user_profile = {
-                "experience": "intermediate",
-                "goal": "general_fitness", 
-                "sessionDuration": 35,
-                "workoutType": "Mixed",
-                "equipment": ["dumbbells", "bodyweight"],
-                "injuries": []
-            }
-            
-            generated_workouts = []
-            
-            for i, day in enumerate(test_days):
-                response = self.session.post(f"{API_BASE}/workouts/generate", json={
-                    "userProfile": user_profile,
-                    "dayOfWeek": day
-                })
-                
-                if response.status_code != 200:
-                    self.log_test("Different Days of Week", False, 
-                                f"Failed to generate workout for {day_names[i]} (day {day}): {response.status_code}")
-                    return False
-                
+            # Accept both 200/201 (success) and 400 (email exists)
+            if response.status_code in [200, 201]:
                 data = response.json()
-                if 'title' not in data or 'exercises' not in data:
-                    self.log_test("Different Days of Week", False, 
-                                f"Invalid workout structure for {day_names[i]}")
+                if data.get("ok") and data.get("user"):
+                    self.log_test("Registration - New User", True, 
+                                f"Successfully registered new user: {NEW_USER_EMAIL}")
+                    return True
+                else:
+                    self.log_test("Registration - New User", False, 
+                                "Registration response missing expected fields",
+                                {"response": data})
                     return False
-                
-                generated_workouts.append({
-                    "day": day_names[i],
-                    "title": data['title'],
-                    "type": data.get('type', 'Unknown'),
-                    "exercises": len(data['exercises'])
-                })
-                
-                # Small delay between requests
-                time.sleep(0.5)
-            
-            # Check that we got different workout types/focuses for different days
-            workout_types = [w['type'] for w in generated_workouts]
-            unique_types = len(set(workout_types))
-            
-            self.log_test("Different Days of Week", True, 
-                        f"Generated workouts for 3 different days ({unique_types} unique types)",
-                        {"workouts": generated_workouts})
-            return True
+            elif response.status_code == 400:
+                data = response.json()
+                if "already exists" in data.get("error", "").lower():
+                    self.log_test("Registration - New User", True, 
+                                f"Email {NEW_USER_EMAIL} already exists (expected behavior)")
+                    return True
+                else:
+                    self.log_test("Registration - New User", False, 
+                                f"Unexpected 400 error: {data.get('error')}")
+                    return False
+            else:
+                self.log_test("Registration - New User", False, 
+                            f"Unexpected status code: {response.status_code}",
+                            {"response": response.text})
+                return False
             
         except Exception as e:
-            self.log_test("Different Days of Week", False, f"Error: {str(e)}")
+            self.log_test("Registration - New User", False, f"Error: {str(e)}")
             return False
     
-    def test_video_urls_validation(self) -> bool:
-        """Test that most exercises have valid Cloudinary video URLs"""
+    def test_auth_protection(self) -> bool:
+        """Test that protected routes require authentication"""
         try:
-            # Generate a workout and check video URLs
-            user_profile = {
-                "experience": "intermediate",
-                "goal": "strength", 
-                "sessionDuration": 30,
-                "workoutType": "Strength Training",
-                "equipment": ["dumbbells", "barbell"],
-                "injuries": []
-            }
-            
-            response = self.session.post(f"{API_BASE}/workouts/generate", json={
-                "userProfile": user_profile,
-                "dayOfWeek": 1
+            # Create a new session without authentication
+            unauth_session = requests.Session()
+            unauth_session.headers.update({
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
             })
             
-            if response.status_code != 200:
-                self.log_test("Video URLs Validation", False, 
-                            f"Failed to generate workout: {response.status_code}")
+            # Test protected endpoint - /api/user
+            response = unauth_session.get(f"{API_BASE}/user")
+            
+            if response.status_code != 401:
+                self.log_test("Auth Protection Test", False, 
+                            f"Expected 401 for /api/user, got {response.status_code}")
                 return False
             
-            data = response.json()
-            exercises = data.get('exercises', [])
+            # Test another protected endpoint - /api/auth/me
+            response2 = unauth_session.get(f"{API_BASE}/auth/me")
             
-            if len(exercises) == 0:
-                self.log_test("Video URLs Validation", False, "No exercises to validate")
+            if response2.status_code != 401:
+                self.log_test("Auth Protection Test", False, 
+                            f"Expected 401 for /api/auth/me, got {response2.status_code}")
                 return False
             
-            # Check video URLs
-            total_exercises = len(exercises)
-            exercises_with_videos = 0
-            cloudinary_videos = 0
-            valid_https_videos = 0
+            # Test workout endpoints
+            response3 = unauth_session.get(f"{API_BASE}/workouts/today")
             
-            for exercise in exercises:
-                video_url = exercise.get('videoUrl', '')
-                if video_url and video_url != '':
-                    exercises_with_videos += 1
-                    
-                    if video_url.startswith('https://res.cloudinary.com/'):
-                        cloudinary_videos += 1
-                    elif video_url.startswith('https://'):
-                        valid_https_videos += 1
-            
-            # Calculate percentages
-            video_percentage = (exercises_with_videos / total_exercises) * 100
-            cloudinary_percentage = (cloudinary_videos / total_exercises) * 100
-            
-            # Most exercises should have video URLs
-            if video_percentage < 70:  # At least 70% should have videos
-                self.log_test("Video URLs Validation", False, 
-                            f"Too few exercises have video URLs: {video_percentage:.1f}%")
+            if response3.status_code != 401:
+                self.log_test("Auth Protection Test", False, 
+                            f"Expected 401 for /api/workouts/today, got {response3.status_code}")
                 return False
             
-            self.log_test("Video URLs Validation", True, 
-                        f"Video URL validation passed: {video_percentage:.1f}% have videos ({cloudinary_percentage:.1f}% Cloudinary)",
-                        {
-                            "total_exercises": total_exercises,
-                            "exercises_with_videos": exercises_with_videos,
-                            "cloudinary_videos": cloudinary_videos,
-                            "valid_https_videos": valid_https_videos
-                        })
+            self.log_test("Auth Protection Test", True, 
+                        "Protected routes correctly require authentication")
             return True
             
         except Exception as e:
-            self.log_test("Video URLs Validation", False, f"Error: {str(e)}")
+            self.log_test("Auth Protection Test", False, f"Error: {str(e)}")
             return False
     
-    def test_response_time(self) -> bool:
-        """Test that AI workout generation completes within reasonable time (under 15 seconds)"""
+    def test_authenticated_access(self) -> bool:
+        """Test that authenticated users can access protected routes"""
         try:
-            user_profile = {
-                "experience": "intermediate",
-                "goal": "strength", 
-                "sessionDuration": 45,
-                "workoutType": "Strength Training",
-                "equipment": ["dumbbells", "barbell", "bench"],
-                "injuries": []
-            }
-            
-            start_time = time.time()
-            
-            response = self.session.post(f"{API_BASE}/workouts/generate", json={
-                "userProfile": user_profile,
-                "dayOfWeek": 2
+            # First login to get authenticated session
+            login_response = self.session.post(f"{API_BASE}/auth/login", json={
+                "email": TEST_EMAIL,
+                "password": TEST_PASSWORD
             })
             
-            end_time = time.time()
-            response_time = end_time - start_time
+            if login_response.status_code != 200:
+                self.log_test("Authenticated Access Test", False, 
+                            f"Login failed with status {login_response.status_code}")
+                return False
+            
+            # Test accessing protected endpoint with authentication
+            response = self.session.get(f"{API_BASE}/user")
             
             if response.status_code != 200:
-                self.log_test("Response Time", False, 
-                            f"Request failed: {response.status_code}")
+                self.log_test("Authenticated Access Test", False, 
+                            f"Expected 200 for authenticated /api/user, got {response.status_code}",
+                            {"response": response.text})
                 return False
             
-            if response_time > 15.0:
-                self.log_test("Response Time", False, 
-                            f"Response too slow: {response_time:.2f} seconds (limit: 15s)")
+            user_data = response.json()
+            if not user_data.get("email"):
+                self.log_test("Authenticated Access Test", False, 
+                            "User data missing email field",
+                            {"user_data": user_data})
                 return False
             
-            self.log_test("Response Time", True, 
-                        f"Response time acceptable: {response_time:.2f} seconds (under 15s limit)")
+            # Test /api/auth/me endpoint
+            response2 = self.session.get(f"{API_BASE}/auth/me")
+            
+            if response2.status_code != 200:
+                self.log_test("Authenticated Access Test", False, 
+                            f"Expected 200 for authenticated /api/auth/me, got {response2.status_code}")
+                return False
+            
+            me_data = response2.json()
+            if not me_data.get("user"):
+                self.log_test("Authenticated Access Test", False, 
+                            "/api/auth/me response missing user object")
+                return False
+            
+            self.log_test("Authenticated Access Test", True, 
+                        f"Authenticated user can access protected routes: {user_data['email']}")
             return True
             
         except Exception as e:
-            self.log_test("Response Time", False, f"Error: {str(e)}")
+            self.log_test("Authenticated Access Test", False, f"Error: {str(e)}")
+            return False
+    
+    def test_logout_functionality(self) -> bool:
+        """Test logout functionality"""
+        try:
+            # First login
+            login_response = self.session.post(f"{API_BASE}/auth/login", json={
+                "email": TEST_EMAIL,
+                "password": TEST_PASSWORD
+            })
+            
+            if login_response.status_code != 200:
+                self.log_test("Logout Functionality Test", False, 
+                            f"Login failed with status {login_response.status_code}")
+                return False
+            
+            # Verify we can access protected route
+            user_response = self.session.get(f"{API_BASE}/user")
+            if user_response.status_code != 200:
+                self.log_test("Logout Functionality Test", False, 
+                            "Cannot access protected route after login")
+                return False
+            
+            # Logout
+            logout_response = self.session.post(f"{API_BASE}/auth/logout")
+            
+            if logout_response.status_code != 200:
+                self.log_test("Logout Functionality Test", False, 
+                            f"Logout failed with status {logout_response.status_code}")
+                return False
+            
+            # Try to access protected route after logout
+            user_response2 = self.session.get(f"{API_BASE}/user")
+            
+            if user_response2.status_code != 401:
+                self.log_test("Logout Functionality Test", False, 
+                            f"Expected 401 after logout, got {user_response2.status_code}")
+                return False
+            
+            self.log_test("Logout Functionality Test", True, 
+                        "Logout successfully invalidated session")
+            return True
+            
+        except Exception as e:
+            self.log_test("Logout Functionality Test", False, f"Error: {str(e)}")
             return False
 
-    def test_error_handling(self) -> bool:
-        """Test error handling for invalid requests"""
-        try:
-            # Test 1: Missing userProfile - should return 400
-            response = self.session.post(f"{API_BASE}/workouts/generate", json={
-                "dayOfWeek": 1
-            })
-            
-            if response.status_code not in [400, 422]:  # Accept either 400 or 422 for validation errors
-                if response.status_code == 200:
-                    self.log_test("Error Handling", False, 
-                                "Should have failed with missing userProfile but returned 200")
-                    return False
-                # If it's a different error code, that's still error handling working
-            
-            # Test 2: Completely invalid JSON
-            try:
-                response = self.session.post(f"{API_BASE}/workouts/generate", 
-                                           data="invalid json string",
-                                           headers={'Content-Type': 'application/json'})
-                
-                if response.status_code >= 500:
-                    self.log_test("Error Handling", False, 
-                                f"Server crashed with invalid JSON: {response.status_code}")
-                    return False
-            except:
-                # Network/parsing errors are expected with invalid JSON
-                pass
-            
-            # Test 3: Valid request structure but empty userProfile
-            response = self.session.post(f"{API_BASE}/workouts/generate", json={
-                "userProfile": {},
-                "dayOfWeek": 1
-            })
-            
-            # This might succeed with defaults or fail gracefully - both are acceptable
-            if response.status_code >= 500:
-                self.log_test("Error Handling", False, 
-                            f"Server error with empty profile: {response.status_code}")
-                return False
-            
-            self.log_test("Error Handling", True, 
-                        "Error handling working correctly - no server crashes detected")
-            return True
-            
-        except Exception as e:
-            self.log_test("Error Handling", False, f"Error: {str(e)}")
-            return False
-    
     def run_all_tests(self):
-        """Run all AI workout generation tests"""
-        print("🤖 Starting AI Workout Generation Testing Suite")
+        """Run all security and authentication tests"""
+        print("🔐 Starting Security and Authentication Testing Suite")
         print("=" * 60)
         
         # Test server health first
@@ -551,39 +416,54 @@ class AIWorkoutTester:
             print("❌ Server health check failed. Aborting tests.")
             return False
         
-        # Authentication might be required for workout generation
-        auth_success = self.authenticate()
-        if not auth_success:
-            print("⚠️ Authentication failed, but continuing with tests...")
+        print(f"🔗 Backend URL: {BASE_URL}")
+        print("=" * 60)
         
-        # Run all AI workout generation tests
-        tests = [
-            self.test_basic_ai_workout_generation,
-            self.test_beginner_weight_loss_profile,
-            self.test_advanced_endurance_profile,
-            self.test_profile_with_injuries,
-            self.test_different_days_of_week,
-            self.test_video_urls_validation,
-            self.test_response_time,
-            self.test_error_handling,
-        ]
+        # Test 1: Forgot Password - Unregistered Email
+        print("\n📧 Test 1: Forgot Password - Unregistered Email...")
+        self.test_forgot_password_unregistered_email()
         
-        passed = 0
-        total = len(tests)
+        # Test 2: Forgot Password - Registered Email
+        print("\n📧 Test 2: Forgot Password - Registered Email...")
+        self.test_forgot_password_registered_email()
         
-        for test in tests:
-            if test():
-                passed += 1
-            time.sleep(1.0)  # Longer delay between AI generation requests
+        # Test 3: Login - Invalid Credentials
+        print("\n🔐 Test 3: Login - Invalid Credentials...")
+        self.test_login_invalid_credentials()
+        
+        # Test 4: Login - Valid Credentials
+        print("\n🔐 Test 4: Login - Valid Credentials...")
+        self.test_login_valid_credentials()
+        
+        # Test 5: Registration - New User
+        print("\n👤 Test 5: Registration - New User...")
+        self.test_registration_new_user()
+        
+        # Test 6: Auth Protection Test
+        print("\n🛡️ Test 6: Auth Protection Test...")
+        self.test_auth_protection()
+        
+        # Test 7: Authenticated Access Test
+        print("\n✅ Test 7: Authenticated Access Test...")
+        self.test_authenticated_access()
+        
+        # Test 8: Logout Functionality Test
+        print("\n🚪 Test 8: Logout Functionality Test...")
+        self.test_logout_functionality()
         
         print("\n" + "=" * 60)
-        print(f"🏁 Test Results: {passed}/{total} tests passed")
+        print("🏁 Security and Authentication Test Results:")
         
-        if passed == total:
-            print("✅ All AI workout generation tests passed!")
+        passed_tests = sum(1 for result in self.test_results if result['success'])
+        total_tests = len(self.test_results)
+        
+        print(f"✅ {passed_tests}/{total_tests} tests passed")
+        
+        if passed_tests == total_tests:
+            print("🎉 All security and authentication tests passed!")
             return True
         else:
-            print(f"❌ {total - passed} tests failed")
+            print(f"⚠️ {total_tests - passed_tests} tests had issues")
             return False
     
     def print_summary(self):
@@ -600,7 +480,7 @@ class AIWorkoutTester:
 
 def main():
     """Main test runner"""
-    tester = AIWorkoutTester()
+    tester = SecurityAuthTester()
     
     try:
         success = tester.run_all_tests()

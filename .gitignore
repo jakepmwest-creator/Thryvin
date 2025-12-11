@@ -894,3 +894,19 @@ imported-thryvin/
 *.env
 *.env.*
 test-sendgrid.cjs
+-e 
+# Environment files
+*.env
+*.env.*
+-e 
+# Environment files
+*.env
+*.env.*
+-e 
+# Environment files
+*.env
+*.env.*
+-e 
+# Environment files
+*.env
+*.env.*

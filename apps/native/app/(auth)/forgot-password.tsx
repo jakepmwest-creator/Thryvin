@@ -74,13 +74,17 @@ export default function ForgotPasswordScreen() {
 
       const data = await response.json();
 
-      // Always show success (security best practice)
-      setEmailSent(true);
+      if (response.ok) {
+        // Email exists and was sent successfully
+        setEmailSent(true);
+      } else {
+        // Show the specific error from the backend
+        showAlert('error', 'Error', data.error || 'Something went wrong. Please try again.');
+      }
       
     } catch (error) {
       console.error('Forgot password error:', error);
-      // Still show success for security
-      setEmailSent(true);
+      showAlert('error', 'Connection Error', 'Unable to connect to the server. Please check your internet connection and try again.');
     } finally {
       setIsLoading(false);
     }
