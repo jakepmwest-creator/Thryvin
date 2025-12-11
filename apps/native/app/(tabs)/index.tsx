@@ -1007,7 +1007,7 @@ const styles = StyleSheet.create({
     borderRadius: 20, 
     padding: 20, 
     borderWidth: 2, 
-    borderColor: COLORS.lightGray, 
+    borderColor: COLORS.gradientStart + '40', 
     borderStyle: 'dashed',
     ...CARD_SHADOW,
   },
