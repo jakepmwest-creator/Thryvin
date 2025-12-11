@@ -119,6 +119,9 @@ export default function ProfileScreen() {
   // Settings states (persisted)
   const [notifications, setNotifications] = useState(true);
   const [workoutReminders, setWorkoutReminders] = useState(true);
+  const [pinEnabled, setPinEnabled] = useState(false);
+  const [biometricsEnabled, setBiometricsEnabled] = useState(false);
+  const [hasPinSet, setHasPinSet] = useState(false);
   
   // Profile data
   const [profileImage, setProfileImage] = useState<string | null>(null);
