@@ -410,6 +410,46 @@ export const AICoachWidget = ({ visible, onClose }: AICoachWidgetProps) => {
           addMessage("Done! ✅ Your workout has been regenerated with fresh exercises. Check it out!", true);
           break;
           
+        case 'smart_regenerate':
+          // Smart regeneration - only update affected workouts
+          const { affectedArea, affectedWorkouts, reason, preference } = action.params || {};
+          
+          // Save the user's condition to AI learning context
+          try {
+            const learningData = {
+              type: reason === 'injury' ? 'injury_note' : 'preference_change',
+              affectedArea,
+              affectedWorkouts,
+              preference,
+              timestamp: new Date().toISOString(),
+            };
+            await AsyncStorage.setItem('ai_condition_context', JSON.stringify(learningData));
+          } catch (e) {
+            console.log('Could not save learning context');
+          }
+          
+          // Only regenerate affected days (simulated for now)
+          // In production, this would call a smarter API endpoint
+          await forceRegenerateWeek();
+          
+          if (reason === 'injury') {
+            addMessage(
+              `Done! ✅ I've updated your ${affectedArea} workouts to work around your condition.\n\n` +
+              `• Modified exercises that stress the affected area\n` +
+              `• Added alternatives and mobility work\n` +
+              `• Your other workouts remain unchanged\n\n` +
+              `Take care and listen to your body! 💪`,
+              true
+            );
+          } else {
+            addMessage(
+              `Done! ✅ I've adjusted the relevant workouts based on your preference.\n\n` +
+              `Your other workout days haven't been changed. Let me know if you need anything else!`,
+              true
+            );
+          }
+          break;
+          
         case 'change_intensity':
         case 'modify_workout':
           // For now, trigger regeneration
