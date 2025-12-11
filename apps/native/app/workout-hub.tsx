@@ -364,9 +364,22 @@ export default function WorkoutHubScreen() {
 
   const handleFinishWorkout = async () => {
     // Get completion stats
-    const completedCount = activeSession?.completedExercises?.size || 0;
+    const completedExercisesCount = activeSession?.completedExercises?.size || 0;
     const totalExercises = (warmupExercises.length + mainExercises.length + recoveryExercises.length);
     const durationMinutes = Math.ceil(workoutElapsedSeconds / 60);
+    
+    // Estimate calories burned (rough estimate: ~5-8 calories per minute of exercise)
+    // Adjust based on workout type
+    let caloriesPerMinute = 6; // Default moderate intensity
+    const workoutType = currentWorkout?.type?.toLowerCase() || '';
+    if (workoutType.includes('hiit') || workoutType.includes('cardio')) {
+      caloriesPerMinute = 10;
+    } else if (workoutType.includes('strength') || workoutType.includes('weight')) {
+      caloriesPerMinute = 7;
+    } else if (workoutType.includes('yoga') || workoutType.includes('stretch')) {
+      caloriesPerMinute = 4;
+    }
+    const caloriesBurned = Math.round(durationMinutes * caloriesPerMinute);
     
     // Pause the timer
     if (!timerPaused) {
@@ -377,13 +390,21 @@ export default function WorkoutHubScreen() {
     // Show confirmation with stats
     showAlert('success', 'Finish Workout?', 
       `Are you sure you want to finish?\n\n` +
-      `✅ ${completedCount} of ${totalExercises} exercises completed\n` +
+      `✅ ${completedExercisesCount} of ${totalExercises} exercises completed\n` +
       `⏱️ Duration: ${durationMinutes} min`, 
       [
         { text: 'Continue', style: 'cancel' },
         {
           text: 'Yes, Finish',
           onPress: async () => {
+            // Save the stats for the celebration popup
+            setFinishStats({
+              completedExercises: completedExercisesCount,
+              totalExercises,
+              durationMinutes,
+              caloriesBurned,
+            });
+            
             // Immediately show celebration
             setShowCelebration(true);
             confettiRef.current?.start();
@@ -391,16 +412,16 @@ export default function WorkoutHubScreen() {
             // Save workout in background
             try {
               await finishWorkoutSession(durationMinutes);
-              console.log(`✅ Workout finished - ${completedCount} exercises, ${durationMinutes} min`);
+              console.log(`✅ Workout finished - ${completedExercisesCount} exercises, ${durationMinutes} min, ~${caloriesBurned} cal`);
             } catch (error) {
               console.error('❌ Error finishing workout:', error);
             }
             
-            // Navigate back after celebration
+            // Navigate back after celebration (wait for user to dismiss or auto-navigate)
             setTimeout(() => {
               setShowCelebration(false);
               router.replace('/(tabs)');
-            }, 3000);
+            }, 5000); // Give user 5 seconds to see the popup
           },
         },
       ]
