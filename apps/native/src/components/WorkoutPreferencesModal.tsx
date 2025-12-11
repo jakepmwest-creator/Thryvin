@@ -531,23 +531,32 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   optionChip: {
+    borderRadius: 20,
+    overflow: 'hidden',
+  },
+  optionChipSelected: {
+    // Gradient handles the background
+  },
+  optionGradient: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 16,
     paddingVertical: 10,
-    borderRadius: 20,
-    backgroundColor: COLORS.lightGray,
     gap: 6,
-  },
-  optionChipSelected: {
-    backgroundColor: COLORS.accent,
   },
   optionText: {
     fontSize: 14,
     fontWeight: '500',
     color: COLORS.text,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    backgroundColor: COLORS.lightGray,
+    borderRadius: 20,
+    overflow: 'hidden',
   },
   optionTextSelected: {
+    fontSize: 14,
+    fontWeight: '600',
     color: COLORS.white,
   },
   toggleRow: {
