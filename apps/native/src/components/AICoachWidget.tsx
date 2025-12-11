@@ -132,6 +132,31 @@ export const AICoachWidget = ({ visible, onClose }: AICoachWidgetProps) => {
     
     const lowerMessage = message.toLowerCase();
     
+    // Check if message is fitness-related
+    const fitnessKeywords = [
+      'workout', 'exercise', 'fitness', 'gym', 'training', 'muscle', 'cardio', 'strength',
+      'weight', 'rep', 'set', 'routine', 'schedule', 'nutrition', 'diet', 'protein', 'calories',
+      'health', 'injury', 'pain', 'stretch', 'rest', 'recovery', 'body', 'chest', 'legs', 'arms',
+      'back', 'core', 'abs', 'run', 'jog', 'walk', 'swim', 'bike', 'yoga', 'pilates', 'squat',
+      'bench', 'deadlift', 'press', 'curl', 'pull', 'push', 'lunge', 'plank', 'burpee', 'hiit',
+      'intense', 'light', 'heavy', 'form', 'technique', 'tired', 'energy', 'motivation', 'goal',
+      'progress', 'beginner', 'advanced', 'intermediate', 'today', 'tomorrow', 'week', 'day',
+      'swap', 'switch', 'change', 'modify', 'adjust', 'food', 'meal', 'supplement', 'hydration',
+      'water', 'sleep', 'stress', 'flex', 'pump', 'bulk', 'cut', 'lean', 'tone', 'fat', 'gain'
+    ];
+    
+    const hasfitnessKeyword = fitnessKeywords.some(keyword => lowerMessage.includes(keyword));
+    
+    // If not fitness-related, politely decline
+    if (!hasfitnessKeyword && lowerMessage.length > 3) {
+      setIsLoading(false);
+      addMessage(
+        `I appreciate you reaching out, but I'm specifically here to help you with fitness, nutrition, and health-related questions! 💪\n\nFeel free to ask me about:\n• Your workouts and training\n• Exercise form and technique\n• Nutrition and meal planning\n• Recovery and injury prevention\n• Fitness goals and motivation\n\nWhat can I help you with today?`,
+        true
+      );
+      return;
+    }
+    
     // Detect swap days intent
     if (lowerMessage.includes('swap') || lowerMessage.includes('switch') || lowerMessage.includes('change')) {
       if (lowerMessage.includes('wednesday') && lowerMessage.includes('thursday')) {
