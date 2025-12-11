@@ -68,12 +68,9 @@ export async function sendEmail(params: EmailParams): Promise<boolean> {
 
 export async function sendPasswordResetEmail(
   email: string,
-  resetToken: string,
+  resetCode: string,
   userName: string = 'Champion'
 ): Promise<boolean> {
-  // Create proper deep link for the app (thryvin:// scheme)
-  const resetLink = `thryvin://reset-password?token=${resetToken}`;
-  
   // Get embedded logo
   const embeddedLogo = getEmbeddedLogo();
   
@@ -113,33 +110,30 @@ export async function sendPasswordResetEmail(
               <p style="margin: 0 0 30px 0; color: #666666; font-size: 16px; line-height: 1.7; text-align: center;">
                 Hey ${userName}! 👋<br/>
                 We got your request to reset your Thryvin password.<br/>
-                Let's get you back to crushing your fitness goals! 💪
+                Enter this code in the app to continue:
               </p>
               
-              <!-- Reset Button -->
-              <table role="presentation" style="width: 100%; margin: 0 0 30px 0;">
-                <tr>
-                  <td align="center">
-                    <a href="${resetLink}" style="display: inline-block; background: #A259FF; color: #ffffff; text-decoration: none; padding: 18px 50px; border-radius: 50px; font-size: 18px; font-weight: 700; box-shadow: 0 4px 15px rgba(162, 89, 255, 0.25); text-align: center;">
-                      Reset My Password
-                    </a>
-                  </td>
-                </tr>
-              </table>
-              
-              <div style="background: #FFF8E1; border-left: 4px solid #FFC107; padding: 16px; border-radius: 10px; margin: 0 0 25px 0;">
-                <p style="margin: 0; color: #856404; font-size: 14px; line-height: 1.6;">
-                  <strong>⏰ This link expires in 1 hour</strong><br/>
-                  For security, this reset link can only be used once.
+              <!-- 6-Digit Code Display -->
+              <div style="background: linear-gradient(135deg, #A259FF 0%, #8B4FD9 100%); border-radius: 16px; padding: 30px; margin: 0 0 30px 0; text-align: center; box-shadow: 0 8px 25px rgba(162, 89, 255, 0.25);">
+                <p style="margin: 0 0 10px 0; color: rgba(255,255,255,0.9); font-size: 14px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase;">
+                  Your Reset Code
+                </p>
+                <p style="margin: 0; color: #ffffff; font-size: 48px; font-weight: 800; letter-spacing: 8px; font-family: 'Courier New', monospace;">
+                  ${resetCode}
                 </p>
               </div>
               
-              <div style="background: #F8F9FA; border-radius: 10px; padding: 18px; text-align: center;">
-                <p style="margin: 0 0 10px 0; color: #666666; font-size: 14px; line-height: 1.6;">
-                  Button not working? Copy and paste this link:
+              <div style="background: #FFF8E1; border-left: 4px solid #FFC107; padding: 16px; border-radius: 10px; margin: 0 0 25px 0;">
+                <p style="margin: 0; color: #856404; font-size: 14px; line-height: 1.6;">
+                  <strong>⏰ This code expires in 15 minutes</strong><br/>
+                  For security, this code can only be used once.
                 </p>
-                <p style="margin: 0; color: #A259FF; font-size: 12px; word-break: break-all;">
-                  ${resetLink}
+              </div>
+              
+              <div style="background: #F0F4FF; border-radius: 10px; padding: 18px; text-align: center; border: 2px dashed #A259FF;">
+                <p style="margin: 0; color: #666666; font-size: 15px; line-height: 1.6;">
+                  <strong>💡 How to use:</strong><br/>
+                  Open the Thryvin app and enter this 6-digit code when prompted.
                 </p>
               </div>
               
