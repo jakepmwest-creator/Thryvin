@@ -537,7 +537,7 @@ const styles = StyleSheet.create({
   },
   container: {
     width: '100%',
-    maxHeight: '90%',
+    maxHeight: '92%',
     backgroundColor: COLORS.white,
     borderRadius: 24,
     overflow: 'hidden',
