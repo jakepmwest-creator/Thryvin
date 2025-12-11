@@ -872,6 +872,17 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: COLORS.mediumGray,
   },
+  securityItem: {
+    position: 'relative',
+  },
+  toggleOverlay: {
+    position: 'absolute',
+    right: 16,
+    top: 0,
+    bottom: 0,
+    justifyContent: 'center',
+    zIndex: 10,
+  },
   actionButtons: {
     paddingHorizontal: 24,
     marginBottom: 24,
