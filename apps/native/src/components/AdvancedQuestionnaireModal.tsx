@@ -156,7 +156,7 @@ export const AdvancedQuestionnaireModal = ({
     }
   }, [visible]);
   
-  const currentQuestion = QUESTIONS[currentStep];
+  const currentQuestion = QUESTIONS[currentStep] || QUESTIONS[0];
   const progress = ((currentStep + 1) / QUESTIONS.length) * 100;
   
   // Check if current question is answered
