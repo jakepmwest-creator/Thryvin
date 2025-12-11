@@ -497,6 +497,28 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     lineHeight: 20,
     fontWeight: '500',
+    fontStyle: 'italic',
+  },
+  descriptionBox: {
+    backgroundColor: COLORS.lightGray,
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    borderRadius: 16,
+    marginBottom: 24,
+  },
+  descriptionLabel: {
+    fontSize: 13,
+    color: COLORS.accent,
+    fontWeight: '700',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+    marginBottom: 8,
+  },
+  descriptionText: {
+    fontSize: 13,
+    color: COLORS.mediumGray,
+    textAlign: 'left',
+    lineHeight: 18,
   },
   statsContainer: {
     flexDirection: 'row',
