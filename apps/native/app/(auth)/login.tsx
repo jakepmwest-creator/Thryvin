@@ -165,9 +165,10 @@ export default function LoginScreen() {
       // Auto-login with correct credentials format
       await login({ email: testAccount.email, password: testAccount.password });
       router.replace('/(tabs)');
+      */
     } catch (error) {
-      console.error('Error creating test account:', error);
-      showAlert('error', 'Error', 'Failed to create test account');
+      console.error('Error with test login:', error);
+      showAlert('error', 'Error', 'Failed to login with test account');
     }
   };
 
