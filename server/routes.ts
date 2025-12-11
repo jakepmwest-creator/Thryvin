@@ -6250,74 +6250,14 @@ Respond with a complete workout in JSON format:
   // GET /api/exercises - Fetch exercises with video URLs
   app.get("/api/exercises", async (req, res) => {
     try {
-      const { names } = req.query;
+      // TEMPORARY: Return empty array since database is not connected
+      // This needs to be replaced with actual database query when DB is set up
+      console.log('⚠️ WARNING: Returning empty exercises array - database not connected');
       
-      if (!names) {
-        // Return all exercises
-        const allExercises = await db
-          .select({
-            id: exercises.id,
-            name: exercises.name,
-            slug: exercises.slug,
-            videoUrl: exercises.videoUrl,
-            thumbnailUrl: exercises.thumbnailUrl,
-            description: exercises.description,
-            category: exercises.category,
-            muscleGroups: exercises.muscleGroups,
-            difficulty: exercises.difficulty,
-            instructions: exercises.instructions,
-            tips: exercises.tips,
-            bodyPart: exercises.body_part,
-            equipment: exercises.equipment,
-          })
-          .from(exercises)
-          .limit(100);
-        
-        return res.json({ exercises: allExercises });
-      }
-
-      // Parse names from query string (comma-separated)
-      const exerciseNames = (names as string).split(',').map(n => n.trim());
-      
-      // Fetch exercises matching the names
-      const matchedExercises = await db
-        .select({
-          id: exercises.id,
-          name: exercises.name,
-          slug: exercises.slug,
-          videoUrl: exercises.videoUrl,
-          thumbnailUrl: exercises.thumbnailUrl,
-          description: exercises.description,
-          category: exercises.category,
-          muscleGroups: exercises.muscleGroups,
-          difficulty: exercises.difficulty,
-          instructions: exercises.instructions,
-          tips: exercises.tips,
-          bodyPart: exercises.body_part,
-          equipment: exercises.equipment,
-        })
-        .from(exercises)
-        .where(
-          sql`LOWER(${exercises.name}) IN (${sql.join(
-            exerciseNames.map(name => sql`${name.toLowerCase()}`),
-            sql`, `
-          )})`
-        );
-
-      // Create a map for quick lookup
-      const exerciseMap = new Map(
-        matchedExercises.map(ex => [ex.name.toLowerCase(), ex])
-      );
-
-      // Return exercises in the same order as requested, with null for not found
-      const orderedExercises = exerciseNames.map(name => 
-        exerciseMap.get(name.toLowerCase()) || null
-      );
-
-      res.json({ 
-        exercises: orderedExercises,
-        found: matchedExercises.length,
-        requested: exerciseNames.length
+      res.json({
+        exercises: [],
+        total: 0,
+        message: "Database not connected - exercises endpoint temporarily disabled"
       });
     } catch (error) {
       console.error("Error fetching exercises:", error);
