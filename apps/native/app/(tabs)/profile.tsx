@@ -103,8 +103,6 @@ export default function ProfileScreen() {
   // Modal states
   const [showPINSetup, setShowPINSetup] = useState(false);
   const [showEditProfile, setShowEditProfile] = useState(false);
-  const [showWorkoutPrefs, setShowWorkoutPrefs] = useState(false);
-  const [showGoals, setShowGoals] = useState(false);
   const [showResetProgram, setShowResetProgram] = useState(false);
   const [showBiometrics, setShowBiometrics] = useState(false);
   const [showHelpFAQ, setShowHelpFAQ] = useState(false);
