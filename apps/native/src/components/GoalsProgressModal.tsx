@@ -45,16 +45,27 @@ const GoalCard = ({ goal, selected, onPress }: { goal: typeof FITNESS_GOALS[0]; 
     onPress={onPress}
     activeOpacity={0.7}
   >
-    <View style={[styles.goalIcon, selected && styles.goalIconSelected]}>
-      <Ionicons name={goal.icon as any} size={24} color={selected ? COLORS.white : COLORS.accent} />
-    </View>
-    <View style={styles.goalInfo}>
-      <Text style={[styles.goalLabel, selected && styles.goalLabelSelected]}>{goal.label}</Text>
-      <Text style={[styles.goalDescription, selected && styles.goalDescriptionSelected]}>{goal.description}</Text>
-    </View>
-    {selected && (
-      <View style={styles.checkBadge}>
-        <Ionicons name="checkmark" size={16} color={COLORS.white} />
+    {selected ? (
+      <LinearGradient
+        colors={[COLORS.accent, COLORS.accentSecondary]}
+        style={styles.goalCardGradient}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+      >
+        <View style={styles.goalIconSelected}>
+          <Ionicons name={goal.icon as any} size={28} color={COLORS.white} />
+        </View>
+        <Text style={styles.goalLabelSelected}>{goal.label}</Text>
+        <View style={styles.checkBadge}>
+          <Ionicons name="checkmark-circle" size={20} color={COLORS.white} />
+        </View>
+      </LinearGradient>
+    ) : (
+      <View style={styles.goalCardInner}>
+        <View style={styles.goalIcon}>
+          <Ionicons name={goal.icon as any} size={28} color={COLORS.accent} />
+        </View>
+        <Text style={styles.goalLabel}>{goal.label}</Text>
       </View>
     )}
   </TouchableOpacity>
