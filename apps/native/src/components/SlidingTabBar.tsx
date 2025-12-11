@@ -7,7 +7,7 @@ import {
   Animated,
   Dimensions,
   Platform,
-  Alert,
+  Modal,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
@@ -29,7 +29,115 @@ const COLORS = {
   
   white: '#ffffff',
   shadow: 'rgba(0, 0, 0, 0.1)',
+  text: '#222222',
+  mediumGray: '#8E8E93',
 };
+
+// Nice "Coming Soon" Modal Component
+const ComingSoonModal = ({ 
+  visible, 
+  onClose, 
+  title, 
+  message, 
+  icon 
+}: { 
+  visible: boolean; 
+  onClose: () => void; 
+  title: string; 
+  message: string; 
+  icon: string;
+}) => (
+  <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
+    <TouchableOpacity 
+      style={comingSoonStyles.overlay} 
+      activeOpacity={1} 
+      onPress={onClose}
+    >
+      <View style={comingSoonStyles.container}>
+        <LinearGradient
+          colors={[COLORS.fitnessAccent, COLORS.fitnessSecondary]}
+          style={comingSoonStyles.iconContainer}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+        >
+          <Ionicons name={icon as any} size={40} color={COLORS.white} />
+        </LinearGradient>
+        
+        <Text style={comingSoonStyles.title}>{title}</Text>
+        <Text style={comingSoonStyles.message}>{message}</Text>
+        
+        <TouchableOpacity onPress={onClose} style={comingSoonStyles.buttonWrapper}>
+          <LinearGradient
+            colors={[COLORS.fitnessAccent, COLORS.fitnessSecondary]}
+            style={comingSoonStyles.button}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+          >
+            <Text style={comingSoonStyles.buttonText}>Got it!</Text>
+          </LinearGradient>
+        </TouchableOpacity>
+      </View>
+    </TouchableOpacity>
+  </Modal>
+);
+
+const comingSoonStyles = StyleSheet.create({
+  overlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 24,
+  },
+  container: {
+    backgroundColor: COLORS.white,
+    borderRadius: 24,
+    padding: 32,
+    alignItems: 'center',
+    width: '100%',
+    maxWidth: 340,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.25,
+    shadowRadius: 20,
+    elevation: 10,
+  },
+  iconContainer: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  title: {
+    fontSize: 22,
+    fontWeight: '700',
+    color: COLORS.text,
+    marginBottom: 12,
+    textAlign: 'center',
+  },
+  message: {
+    fontSize: 15,
+    color: COLORS.mediumGray,
+    textAlign: 'center',
+    lineHeight: 22,
+    marginBottom: 24,
+  },
+  buttonWrapper: {
+    width: '100%',
+  },
+  button: {
+    paddingVertical: 16,
+    borderRadius: 16,
+    alignItems: 'center',
+  },
+  buttonText: {
+    fontSize: 17,
+    fontWeight: '700',
+    color: COLORS.white,
+  },
+});
 
 type AppMode = 'fitness' | 'nutrition';
 
