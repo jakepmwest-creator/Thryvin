@@ -88,3 +88,7 @@ test-sendgrid.cjs
 venv/
 yarn-debug.log*
 yarn-error.log*
+-e 
+# Environment files
+*.env
+*.env.*
