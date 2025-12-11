@@ -238,11 +238,7 @@ export default function LoginScreen() {
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
           style={styles.keyboardView}
         >
-          <ScrollView 
-            contentContainerStyle={styles.scrollContent}
-            showsVerticalScrollIndicator={false}
-            keyboardShouldPersistTaps="handled"
-          >
+          <View style={styles.contentContainer}>
             {/* Elevated Card Container */}
             <Animated.View 
               style={[
@@ -253,12 +249,7 @@ export default function LoginScreen() {
                 }
               ]}
             >
-              <LinearGradient
-                colors={[COLORS.white, COLORS.white]}
-                style={styles.card}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 1 }}
-              >
+              <View style={styles.card}>
                 {/* Logo in Card */}
                 <View style={styles.cardLogoContainer}>
                   <Image 
@@ -268,7 +259,7 @@ export default function LoginScreen() {
                   />
                 </View>
 
-                {/* Welcome Text - CENTERED */}
+                {/* Welcome Text */}
                 <View style={styles.welcomeContainer}>
                   <Text style={styles.welcomeTitle}>Welcome Back 👋</Text>
                   <Text style={styles.welcomeSubtitle}>Ready to crush your goals?</Text>
@@ -279,7 +270,7 @@ export default function LoginScreen() {
                   {/* Email Input */}
                   <View style={styles.inputWrapper}>
                     <View style={styles.inputIconContainer}>
-                      <Ionicons name="mail-outline" size={20} color={COLORS.accent} />
+                      <Ionicons name="mail-outline" size={18} color={COLORS.accent} />
                     </View>
                     <RNTextInput
                       style={styles.input}
@@ -296,7 +287,7 @@ export default function LoginScreen() {
                   {/* Password Input */}
                   <View style={styles.inputWrapper}>
                     <View style={styles.inputIconContainer}>
-                      <Ionicons name="lock-closed-outline" size={20} color={COLORS.accent} />
+                      <Ionicons name="lock-closed-outline" size={18} color={COLORS.accent} />
                     </View>
                     <RNTextInput
                       style={[styles.input, styles.passwordInput]}
@@ -313,7 +304,7 @@ export default function LoginScreen() {
                     >
                       <Ionicons 
                         name={showPassword ? "eye-outline" : "eye-off-outline"} 
-                        size={20} 
+                        size={18} 
                         color={COLORS.mediumGray} 
                       />
                     </TouchableOpacity>
@@ -336,7 +327,7 @@ export default function LoginScreen() {
                         <Text style={styles.buttonText}>Logging in...</Text>
                       ) : (
                         <>
-                          <Ionicons name="arrow-forward" size={20} color={COLORS.white} />
+                          <Ionicons name="arrow-forward" size={18} color={COLORS.white} />
                           <Text style={styles.buttonText}>Let's Go</Text>
                         </>
                       )}
@@ -350,50 +341,34 @@ export default function LoginScreen() {
                   >
                     <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
                   </TouchableOpacity>
-
-                  {/* Divider */}
-                  <View style={styles.divider}>
-                    <View style={styles.dividerLine} />
-                    <Text style={styles.dividerText}>New here?</Text>
-                    <View style={styles.dividerLine} />
-                  </View>
-
-                  {/* Why Join - 3 Bullet Points */}
-                  <View style={styles.whyJoinContainer}>
-                    <View style={styles.bulletPoint}>
-                      <Ionicons name="fitness" size={16} color={COLORS.accent} />
-                      <Text style={styles.bulletText}>AI-powered personalized workouts</Text>
-                    </View>
-                    <View style={styles.bulletPoint}>
-                      <Ionicons name="trending-up" size={16} color={COLORS.accent} />
-                      <Text style={styles.bulletText}>Track progress and smash your goals</Text>
-                    </View>
-                    <View style={styles.bulletPoint}>
-                      <Ionicons name="people" size={16} color={COLORS.accent} />
-                      <Text style={styles.bulletText}>Join a community of winners</Text>
-                    </View>
-                  </View>
-
-                  {/* Start Journey Button */}
-                  <TouchableOpacity 
-                    style={styles.startJourneyButton} 
-                    onPress={handleStartJourney}
-                    activeOpacity={0.7}
-                  >
-                    <LinearGradient
-                      colors={[`${COLORS.accent}15`, `${COLORS.accentSecondary}15`]}
-                      style={styles.startJourneyGradient}
-                      start={{ x: 0, y: 0 }}
-                      end={{ x: 1, y: 1 }}
-                    >
-                      <Ionicons name="rocket" size={20} color={COLORS.accent} />
-                      <Text style={styles.startJourneyText}>Start Your Journey</Text>
-                    </LinearGradient>
-                  </TouchableOpacity>
                 </View>
-              </LinearGradient>
+
+                {/* Divider */}
+                <View style={styles.divider}>
+                  <View style={styles.dividerLine} />
+                  <Text style={styles.dividerText}>New here?</Text>
+                  <View style={styles.dividerLine} />
+                </View>
+
+                {/* Start Journey Button */}
+                <TouchableOpacity 
+                  style={styles.startJourneyButton} 
+                  onPress={handleStartJourney}
+                  activeOpacity={0.7}
+                >
+                  <LinearGradient
+                    colors={[`${COLORS.accent}15`, `${COLORS.accentSecondary}15`]}
+                    style={styles.startJourneyGradient}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 1 }}
+                  >
+                    <Ionicons name="rocket" size={18} color={COLORS.accent} />
+                    <Text style={styles.startJourneyText}>Start Your Journey</Text>
+                  </LinearGradient>
+                </TouchableOpacity>
+              </View>
             </Animated.View>
-          </ScrollView>
+          </View>
         </KeyboardAvoidingView>
       </SafeAreaView>
     </View>
