@@ -142,7 +142,7 @@ export default function HomeScreen() {
   const fetchCompletedWorkouts = useWorkoutStore(state => state.fetchCompletedWorkouts);
   const forceRegenerateWeek = useWorkoutStore(state => state.forceRegenerateWeek);
 
-  // Check if user should see Advanced Questionnaire
+  // Check if user should see Advanced Questionnaire - ONLY for truly new users
   const checkAdvancedQuestionnaire = useCallback(async () => {
     if (hasCheckedQuestionnaire) return;
     
@@ -151,19 +151,22 @@ export default function HomeScreen() {
       const completed = await AsyncStorage.getItem('advancedQuestionnaire');
       const skipped = await AsyncStorage.getItem('advancedQuestionnaireSkipped');
       
-      // If user hasn't completed AND hasn't skipped, and has no workouts yet
-      if (!completed && !skipped && weekWorkouts.length === 0) {
+      // Determine if user is truly new (no workouts generated, no completed workouts)
+      const isNewUser = weekWorkouts.length === 0 && completedWorkouts.length === 0;
+      
+      // Only show for NEW users who haven't completed or skipped
+      if (!completed && !skipped && isNewUser) {
         // Show questionnaire popup after a short delay
         setTimeout(() => {
           setShowAdvancedQuestionnaire(true);
-        }, 1000);
+        }, 1500);
       }
       
       setHasCheckedQuestionnaire(true);
     } catch (error) {
       console.error('Error checking questionnaire status:', error);
     }
-  }, [weekWorkouts.length, hasCheckedQuestionnaire]);
+  }, [weekWorkouts.length, completedWorkouts.length, hasCheckedQuestionnaire]);
 
   // Check for weekly schedule check (for "It depends" users)
   const checkWeeklySchedule = useCallback(async () => {
