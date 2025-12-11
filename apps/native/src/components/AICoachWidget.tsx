@@ -270,7 +270,7 @@ export const AICoachWidget = ({ visible, onClose }: AICoachWidgetProps) => {
                 <Ionicons name="sparkles" size={20} color={COLORS.accent} />
               </View>
               <View>
-                <Text style={styles.headerTitle}>AI Coach</Text>
+                <Text style={styles.headerTitle}>{coachName}</Text>
                 <Text style={styles.headerSubtitle}>Your personal fitness assistant</Text>
               </View>
             </View>
