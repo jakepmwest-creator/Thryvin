@@ -2,7 +2,48 @@
 
 ## Latest Test Run: December 11, 2025
 
-### New Features Implemented
+### Session Updates - Full AI Integration
+
+#### 1. AI Integration - Notes Logging ✅
+**Files Modified**: 
+- `/app/apps/native/app/workout-hub.tsx`
+- `/app/apps/native/src/stores/workout-store.ts`
+
+**Features**:
+- Notes entered during sets are now saved alongside reps/weights
+- Notes display under completed sets in the UI
+- Notes sent to backend `/api/workout/log-set` for AI learning
+- AI coach uses comprehensive user context from all data sources
+
+#### 2. AI Coach Fitness-Only Restriction ✅
+**Files Modified**: 
+- `/app/server/routes.ts` (getCoachResponse function)
+- `/app/apps/native/src/components/AICoachWidget.tsx`
+
+**Features**:
+- Strict keyword filtering for fitness-related topics
+- Non-fitness questions politely redirected
+- Greetings handled gracefully
+- Backend double-check on fitness topics
+
+#### 3. Workout Completion Popup Fixed ✅
+**File**: `/app/apps/native/app/workout-hub.tsx`
+
+**Features**:
+- Shows actual workout duration (from timer)
+- Shows completed exercises count
+- Calculates and shows estimated calories burned
+- "Tap anywhere to continue" hint
+- 5-second auto-dismiss
+
+#### 4. Bug Fix - cooldownExercises ✅
+**File**: `/app/apps/native/app/workout-hub.tsx`
+
+**Fix**: Changed `cooldownExercises` to `recoveryExercises` (correct variable name)
+
+---
+
+### Previous Features Implemented
 
 #### 1. "When Can You Train?" Onboarding Question ✅
 **File**: `/app/apps/native/app/(auth)/onboarding.tsx`
