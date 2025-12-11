@@ -1050,12 +1050,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Reset password endpoint (for when user enters new password)
   app.post("/api/auth/reset-password", async (req, res) => {
     try {
-      const { token, newPassword } = req.body;
+      const { email, code, newPassword } = req.body;
 
-      if (!token || !newPassword) {
+      if (!email || !code || !newPassword) {
         return res
           .status(400)
-          .json({ error: "Token and new password are required" });
+          .json({ error: "Email, code, and new password are required" });
       }
 
       if (newPassword.length < 6) {
@@ -1064,38 +1064,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
           .json({ error: "Password must be at least 6 characters long" });
       }
 
-      // Find valid token (from memory store)
+      // Check if code exists and is valid
       if (!global.passwordResetTokens) {
-        return res.status(400).json({ error: "Invalid or expired reset token" });
+        return res.status(400).json({ error: "Invalid or expired reset code" });
       }
 
-      let tokenData = null;
-      let tokenEmail = null;
-
-      // Find which email this token belongs to
-      for (const [email, data] of global.passwordResetTokens.entries()) {
-        if (data.token === token) {
-          tokenData = data;
-          tokenEmail = email;
-          break;
-        }
-      }
+      const tokenData = global.passwordResetTokens.get(email);
 
       if (!tokenData) {
-        return res.status(400).json({ error: "Invalid or expired reset token" });
+        return res.status(400).json({ error: "Invalid or expired reset code" });
       }
 
-      // Check if token is expired
+      // Verify code matches
+      if (tokenData.token !== code) {
+        return res.status(400).json({ error: "Incorrect code" });
+      }
+
+      // Check if code is expired
       if (Date.now() > tokenData.expiresAt) {
-        // Clean up expired token
-        global.passwordResetTokens.delete(tokenEmail);
+        global.passwordResetTokens.delete(email);
         return res.status(400).json({
-          error: "Reset token has expired. Please request a new one.",
+          error: "Reset code has expired. Please request a new one.",
         });
       }
 
       // Update user password using storage
-      const user = await storage.getUserByEmail(tokenEmail);
+      const user = await storage.getUserByEmail(email);
       if (!user) {
         return res.status(400).json({ error: "User not found" });
       }
@@ -1103,10 +1097,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const hashedPassword = hashPassword(newPassword);
       await storage.updateUser(user.id, { password: hashedPassword });
 
-      // Delete used token
-      global.passwordResetTokens.delete(tokenEmail);
+      // Delete used code
+      global.passwordResetTokens.delete(email);
       
-      console.log(`✅ Password reset successfully for ${tokenEmail}`);
+      console.log(`✅ Password reset successfully for ${email}`);
 
       res.json({
         message:
