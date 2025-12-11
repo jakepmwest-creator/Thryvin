@@ -681,9 +681,25 @@ export default function ProfileScreen() {
         onReset={() => {}}
       />
       
-      <BiometricSettingsModal
+      <BiometricsModal
         visible={showBiometrics}
         onClose={() => setShowBiometrics(false)}
+        onSuccess={() => {
+          setBiometricsEnabled(true);
+          showAlert({
+            type: 'success',
+            title: 'Biometrics Enabled!',
+            message: 'You can now use biometric login for quick access.',
+            buttons: [{ text: 'Great!', onPress: hideAlert }]
+          });
+        }}
+      />
+      
+      <PINSetupModal
+        visible={showPINSetup}
+        onClose={() => setShowPINSetup(false)}
+        onComplete={handlePinSetupComplete}
+        isChangingPin={hasPinSet}
       />
       
       <HelpFAQModal
