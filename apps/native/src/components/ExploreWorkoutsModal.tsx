@@ -107,21 +107,48 @@ const ExerciseCard = ({ exercise, onPress }: { exercise: any; onPress: () => voi
   );
 };
 
+// Equipment filter options
+const EQUIPMENT_FILTERS = [
+  { id: 'all', label: 'All Equipment' },
+  { id: 'bodyweight', label: 'Bodyweight' },
+  { id: 'dumbbell', label: 'Dumbbells' },
+  { id: 'barbell', label: 'Barbells' },
+  { id: 'machine', label: 'Machines' },
+  { id: 'cable', label: 'Cables' },
+  { id: 'kettlebell', label: 'Kettlebells' },
+  { id: 'band', label: 'Bands' },
+];
+
+// Category mapping for filtering
+const CATEGORY_MAP: { [key: string]: string[] } = {
+  'Strength': ['upper-body', 'lower-body', 'chest', 'back', 'shoulders', 'arms', 'legs'],
+  'Cardio': ['cardio', 'full-body', 'conditioning'],
+  'Core': ['core', 'abs'],
+  'Flexibility': ['warmup', 'recovery', 'mobility', 'flexibility'],
+  'Full Body': ['full-body', 'full'],
+  'Upper Body': ['upper-body', 'chest', 'back', 'shoulders', 'arms'],
+  'Lower Body': ['lower-body', 'legs', 'glutes'],
+};
+
 export const ExploreWorkoutsModal = ({ visible, onClose, category, categoryGradient }: ExploreWorkoutsModalProps) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedExercise, setSelectedExercise] = useState<any | null>(null);
   const [filterDifficulty, setFilterDifficulty] = useState<'All' | 'Beginner' | 'Intermediate' | 'Advanced'>('All');
+  const [filterEquipment, setFilterEquipment] = useState<string>('all');
   const [exercises, setExercises] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [totalInDatabase, setTotalInDatabase] = useState(0);
   
   // Fetch exercises from API on mount
   useEffect(() => {
     const fetchExercises = async () => {
       try {
         setIsLoading(true);
-        const response = await fetch(`${API_BASE_URL}/api/exercises`);
+        // Fetch up to 2000 exercises to get the full library
+        const response = await fetch(`${API_BASE_URL}/api/exercises?limit=2000`);
         const data = await response.json();
         setExercises(data.exercises || []);
+        setTotalInDatabase(data.totalInDatabase || data.total || 0);
       } catch (error) {
         console.error('Failed to fetch exercises:', error);
       } finally {
@@ -134,18 +161,32 @@ export const ExploreWorkoutsModal = ({ visible, onClose, category, categoryGradi
     }
   }, [visible]);
   
-  // Filter exercises by category and search
+  // Filter exercises by category, search, difficulty, and equipment
   const filteredExercises = useMemo(() => {
     if (isLoading) return [];
     
     let filtered = exercises;
     
+    // Filter by category (from the category card that was tapped)
+    if (category && category !== 'All') {
+      const categoryMatches = CATEGORY_MAP[category] || [category.toLowerCase()];
+      filtered = filtered.filter(ex => {
+        const exCategory = ex.category?.toLowerCase() || '';
+        const exBodyPart = ex.bodyPart?.toLowerCase() || '';
+        return categoryMatches.some(cat => 
+          exCategory.includes(cat) || exBodyPart.includes(cat)
+        );
+      });
+    }
+    
     // Filter by search
     if (searchQuery) {
+      const searchLower = searchQuery.toLowerCase();
       filtered = filtered.filter(ex => 
-        ex.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        ex.muscleGroups?.some((mg: string) => mg.toLowerCase().includes(searchQuery.toLowerCase())) ||
-        ex.bodyPart?.toLowerCase().includes(searchQuery.toLowerCase())
+        ex.name?.toLowerCase().includes(searchLower) ||
+        ex.muscleGroups?.some((mg: string) => mg.toLowerCase().includes(searchLower)) ||
+        ex.bodyPart?.toLowerCase().includes(searchLower) ||
+        ex.category?.toLowerCase().includes(searchLower)
       );
     }
     
@@ -156,8 +197,18 @@ export const ExploreWorkoutsModal = ({ visible, onClose, category, categoryGradi
       );
     }
     
+    // Filter by equipment
+    if (filterEquipment !== 'all') {
+      filtered = filtered.filter(ex => {
+        const exEquipment = Array.isArray(ex.equipment) ? ex.equipment : [];
+        return exEquipment.some((eq: string) => 
+          eq?.toLowerCase().includes(filterEquipment.toLowerCase())
+        );
+      });
+    }
+    
     return filtered;
-  }, [exercises, searchQuery, filterDifficulty, isLoading]);
+  }, [exercises, searchQuery, filterDifficulty, filterEquipment, category, isLoading]);
 
   return (
     <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose}>
