@@ -63,6 +63,7 @@ interface AuthState {
   register: (userData: any) => Promise<void>;
   logout: () => Promise<void>;
   checkAuth: () => Promise<void>;
+  updateUser: (updates: Partial<User>) => Promise<void>;
   clearError: () => void;
 }
 
@@ -210,6 +211,22 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     } catch (error) {
       console.log('User not authenticated');
       set({ user: null, isLoading: false });
+    }
+  },
+
+  updateUser: async (updates: Partial<User>) => {
+    try {
+      const currentUser = get().user;
+      if (!currentUser) return;
+
+      const updatedUser = { ...currentUser, ...updates };
+      set({ user: updatedUser });
+
+      // Save to storage
+      await setStorageItem('auth_user', JSON.stringify(updatedUser));
+      console.log('✅ User updated:', updates);
+    } catch (error) {
+      console.error('❌ Failed to update user:', error);
     }
   },
 

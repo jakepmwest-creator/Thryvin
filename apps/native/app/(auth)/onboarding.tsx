@@ -470,45 +470,33 @@ export default function OnboardingScreen() {
         return (
           <TouchableOpacity
             key={option}
-            style={styles.genderOption}
+            style={[
+              styles.genderOption,
+              isSelected && styles.genderOptionSelected
+            ]}
             onPress={() => setFormData({ ...formData, gender: option.toLowerCase() })}
+            activeOpacity={0.7}
           >
-            {isSelected ? (
-              <LinearGradient
-                colors={[COLORS.accent, COLORS.accentSecondary]}
-                style={styles.genderOptionGradient}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 1 }}
-              >
-                <Ionicons 
-                  name={
-                    option === 'Male' ? 'male' : 
-                    option === 'Female' ? 'female' : 
-                    'transgender'
-                  }
-                  size={24}
-                  color={COLORS.white}
-                />
-                <Text style={[styles.genderText, styles.genderTextSelected]}>
-                  {option}
-                </Text>
-              </LinearGradient>
-            ) : (
-              <>
-                <Ionicons 
-                  name={
-                    option === 'Male' ? 'male' : 
-                    option === 'Female' ? 'female' : 
-                    'transgender'
-                  }
-                  size={24}
-                  color={COLORS.accent}
-                />
-                <Text style={styles.genderText}>
-                  {option}
-                </Text>
-              </>
-            )}
+            <View style={[
+              styles.genderIconContainer,
+              isSelected && styles.genderIconContainerSelected
+            ]}>
+              <Ionicons 
+                name={
+                  option === 'Male' ? 'male' : 
+                  option === 'Female' ? 'female' : 
+                  'transgender'
+                }
+                size={20}
+                color={isSelected ? COLORS.white : COLORS.accent}
+              />
+            </View>
+            <Text style={[
+              styles.genderText,
+              isSelected && styles.genderTextSelected
+            ]}>
+              {option}
+            </Text>
           </TouchableOpacity>
         );
       })}
@@ -830,9 +818,9 @@ export default function OnboardingScreen() {
         onClose={hideAlert}
       />
       
-      {/* Gradient Background */}
+      {/* Gradient Background - Match Login */}
       <LinearGradient
-        colors={[COLORS.accent, COLORS.accentSecondary, COLORS.white]}
+        colors={[COLORS.accent, COLORS.accentSecondary]}
         style={styles.gradientBackground}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
@@ -850,8 +838,9 @@ export default function OnboardingScreen() {
         </View>
 
         <KeyboardAvoidingView
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
           style={styles.keyboardView}
+          keyboardVerticalOffset={Platform.OS === 'ios' ? 100 : 0}
         >
           <View style={styles.contentContainer}>
             {/* Main Card */}
@@ -877,6 +866,8 @@ export default function OnboardingScreen() {
                 contentContainerStyle={styles.scrollableContentInner}
                 showsVerticalScrollIndicator={false}
                 keyboardShouldPersistTaps="handled"
+                keyboardDismissMode="on-drag"
+                automaticallyAdjustKeyboardInsets={true}
               >
                 {/* Content */}
                 {renderFields()}
@@ -1062,31 +1053,34 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: 8,
     paddingVertical: 16,
+    paddingHorizontal: 12,
     borderRadius: 16,
     borderWidth: 2,
-    borderColor: COLORS.accent,
-    backgroundColor: COLORS.white,
+    borderColor: 'transparent',
+    backgroundColor: COLORS.lightGray,
   },
   genderOptionSelected: {
-    backgroundColor: COLORS.accent,
     borderColor: COLORS.accent,
+    backgroundColor: `${COLORS.accent}08`,
   },
-  genderOptionGradient: {
-    flex: 1,
-    flexDirection: 'row',
+  genderIconContainer: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: `${COLORS.accent}15`,
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 8,
-    paddingVertical: 16,
-    borderRadius: 14,
+  },
+  genderIconContainerSelected: {
+    backgroundColor: COLORS.accent,
   },
   genderText: {
     fontSize: 15,
     fontWeight: '600',
-    color: COLORS.accent,
+    color: COLORS.text,
   },
   genderTextSelected: {
-    color: COLORS.white,
+    color: COLORS.accent,
   },
   datePickerButton: {
     flexDirection: 'row',

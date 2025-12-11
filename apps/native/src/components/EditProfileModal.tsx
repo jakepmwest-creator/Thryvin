@@ -35,7 +35,7 @@ interface EditProfileModalProps {
 }
 
 export const EditProfileModal = ({ visible, onClose, onSave }: EditProfileModalProps) => {
-  const { user } = useAuthStore();
+  const { user, updateUser } = useAuthStore();
   const [name, setName] = useState(user?.name || '');
   const [bio, setBio] = useState('');
   const [profileImage, setProfileImage] = useState<string | null>(null);
@@ -147,6 +147,9 @@ export const EditProfileModal = ({ visible, onClose, onSave }: EditProfileModalP
       } else {
         await AsyncStorage.removeItem('user_profile_image');
       }
+      
+      // Update auth store so name syncs everywhere
+      await updateUser({ name });
       
       // Call onSave first to refresh parent data, then close
       onSave();

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-Backend API Testing Suite for Thryvin Security and Authentication Flow
-Tests the complete authentication and security functionality for the Thryvin fitness app.
+Backend API Testing Suite for Thryvin 6-Digit Password Reset Flow
+Tests the complete 6-digit code password reset functionality for the Thryvin fitness app.
 """
 
 import requests
@@ -11,8 +11,8 @@ import time
 import re
 from typing import Dict, List, Any, Optional
 
-# Configuration - Use the backend URL from environment
-BASE_URL = "https://thryvin-app.preview.emergentagent.com"
+# Configuration - Use localhost as specified in the review request
+BASE_URL = "http://localhost:8001"
 API_BASE = f"{BASE_URL}/api"
 
 # Test credentials

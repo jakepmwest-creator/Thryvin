@@ -25,7 +25,7 @@
   {
     "id": 2,
     "email": "jakepmwest@gmail.com",
-    "password": "18c4287011e053f3379c557ef08a606fdb4d9eeda648d4297822bee1b372288e1d2a7c06311b418ed70b32ed227f208533f5bb0008a3bdb5785d8ce97627cbef.80cad68a5b61270d1f51735cddb915ea",
+    "password": "da7ac67f10e308c1f4aebe786477dcc1:2ec38e8841ad7aa4b134cd77029138507cd18f9e3f2c3be63677314e27f5938dc8942cca6867ef9dbacee7a2ab812b6bfecf6abe6bfacfd00d01e9b0f2726e7e",
     "name": "Jake",
     "selectedCoach": "max-stone",
     "trainingType": "strength",
@@ -6275,5 +6275,22 @@
     "xpPoints": 0,
     "level": "Bronze",
     "createdAt": "2025-12-11T10:29:54.381Z"
+  },
+  {
+    "id": 370,
+    "name": "Test User",
+    "email": "test@example.com",
+    "password": "aa561036ecb6f7ebfc4db0c38f84461fea7507a48ac22633cf1242fb81bd54112cd20729b3fb1f2d064dd82936143084c002fdb1c548acadc9a3777e45be5684.edc0d4a9765282de7a39fdeb67b3a45e",
+    "trainingType": "general-fitness",
+    "goal": "improve-health",
+    "coachingStyle": "encouraging-positive",
+    "selectedCoach": "nate-green",
+    "trialEndsAt": "2025-12-18T10:37:35.900Z",
+    "hasActiveSubscription": false,
+    "weeklyGoalWorkouts": 5,
+    "weeklyGoalMinutes": 150,
+    "xpPoints": 0,
+    "level": "Bronze",
+    "createdAt": "2025-12-11T10:37:35.900Z"
   }
 ]
