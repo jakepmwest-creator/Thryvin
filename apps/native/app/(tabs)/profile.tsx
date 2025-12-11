@@ -625,18 +625,6 @@ export default function ProfileScreen() {
         onSave={handleProfileSave}
       />
       
-      <WorkoutPreferencesModal
-        visible={showWorkoutPrefs}
-        onClose={() => setShowWorkoutPrefs(false)}
-        onSave={() => {}}
-      />
-      
-      <GoalsProgressModal
-        visible={showGoals}
-        onClose={() => setShowGoals(false)}
-        onSave={() => {}}
-      />
-      
       <ResetProgramModal
         visible={showResetProgram}
         onClose={() => setShowResetProgram(false)}
