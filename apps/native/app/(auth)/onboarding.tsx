@@ -1659,10 +1659,10 @@ const styles = StyleSheet.create({
     color: COLORS.mediumGray,
   },
   calendarDayNum: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '700',
     color: COLORS.text,
-    marginTop: 2,
+    marginTop: 4,
   },
   calendarDayTextSelected: {
     color: COLORS.white,
