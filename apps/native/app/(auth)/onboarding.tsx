@@ -429,10 +429,24 @@ export default function OnboardingScreen() {
   };
 
   const handleComplete = () => {
-    // Generate AI coach
+    // Generate AI coach based on gender and style
     const gender = formData.gender || 'other';
     const style = formData.coachingStyle || 'balanced';
-    const coachPool = COACH_NAMES[gender]?.[style] || COACH_NAMES.other.balanced;
+    
+    let coachPool;
+    if (gender === 'male') {
+      // Male users get male coaches only
+      coachPool = COACH_NAMES.male[style] || COACH_NAMES.male.balanced;
+    } else if (gender === 'female') {
+      // Female users get female coaches only
+      coachPool = COACH_NAMES.female[style] || COACH_NAMES.female.balanced;
+    } else {
+      // Other gender gets random from both pools
+      const allMaleCoaches = Object.values(COACH_NAMES.male).flat();
+      const allFemaleCoaches = Object.values(COACH_NAMES.female).flat();
+      coachPool = [...allMaleCoaches, ...allFemaleCoaches];
+    }
+    
     const coachName = coachPool[Math.floor(Math.random() * coachPool.length)];
 
     // Navigate to analyzing screen first
@@ -440,6 +454,7 @@ export default function OnboardingScreen() {
       pathname: '/(auth)/analyzing',
       params: {
         coachName,
+        coachStyle: style,
         onboardingData: JSON.stringify(formData),
       },
     });
