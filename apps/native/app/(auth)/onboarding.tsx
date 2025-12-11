@@ -1072,7 +1072,7 @@ const styles = StyleSheet.create({
   genderContainer: {
     flexDirection: 'row',
     gap: 12,
-    marginBottom: 20,
+    marginBottom: 12,
   },
   genderOption: {
     flex: 1,
@@ -1086,6 +1086,23 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: 'transparent',
     backgroundColor: COLORS.lightGray,
+  },
+  genderOtherContainer: {
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  genderOptionOther: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    paddingVertical: 16,
+    paddingHorizontal: 32,
+    borderRadius: 16,
+    borderWidth: 2,
+    borderColor: 'transparent',
+    backgroundColor: COLORS.lightGray,
+    minWidth: '60%',
   },
   genderOptionSelected: {
     borderColor: COLORS.accent,
