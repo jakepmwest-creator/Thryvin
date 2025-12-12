@@ -259,9 +259,8 @@ export default function CoachRevealScreen() {
               },
             ]}
           >
-            {/* Celebration */}
-            <Text style={styles.celebrationEmoji}>🎉</Text>
-            <Text style={styles.revealTitle}>Congratulations!</Text>
+            {/* Title - No emoji */}
+            <Text style={styles.revealTitle}>You're All Set!</Text>
             <Text style={styles.revealSubtitle}>
               Your personal coach is ready
             </Text>
@@ -325,34 +324,33 @@ export default function CoachRevealScreen() {
               </LinearGradient>
             </View>
 
-            {/* Switch Coach Button */}
-            <TouchableOpacity
-              style={styles.switchButton}
-              onPress={handleSwitchCoach}
-            >
-              <Ionicons name="refresh" size={18} color={COLORS.accent} />
-              <Text style={styles.switchButtonText}>Switch Coach</Text>
-            </TouchableOpacity>
-
-            {/* Continue Button */}
-            <TouchableOpacity
-              style={styles.continueButton}
-              onPress={handleContinue}
-            >
-              <LinearGradient
-                colors={[COLORS.accent, COLORS.accentSecondary]}
-                style={styles.continueGradient}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 1 }}
+            {/* Buttons Row - Side by Side */}
+            <View style={styles.buttonsRow}>
+              {/* Switch Coach Button */}
+              <TouchableOpacity
+                style={styles.switchButton}
+                onPress={handleSwitchCoach}
               >
-                <Text style={styles.continueButtonText}>Create My Account</Text>
-                <Ionicons name="arrow-forward" size={24} color={COLORS.white} />
-              </LinearGradient>
-            </TouchableOpacity>
+                <Ionicons name="refresh" size={16} color={COLORS.accent} />
+                <Text style={styles.switchButtonText}>Change</Text>
+              </TouchableOpacity>
 
-            <Text style={styles.hintText}>
-              Save your progress and start training!
-            </Text>
+              {/* Continue Button */}
+              <TouchableOpacity
+                style={styles.continueButton}
+                onPress={handleContinue}
+              >
+                <LinearGradient
+                  colors={[COLORS.accent, COLORS.accentSecondary]}
+                  style={styles.continueGradient}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 1 }}
+                >
+                  <Text style={styles.continueButtonText}>Let's Go!</Text>
+                  <Ionicons name="arrow-forward" size={18} color={COLORS.white} />
+                </LinearGradient>
+              </TouchableOpacity>
+            </View>
           </Animated.View>
         </SafeAreaView>
       </LinearGradient>
