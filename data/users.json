@@ -6683,5 +6683,18 @@
     "xpPoints": 0,
     "level": "Bronze",
     "createdAt": "2025-12-12T14:11:38.603Z"
+  },
+  {
+    "id": 394,
+    "email": "testuser@test.com",
+    "password": "d7382d3138468efd8bcdf9b644e9aabb86a63da2b290526cfe06febe20eb3a8ecc64003b1979336e5f051099d6c8873f2f90af7a36d9cdea2908a28e054db3d1.452c1ac6758bc112d7afc7c4ed44c15a",
+    "name": "Test User",
+    "trialEndsAt": "2025-12-19T14:14:44.156Z",
+    "hasActiveSubscription": false,
+    "weeklyGoalWorkouts": 5,
+    "weeklyGoalMinutes": 150,
+    "xpPoints": 0,
+    "level": "Bronze",
+    "createdAt": "2025-12-12T14:14:44.188Z"
   }
 ]
