@@ -134,11 +134,22 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Bypass-Tunnel-Reminder': 'true',
         },
         body: JSON.stringify(userData),
       });
 
-      const data = await response.json();
+      // Get the raw text first to handle non-JSON responses
+      const responseText = await response.text();
+      
+      // Try to parse as JSON
+      let data;
+      try {
+        data = JSON.parse(responseText);
+      } catch (parseError) {
+        console.error('Failed to parse response:', responseText.substring(0, 100));
+        throw new Error('Server returned an invalid response. Please try again.');
+      }
 
       if (!response.ok) {
         throw new Error(data.error || 'Registration failed');
