@@ -538,6 +538,24 @@ const styles = StyleSheet.create({
     color: COLORS.mediumGray,
     fontWeight: '600',
   },
+  whyJoinContainer: {
+    backgroundColor: `${COLORS.accent}08`,
+    borderRadius: 12,
+    padding: 12,
+    marginBottom: 14,
+    gap: 8,
+  },
+  bulletPoint: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  bulletText: {
+    fontSize: 13,
+    color: COLORS.text,
+    fontWeight: '500',
+    flex: 1,
+  },
   startJourneyButton: {
     borderRadius: 14,
     overflow: 'hidden',
