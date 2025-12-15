@@ -564,7 +564,15 @@ export default function HomeScreen() {
             <Text style={styles.sectionTitle}>Today&apos;s Workout</Text>
           </TouchableOpacity>
           {isLoading ? (
-            <ActivityIndicator size="large" color={COLORS.gradientStart} style={{ marginTop: 20 }} />
+            <View style={styles.todayWorkoutCard}>
+              <View style={styles.generatingContainer}>
+                <ActivityIndicator size="large" color={COLORS.gradientStart} />
+                <Text style={styles.generatingTitle}>Generating Your Workouts</Text>
+                <Text style={styles.generatingSubtitle}>
+                  Your AI coach is creating personalized workouts for the next 3 weeks. This may take a minute...
+                </Text>
+              </View>
+            </View>
           ) : actualTodayWorkout?.isRestDay ? (
             <View ref={todayWorkoutRef} style={styles.todayWorkoutCard}>
               <View style={styles.workoutContent}>
