@@ -580,6 +580,12 @@ export default function ProfileScreen() {
           <Text style={styles.sectionTitle}>Program</Text>
           <View style={styles.menuContainer}>
             <MenuButton
+              icon="person-circle"
+              title="Coach Style"
+              subtitle={`Current: ${COACH_PERSONALITIES.find(p => p.id === coachPersonality)?.name || 'Friendly'}`}
+              onPress={() => setShowCoachPersonality(true)}
+            />
+            <MenuButton
               icon="refresh"
               title="Reset Program"
               subtitle="Chat with AI to customize your plan"
