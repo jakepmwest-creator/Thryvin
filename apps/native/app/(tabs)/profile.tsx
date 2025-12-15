@@ -787,7 +787,7 @@ export default function ProfileScreen() {
                         {personality.name}
                       </Text>
                       <Text style={styles.personalityDescription}>
-                        {personality.description}
+                        {personality.subtitle}
                       </Text>
                     </View>
                   </View>
