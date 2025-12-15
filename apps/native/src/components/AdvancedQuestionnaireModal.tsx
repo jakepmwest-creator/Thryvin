@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -17,6 +17,11 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useAuthStore } from '../stores/auth-store';
+import { 
+  ExpoSpeechRecognitionModule, 
+  useSpeechRecognitionEvent,
+  type SpeechRecognitionErrorCode 
+} from 'expo-speech-recognition';
 
 const COLORS = {
   accent: '#A22BF6',
