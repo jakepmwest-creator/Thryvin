@@ -519,10 +519,12 @@ const styles = StyleSheet.create({
   detailDescription: { fontSize: 15, color: COLORS.text, lineHeight: 22, textAlign: 'center', marginBottom: 20 },
   
   videoPlaceholder: { borderRadius: 16, overflow: 'hidden', marginBottom: 24 },
-  videoGradient: { height: 180, justifyContent: 'center', alignItems: 'center' },
+  videoGradient: { height: 200, justifyContent: 'center', alignItems: 'center' },
   videoText: { color: 'rgba(255,255,255,0.6)', marginTop: 12, fontSize: 14 },
-  videoContainer: { borderRadius: 16, overflow: 'hidden', marginBottom: 24, backgroundColor: '#000' },
-  videoPlayer: { width: '100%', height: 200 },
+  videoContainer: { borderRadius: 16, overflow: 'hidden', marginBottom: 24, backgroundColor: '#000', position: 'relative' },
+  videoPlayer: { width: '100%', aspectRatio: 16/9 },
+  playButtonOverlay: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, justifyContent: 'center', alignItems: 'center', opacity: 0 },
+  playButton: { width: 72, height: 72, borderRadius: 36, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', alignItems: 'center', paddingLeft: 4 },
   
   exerciseDetails: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginBottom: 20, justifyContent: 'center' },
   detailChip: { flexDirection: 'row', alignItems: 'center', backgroundColor: `${COLORS.accent}10`, paddingHorizontal: 12, paddingVertical: 8, borderRadius: 20, gap: 6 },
