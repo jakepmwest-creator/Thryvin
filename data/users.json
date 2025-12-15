@@ -695,5 +695,73 @@
     "xpPoints": 0,
     "level": "Bronze",
     "createdAt": "2025-12-15T17:58:09.782Z"
+  },
+  {
+    "id": 29,
+    "name": "Jake",
+    "gender": "female",
+    "dateOfBirth": "2000-01-30T00:00:00.000Z",
+    "height": "175",
+    "weight": "63",
+    "heightUnit": "cm",
+    "weightUnit": "kg",
+    "feet": "",
+    "inches": "",
+    "experience": "advanced",
+    "fitnessGoals": [
+      "get_toned",
+      "increase_energy",
+      "stress_relief"
+    ],
+    "nutritionGoals": [
+      "low_carb",
+      "meal_prep",
+      "calorie_surplus"
+    ],
+    "equipment": [
+      "full_gym"
+    ],
+    "trainingDays": "4",
+    "sessionDuration": "60",
+    "trainingSchedule": "flexible",
+    "selectedDays": [
+      "mon",
+      "tue",
+      "wed",
+      "thu",
+      "fri",
+      "sat",
+      "sun"
+    ],
+    "specificDates": [],
+    "injuriesDescription": "",
+    "coachingStyle": "balanced",
+    "coachName": "Harper Lane",
+    "email": "hsjs@jwjsj.com",
+    "password": "7bd82e0dde1f74d2fddc906b0a19bedce2abcf8b2dd8dfdb2c7757f119c965c184136c42ad594b4c39660716ac05e797a2940cdf0a480e40b6ba0c01dddef1c5.7e8c8dc56c8eb39818a7aee02e4ff3db",
+    "trialEndsAt": "2025-12-22T18:46:37.057Z",
+    "hasActiveSubscription": false,
+    "weeklyGoalWorkouts": 5,
+    "weeklyGoalMinutes": 150,
+    "xpPoints": 0,
+    "level": "Bronze",
+    "createdAt": "2025-12-15T18:46:37.091Z"
+  },
+  {
+    "id": 30,
+    "name": "Test User",
+    "email": "test@example.com",
+    "password": "868f852ad093a9a415a9f14a893da1c0c1590737033cd2be9bb7e572b28bcf0c84aa04153e21c574eaeb88a421f443074466052b5523d3cf34eff951f65f7088.99be7682a5098084d9a297a318c43c5c",
+    "trainingType": "general-fitness",
+    "goal": "improve-health",
+    "coachingStyle": "encouraging-positive",
+    "selectedCoach": "nate-green",
+    "trialEndsAt": "2025-12-22T18:48:35.542Z",
+    "hasActiveSubscription": false,
+    "weeklyGoalWorkouts": 5,
+    "weeklyGoalMinutes": 150,
+    "xpPoints": 0,
+    "level": "Bronze",
+    "createdAt": "2025-12-15T18:48:35.542Z"
   }
 ]
