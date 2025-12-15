@@ -6567,6 +6567,55 @@ Respond with a complete workout in JSON format:
     }
   });
 
+  // GET /api/exercises/counts - Get exercise counts by category
+  app.get("/api/exercises/counts", async (req, res) => {
+    try {
+      console.log('📊 Fetching exercise counts by category...');
+      
+      // Query all exercises to count by category
+      const allExercises = await db
+        .select({
+          category: exercises.category,
+          bodyPart: exercises.body_part,
+        })
+        .from(exercises);
+      
+      // Category mappings for frontend display
+      const categoryMappings: { [key: string]: string[] } = {
+        'Strength': ['upper-body', 'lower-body', 'chest', 'back', 'shoulders', 'arms', 'legs'],
+        'HIIT': ['hiit', 'circuit', 'conditioning'],
+        'Cardio': ['cardio', 'full-body'],
+        'Flexibility': ['warmup', 'recovery', 'mobility', 'flexibility'],
+        'Mobility': ['mobility', 'warmup', 'recovery'],
+        'Conditioning': ['conditioning', 'circuit', 'hiit'],
+        'Core': ['core', 'abs'],
+      };
+      
+      // Count exercises per category
+      const counts: { [key: string]: number } = {};
+      
+      for (const [displayName, matchCategories] of Object.entries(categoryMappings)) {
+        counts[displayName] = allExercises.filter(ex => {
+          const exCategory = ex.category?.toLowerCase() || '';
+          const exBodyPart = ex.bodyPart?.toLowerCase() || '';
+          return matchCategories.some(cat => 
+            exCategory.includes(cat) || exBodyPart.includes(cat)
+          );
+        }).length;
+      }
+      
+      console.log('✅ Exercise counts:', counts);
+      
+      res.json({
+        counts,
+        total: allExercises.length,
+      });
+    } catch (error) {
+      console.error("Error fetching exercise counts:", error);
+      res.status(500).json({ error: "Failed to fetch exercise counts", details: String(error) });
+    }
+  });
+
   // GET /api/exercises/:slug - Fetch a single exercise by slug
   app.get("/api/exercises/:slug", async (req, res) => {
     try {
