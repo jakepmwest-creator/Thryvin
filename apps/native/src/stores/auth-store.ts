@@ -57,6 +57,73 @@ interface User {
   pushToken?: string;
 }
 
+// Function to clear ALL local data for a fresh user experience
+async function clearAllLocalData(): Promise<void> {
+  console.log('🧹 Clearing ALL local data for fresh user experience...');
+  
+  // Clear SecureStore items
+  const secureStoreKeys = [
+    'auth_user', 'user_email', 'user_password', 'user_pin',
+    'week_workouts', 'week_workouts_date', 'week_workouts_version',
+    'today_workout', 'today_workout_date', 'completed_workouts',
+    'future_weeks', 'workout_stats', 'personal_bests',
+    'biometric_enabled', 'biometrics_enabled',
+    'user_badges', 'user_badges_v3',
+  ];
+  
+  for (const key of secureStoreKeys) {
+    try {
+      await SecureStore.deleteItemAsync(key);
+    } catch (e) {
+      // Ignore errors
+    }
+  }
+  
+  // Clear AsyncStorage items (profile image, settings, questionnaire, etc.)
+  const asyncStorageKeys = [
+    'user_profile_image', 'user_bio', 'user_name',
+    'advancedQuestionnaire', 'advancedQuestionnaireSkipped',
+    'tourCompleted', 'tourSkipped',
+    'notifications_enabled', 'workout_reminders_enabled',
+    'pin_enabled', 'user_pin',
+    'weeklyScheduleCheckSnoozed', 'lastWeeklyScheduleCheck', 'currentWeekDays',
+  ];
+  
+  // Import AsyncStorage dynamically to avoid issues
+  try {
+    const AsyncStorage = require('@react-native-async-storage/async-storage').default;
+    for (const key of asyncStorageKeys) {
+      try {
+        await AsyncStorage.removeItem(key);
+      } catch (e) {
+        // Ignore
+      }
+    }
+  } catch (e) {
+    console.log('AsyncStorage not available, skipping...');
+  }
+  
+  // Also clear web localStorage if available
+  if (typeof window !== 'undefined' && window.localStorage) {
+    asyncStorageKeys.forEach(key => {
+      try {
+        window.localStorage.removeItem(key);
+      } catch (e) {
+        // Ignore
+      }
+    });
+  }
+  
+  // Reset workout store
+  try {
+    useWorkoutStore.getState().resetAllData();
+  } catch (e) {
+    console.log('Workout store reset not available');
+  }
+  
+  console.log('✅ All local data cleared!');
+}
+
 interface AuthState {
   user: User | null;
   isLoading: boolean;
@@ -77,6 +144,11 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   login: async (credentials: { email: string; password: string }) => {
     set({ isLoading: true, error: null });
     try {
+      // Check if this is a DIFFERENT user logging in
+      const currentUserId = get().user?.id;
+      const storedUser = await getStorageItem('auth_user');
+      const previousUserId = storedUser ? JSON.parse(storedUser).id : null;
+      
       // Call the real backend API
       const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
         method: 'POST',
@@ -90,6 +162,12 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
       if (!response.ok) {
         throw new Error(data.error || 'Invalid email or password');
+      }
+
+      // If this is a DIFFERENT user, clear all old data first
+      if (previousUserId && previousUserId !== data.user.id) {
+        console.log('🔄 Different user logging in, clearing old data...');
+        await clearAllLocalData();
       }
 
       // Backend returns user data on successful login
