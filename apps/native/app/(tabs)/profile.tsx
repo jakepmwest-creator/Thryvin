@@ -101,6 +101,7 @@ const SettingToggle = ({
 export default function ProfileScreen() {
   const { user, logout } = useAuthStore();
   const { resetProgram, stats } = useWorkoutStore();
+  const { coachName, coachPersonality, setCoachPersonality, loadCoachSettings } = useCoachStore();
   
   // Modal states
   const [showPINSetup, setShowPINSetup] = useState(false);
@@ -113,6 +114,7 @@ export default function ProfileScreen() {
   const [showAllWeeks, setShowAllWeeks] = useState(false);
   const [showAdvancedQuestionnaire, setShowAdvancedQuestionnaire] = useState(false);
   const [hasCompletedQuestionnaire, setHasCompletedQuestionnaire] = useState(false);
+  const [showCoachPersonality, setShowCoachPersonality] = useState(false);
   
   // Settings states (persisted)
   const [notifications, setNotifications] = useState(true);
@@ -147,6 +149,11 @@ export default function ProfileScreen() {
   const hideAlert = () => {
     setAlertConfig(prev => ({ ...prev, visible: false }));
   };
+  
+  // Load coach settings
+  useEffect(() => {
+    loadCoachSettings();
+  }, []);
   
   // Load persisted settings
   useEffect(() => {
