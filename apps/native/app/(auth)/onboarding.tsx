@@ -859,6 +859,33 @@ export default function OnboardingScreen() {
     );
   };
 
+  // Textarea renderer for injuries description
+  const renderTextarea = () => {
+    if (currentStepData.type !== 'textarea') return null;
+
+    return (
+      <View style={styles.textareaContainer}>
+        <View style={styles.textareaWrapper}>
+          <TextInput
+            style={styles.textareaInput}
+            value={formData[currentStepData.field] || ''}
+            onChangeText={(text) => setFormData({ ...formData, [currentStepData.field]: text })}
+            placeholder={currentStepData.placeholder || 'Enter your response...'}
+            placeholderTextColor={COLORS.mediumGray}
+            multiline
+            numberOfLines={6}
+            textAlignVertical="top"
+            autoCapitalize="sentences"
+            autoCorrect={true}
+          />
+        </View>
+        <Text style={styles.textareaHint}>
+          Leave blank or type "None" if you have no injuries
+        </Text>
+      </View>
+    );
+  };
+
   // Training Schedule renderer - "When can you train?"
   const renderTrainingSchedule = () => {
     if (currentStepData.type !== 'trainingSchedule') return null;
