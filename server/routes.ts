@@ -4618,8 +4618,16 @@ Respond with a complete workout in JSON format:
           - Available Equipment: ${equipmentAccess.join(", ")}
           - Target Duration: ${duration} minutes
           - Coaching Style: ${coachingStyle}
-          - Injuries/Exclusions: ${injuries}
+          - Injuries/Limitations: ${injuries}
           - Cardio Preference: ${cardioPreference} (only include cardio if 'love' or 'like')
+          
+          INJURY HANDLING (CRITICAL):
+          ${injuries !== "none" ? `The user has reported: "${injuries}". 
+          - AVOID all exercises that could aggravate these conditions
+          - Suggest alternative/modified exercises where appropriate
+          - If the injury affects a major muscle group, focus on other areas
+          - Include mobility/recovery work that may help the injury
+          - Be conservative - user safety is the top priority` : "No injuries reported - full exercise selection available."}
           
           Generate a workout with EXACTLY this structure:
           {
