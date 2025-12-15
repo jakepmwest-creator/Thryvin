@@ -216,5 +216,73 @@
     "xpPoints": 0,
     "level": "Bronze",
     "createdAt": "2025-12-15T15:45:28.409Z"
+  },
+  {
+    "id": 11,
+    "name": "Test User",
+    "email": "test@example.com",
+    "password": "51d5cde0a00b62a6bef2cd93b198243dd7c79c867a8a62bd279f19dbb7d3b0a92fa8e1c1cd6e4745b399162bf5124df9c6f3609f89c2a80a0737fc0f4bde9a6a.14d49a5f3c0338b4ff3c9c46ec6d7ec0",
+    "trainingType": "general-fitness",
+    "goal": "improve-health",
+    "coachingStyle": "encouraging-positive",
+    "selectedCoach": "nate-green",
+    "trialEndsAt": "2025-12-22T16:20:56.320Z",
+    "hasActiveSubscription": false,
+    "weeklyGoalWorkouts": 5,
+    "weeklyGoalMinutes": 150,
+    "xpPoints": 0,
+    "level": "Bronze",
+    "createdAt": "2025-12-15T16:20:56.321Z"
+  },
+  {
+    "id": 12,
+    "name": "Jake",
+    "gender": "male",
+    "dateOfBirth": "2000-01-30T00:00:00.000Z",
+    "height": "183",
+    "weight": "94",
+    "heightUnit": "cm",
+    "weightUnit": "kg",
+    "feet": "",
+    "inches": "",
+    "experience": "intermediate",
+    "fitnessGoals": [
+      "build_endurance",
+      "get_toned"
+    ],
+    "nutritionGoals": [
+      "calorie_surplus",
+      "calorie_deficit",
+      "meal_prep"
+    ],
+    "equipment": [
+      "full_gym"
+    ],
+    "trainingDays": "5",
+    "sessionDuration": "60+",
+    "trainingSchedule": "flexible",
+    "selectedDays": [
+      "mon",
+      "tue",
+      "wed",
+      "thu",
+      "fri",
+      "sat",
+      "sun"
+    ],
+    "specificDates": [],
+    "injuries": [],
+    "injuriesOther": "",
+    "coachingStyle": "technical",
+    "coachName": "Owen Sharp",
+    "email": "hsjsj@hahs.com",
+    "password": "948750450d30d8191718e7b09b12575e41d84cf5d6aad47cdb154b9783e26fa3a63383d6842244dfc9ee76dc64eab9f07277e31e7688b356009df249c5e76475.0048ca23c6e2f057186fe1894e0a8ae6",
+    "trialEndsAt": "2025-12-22T16:22:36.030Z",
+    "hasActiveSubscription": false,
+    "weeklyGoalWorkouts": 5,
+    "weeklyGoalMinutes": 150,
+    "xpPoints": 0,
+    "level": "Bronze",
+    "createdAt": "2025-12-15T16:22:36.064Z"
   }
 ]
