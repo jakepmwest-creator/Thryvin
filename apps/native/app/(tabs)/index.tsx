@@ -222,15 +222,6 @@ export default function HomeScreen() {
     checkWeeklySchedule();
   }, [checkAdvancedQuestionnaire, checkWeeklySchedule]);
 
-  // Handle questionnaire completion
-  const handleQuestionnaireComplete = async (data: AdvancedQuestionnaireData) => {
-    console.log('Advanced Questionnaire completed:', data);
-    setShowAdvancedQuestionnaire(false);
-    
-    // TODO: Use this data to generate personalized workouts
-    // The data should be sent to the AI workout generator
-  };
-
   // Handle weekly schedule confirmation
   const handleWeeklyScheduleConfirm = async (selectedDays: string[]) => {
     console.log('Weekly schedule confirmed:', selectedDays);
