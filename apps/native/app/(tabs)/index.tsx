@@ -144,7 +144,7 @@ export default function HomeScreen() {
   const fetchCompletedWorkouts = useWorkoutStore(state => state.fetchCompletedWorkouts);
   const forceRegenerateWeek = useWorkoutStore(state => state.forceRegenerateWeek);
 
-  // Check if user should see Advanced Questionnaire - ONLY for truly new users
+  // Check if user should see Advanced Questionnaire - MUST show for new users BEFORE workouts
   const checkAdvancedQuestionnaire = useCallback(async () => {
     if (hasCheckedQuestionnaire) return;
     
@@ -153,15 +153,30 @@ export default function HomeScreen() {
       const completed = await AsyncStorage.getItem('advancedQuestionnaire');
       const skipped = await AsyncStorage.getItem('advancedQuestionnaireSkipped');
       
-      // Determine if user is truly new (no workouts generated, no completed workouts)
-      const isNewUser = weekWorkouts.length === 0 && completedWorkouts.length === 0;
+      // Check if this is the user's first time (based on user creation date or no workouts)
+      const storedUser = await AsyncStorage.getItem('auth_user');
+      let isNewUser = false;
       
-      // Only show for NEW users who haven't completed or skipped
+      if (storedUser) {
+        const userData = JSON.parse(storedUser);
+        // User is new if they have a createdAt within last 5 minutes OR no workouts exist
+        if (userData.createdAt) {
+          const createdAt = new Date(userData.createdAt);
+          const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
+          isNewUser = createdAt > fiveMinutesAgo;
+        }
+      }
+      
+      // Also check if there are no workouts (backup check)
+      if (!isNewUser && weekWorkouts.length === 0 && completedWorkouts.length === 0) {
+        isNewUser = true;
+      }
+      
+      // Show for NEW users who haven't completed or skipped
       if (!completed && !skipped && isNewUser) {
-        // Show questionnaire popup after a short delay
-        setTimeout(() => {
-          setShowAdvancedQuestionnaire(true);
-        }, 1500);
+        // Show questionnaire popup IMMEDIATELY for new users
+        console.log('📋 New user detected - showing Advanced Questionnaire');
+        setShowAdvancedQuestionnaire(true);
       }
       
       setHasCheckedQuestionnaire(true);
