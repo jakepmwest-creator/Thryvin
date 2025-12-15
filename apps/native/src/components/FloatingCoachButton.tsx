@@ -56,7 +56,7 @@ const QUICK_ACTIONS = [
 
 export function FloatingCoachButton() {
   const { swapWorkoutDays, forceRegenerateWeek, weekWorkouts, resetProgram } = useWorkoutStore();
-  const { chatVisible, initialMessage, openChat, closeChat } = useCoachStore();
+  const { chatVisible, initialMessage, openChat, closeChat, coachName, loadCoachSettings } = useCoachStore();
   
   const [messages, setMessages] = useState([
     { role: 'assistant', text: "Hey! I'm your AI coach. 💪 I can help with workouts, swap your training days, adjust intensity, or answer fitness questions!" },
