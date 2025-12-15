@@ -106,8 +106,6 @@ export const AdvancedQuestionnaireModal = ({
   const { user } = useAuthStore();
   const [showIntro, setShowIntro] = useState(true);
   const [currentStep, setCurrentStep] = useState(0);
-  const [isRecording, setIsRecording] = useState(false);
-  const [isTranscribing, setIsTranscribing] = useState(false);
   const [formData, setFormData] = useState<AdvancedQuestionnaireData>({
     targets: '',
     goalDetails: {},
