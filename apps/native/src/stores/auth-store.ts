@@ -209,6 +209,10 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   register: async (userData: any) => {
     set({ isLoading: true, error: null });
     try {
+      // CRITICAL: Clear ALL local data FIRST for a completely fresh experience
+      console.log('🆕 New user registration - clearing all old data first...');
+      await clearAllLocalData();
+      
       // Call the real backend API
       const response = await fetch(`${API_BASE_URL}/api/auth/register`, {
         method: 'POST',
