@@ -18,7 +18,7 @@ import { useWorkoutStore } from '../stores/workout-store';
 import { usePreferencesStore } from '../stores/preferences-store';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
-const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL || 'https://workout-bug-fix.preview.emergentagent.com';
+const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL || 'https://workout-companion-23.preview.emergentagent.com';
 
 const COLORS = {
   accent: '#A22BF6',

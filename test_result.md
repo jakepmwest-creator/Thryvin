@@ -26,7 +26,7 @@
 
 ### Critical API Tests - ALL PASSED ✅
 
-**Test Environment:** https://workout-bug-fix.preview.emergentagent.com
+**Test Environment:** https://workout-companion-23.preview.emergentagent.com
 
 1. **Health Check API** ✅
    - GET /api/health

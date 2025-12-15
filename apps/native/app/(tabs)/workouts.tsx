@@ -70,7 +70,7 @@ const getCurrentMonthData = () => {
 
 const MONTH_DATA = getCurrentMonthData();
 
-const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL || 'https://workout-bug-fix.preview.emergentagent.com';
+const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL || 'https://workout-companion-23.preview.emergentagent.com';
 
 // Updated categories: Cardio, Flexibility, Strength, Calisthenics
 const DEFAULT_CATEGORIES = [
