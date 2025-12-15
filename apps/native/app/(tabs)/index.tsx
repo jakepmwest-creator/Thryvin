@@ -608,14 +608,24 @@ export default function HomeScreen() {
           >
             <Text style={styles.sectionTitle}>Today&apos;s Workout</Text>
           </TouchableOpacity>
-          {isLoading ? (
+          {isLoading || (weekWorkouts.length > 0 && weekWorkouts.length < 21) ? (
             <View style={styles.todayWorkoutCard}>
               <View style={styles.generatingContainer}>
                 <ActivityIndicator size="large" color={COLORS.gradientStart} />
                 <Text style={styles.generatingTitle}>Generating Your Workouts</Text>
                 <Text style={styles.generatingSubtitle}>
-                  Your AI coach is creating personalized workouts for the next 3 weeks. This may take a minute...
+                  {weekWorkouts.length > 0 
+                    ? `Creating your personalized plan... ${weekWorkouts.length}/21 days complete`
+                    : 'Your AI coach is creating personalized workouts for the next 3 weeks. This may take a minute...'}
                 </Text>
+                {weekWorkouts.length > 0 && (
+                  <View style={styles.generatingProgress}>
+                    <View style={styles.generatingProgressBar}>
+                      <View style={[styles.generatingProgressFill, { width: `${(weekWorkouts.length / 21) * 100}%` }]} />
+                    </View>
+                    <Text style={styles.generatingProgressText}>{Math.round((weekWorkouts.length / 21) * 100)}%</Text>
+                  </View>
+                )}
               </View>
             </View>
           ) : workoutError ? (
