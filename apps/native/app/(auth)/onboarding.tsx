@@ -1166,6 +1166,7 @@ export default function OnboardingScreen() {
                 {renderFields()}
                 {renderSelectOptions()}
                 {renderMultiSelectOptions()}
+                {renderTextarea()}
                 {renderTrainingSchedule()}
               </ScrollView>
 
