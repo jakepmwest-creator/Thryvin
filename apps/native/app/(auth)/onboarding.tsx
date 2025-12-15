@@ -302,9 +302,10 @@ const ONBOARDING_STEPS = [
     title: 'Injuries or Limitations',
     subtitle: 'Help us keep you safe',
     emoji: '🩹',
-    fields: [
-      { key: 'injuries', label: 'Any injuries or concerns?', icon: 'medical-outline', type: 'text', placeholder: 'e.g., Bad knee, or type "None"' },
-    ],
+    type: 'textarea',
+    field: 'injuriesDescription',
+    icon: 'medical-outline',
+    placeholder: 'Describe any injuries, limitations, or health concerns...\n\nExamples:\n• Bad knee from running\n• Lower back pain\n• Shoulder injury healing\n• None',
   },
   {
     id: 'coaching',
