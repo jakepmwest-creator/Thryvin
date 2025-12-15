@@ -194,13 +194,45 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   logout: async () => {
     set({ isLoading: true });
     try {
-      // Clear stored user data
+      // Clear ALL stored user data for a fresh start on next login
       await deleteStorageItem('auth_user');
       await deleteStorageItem('user_email');
       await deleteStorageItem('user_password');
+      await deleteStorageItem('user_pin');
+      
+      // Clear workout data
+      await deleteStorageItem('week_workouts');
+      await deleteStorageItem('week_workouts_date');
+      await deleteStorageItem('week_workouts_version');
+      await deleteStorageItem('today_workout');
+      await deleteStorageItem('today_workout_date');
+      await deleteStorageItem('completed_workouts');
+      await deleteStorageItem('future_weeks');
+      await deleteStorageItem('workout_stats');
+      await deleteStorageItem('personal_bests');
+      
+      // Clear questionnaire and tour data
+      await deleteStorageItem('advancedQuestionnaire');
+      await deleteStorageItem('advancedQuestionnaireSkipped');
+      await deleteStorageItem('tourCompleted');
+      await deleteStorageItem('tourSkipped');
+      
+      // Clear biometrics settings
+      await deleteStorageItem('biometric_enabled');
+      await deleteStorageItem('biometrics_enabled');
+      
+      // Also clear AsyncStorage items
+      if (typeof window !== 'undefined' && window.localStorage) {
+        const keysToRemove = [
+          'advancedQuestionnaire', 'advancedQuestionnaireSkipped',
+          'tourCompleted', 'tourSkipped', 'weeklyScheduleCheckSnoozed',
+          'lastWeeklyScheduleCheck', 'currentWeekDays'
+        ];
+        keysToRemove.forEach(key => window.localStorage.removeItem(key));
+      }
       
       set({ user: null, isLoading: false });
-      console.log('Logout successful');
+      console.log('✅ Logout successful - ALL user data cleared');
     } catch (error) {
       console.error('Logout failed:', error);
       set({ user: null, isLoading: false }); // Clear user anyway
