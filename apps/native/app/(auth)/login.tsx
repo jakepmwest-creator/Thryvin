@@ -111,11 +111,40 @@ export default function LoginScreen() {
       const compatible = await LocalAuthentication.hasHardwareAsync();
       const enrolled = await LocalAuthentication.isEnrolledAsync();
       const enabled = await SecureStore.getItemAsync('biometric_enabled');
+      const pinCode = await SecureStore.getItemAsync('user_pin');
       
       setBiometricAvailable(compatible && enrolled);
       setBiometricEnabled(enabled === 'true');
+      setPinEnabled(!!pinCode);
     } catch (error) {
       console.error('Biometric check failed:', error);
+    }
+  };
+
+  const handlePinLogin = async () => {
+    if (pinInput.length !== 6) {
+      setPinError('Please enter a 6-digit PIN');
+      return;
+    }
+    
+    try {
+      const savedPin = await SecureStore.getItemAsync('user_pin');
+      if (pinInput === savedPin) {
+        const storedEmail = await SecureStore.getItemAsync('user_email');
+        const storedPassword = await SecureStore.getItemAsync('user_password');
+        
+        if (storedEmail && storedPassword) {
+          await login({ email: storedEmail, password: storedPassword });
+          router.replace('/(tabs)');
+        } else {
+          setPinError('No saved credentials found');
+        }
+      } else {
+        setPinError('Incorrect PIN. Please try again.');
+        setPinInput('');
+      }
+    } catch (error) {
+      setPinError('Authentication failed');
     }
   };
 
