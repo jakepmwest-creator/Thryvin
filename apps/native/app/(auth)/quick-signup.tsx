@@ -19,13 +19,13 @@ import { CustomAlert } from '../../src/components/CustomAlert';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const COLORS = {
-  accent: '#a259ff',
-  accentSecondary: '#3a86ff',
+  accent: '#A22BF6',
+  accentSecondary: '#FF4EC7',
   white: '#ffffff',
   text: '#222222',
   lightGray: '#F8F9FA',
   mediumGray: '#8E8E93',
-  shadow: 'rgba(162, 89, 255, 0.1)',
+  shadow: 'rgba(162, 43, 246, 0.1)',
 };
 
 export default function QuickSignupScreen() {
