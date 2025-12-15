@@ -330,7 +330,12 @@ export default function HomeScreen() {
     console.log('📋 Advanced Questionnaire completed:', data);
     setShowAdvancedQuestionnaire(false);
     
-    // Mark as completed
+    // Mark as completed with user-specific key
+    const userId = user?.id;
+    if (userId) {
+      await AsyncStorage.setItem(`advancedQuestionnaire_${userId}`, JSON.stringify(data));
+    }
+    // Also save globally for backward compatibility
     await AsyncStorage.setItem('advancedQuestionnaire', JSON.stringify(data));
     
     // Now generate workouts with the questionnaire data
