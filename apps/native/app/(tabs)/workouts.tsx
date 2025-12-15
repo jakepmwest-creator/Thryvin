@@ -72,14 +72,12 @@ const MONTH_DATA = getCurrentMonthData();
 
 const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL || 'https://workout-bug-fix.preview.emergentagent.com';
 
-// Default categories with placeholder counts (will be updated from API)
+// Updated categories: Cardio, Flexibility, Strength, Calisthenics
 const DEFAULT_CATEGORIES = [
   { id: 1, name: 'Strength', icon: 'barbell', gradient: COLORS.strength, workouts: 0 },
-  { id: 2, name: 'HIIT', icon: 'flame', gradient: COLORS.hiit, workouts: 0 },
+  { id: 2, name: 'Calisthenics', icon: 'body', gradient: COLORS.hiit, workouts: 0 },
   { id: 3, name: 'Cardio', icon: 'heart', gradient: COLORS.cardio, workouts: 0 },
   { id: 4, name: 'Flexibility', icon: 'fitness', gradient: COLORS.flexibility, workouts: 0 },
-  { id: 5, name: 'Mobility', icon: 'body', gradient: COLORS.mobility, workouts: 0 },
-  { id: 6, name: 'Conditioning', icon: 'speedometer', gradient: COLORS.conditioning, workouts: 0 },
 ];
 
 export default function WorkoutsScreen() {
