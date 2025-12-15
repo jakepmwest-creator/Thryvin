@@ -1183,6 +1183,20 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: COLORS.gradientStart,
   },
+  comingSoonBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: COLORS.lightGray,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
+  comingSoonText: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: COLORS.mediumGray,
+    marginLeft: 4,
+  },
   emptyState: {
     alignItems: 'center',
     paddingVertical: 32,
