@@ -852,25 +852,6 @@ export default function HomeScreen() {
             </View>
           </View>
         </View>
-                  colors={['#FF9500', '#FF8C00']}
-                  style={styles.pbIconGradient}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 1 }}
-                >
-                  <Ionicons name="body" size={24} color={COLORS.white} />
-                </LinearGradient>
-              </View>
-              <View style={styles.pbContent}>
-                <Text style={styles.pbExercise}>Squat</Text>
-                <Text style={styles.pbMeta}>Legs</Text>
-              </View>
-              <View style={styles.pbValue}>
-                <Text style={styles.pbNumberEmpty}>—</Text>
-                <Text style={styles.pbUnitEmpty}>Not yet</Text>
-              </View>
-            </View>
-          </View>
-        </View>
       </ScrollView>
       
       {/* Onboarding Tour */}
