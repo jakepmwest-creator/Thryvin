@@ -1038,6 +1038,29 @@ const styles = StyleSheet.create({
     marginTop: 16,
     marginBottom: 8,
   },
+  generatingProgress: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 16,
+    gap: 12,
+  },
+  generatingProgressBar: {
+    flex: 1,
+    height: 6,
+    backgroundColor: COLORS.lightGray,
+    borderRadius: 3,
+    overflow: 'hidden',
+  },
+  generatingProgressFill: {
+    height: '100%',
+    backgroundColor: COLORS.gradientStart,
+    borderRadius: 3,
+  },
+  generatingProgressText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: COLORS.gradientStart,
+  },
   generatingSubtitle: {
     fontSize: 14,
     color: COLORS.mediumGray,
