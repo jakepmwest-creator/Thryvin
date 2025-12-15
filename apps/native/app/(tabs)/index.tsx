@@ -796,21 +796,22 @@ export default function HomeScreen() {
         </View>
         */}
 
-        {/* Personal Bests */}
+        {/* Personal Bests - Coming Soon */}
         <View style={[styles.section, { paddingBottom: 100 }]}>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>Personal Bests</Text>
-            <TouchableOpacity onPress={() => router.push('/(tabs)/stats')}>
-              <Text style={[styles.seeAllText, { color: COLORS.gradientStart }]}>View All</Text>
-            </TouchableOpacity>
+            <View style={styles.comingSoonBadge}>
+              <Ionicons name="time-outline" size={12} color={COLORS.mediumGray} />
+              <Text style={styles.comingSoonText}>Coming Soon</Text>
+            </View>
           </View>
           
-          <View style={styles.pbCard}>
-            {/* Bench Press - Empty State */}
+          <View style={[styles.pbCard, { opacity: 0.6 }]}>
+            {/* Bench Press - Coming Soon */}
             <View style={styles.pbRow}>
               <View style={styles.pbIconContainer}>
                 <LinearGradient
-                  colors={[COLORS.gradientStart, COLORS.gradientEnd]}
+                  colors={['#BDBDBD', '#9E9E9E']}
                   style={styles.pbIconGradient}
                   start={{ x: 0, y: 0 }}
                   end={{ x: 1, y: 1 }}
@@ -820,21 +821,20 @@ export default function HomeScreen() {
               </View>
               <View style={styles.pbContent}>
                 <Text style={styles.pbExercise}>Bench Press</Text>
-                <Text style={styles.pbMeta}>Chest & Triceps</Text>
+                <Text style={styles.pbMeta}>Track your best lifts</Text>
               </View>
               <View style={styles.pbValue}>
-                <Text style={styles.pbNumberEmpty}>—</Text>
-                <Text style={styles.pbUnitEmpty}>Not yet</Text>
+                <Ionicons name="lock-closed" size={20} color={COLORS.mediumGray} />
               </View>
             </View>
 
             <View style={styles.pbDivider} />
 
-            {/* 5K Run - Empty State */}
+            {/* Squat - Coming Soon */}
             <View style={styles.pbRow}>
               <View style={styles.pbIconContainer}>
                 <LinearGradient
-                  colors={['#34C759', '#30B650']}
+                  colors={['#BDBDBD', '#9E9E9E']}
                   style={styles.pbIconGradient}
                   start={{ x: 0, y: 0 }}
                   end={{ x: 1, y: 1 }}
@@ -843,21 +843,15 @@ export default function HomeScreen() {
                 </LinearGradient>
               </View>
               <View style={styles.pbContent}>
-                <Text style={styles.pbExercise}>5K Run</Text>
-                <Text style={styles.pbMeta}>Cardio</Text>
+                <Text style={styles.pbExercise}>Squat</Text>
+                <Text style={styles.pbMeta}>Coming in next update</Text>
               </View>
               <View style={styles.pbValue}>
-                <Text style={styles.pbNumberEmpty}>—</Text>
-                <Text style={styles.pbUnitEmpty}>Not yet</Text>
+                <Ionicons name="lock-closed" size={20} color={COLORS.mediumGray} />
               </View>
             </View>
-
-            <View style={styles.pbDivider} />
-
-            {/* Squat - Empty State */}
-            <View style={styles.pbRow}>
-              <View style={styles.pbIconContainer}>
-                <LinearGradient
+          </View>
+        </View>
                   colors={['#FF9500', '#FF8C00']}
                   style={styles.pbIconGradient}
                   start={{ x: 0, y: 0 }}
