@@ -9,6 +9,7 @@ import {
   Image,
   Linking,
   Platform,
+  Modal,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -25,6 +26,7 @@ import { AdvancedQuestionnaireModal, AdvancedQuestionnaireData } from '../../src
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useAuthStore } from '../../src/stores/auth-store';
 import { useWorkoutStore } from '../../src/stores/workout-store';
+import { useCoachStore, COACH_PERSONALITIES, CoachPersonality } from '../../src/stores/coach-store';
 
 const COLORS = {
   accent: '#A22BF6',
