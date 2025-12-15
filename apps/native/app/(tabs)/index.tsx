@@ -960,6 +960,24 @@ const styles = StyleSheet.create({
     padding: 20,
     // No shadow - flat design
   },
+  generatingContainer: {
+    alignItems: 'center',
+    paddingVertical: 24,
+  },
+  generatingTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: COLORS.text,
+    marginTop: 16,
+    marginBottom: 8,
+  },
+  generatingSubtitle: {
+    fontSize: 14,
+    color: COLORS.mediumGray,
+    textAlign: 'center',
+    lineHeight: 20,
+    paddingHorizontal: 16,
+  },
   workoutContent: {
     gap: 16,
   },
