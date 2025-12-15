@@ -153,22 +153,57 @@ export default function ProfileScreen() {
   
   const loadSettings = async () => {
     try {
-      const savedNotifications = await AsyncStorage.getItem('notifications_enabled');
-      const savedReminders = await AsyncStorage.getItem('workout_reminders_enabled');
-      const savedImage = await AsyncStorage.getItem('user_profile_image');
-      const savedBio = await AsyncStorage.getItem('user_bio');
-      const savedName = await AsyncStorage.getItem('user_name');
-      const advancedQuestionnaire = await AsyncStorage.getItem('advancedQuestionnaire');
-      const savedPin = await AsyncStorage.getItem('user_pin');
-      const savedPinEnabled = await AsyncStorage.getItem('pin_enabled');
-      const savedBiometrics = await AsyncStorage.getItem('biometrics_enabled');
+      // Use user-specific keys to avoid data leaking between accounts
+      const userId = user?.id;
+      if (!userId) {
+        // No user logged in, reset to defaults
+        setProfileImage(null);
+        setBio('');
+        setUserName('User');
+        setHasCompletedQuestionnaire(false);
+        setHasPinSet(false);
+        setPinEnabled(false);
+        setBiometricsEnabled(false);
+        return;
+      }
+      
+      // Load user-specific settings
+      const savedNotifications = await AsyncStorage.getItem(`notifications_enabled_${userId}`);
+      const savedReminders = await AsyncStorage.getItem(`workout_reminders_${userId}`);
+      const savedImage = await AsyncStorage.getItem(`profile_image_${userId}`);
+      const savedBio = await AsyncStorage.getItem(`user_bio_${userId}`);
+      const advancedQuestionnaire = await AsyncStorage.getItem(`advancedQuestionnaire_${userId}`);
+      const savedPin = await AsyncStorage.getItem(`user_pin_${userId}`);
+      const savedPinEnabled = await AsyncStorage.getItem(`pin_enabled_${userId}`);
+      const savedBiometrics = await AsyncStorage.getItem(`biometrics_enabled_${userId}`);
+      
+      // Also check global keys for backward compatibility
+      const globalImage = await AsyncStorage.getItem('user_profile_image');
+      const globalBio = await AsyncStorage.getItem('user_bio');
+      const globalName = await AsyncStorage.getItem('user_name');
+      const globalQuestionnaire = await AsyncStorage.getItem('advancedQuestionnaire');
       
       if (savedNotifications !== null) setNotifications(savedNotifications === 'true');
       if (savedReminders !== null) setWorkoutReminders(savedReminders === 'true');
-      if (savedImage) setProfileImage(savedImage);
-      if (savedBio) setBio(savedBio);
-      if (savedName) setUserName(savedName);
-      if (advancedQuestionnaire) setHasCompletedQuestionnaire(true);
+      
+      // Prefer user-specific data, fall back to global only if it belongs to this user
+      if (savedImage) {
+        setProfileImage(savedImage);
+      } else {
+        // Don't use global image - it belongs to another user
+        setProfileImage(null);
+      }
+      
+      if (savedBio) {
+        setBio(savedBio);
+      } else {
+        setBio('');
+      }
+      
+      // Always use the user's name from the auth store
+      setUserName(user?.name || 'User');
+      
+      if (advancedQuestionnaire || globalQuestionnaire) setHasCompletedQuestionnaire(true);
       if (savedPin) setHasPinSet(true);
       if (savedPinEnabled !== null) setPinEnabled(savedPinEnabled === 'true');
       if (savedBiometrics !== null) setBiometricsEnabled(savedBiometrics === 'true');
