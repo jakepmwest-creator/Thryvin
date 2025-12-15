@@ -448,12 +448,13 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
       } catch (error: any) {
         console.error('❌ [WEEK] Generation failed:', error);
         // If we have some workouts generated, keep them
-        if (weekWorkouts && weekWorkouts.length > 0) {
-          console.log(`⚠️ [WEEK] Partial generation - keeping ${weekWorkouts.length} days`);
-          await setStorageItem('week_workouts', JSON.stringify(weekWorkouts));
+        const partialWorkouts = weekWorkouts;
+        if (partialWorkouts && partialWorkouts.length > 0) {
+          console.log(`⚠️ [WEEK] Partial generation - keeping ${partialWorkouts.length} days`);
+          await setStorageItem('week_workouts', JSON.stringify(partialWorkouts));
           await setStorageItem('week_workouts_date', weekKey);
           await setStorageItem('week_workouts_version', CACHE_VERSION);
-          set({ weekWorkouts, isLoading: false, error: `Partial load: ${weekWorkouts.length}/21 days. ${error.message}` });
+          set({ weekWorkouts: partialWorkouts, isLoading: false, error: `Partial load: ${partialWorkouts.length}/21 days. ${error.message}` });
         } else {
           set({ 
             error: error.message || 'Failed to generate workouts',
