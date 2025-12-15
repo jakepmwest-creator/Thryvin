@@ -866,7 +866,7 @@ export default function OnboardingScreen() {
     return (
       <View style={styles.textareaContainer}>
         <View style={styles.textareaWrapper}>
-          <TextInput
+          <RNTextInput
             style={styles.textareaInput}
             value={formData[currentStepData.field] || ''}
             onChangeText={(text) => setFormData({ ...formData, [currentStepData.field]: text })}
