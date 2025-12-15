@@ -377,45 +377,65 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
             });
             console.log(`😴 [3-WEEK] Day ${i + 1}/21: Rest day`);
           } else {
-            // Generate workout
+            // Generate workout with retry logic
             console.log(`🤖 [3-WEEK] Generating day ${i + 1}/21 (workout #${workoutDayCounter + 1})...`);
             
             const weekNumber = Math.floor(i / 7) + 1; // 1, 2, or 3
             
-            const response = await fetch(`${API_BASE_URL}/api/workouts/generate`, {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-                'Bypass-Tunnel-Reminder': 'true',
-              },
-              body: JSON.stringify({
-                userProfile,
-                dayOfWeek: workoutDayCounter % 7,
-                weekNumber, // Pass week number for variety
-              }),
-            });
+            let workout = null;
+            let retries = 3;
+            let lastError = null;
             
-            if (!response.ok) {
-              // Try to get error message - handle both JSON and text responses
-              let errorMessage = `Failed to generate day ${i + 1}`;
+            while (retries > 0 && !workout) {
               try {
-                const text = await response.text();
-                // Check if it looks like JSON
-                if (text.startsWith('{')) {
-                  const errorData = JSON.parse(text);
-                  errorMessage = errorData.message || errorMessage;
-                } else if (text.includes('Tunnel') || text.includes('503')) {
-                  errorMessage = 'Backend connection unavailable. The tunnel may have restarted.';
-                } else {
-                  errorMessage = `API Error ${response.status}: ${text.substring(0, 100)}`;
+                const response = await fetch(`${API_BASE_URL}/api/workouts/generate`, {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'application/json',
+                    'Bypass-Tunnel-Reminder': 'true',
+                  },
+                  body: JSON.stringify({
+                    userProfile,
+                    dayOfWeek: workoutDayCounter % 7,
+                    weekNumber,
+                  }),
+                });
+                
+                if (!response.ok) {
+                  const text = await response.text();
+                  lastError = `API Error ${response.status}: ${text.substring(0, 100)}`;
+                  retries--;
+                  if (retries > 0) {
+                    console.log(`⚠️ [3-WEEK] Retry ${3 - retries}/3 for day ${i + 1}...`);
+                    await new Promise(r => setTimeout(r, 2000)); // Wait 2 seconds before retry
+                  }
+                  continue;
                 }
-              } catch (parseErr) {
-                console.error('❌ [3-WEEK] Could not parse error response');
+                
+                workout = await response.json();
+              } catch (fetchError: any) {
+                lastError = fetchError.message;
+                retries--;
+                if (retries > 0) {
+                  console.log(`⚠️ [3-WEEK] Network retry ${3 - retries}/3 for day ${i + 1}...`);
+                  await new Promise(r => setTimeout(r, 2000));
+                }
               }
-              throw new Error(errorMessage);
             }
             
-            const workout = await response.json();
+            if (!workout) {
+              // If we have at least 7 days, save partial progress and continue
+              if (weekWorkouts.length >= 7) {
+                console.log(`⚠️ [3-WEEK] Failed day ${i + 1} after 3 retries, saving ${weekWorkouts.length} days and stopping`);
+                // Save partial progress
+                await setStorageItem('week_workouts', JSON.stringify(weekWorkouts));
+                await setStorageItem('week_workouts_date', weekKey);
+                await setStorageItem('week_workouts_version', CACHE_VERSION);
+                set({ weekWorkouts, isLoading: false, error: `Generated ${weekWorkouts.length}/21 days. ${lastError || 'Some days failed to generate.'}` });
+                return;
+              }
+              throw new Error(`Failed to generate day ${i + 1}: ${lastError}`);
+            }
             
             weekWorkouts.push({
               id: `workout_${date.getTime()}`,
@@ -434,6 +454,12 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
             
             workoutDayCounter++;
             console.log(`✅ [3-WEEK] Day ${i + 1}/21 complete: ${workout.title}`);
+            
+            // Save progress every 7 days to prevent total loss
+            if (weekWorkouts.length % 7 === 0) {
+              console.log(`💾 [3-WEEK] Saving checkpoint at ${weekWorkouts.length} days...`);
+              await setStorageItem('week_workouts', JSON.stringify(weekWorkouts));
+            }
           }
         }
         
