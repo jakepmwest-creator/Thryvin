@@ -1564,3 +1564,34 @@ async function updatePersonalBests(exercises: any[]) {
     console.error('Error updating personal bests:', error);
   }
 }
+
+
+// Helper to delete storage item
+const deleteStorageItem = async (key: string): Promise<void> => {
+  try {
+    await SecureStore.deleteItemAsync(key);
+  } catch (error) {
+    console.error('Delete storage error:', error);
+  }
+};
+
+// Reset all workout data (for new user or logout)
+export async function resetAllWorkoutData(): Promise<void> {
+  console.log('🔄 Resetting all workout data...');
+  
+  // Clear all workout-related storage
+  await deleteStorageItem('week_workouts');
+  await deleteStorageItem('week_workouts_date');
+  await deleteStorageItem('week_workouts_version');
+  await deleteStorageItem('today_workout');
+  await deleteStorageItem('today_workout_date');
+  await deleteStorageItem('completed_workouts');
+  await deleteStorageItem('future_weeks');
+  await deleteStorageItem('workout_stats');
+  await deleteStorageItem('personal_bests');
+  
+  // Reset the awards store
+  useAwardsStore.getState().resetAllAwards();
+  
+  console.log('✅ All workout data reset');
+}
