@@ -1085,7 +1085,7 @@ const styles = StyleSheet.create({
     padding: 16,
     borderRadius: 16,
     alignItems: 'center',
-    ...CARD_SHADOW,
+    // No shadow - flat design
   },
   personalBestExercise: {
     fontSize: 14,
