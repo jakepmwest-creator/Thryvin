@@ -559,6 +559,7 @@ export default function HomeScreen() {
           <TouchableOpacity
             onLongPress={() => {
               console.log('🔄 Regenerating workouts with new AI...');
+              clearError();
               forceRegenerateWeek();
             }}
             delayLongPress={2000}
@@ -573,6 +574,35 @@ export default function HomeScreen() {
                 <Text style={styles.generatingSubtitle}>
                   Your AI coach is creating personalized workouts for the next 3 weeks. This may take a minute...
                 </Text>
+              </View>
+            </View>
+          ) : workoutError ? (
+            <View style={styles.todayWorkoutCard}>
+              <View style={styles.generatingContainer}>
+                <Ionicons name="alert-circle" size={48} color={COLORS.red || '#FF3B30'} />
+                <Text style={styles.generatingTitle}>Generation Error</Text>
+                <Text style={styles.generatingSubtitle}>
+                  {workoutError.includes('Partial') 
+                    ? 'Some workouts were generated. Tap "Retry" to continue.'
+                    : 'Unable to generate workouts. Please check your connection and try again.'}
+                </Text>
+                <TouchableOpacity 
+                  style={{ marginTop: 16 }}
+                  onPress={() => {
+                    clearError();
+                    forceRegenerateWeek();
+                  }}
+                >
+                  <LinearGradient
+                    colors={[COLORS.gradientStart, COLORS.gradientEnd]}
+                    style={styles.startGradient}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 1 }}
+                  >
+                    <Ionicons name="refresh" size={20} color={COLORS.white} />
+                    <Text style={styles.startText}>Retry</Text>
+                  </LinearGradient>
+                </TouchableOpacity>
               </View>
             </View>
           ) : actualTodayWorkout?.isRestDay ? (
