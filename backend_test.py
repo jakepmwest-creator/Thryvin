@@ -3,10 +3,9 @@
 Backend API Testing Suite for Thryvin Fitness App
 Tests the specific endpoints mentioned in the review request:
 1. Health Check - GET /api/health
-2. Exercise Counts API - GET /api/exercises/counts  
-3. Authentication Flow - POST /api/auth/login
-4. Workout Generation - POST /api/workouts/generate
-5. Exercises Fetch - GET /api/exercises?limit=5
+2. Create NEW User Account - POST /api/auth/register
+3. Workout Generation API - POST /api/workouts/generate
+4. Login with Existing Test Account - POST /api/login
 """
 
 import requests
@@ -23,6 +22,10 @@ API_BASE = f"{BASE_URL}/api"
 # Test credentials from review request
 TEST_EMAIL = "test@example.com"
 TEST_PASSWORD = "password123"
+
+# New user credentials for registration test
+NEW_USER_EMAIL = "newuser123@test.com"
+NEW_USER_PASSWORD = "password123"
 
 class ThryvinAPITester:
     def __init__(self):
