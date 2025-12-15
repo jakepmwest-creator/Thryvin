@@ -123,5 +123,62 @@
     "xpPoints": 0,
     "level": "Bronze",
     "createdAt": "2025-12-15T14:23:11.970Z"
+  },
+  {
+    "id": 8,
+    "name": "Jake",
+    "gender": "male",
+    "dateOfBirth": "2002-05-25T23:00:00.000Z",
+    "height": "",
+    "weight": "75",
+    "heightUnit": "ft",
+    "weightUnit": "kg",
+    "feet": "6",
+    "inches": "0",
+    "experience": "advanced",
+    "fitnessGoals": [
+      "gain_muscle",
+      "athletic_performance",
+      "increase_flexibility"
+    ],
+    "nutritionGoals": [
+      "high_protein",
+      "meal_prep"
+    ],
+    "equipment": [
+      "full_gym"
+    ],
+    "trainingDays": "5",
+    "sessionDuration": "60+",
+    "trainingSchedule": "depends",
+    "selectedDays": [],
+    "specificDates": [
+      "2025-12-16",
+      "2025-12-18",
+      "2025-12-19",
+      "2025-12-21",
+      "2025-12-27",
+      "2025-12-26",
+      "2025-12-28",
+      "2025-12-22",
+      "2025-12-24",
+      "2025-12-30",
+      "2025-12-31",
+      "2026-01-01",
+      "2026-01-03"
+    ],
+    "injuries": "Tennis Elbow But It's A lot Better I Just Have To Go Careful For A Little While ",
+    "injuriesOther": "",
+    "coachingStyle": "disciplined",
+    "coachName": "Dex Iron",
+    "email": "jakepmwest@gmail.com",
+    "password": "6762088f5270ab7bc2999649fbaf2707c7094bfc900e36778a4e15b66a59147539bcda31b0f435dc5b9bf26c30aaf55eda5494d8e63b34ec276ee9b8ef1f8cb4.2034495c6b33ea5c8ccae676d3cdb8ce",
+    "trialEndsAt": "2025-12-22T15:31:17.300Z",
+    "hasActiveSubscription": false,
+    "weeklyGoalWorkouts": 5,
+    "weeklyGoalMinutes": 150,
+    "xpPoints": 0,
+    "level": "Bronze",
+    "createdAt": "2025-12-15T15:31:17.332Z"
   }
 ]
