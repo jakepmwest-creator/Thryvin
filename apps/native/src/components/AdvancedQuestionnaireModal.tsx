@@ -119,7 +119,6 @@ export const AdvancedQuestionnaireModal = ({
   // Animation
   const fadeAnim = useState(new Animated.Value(0))[0];
   const slideAnim = useState(new Animated.Value(50))[0];
-  const pulseAnim = useRef(new Animated.Value(1)).current;
   
   // Get user's goals from their profile
   const userGoals = user?.fitnessGoals || ['Build muscle', 'Lose weight', 'Improve fitness'];
