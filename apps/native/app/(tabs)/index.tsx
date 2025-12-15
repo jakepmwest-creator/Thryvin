@@ -309,14 +309,44 @@ export default function HomeScreen() {
   const [statsVersion, setStatsVersion] = useState(0);
 
   const loadAllData = async () => {
+    // First check if advanced questionnaire needs to be shown
+    const completed = await AsyncStorage.getItem('advancedQuestionnaire');
+    const skipped = await AsyncStorage.getItem('advancedQuestionnaireSkipped');
+    
+    // Load stats and personal bests first (they don't require questionnaire)
     await Promise.all([
-      fetchTodayWorkout(),
-      fetchWeekWorkouts(), // Generate full week of workouts
       fetchStats(),
       fetchPersonalBests(),
       fetchCompletedWorkouts(),
     ]);
-    setStatsVersion(v => v + 1); // Force re-render after data loads
+    
+    // Only fetch workouts if questionnaire was completed or skipped
+    if (completed || skipped) {
+      await Promise.all([
+        fetchTodayWorkout(),
+        fetchWeekWorkouts(),
+      ]);
+    } else {
+      console.log('📋 [HOME] Waiting for advanced questionnaire before generating workouts');
+    }
+    
+    setStatsVersion(v => v + 1);
+  };
+
+  // Trigger workout generation after questionnaire is completed
+  const handleQuestionnaireComplete = async (data: AdvancedQuestionnaireData) => {
+    console.log('📋 Advanced Questionnaire completed:', data);
+    setShowAdvancedQuestionnaire(false);
+    
+    // Mark as completed
+    await AsyncStorage.setItem('advancedQuestionnaire', JSON.stringify(data));
+    
+    // Now generate workouts with the questionnaire data
+    console.log('🏋️ Starting workout generation after questionnaire...');
+    await Promise.all([
+      fetchTodayWorkout(),
+      fetchWeekWorkouts(),
+    ]);
   };
 
   useEffect(() => {
