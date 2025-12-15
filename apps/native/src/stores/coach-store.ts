@@ -70,7 +70,7 @@ interface CoachStore {
 
 export const useCoachStore = create<CoachStore>((set, get) => ({
   coachName: 'Your Coach',
-  coachPersonality: 'friendly',
+  coachPersonality: 'balanced',
   chatVisible: false,
   initialMessage: null,
   openChat: (message) => set({ chatVisible: true, initialMessage: message || null }),
@@ -87,10 +87,14 @@ export const useCoachStore = create<CoachStore>((set, get) => ({
     try {
       const name = await AsyncStorage.getItem('coach_name');
       const personality = await AsyncStorage.getItem('coach_personality') as CoachPersonality;
+      
       if (name) {
         set({ coachName: name });
       }
-      if (personality && ['friendly', 'disciplined', 'aggressive', 'motivational'].includes(personality)) {
+      
+      // Accept ALL valid personality types
+      const validPersonalities: CoachPersonality[] = ['motivational', 'technical', 'balanced', 'disciplined', 'data_driven', 'supportive', 'aggressive', 'fun'];
+      if (personality && validPersonalities.includes(personality)) {
         set({ coachPersonality: personality });
       }
     } catch (error) {
