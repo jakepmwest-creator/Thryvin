@@ -235,6 +235,29 @@ export default function ProfileScreen() {
     });
   };
   
+  const toggleAutoLogin = async () => {
+    const newValue = !autoLoginEnabled;
+    setAutoLoginEnabled(newValue);
+    await AsyncStorage.setItem('auto_login_enabled', newValue.toString());
+    
+    if (newValue) {
+      // Save credentials for auto-login
+      await AsyncStorage.setItem('auto_login_email', user?.email || '');
+    } else {
+      // Clear auto-login credentials (but keep the user logged in this session)
+      await AsyncStorage.removeItem('auto_login_email');
+    }
+    
+    showAlert({
+      type: 'success',
+      title: newValue ? 'Auto-Login Enabled' : 'Auto-Login Disabled',
+      message: newValue 
+        ? "You'll be automatically logged in next time you open the app."
+        : "You'll need to enter your credentials next time.",
+      buttons: [{ text: 'OK', onPress: hideAlert }]
+    });
+  };
+  
   const toggleNotifications = async () => {
     const newValue = !notifications;
     setNotifications(newValue);
