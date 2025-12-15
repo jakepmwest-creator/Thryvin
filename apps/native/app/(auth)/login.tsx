@@ -112,12 +112,21 @@ export default function LoginScreen() {
       const enrolled = await LocalAuthentication.isEnrolledAsync();
       const enabled = await SecureStore.getItemAsync('biometric_enabled');
       const pinCode = await SecureStore.getItemAsync('user_pin');
+      const storedEmail = await SecureStore.getItemAsync('user_email');
+      const storedPassword = await SecureStore.getItemAsync('user_password');
+      
+      // Only show quick login options if user has previously logged in successfully
+      const hasStoredCredentials = storedEmail && storedPassword;
       
       setBiometricAvailable(compatible && enrolled);
-      setBiometricEnabled(enabled === 'true');
-      setPinEnabled(!!pinCode);
+      setBiometricEnabled(enabled === 'true' && hasStoredCredentials);
+      // Only show PIN if user has set one AND has stored credentials
+      setPinEnabled(!!pinCode && hasStoredCredentials);
     } catch (error) {
       console.error('Biometric check failed:', error);
+      // Ensure quick login is hidden on error
+      setPinEnabled(false);
+      setBiometricEnabled(false);
     }
   };
 
