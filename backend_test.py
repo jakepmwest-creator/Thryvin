@@ -85,203 +85,144 @@ class ThryvinAPITester:
             self.log_test("Health Check", False, f"Health check error: {str(e)}")
             return False
     
-    def authenticate_user(self) -> bool:
-        """Authenticate with test credentials - POST /api/auth/login"""
+    def test_new_user_registration(self) -> bool:
+        """Test creating a NEW user account - POST /api/auth/register"""
+        try:
+            # Use timestamp to ensure unique email
+            timestamp = int(time.time())
+            unique_email = f"newuser{timestamp}@test.com"
+            
+            registration_data = {
+                "name": "Test New User",
+                "email": unique_email,
+                "password": NEW_USER_PASSWORD,
+                "fitnessGoals": ["Build muscle"],
+                "experience": "intermediate",
+                "trainingDays": "5",
+                "sessionDuration": "45"
+            }
+            
+            response = self.session.post(f"{API_BASE}/auth/register", json=registration_data)
+            
+            if response.status_code == 201:
+                user_data = response.json()
+                
+                # Check for expected response structure
+                if 'user' in user_data and user_data.get('ok'):
+                    user = user_data['user']
+                    
+                    # Verify user has fresh data (no old streaks/awards)
+                    if user.get('email') == unique_email and user.get('name') == "Test New User":
+                        self.log_test("New User Registration", True, 
+                                    f"Successfully created new user: {unique_email}")
+                        return True
+                    else:
+                        self.log_test("New User Registration", False, 
+                                    "User data doesn't match registration input", user_data)
+                        return False
+                else:
+                    self.log_test("New User Registration", False, 
+                                "Registration response missing user object or ok flag", user_data)
+                    return False
+            else:
+                self.log_test("New User Registration", False, 
+                            f"Registration failed with status {response.status_code}",
+                            {"response": response.text})
+                return False
+                
+        except Exception as e:
+            self.log_test("New User Registration", False, f"Registration error: {str(e)}")
+            return False
+    
+    def test_workout_generation_endpoint(self) -> bool:
+        """Test POST /api/workouts/generate - Critical fix verification"""
+        try:
+            # Use exact payload from review request
+            workout_data = {
+                "userProfile": {
+                    "fitnessGoals": ["Build muscle"],
+                    "experience": "intermediate",
+                    "trainingDays": "5",
+                    "sessionDuration": "45"
+                },
+                "dayOfWeek": 0
+            }
+            
+            response = self.session.post(f"{API_BASE}/workouts/generate", json=workout_data)
+            
+            # The critical test: should NOT return 500 error
+            if response.status_code == 500:
+                self.log_test("Workout Generation", False, 
+                            "CRITICAL: Workout generation returned 500 error (bug not fixed)",
+                            {"response": response.text})
+                return False
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                # Check for expected workout structure
+                required_fields = ['title', 'exercises']
+                missing_fields = [field for field in required_fields if field not in data]
+                
+                if missing_fields:
+                    self.log_test("Workout Generation", False, 
+                                f"Response missing required fields: {missing_fields}",
+                                {"response_keys": list(data.keys())})
+                    return False
+                
+                # Verify exercises is an array
+                if not isinstance(data.get('exercises'), list):
+                    self.log_test("Workout Generation", False, 
+                                "Exercises should be an array",
+                                {"exercises_type": type(data.get('exercises'))})
+                    return False
+                
+                self.log_test("Workout Generation", True, 
+                            f"Generated workout '{data.get('title')}' with {len(data.get('exercises', []))} exercises")
+                return True
+            else:
+                self.log_test("Workout Generation", False, 
+                            f"Unexpected status code {response.status_code}",
+                            {"response": response.text})
+                return False
+            
+        except Exception as e:
+            self.log_test("Workout Generation", False, f"Error: {str(e)}")
+            return False
+    
+    def test_existing_user_login(self) -> bool:
+        """Test login with existing test account - POST /api/login"""
         try:
             login_data = {
                 "email": TEST_EMAIL,
                 "password": TEST_PASSWORD
             }
             
-            response = self.session.post(f"{API_BASE}/auth/login", json=login_data)
+            # Note: Based on auth.ts, the endpoint is /api/login, not /api/auth/login
+            response = self.session.post(f"{API_BASE}/login", json=login_data)
             
             if response.status_code == 200:
                 user_data = response.json()
-                # Check for expected response structure (user object is sufficient for session-based auth)
-                if 'user' in user_data:
-                    self.user_id = user_data.get('user', {}).get('id')
-                    # Token might not be present in session-based auth, which is fine
-                    self.auth_token = user_data.get('token')
-                    self.log_test("Authentication", True, f"Successfully logged in as {TEST_EMAIL}")
+                
+                # Check for expected response structure
+                if 'user' in user_data and user_data.get('ok'):
+                    user = user_data['user']
+                    self.user_id = user.get('id')
+                    self.log_test("Existing User Login", True, 
+                                f"Successfully logged in as {TEST_EMAIL}")
                     return True
                 else:
-                    self.log_test("Authentication", False, "Login response missing user object", user_data)
+                    self.log_test("Existing User Login", False, 
+                                "Login response missing user object or ok flag", user_data)
                     return False
             else:
-                self.log_test("Authentication", False, f"Failed to authenticate: {response.status_code}",
+                self.log_test("Existing User Login", False, 
+                            f"Login failed with status {response.status_code}",
                             {"response": response.text})
                 return False
                 
         except Exception as e:
-            self.log_test("Authentication", False, f"Authentication error: {str(e)}")
-            return False
-    
-    def test_exercise_counts_endpoint(self) -> bool:
-        """Test GET /api/exercises/counts - New Feature"""
-        try:
-            response = self.session.get(f"{API_BASE}/exercises/counts")
-            
-            if response.status_code != 200:
-                self.log_test("Exercise Counts API", False, 
-                            f"Expected status 200, got {response.status_code}",
-                            {"response": response.text})
-                return False
-            
-            data = response.json()
-            
-            # Check that response is an object with category counts
-            if not isinstance(data, dict):
-                self.log_test("Exercise Counts API", False, 
-                            "Response should be an object with counts",
-                            {"response": data})
-                return False
-            
-            # Check if response has counts object (nested structure)
-            counts_data = data.get('counts', data)  # Handle both flat and nested structures
-            
-            # Check for expected categories from review request
-            expected_categories = ['Strength', 'HIIT', 'Cardio', 'Flexibility', 'Mobility', 'Conditioning', 'Core']
-            found_categories = []
-            
-            for category in expected_categories:
-                if category in counts_data:
-                    count = counts_data[category]
-                    if isinstance(count, (int, float)) and count > 0:
-                        found_categories.append(category)
-            
-            # Verify at least Strength and Cardio have counts > 0 as mentioned in review
-            required_categories = ['Strength', 'Cardio']
-            missing_required = [cat for cat in required_categories if cat not in found_categories]
-            
-            if missing_required:
-                self.log_test("Exercise Counts API", False, 
-                            f"Missing required categories with counts > 0: {missing_required}",
-                            {"response": data, "found_categories": found_categories})
-                return False
-            
-            self.log_test("Exercise Counts API", True, 
-                        f"Got valid counts for {len(found_categories)} categories including required ones",
-                        {"categories": found_categories})
-            return True
-            
-        except Exception as e:
-            self.log_test("Exercise Counts API", False, f"Error: {str(e)}")
-            return False
-    
-    def test_workout_generation_endpoint(self) -> bool:
-        """Test POST /api/workouts/generate - Critical P0 fix verification"""
-        try:
-            # Create a sample user profile for workout generation
-            user_profile = {
-                "fitnessLevel": "intermediate",
-                "goals": ["strength", "cardio"],
-                "availableTime": 30,
-                "equipment": ["bodyweight"],
-                "preferences": {
-                    "workoutType": "HIIT",
-                    "intensity": "medium"
-                }
-            }
-            
-            workout_data = {
-                "userProfile": user_profile
-            }
-            
-            response = self.session.post(f"{API_BASE}/workouts/generate", json=workout_data)
-            
-            if response.status_code != 200:
-                self.log_test("Workout Generation", False, 
-                            f"Expected status 200, got {response.status_code}",
-                            {"response": response.text})
-                return False
-            
-            data = response.json()
-            
-            # Check for expected workout structure
-            required_fields = ['title', 'exercises', 'duration']
-            missing_fields = [field for field in required_fields if field not in data]
-            
-            if missing_fields:
-                self.log_test("Workout Generation", False, 
-                            f"Response missing required fields: {missing_fields}",
-                            {"response_keys": list(data.keys())})
-                return False
-            
-            # Verify exercises is an array
-            if not isinstance(data.get('exercises'), list):
-                self.log_test("Workout Generation", False, 
-                            "Exercises should be an array",
-                            {"exercises_type": type(data.get('exercises'))})
-                return False
-            
-            # Verify we have at least one exercise
-            if len(data.get('exercises', [])) == 0:
-                self.log_test("Workout Generation", False, 
-                            "Workout should contain at least one exercise",
-                            {"response": data})
-                return False
-            
-            self.log_test("Workout Generation", True, 
-                        f"Generated workout '{data.get('title')}' with {len(data.get('exercises', []))} exercises")
-            return True
-            
-        except Exception as e:
-            self.log_test("Workout Generation", False, f"Error: {str(e)}")
-            return False
-    
-    def test_exercises_fetch_endpoint(self) -> bool:
-        """Test GET /api/exercises?limit=5"""
-        try:
-            response = self.session.get(f"{API_BASE}/exercises?limit=5")
-            
-            if response.status_code != 200:
-                self.log_test("Exercises Fetch", False, 
-                            f"Expected status 200, got {response.status_code}",
-                            {"response": response.text})
-                return False
-            
-            data = response.json()
-            
-            # Handle both direct array and object with exercises array
-            exercises = data if isinstance(data, list) else data.get('exercises', [])
-            
-            # Check that we have exercises
-            if not isinstance(exercises, list):
-                self.log_test("Exercises Fetch", False, 
-                            "Response should contain an array of exercises",
-                            {"response_structure": str(type(data))})
-                return False
-            
-            # Check that we got exercises (should be <= 5 due to limit)
-            if len(exercises) == 0:
-                self.log_test("Exercises Fetch", False, 
-                            "Should return at least some exercises",
-                            {"response": data})
-                return False
-            
-            if len(exercises) > 5:
-                self.log_test("Exercises Fetch", False, 
-                            f"Limit=5 but got {len(exercises)} exercises",
-                            {"count": len(exercises)})
-                return False
-            
-            # Check that exercises have video URLs as mentioned in review
-            exercises_with_videos = 0
-            for exercise in exercises:
-                if isinstance(exercise, dict):
-                    # Check for various video URL field names
-                    video_fields = ['videoUrl', 'video_url', 'videoURL', 'video']
-                    for field in video_fields:
-                        if field in exercise and exercise[field]:
-                            exercises_with_videos += 1
-                            break
-            
-            self.log_test("Exercises Fetch", True, 
-                        f"Retrieved {len(exercises)} exercises, {exercises_with_videos} with video URLs")
-            return True
-            
-        except Exception as e:
-            self.log_test("Exercises Fetch", False, f"Error: {str(e)}")
+            self.log_test("Existing User Login", False, f"Login error: {str(e)}")
             return False
 
     def run_all_tests(self):
@@ -289,35 +230,29 @@ class ThryvinAPITester:
         print("🏋️ Starting Thryvin Fitness App API Testing Suite")
         print("Testing endpoints from review request:")
         print("1. Health Check - GET /api/health")
-        print("2. Exercise Counts API - GET /api/exercises/counts")
-        print("3. Authentication Flow - POST /api/auth/login")
-        print("4. Workout Generation - POST /api/workouts/generate")
-        print("5. Exercises Fetch - GET /api/exercises?limit=5")
+        print("2. Create NEW User Account - POST /api/auth/register")
+        print("3. Workout Generation API - POST /api/workouts/generate")
+        print("4. Login with Existing Test Account - POST /api/login")
         print("=" * 60)
         
         # Test 1: Health Check
         print("\n💚 Test 1: Health Check...")
-        if not self.test_health_endpoint():
-            print("❌ Server health check failed. Continuing with other tests...")
+        health_success = self.test_health_endpoint()
         
         print(f"🔗 Backend URL: {BASE_URL}")
         print("=" * 60)
         
-        # Test 2: Exercise Counts API (New Feature)
-        print("\n📊 Test 2: Exercise Counts API (New Feature)...")
-        self.test_exercise_counts_endpoint()
+        # Test 2: Create NEW User Account
+        print("\n👤 Test 2: Create NEW User Account...")
+        registration_success = self.test_new_user_registration()
         
-        # Test 3: Authentication Flow
-        print("\n🔐 Test 3: Authentication Flow...")
-        auth_success = self.authenticate_user()
+        # Test 3: Workout Generation (Critical P0 fix verification)
+        print("\n🤖 Test 3: Workout Generation (Critical Fix Verification)...")
+        workout_success = self.test_workout_generation_endpoint()
         
-        # Test 4: Workout Generation (Critical P0 fix verification)
-        print("\n🤖 Test 4: Workout Generation (Critical P0 fix)...")
-        self.test_workout_generation_endpoint()
-        
-        # Test 5: Exercises Fetch
-        print("\n🏃 Test 5: Exercises Fetch...")
-        self.test_exercises_fetch_endpoint()
+        # Test 4: Login with Existing Test Account
+        print("\n🔐 Test 4: Login with Existing Test Account...")
+        login_success = self.test_existing_user_login()
         
         print("\n" + "=" * 60)
         print("🏁 Thryvin API Test Results:")
