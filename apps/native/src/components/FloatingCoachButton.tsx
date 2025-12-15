@@ -66,6 +66,11 @@ export function FloatingCoachButton() {
   const [isDragging, setIsDragging] = useState(false);
   const [pendingAction, setPendingAction] = useState<{ type: string; params?: any } | null>(null);
   
+  // Load coach settings on mount
+  useEffect(() => {
+    loadCoachSettings();
+  }, []);
+  
   // Handle initial message from context
   useEffect(() => {
     if (chatVisible && initialMessage) {
