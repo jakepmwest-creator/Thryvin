@@ -47,6 +47,10 @@ export default function LoginScreen() {
   const [showPassword, setShowPassword] = useState(false);
   const [biometricAvailable, setBiometricAvailable] = useState(false);
   const [biometricEnabled, setBiometricEnabled] = useState(false);
+  const [pinEnabled, setPinEnabled] = useState(false);
+  const [showPinLogin, setShowPinLogin] = useState(false);
+  const [pinInput, setPinInput] = useState('');
+  const [pinError, setPinError] = useState('');
   
   // CustomAlert state
   const [alertConfig, setAlertConfig] = useState<{
