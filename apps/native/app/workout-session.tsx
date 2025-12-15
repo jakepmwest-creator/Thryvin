@@ -297,7 +297,7 @@ export default function WorkoutSessionScreen() {
             </View>
           </View>
 
-          {/* Input Fields */}
+          {/* Input Fields with AI Suggestions */}
           <View style={styles.inputRow}>
             <View style={styles.inputContainer}>
               <Text style={styles.inputLabel}>Weight (lbs)</Text>
@@ -309,6 +309,15 @@ export default function WorkoutSessionScreen() {
                 value={weight}
                 onChangeText={setWeight}
               />
+              {/* Weight suggestion hint */}
+              <View style={styles.suggestionHint}>
+                <Ionicons name="sparkles" size={12} color={COLORS.accent} />
+                <Text style={styles.suggestionText}>
+                  {completedSets.length > 0 && completedSets[completedSets.length - 1]?.weight
+                    ? `Last: ${completedSets[completedSets.length - 1].weight}lbs`
+                    : 'Start with a comfortable weight'}
+                </Text>
+              </View>
             </View>
             <View style={styles.inputContainer}>
               <Text style={styles.inputLabel}>Reps</Text>
@@ -320,6 +329,13 @@ export default function WorkoutSessionScreen() {
                 value={reps}
                 onChangeText={setReps}
               />
+              {/* Reps suggestion hint */}
+              <View style={styles.suggestionHint}>
+                <Ionicons name="fitness" size={12} color={COLORS.accent} />
+                <Text style={styles.suggestionText}>
+                  Target: {currentExercise?.reps || '8-12'} reps
+                </Text>
+              </View>
             </View>
           </View>
 
