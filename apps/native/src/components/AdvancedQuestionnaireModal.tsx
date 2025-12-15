@@ -17,6 +17,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useAuthStore } from '../stores/auth-store';
+import { useVoiceInput } from '../hooks/useVoiceInput';
 
 const COLORS = {
   accent: '#A22BF6',
