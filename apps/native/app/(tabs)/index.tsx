@@ -149,41 +149,42 @@ export default function HomeScreen() {
     if (hasCheckedQuestionnaire) return;
     
     try {
-      // Check if questionnaire was already completed or skipped
-      const completed = await AsyncStorage.getItem('advancedQuestionnaire');
-      const skipped = await AsyncStorage.getItem('advancedQuestionnaireSkipped');
-      
-      // Check if this is the user's first time (based on user creation date or no workouts)
-      const storedUser = await AsyncStorage.getItem('auth_user');
-      let isNewUser = false;
-      
-      if (storedUser) {
-        const userData = JSON.parse(storedUser);
-        // User is new if they have a createdAt within last 5 minutes OR no workouts exist
-        if (userData.createdAt) {
-          const createdAt = new Date(userData.createdAt);
-          const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
-          isNewUser = createdAt > fiveMinutesAgo;
-        }
+      const userId = user?.id;
+      if (!userId) {
+        setHasCheckedQuestionnaire(true);
+        return;
       }
       
-      // Also check if there are no workouts (backup check)
-      if (!isNewUser && weekWorkouts.length === 0 && completedWorkouts.length === 0) {
-        isNewUser = true;
+      // Check if questionnaire was already completed or skipped (user-specific key)
+      const completed = await AsyncStorage.getItem(`advancedQuestionnaire_${userId}`);
+      const skipped = await AsyncStorage.getItem(`advancedQuestionnaireSkipped_${userId}`);
+      
+      // Also check global keys for backward compatibility
+      const globalCompleted = await AsyncStorage.getItem('advancedQuestionnaire');
+      const globalSkipped = await AsyncStorage.getItem('advancedQuestionnaireSkipped');
+      
+      // If questionnaire was completed (either user-specific or global), don't show again
+      if (completed || skipped) {
+        console.log('📋 Questionnaire already completed/skipped for this user');
+        setHasCheckedQuestionnaire(true);
+        return;
       }
       
-      // Show for NEW users who haven't completed or skipped
-      if (!completed && !skipped && isNewUser) {
+      // For NEW users (no workouts, no completed questionnaire) - show immediately
+      const hasNoWorkouts = weekWorkouts.length === 0 && completedWorkouts.length === 0;
+      
+      if (hasNoWorkouts && !globalCompleted && !globalSkipped) {
         // Show questionnaire popup IMMEDIATELY for new users
-        console.log('📋 New user detected - showing Advanced Questionnaire');
+        console.log('📋 New user detected - showing Advanced Questionnaire IMMEDIATELY');
         setShowAdvancedQuestionnaire(true);
       }
       
       setHasCheckedQuestionnaire(true);
     } catch (error) {
       console.error('Error checking questionnaire status:', error);
+      setHasCheckedQuestionnaire(true);
     }
-  }, [weekWorkouts.length, completedWorkouts.length, hasCheckedQuestionnaire]);
+  }, [user?.id, weekWorkouts.length, completedWorkouts.length, hasCheckedQuestionnaire]);
 
   // Check for weekly schedule check (for "It depends" users)
   const checkWeeklySchedule = useCallback(async () => {
