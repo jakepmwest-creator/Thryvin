@@ -599,6 +599,36 @@ const IslandJourneyModal = ({
               const stats = getBadgeStatsForIsland(island.id);
               const isCompleted = stats.completed === stats.total && stats.total > 0;
               
+              // Only show first 2 islands as active, rest are "Coming Soon"
+              const isComingSoon = island.id > 2;
+              
+              if (isComingSoon) {
+                return (
+                  <View key={island.id}>
+                    <View style={islandStyles.comingSoonCard}>
+                      <LinearGradient
+                        colors={['#E0E0E0', '#BDBDBD']}
+                        style={islandStyles.comingSoonGradient}
+                      >
+                        <View style={islandStyles.comingSoonContent}>
+                          <View style={islandStyles.comingSoonEmojiContainer}>
+                            <Text style={islandStyles.comingSoonEmoji}>{island.emoji}</Text>
+                          </View>
+                          <Text style={islandStyles.comingSoonTitle}>{island.name}</Text>
+                          <View style={islandStyles.comingSoonBadge}>
+                            <Ionicons name="time-outline" size={14} color="#666" />
+                            <Text style={islandStyles.comingSoonText}>Coming Soon</Text>
+                          </View>
+                        </View>
+                      </LinearGradient>
+                    </View>
+                    {index < ISLANDS.length - 1 && (
+                      <IslandConnector isCompleted={false} />
+                    )}
+                  </View>
+                );
+              }
+              
               return (
                 <View key={island.id}>
                   <IslandCard
