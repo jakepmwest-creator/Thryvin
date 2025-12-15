@@ -370,5 +370,57 @@
     "xpPoints": 0,
     "level": "Bronze",
     "createdAt": "2025-12-15T16:40:51.112Z"
+  },
+  {
+    "id": 16,
+    "name": "Jake",
+    "gender": "male",
+    "dateOfBirth": "2000-01-30T00:00:00.000Z",
+    "height": "",
+    "weight": "94",
+    "heightUnit": "ft",
+    "weightUnit": "kg",
+    "feet": "6",
+    "inches": "5",
+    "experience": "beginner",
+    "fitnessGoals": [
+      "lose_weight",
+      "build_endurance",
+      "gain_muscle"
+    ],
+    "nutritionGoals": [
+      "high_protein",
+      "low_carb",
+      "meal_prep"
+    ],
+    "equipment": [
+      "full_gym"
+    ],
+    "trainingDays": "4",
+    "sessionDuration": "45",
+    "trainingSchedule": "flexible",
+    "selectedDays": [
+      "mon",
+      "tue",
+      "wed",
+      "thu",
+      "fri",
+      "sat",
+      "sun"
+    ],
+    "specificDates": [],
+    "injuries": [],
+    "injuriesOther": "",
+    "coachingStyle": "aggressive",
+    "coachName": "Finn Carter",
+    "email": "hhu@jne.com",
+    "password": "f682f2e05b23436b9661a36f823f01b3794859c883105e43c25ffc92b4439a7dfb5f3bae60ca31aca6495991205f3bf596a784de00e628eb57292c357635b738.685466b93d92204a8d32cfc885418d6d",
+    "trialEndsAt": "2025-12-22T16:45:29.822Z",
+    "hasActiveSubscription": false,
+    "weeklyGoalWorkouts": 5,
+    "weeklyGoalMinutes": 150,
+    "xpPoints": 0,
+    "level": "Bronze",
+    "createdAt": "2025-12-15T16:45:29.992Z"
   }
 ]
