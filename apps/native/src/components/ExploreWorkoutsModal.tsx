@@ -365,7 +365,7 @@ export const ExploreWorkoutsModal = ({ visible, onClose, category, categoryGradi
                           useNativeControls
                           resizeMode={ResizeMode.CONTAIN}
                           isLooping
-                          shouldPlay={false}
+                          shouldPlay={true}
                         />
                       </View>
                     ) : (
