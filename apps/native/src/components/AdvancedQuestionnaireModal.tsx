@@ -321,13 +321,13 @@ export const AdvancedQuestionnaireModal = ({
         <TouchableOpacity
           style={[styles.voiceButton, isRecording && styles.voiceButtonRecording]}
           onPress={handleVoiceInput}
-          disabled={isTranscribing}
+          disabled={isProcessing}
         >
           {isRecording ? (
             <View style={[styles.voiceButtonGradient, { backgroundColor: COLORS.danger }]}>
               <Ionicons name="stop" size={20} color={COLORS.white} />
             </View>
-          ) : isTranscribing ? (
+          ) : isProcessing ? (
             <LinearGradient
               colors={[COLORS.accent, COLORS.accentSecondary]}
               style={styles.voiceButtonGradient}
