@@ -70,13 +70,16 @@ const getCurrentMonthData = () => {
 
 const MONTH_DATA = getCurrentMonthData();
 
-const WORKOUT_CATEGORIES = [
-  { id: 1, name: 'Strength', icon: 'barbell', gradient: COLORS.strength, workouts: 41 },
-  { id: 2, name: 'HIIT', icon: 'flame', gradient: COLORS.hiit, workouts: 32 },
-  { id: 3, name: 'Cardio', icon: 'heart', gradient: COLORS.cardio, workouts: 28 },
-  { id: 4, name: 'Flexibility', icon: 'fitness', gradient: COLORS.flexibility, workouts: 15 },
-  { id: 5, name: 'Mobility', icon: 'body', gradient: COLORS.mobility, workouts: 24 },
-  { id: 6, name: 'Conditioning', icon: 'speedometer', gradient: COLORS.conditioning, workouts: 18 },
+const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL || 'https://workout-bug-fix.preview.emergentagent.com';
+
+// Default categories with placeholder counts (will be updated from API)
+const DEFAULT_CATEGORIES = [
+  { id: 1, name: 'Strength', icon: 'barbell', gradient: COLORS.strength, workouts: 0 },
+  { id: 2, name: 'HIIT', icon: 'flame', gradient: COLORS.hiit, workouts: 0 },
+  { id: 3, name: 'Cardio', icon: 'heart', gradient: COLORS.cardio, workouts: 0 },
+  { id: 4, name: 'Flexibility', icon: 'fitness', gradient: COLORS.flexibility, workouts: 0 },
+  { id: 5, name: 'Mobility', icon: 'body', gradient: COLORS.mobility, workouts: 0 },
+  { id: 6, name: 'Conditioning', icon: 'speedometer', gradient: COLORS.conditioning, workouts: 0 },
 ];
 
 export default function WorkoutsScreen() {
@@ -93,8 +96,34 @@ export default function WorkoutsScreen() {
   const [selectedCategory, setSelectedCategory] = useState<string>('Strength');
   const [selectedCategoryGradient, setSelectedCategoryGradient] = useState<string[]>(COLORS.strength);
   const [likedDislikedModalVisible, setLikedDislikedModalVisible] = useState(false);
+  const [workoutCategories, setWorkoutCategories] = useState(DEFAULT_CATEGORIES);
   
   const { currentWorkout, todayWorkout, weekWorkouts, completedWorkouts, isLoading, fetchTodayWorkout, fetchWeekWorkouts } = useWorkoutStore();
+  
+  // Fetch exercise counts on mount
+  useEffect(() => {
+    const fetchExerciseCounts = async () => {
+      try {
+        const response = await fetch(`${API_BASE_URL}/api/exercises/counts`);
+        if (response.ok) {
+          const data = await response.json();
+          const counts = data.counts || {};
+          
+          // Update categories with dynamic counts
+          setWorkoutCategories(prev => prev.map(cat => ({
+            ...cat,
+            workouts: counts[cat.name] || 0
+          })));
+          
+          console.log('📊 Updated exercise counts:', counts);
+        }
+      } catch (error) {
+        console.error('Failed to fetch exercise counts:', error);
+      }
+    };
+    
+    fetchExerciseCounts();
+  }, []);
   
   const handleCategoryPress = (category: { name: string; gradient: string[] }) => {
     setSelectedCategory(category.name);
