@@ -326,6 +326,8 @@ export const AICoachWidget = ({ visible, onClose }: AICoachWidgetProps) => {
     
     // For all other fitness-related questions, call the backend API for personalized response
     try {
+      const personalityTone = getPersonalityTone();
+      
       const response = await fetch(`${API_BASE_URL}/api/coach/chat`, {
         method: 'POST',
         headers: {
@@ -335,6 +337,8 @@ export const AICoachWidget = ({ visible, onClose }: AICoachWidgetProps) => {
         body: JSON.stringify({
           message,
           coach: coachName,
+          coachPersonality: coachPersonality,
+          personalityTone: personalityTone,
           trainingType: currentWorkout?.type,
           userId,
         }),
@@ -345,6 +349,31 @@ export const AICoachWidget = ({ visible, onClose }: AICoachWidgetProps) => {
       }
       
       const data = await response.json();
+      
+      // Check if user wants to change coach personality
+      if (lowerMessage.includes('change') && (lowerMessage.includes('style') || lowerMessage.includes('personality') || lowerMessage.includes('coach'))) {
+        if (lowerMessage.includes('aggressive')) {
+          setCoachPersonality('aggressive');
+          addMessage(`Got it! I'll be more intense and pushing from now on. Let's crush it! 💪🔥`, true);
+          setIsLoading(false);
+          return;
+        } else if (lowerMessage.includes('friendly')) {
+          setCoachPersonality('friendly');
+          addMessage(`Sure thing! I'll be more supportive and encouraging. You've got this! 😊`, true);
+          setIsLoading(false);
+          return;
+        } else if (lowerMessage.includes('disciplined')) {
+          setCoachPersonality('disciplined');
+          addMessage(`Understood. I'll be more structured and focused. Let's stay on track.`, true);
+          setIsLoading(false);
+          return;
+        } else if (lowerMessage.includes('motivational')) {
+          setCoachPersonality('motivational');
+          addMessage(`Yes! I'll bring the inspiration and energy! You're unstoppable! 🌟`, true);
+          setIsLoading(false);
+          return;
+        }
+      }
       
       setIsLoading(false);
       addMessage(data.response || "I'm here to help! What would you like to know about your fitness journey?", true);
