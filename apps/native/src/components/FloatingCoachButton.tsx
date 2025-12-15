@@ -821,7 +821,7 @@ export function FloatingCoachButton() {
                     <Ionicons name="sparkles" size={20} color={COLORS.accent} />
                   </View>
                   <View>
-                    <Text style={styles.coachName}>AI Coach</Text>
+                    <Text style={styles.coachName}>{coachName}</Text>
                     <Text style={styles.coachStatus}>Online • Ready to help</Text>
                   </View>
                 </View>
