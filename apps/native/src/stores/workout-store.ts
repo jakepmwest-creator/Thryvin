@@ -147,6 +147,7 @@ interface WorkoutStore {
   resetProgram: () => Promise<void>;
   getAllWeekWorkouts: () => Workout[];
   swapWorkoutDays: (fromIndex: number, toIndex: number) => Promise<void>;
+  resetAllData: () => Promise<void>; // Clear all data for new user
 }
 
 export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
