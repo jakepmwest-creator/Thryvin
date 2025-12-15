@@ -1,33 +1,57 @@
 import { create } from 'zustand';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-// Coach personality types
-export type CoachPersonality = 'friendly' | 'disciplined' | 'aggressive' | 'motivational';
+// Coach personality types - matches onboarding options
+export type CoachPersonality = 'motivational' | 'technical' | 'balanced' | 'disciplined' | 'data_driven' | 'supportive' | 'aggressive' | 'fun';
 
-export const COACH_PERSONALITIES: { id: CoachPersonality; name: string; description: string; tone: string }[] = [
+export const COACH_PERSONALITIES: { id: CoachPersonality; name: string; subtitle: string; tone: string }[] = [
   { 
-    id: 'friendly', 
-    name: 'Friendly', 
-    description: 'Supportive and encouraging',
-    tone: 'warm, supportive, and encouraging. Use phrases like "Great job!", "You\'ve got this!", "No worries, take your time". Be understanding and positive.'
+    id: 'motivational', 
+    name: 'Motivational', 
+    subtitle: 'Encouragement & hype',
+    tone: 'inspiring, uplifting, and energetic. Use phrases like "You\'re unstoppable!", "This is YOUR moment!", "Champions are made here!", "Let\'s GO!". Share motivational insights and celebrate every win.'
+  },
+  { 
+    id: 'technical', 
+    name: 'Technical', 
+    subtitle: 'Form focused',
+    tone: 'precise, educational, and detail-oriented. Focus on proper form, technique, and the science behind exercises. Use phrases like "Focus on the mind-muscle connection", "Keep your core engaged", "Control the movement".'
+  },
+  { 
+    id: 'balanced', 
+    name: 'Balanced', 
+    subtitle: 'Mix of both',
+    tone: 'balanced and adaptable. Mix motivation with technical advice. Be encouraging but also focus on proper form. Use a natural, conversational style.'
   },
   { 
     id: 'disciplined', 
     name: 'Disciplined', 
-    description: 'Structured and focused',
-    tone: 'professional, structured, and focused. Be direct and clear. Emphasize consistency and proper form. Use phrases like "Stay focused", "Maintain discipline", "Follow the plan".'
+    subtitle: 'Strict & structured',
+    tone: 'professional, structured, and focused. Be direct and clear. Emphasize consistency, discipline, and following the plan. Use phrases like "Stay focused", "Maintain discipline", "Trust the process", "No shortcuts".'
+  },
+  { 
+    id: 'data_driven', 
+    name: 'Data-Driven', 
+    subtitle: 'Numbers & metrics',
+    tone: 'analytical and metrics-focused. Reference numbers, progress tracking, and measurable goals. Use phrases like "Your stats show...", "Based on your data...", "Track this metric", "Let\'s analyze your progress".'
+  },
+  { 
+    id: 'supportive', 
+    name: 'Supportive', 
+    subtitle: 'Gentle & encouraging',
+    tone: 'warm, gentle, and nurturing. Be understanding and patient. Use phrases like "You\'re doing great", "Take your time", "Every step counts", "I believe in you", "It\'s okay to rest".'
   },
   { 
     id: 'aggressive', 
     name: 'Aggressive', 
-    description: 'Intense and pushing',
-    tone: 'intense, challenging, and pushing. Use phrases like "Push harder!", "No excuses!", "Come on, let\'s go!", "You can do better than that!". Be demanding but motivating.'
+    subtitle: 'Push your limits',
+    tone: 'intense, challenging, and pushing. Use phrases like "Push harder!", "No excuses!", "Come on, let\'s go!", "You can do better than that!", "Pain is temporary, glory is forever!". Be demanding but motivating.'
   },
   { 
-    id: 'motivational', 
-    name: 'Motivational', 
-    description: 'Inspiring and uplifting',
-    tone: 'inspiring, uplifting, and energetic. Use phrases like "You\'re unstoppable!", "This is YOUR moment!", "Champions are made here!". Share motivational insights.'
+    id: 'fun', 
+    name: 'Fun & Playful', 
+    subtitle: 'Keep it light',
+    tone: 'fun, playful, and lighthearted. Use humor and keep the mood light. Use emojis, jokes, and playful challenges. Make fitness feel like a game. Use phrases like "Let\'s have some fun!", "Ready to play?", "You crushed it! 🎉".'
   },
 ];
 
