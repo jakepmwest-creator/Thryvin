@@ -6577,18 +6577,17 @@ Respond with a complete workout in JSON format:
         .select({
           category: exercises.category,
           bodyPart: exercises.body_part,
+          equipment: exercises.equipment,
+          name: exercises.name,
         })
         .from(exercises);
       
-      // Category mappings for frontend display
+      // Updated category mappings for new structure: Strength, Calisthenics, Cardio, Flexibility
       const categoryMappings: { [key: string]: string[] } = {
-        'Strength': ['upper-body', 'lower-body', 'chest', 'back', 'shoulders', 'arms', 'legs'],
-        'HIIT': ['hiit', 'circuit', 'conditioning'],
-        'Cardio': ['cardio', 'full-body'],
-        'Flexibility': ['warmup', 'recovery', 'mobility', 'flexibility'],
-        'Mobility': ['mobility', 'warmup', 'recovery'],
-        'Conditioning': ['conditioning', 'circuit', 'hiit'],
-        'Core': ['core', 'abs'],
+        'Strength': ['weightlifting', 'strength', 'powerlifting', 'barbell', 'dumbbell', 'chest', 'back', 'shoulders', 'arms', 'legs', 'upper-body', 'lower-body', 'biceps', 'triceps', 'quads', 'hamstrings', 'glutes'],
+        'Calisthenics': ['bodyweight', 'calisthenics', 'gymnastics'],
+        'Cardio': ['cardio', 'running', 'cycling', 'rowing', 'swimming', 'jump rope', 'treadmill', 'elliptical', 'stair'],
+        'Flexibility': ['flexibility', 'stretching', 'yoga', 'mobility', 'warmup', 'recovery', 'foam roll', 'stretch'],
       };
       
       // Count exercises per category
@@ -6598,8 +6597,23 @@ Respond with a complete workout in JSON format:
         counts[displayName] = allExercises.filter(ex => {
           const exCategory = ex.category?.toLowerCase() || '';
           const exBodyPart = ex.bodyPart?.toLowerCase() || '';
+          const exEquipment = ex.equipment?.toLowerCase() || '';
+          const exName = ex.name?.toLowerCase() || '';
+          
+          // For Calisthenics, also check if equipment is bodyweight/none
+          if (displayName === 'Calisthenics') {
+            const isBodyweight = exEquipment === 'bodyweight' || exEquipment === 'none' || exEquipment === 'body weight';
+            if (isBodyweight) return true;
+          }
+          
+          // For Strength, exclude bodyweight exercises
+          if (displayName === 'Strength') {
+            const isBodyweight = exEquipment === 'bodyweight' || exEquipment === 'none' || exEquipment === 'body weight';
+            if (isBodyweight) return false;
+          }
+          
           return matchCategories.some(cat => 
-            exCategory.includes(cat) || exBodyPart.includes(cat)
+            exCategory.includes(cat) || exBodyPart.includes(cat) || exName.includes(cat)
           );
         }).length;
       }
