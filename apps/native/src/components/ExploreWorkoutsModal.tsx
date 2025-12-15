@@ -389,17 +389,23 @@ export const ExploreWorkoutsModal = ({ visible, onClose, category, categoryGradi
                     
                     <Text style={styles.detailDescription}>{selectedExercise.description || 'Perform this exercise with proper form and controlled movements.'}</Text>
                     
-                    {/* Video player or placeholder */}
+                    {/* Video player with better styling */}
                     {selectedExercise.videoUrl ? (
                       <View style={styles.videoContainer}>
                         <Video
                           source={{ uri: selectedExercise.videoUrl }}
                           style={styles.videoPlayer}
                           useNativeControls
-                          resizeMode={ResizeMode.CONTAIN}
+                          resizeMode={ResizeMode.COVER}
                           isLooping
                           shouldPlay={true}
                         />
+                        {/* Large play button overlay - shows briefly */}
+                        <View style={styles.playButtonOverlay} pointerEvents="none">
+                          <View style={styles.playButton}>
+                            <Ionicons name="play" size={32} color={COLORS.white} />
+                          </View>
+                        </View>
                       </View>
                     ) : (
                       <View style={styles.videoPlaceholder}>
