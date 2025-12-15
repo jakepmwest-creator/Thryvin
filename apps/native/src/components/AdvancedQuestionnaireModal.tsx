@@ -174,7 +174,7 @@ export const AdvancedQuestionnaireModal = ({
     return value.trim().length > 0;
   };
   
-  // Voice input handling - simulated pattern (works on all platforms)
+  // Voice input handling - placeholder (real speech-to-text requires native build)
   const handleVoiceInput = useCallback(() => {
     const currentQuestion = QUESTIONS[currentStep];
     
@@ -185,45 +185,17 @@ export const AdvancedQuestionnaireModal = ({
       pulseAnim.stopAnimation();
       pulseAnim.setValue(1);
       
-      // Simulate transcription with contextual sample responses
-      setTimeout(() => {
-        const sampleResponses: { [key: string]: string } = {
-          targets: "I'm training for a half marathon in 4 months and want to improve my overall fitness and endurance",
-          enjoyedTraining: "I really enjoy weightlifting and HIIT workouts. I also like outdoor running and cycling",
-          dislikedTraining: "I don't enjoy long slow cardio sessions or repetitive exercises that feel boring",
-          weakAreas: "My core strength and flexibility need the most work. Also want to improve my shoulder mobility",
-          additionalInfo: "I have about 45 minutes per day to work out, usually in the mornings before work",
-        };
-        
-        const transcription = sampleResponses[currentQuestion.id] || "I want to improve my overall fitness";
-        
-        // Update the form with transcription
-        if (currentQuestion.id === 'goalDetails') {
-          const goals = formData.goalDetails || {};
-          const firstGoalKey = Object.keys(goals)[0];
-          if (firstGoalKey) {
-            setFormData(prev => ({
-              ...prev,
-              goalDetails: {
-                ...prev.goalDetails,
-                [firstGoalKey]: transcription
-              }
-            }));
-          }
-        } else {
-          setFormData(prev => ({
-            ...prev,
-            [currentQuestion.id]: transcription
-          }));
-        }
-        
-        setIsTranscribing(false);
-      }, 1500);
-      
+      // Show a message that this is a placeholder
+      Alert.alert(
+        'Voice Input',
+        'Voice transcription requires a native app build. For now, please type your response.\n\nIn the full app release, you\'ll be able to speak naturally and your words will be transcribed automatically.',
+        [{ text: 'OK' }]
+      );
+      setIsTranscribing(false);
       return;
     }
     
-    // Start recording
+    // Start recording animation (visual feedback)
     setIsRecording(true);
     
     // Start pulse animation for mic icon
@@ -234,20 +206,20 @@ export const AdvancedQuestionnaireModal = ({
       ])
     ).start();
     
-    // Auto-stop after 5 seconds
+    // Auto-stop after 2 seconds and show message
     setTimeout(() => {
       if (isRecording) {
         setIsRecording(false);
-        setIsTranscribing(true);
         pulseAnim.stopAnimation();
         pulseAnim.setValue(1);
-        
-        setTimeout(() => {
-          setIsTranscribing(false);
-        }, 1500);
+        Alert.alert(
+          'Voice Input',
+          'Voice transcription requires a native app build. For now, please type your response.\n\nIn the full app release, you\'ll be able to speak naturally and your words will be transcribed automatically.',
+          [{ text: 'OK' }]
+        );
       }
-    }, 5000);
-  }, [currentStep, isRecording, formData.goalDetails, pulseAnim]);
+    }, 2000);
+  }, [currentStep, isRecording, pulseAnim]);
   
   const handleNext = () => {
     if (!isCurrentQuestionAnswered()) {
