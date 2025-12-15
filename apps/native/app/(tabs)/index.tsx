@@ -893,7 +893,15 @@ export default function HomeScreen() {
       {/* Advanced Questionnaire Modal */}
       <AdvancedQuestionnaireModal
         visible={showAdvancedQuestionnaire}
-        onClose={() => setShowAdvancedQuestionnaire(false)}
+        onClose={async () => {
+          setShowAdvancedQuestionnaire(false);
+          // When skipped, still generate workouts using onboarding data
+          console.log('📋 Questionnaire skipped - generating workouts with onboarding data only');
+          await Promise.all([
+            fetchTodayWorkout(),
+            fetchWeekWorkouts(),
+          ]);
+        }}
         onComplete={handleQuestionnaireComplete}
       />
       
