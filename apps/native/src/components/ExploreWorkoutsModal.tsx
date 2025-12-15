@@ -266,35 +266,53 @@ export const ExploreWorkoutsModal = ({ visible, onClose, category, categoryGradi
             )}
           </View>
           
-          {/* Difficulty Filter */}
+          {/* Difficulty Filter - with gradient for active state */}
           <View style={styles.filterContainer}>
             <ScrollView horizontal showsHorizontalScrollIndicator={false}>
               {(['All', 'Beginner', 'Intermediate', 'Advanced'] as const).map(level => (
                 <TouchableOpacity
                   key={level}
-                  style={[styles.filterChip, filterDifficulty === level && styles.filterChipActive]}
+                  style={[styles.filterChip, filterDifficulty === level && styles.filterChipActiveWrapper]}
                   onPress={() => setFilterDifficulty(level)}
                 >
-                  <Text style={[styles.filterChipText, filterDifficulty === level && styles.filterChipTextActive]}>
-                    {level}
-                  </Text>
+                  {filterDifficulty === level ? (
+                    <LinearGradient
+                      colors={[COLORS.accent, COLORS.accentSecondary]}
+                      style={styles.filterChipGradient}
+                      start={{ x: 0, y: 0 }}
+                      end={{ x: 1, y: 1 }}
+                    >
+                      <Text style={styles.filterChipTextActive}>{level}</Text>
+                    </LinearGradient>
+                  ) : (
+                    <Text style={styles.filterChipText}>{level}</Text>
+                  )}
                 </TouchableOpacity>
               ))}
             </ScrollView>
           </View>
           
-          {/* Equipment Filter */}
+          {/* Equipment Filter - with gradient for active state */}
           <View style={styles.filterContainer}>
             <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-              {EQUIPMENT_FILTERS.map(equip => (
+              {(EQUIPMENT_FILTERS[category] || EQUIPMENT_FILTERS['Strength']).map(equip => (
                 <TouchableOpacity
                   key={equip.id}
-                  style={[styles.filterChip, filterEquipment === equip.id && styles.filterChipActive]}
+                  style={[styles.filterChip, filterEquipment === equip.id && styles.filterChipActiveWrapper]}
                   onPress={() => setFilterEquipment(equip.id)}
                 >
-                  <Text style={[styles.filterChipText, filterEquipment === equip.id && styles.filterChipTextActive]}>
-                    {equip.label}
-                  </Text>
+                  {filterEquipment === equip.id ? (
+                    <LinearGradient
+                      colors={[COLORS.accent, COLORS.accentSecondary]}
+                      style={styles.filterChipGradient}
+                      start={{ x: 0, y: 0 }}
+                      end={{ x: 1, y: 1 }}
+                    >
+                      <Text style={styles.filterChipTextActive}>{equip.label}</Text>
+                    </LinearGradient>
+                  ) : (
+                    <Text style={styles.filterChipText}>{equip.label}</Text>
+                  )}
                 </TouchableOpacity>
               ))}
             </ScrollView>
