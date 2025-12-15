@@ -488,7 +488,7 @@ export default function WorkoutsScreen() {
             </TouchableOpacity>
           </View>
           <View style={styles.categoriesGrid}>
-            {WORKOUT_CATEGORIES.map((category) => (
+            {workoutCategories.map((category) => (
               <TouchableOpacity
                 key={category.id}
                 style={styles.categoryCard}
@@ -504,7 +504,7 @@ export default function WorkoutsScreen() {
                     <Ionicons name={category.icon as any} size={32} color={COLORS.white} />
                   </View>
                   <Text style={styles.categoryNameWhite}>{category.name}</Text>
-                  <Text style={styles.categoryCountWhite}>{category.workouts} workouts</Text>
+                  <Text style={styles.categoryCountWhite}>{category.workouts} exercises</Text>
                 </LinearGradient>
               </TouchableOpacity>
             ))}
