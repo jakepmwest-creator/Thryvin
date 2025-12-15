@@ -552,6 +552,33 @@ export const useAwardsStore = create<AwardsState>((set, get) => ({
     console.log('🔄 [AWARDS] Reset to Starting Line complete!');
   },
   
+  // Reset all awards (alias for resetToStartingLine, used by logout)
+  resetAllAwards: async () => {
+    const initialBadges: UserBadge[] = BADGE_DEFINITIONS.map(badge => ({
+      badgeId: badge.id,
+      progress: 0,
+      completed: false,
+    }));
+    set({ 
+      userBadges: initialBadges, 
+      totalXP: 0, 
+      currentIsland: 1,
+      newlyUnlocked: [],
+    });
+    try {
+      await setStorageItem('user_badges_v3', JSON.stringify({ 
+        badges: initialBadges, 
+        totalXP: 0, 
+        currentIsland: 1 
+      }));
+      // Also clear the old key
+      await SecureStore.deleteItemAsync('user_badges').catch(() => {});
+    } catch (e) {
+      console.error('Error resetting awards:', e);
+    }
+    console.log('🔄 [AWARDS] All awards reset for new user!');
+  },
+  
   updateBadgeProgress: async (workoutStats: {
     totalWorkouts: number;
     currentStreak: number;
