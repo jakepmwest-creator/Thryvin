@@ -579,7 +579,7 @@ export default function HomeScreen() {
           ) : workoutError ? (
             <View style={styles.todayWorkoutCard}>
               <View style={styles.generatingContainer}>
-                <Ionicons name="alert-circle" size={48} color={COLORS.red || '#FF3B30'} />
+                <Ionicons name="alert-circle" size={48} color={COLORS.danger} />
                 <Text style={styles.generatingTitle}>Generation Error</Text>
                 <Text style={styles.generatingSubtitle}>
                   {workoutError.includes('Partial') 
