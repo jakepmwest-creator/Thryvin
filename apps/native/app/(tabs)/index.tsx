@@ -950,7 +950,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.white,
     borderRadius: 20,
     padding: 20,
-    ...CARD_SHADOW,
+    // No shadow - flat design
   },
   workoutContent: {
     gap: 16,
