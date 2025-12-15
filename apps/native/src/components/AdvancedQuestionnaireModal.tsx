@@ -129,6 +129,68 @@ export const AdvancedQuestionnaireModal = ({
   // Get user's goals from their profile
   const userGoals = user?.fitnessGoals || ['Build muscle', 'Lose weight', 'Improve fitness'];
   
+  // Speech recognition event handlers
+  useSpeechRecognitionEvent('start', () => {
+    console.log('🎤 Speech recognition started');
+    setIsRecording(true);
+    setIsTranscribing(false);
+  });
+  
+  useSpeechRecognitionEvent('end', () => {
+    console.log('🎤 Speech recognition ended');
+    setIsRecording(false);
+    setIsTranscribing(false);
+  });
+  
+  useSpeechRecognitionEvent('result', (event) => {
+    const currentQuestion = QUESTIONS[currentStep];
+    const transcript = event.results
+      .map(result => result.transcript)
+      .join('');
+    
+    console.log('🎤 Transcript:', transcript, 'isFinal:', event.isFinal);
+    
+    if (event.isFinal && transcript) {
+      // Update the form with the final transcription
+      if (currentQuestion.id === 'goalDetails') {
+        const userGoals = formData.goalDetails || {};
+        const firstGoalKey = Object.keys(userGoals)[0];
+        if (firstGoalKey) {
+          setFormData(prev => ({
+            ...prev,
+            goalDetails: {
+              ...prev.goalDetails,
+              [firstGoalKey]: transcript
+            }
+          }));
+        }
+      } else {
+        setFormData(prev => ({
+          ...prev,
+          [currentQuestion.id]: transcript
+        }));
+      }
+    }
+  });
+  
+  useSpeechRecognitionEvent('error', (event) => {
+    console.error('🎤 Speech recognition error:', event.error, event.message);
+    setIsRecording(false);
+    setIsTranscribing(false);
+    
+    // Show user-friendly error messages
+    let errorMessage = 'Voice recognition failed. Please try again or type your answer.';
+    if (event.error === 'no-speech') {
+      errorMessage = 'No speech detected. Please speak clearly and try again.';
+    } else if (event.error === 'not-allowed') {
+      errorMessage = 'Microphone permission denied. Please enable it in settings.';
+    } else if (event.error === 'network') {
+      errorMessage = 'Network error. Please check your connection and try again.';
+    }
+    
+    Alert.alert('Voice Input', errorMessage);
+  });
+  
   useEffect(() => {
     // Initialize goal details with user's goals
     const initialGoalDetails: { [key: string]: string } = {};
