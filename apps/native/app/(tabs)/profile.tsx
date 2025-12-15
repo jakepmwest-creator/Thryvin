@@ -186,6 +186,7 @@ export default function ProfileScreen() {
       const savedPin = await AsyncStorage.getItem(`user_pin_${userId}`);
       const savedPinEnabled = await AsyncStorage.getItem(`pin_enabled_${userId}`);
       const savedBiometrics = await AsyncStorage.getItem(`biometrics_enabled_${userId}`);
+      const savedAutoLogin = await AsyncStorage.getItem('auto_login_enabled');
       
       // Also check global keys for backward compatibility
       const globalImage = await AsyncStorage.getItem('user_profile_image');
@@ -195,6 +196,7 @@ export default function ProfileScreen() {
       
       if (savedNotifications !== null) setNotifications(savedNotifications === 'true');
       if (savedReminders !== null) setWorkoutReminders(savedReminders === 'true');
+      if (savedAutoLogin !== null) setAutoLoginEnabled(savedAutoLogin !== 'false'); // Default true
       
       // Prefer user-specific data, fall back to global only if it belongs to this user
       if (savedImage) {
