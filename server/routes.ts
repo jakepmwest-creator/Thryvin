@@ -1816,7 +1816,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // AI Coach Chat endpoint
   app.post("/api/coach/chat", async (req, res) => {
     try {
-      const { message, coach, trainingType, coachingStyle, userId } = req.body;
+      const { message, coach, trainingType, coachingStyle, userId, coachPersonality, personalityTone } = req.body;
       
       // Get user context for personalized response if userId provided
       let userContext = '';
@@ -1833,8 +1833,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         coach,
         message,
         trainingType,
-        coachingStyle,
+        coachingStyle || coachPersonality,
         userContext,
+        personalityTone,
       );
       
       // Save chat for AI learning (non-blocking)

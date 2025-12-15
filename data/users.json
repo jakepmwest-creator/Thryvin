@@ -456,5 +456,57 @@
     "xpPoints": 0,
     "level": "Bronze",
     "createdAt": "2025-12-15T16:47:16.638Z"
+  },
+  {
+    "id": 19,
+    "name": "Jake",
+    "gender": "male",
+    "dateOfBirth": "2000-01-01T00:00:00.000Z",
+    "height": "189",
+    "weight": "86",
+    "heightUnit": "cm",
+    "weightUnit": "kg",
+    "feet": "",
+    "inches": "",
+    "experience": "intermediate",
+    "fitnessGoals": [
+      "lose_weight",
+      "gain_muscle",
+      "build_endurance"
+    ],
+    "nutritionGoals": [
+      "high_protein",
+      "low_carb",
+      "meal_prep"
+    ],
+    "equipment": [
+      "full_gym"
+    ],
+    "trainingDays": "3",
+    "sessionDuration": "60",
+    "trainingSchedule": "flexible",
+    "selectedDays": [
+      "mon",
+      "tue",
+      "wed",
+      "thu",
+      "fri",
+      "sat",
+      "sun"
+    ],
+    "specificDates": [],
+    "injuries": "Injured Knee Should Be Recovered In 2 Weeks",
+    "injuriesOther": "",
+    "coachingStyle": "technical",
+    "coachName": "Ethan Cross",
+    "email": "hejdh@iejne.com",
+    "password": "ebaa0735ef87b9ba3e7788a80033f9d488b4f6a565abb8e0ef5ce083d4f2785614dca85cedb136b385d6062e0dc58e81e0b11541651f1cd53c76dfebfa899bc3.cf2ff1e0604a6d7f915acaf24817b5d6",
+    "trialEndsAt": "2025-12-22T16:51:59.632Z",
+    "hasActiveSubscription": false,
+    "weeklyGoalWorkouts": 5,
+    "weeklyGoalMinutes": 150,
+    "xpPoints": 0,
+    "level": "Bronze",
+    "createdAt": "2025-12-15T16:51:59.667Z"
   }
 ]
