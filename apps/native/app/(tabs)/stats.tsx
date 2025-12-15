@@ -909,6 +909,8 @@ const styles = StyleSheet.create({
   allTimeDivider: { width: 1, backgroundColor: COLORS.lightGray, marginHorizontal: 16 },
   sectionHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 },
   viewAllText: { fontSize: 14, fontWeight: '600', color: COLORS.accent },
+  comingSoonBadge: { flexDirection: 'row', alignItems: 'center', backgroundColor: COLORS.lightGray, paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12 },
+  comingSoonText: { fontSize: 11, fontWeight: '600', color: COLORS.mediumGray, marginLeft: 4 },
   pbCard: { backgroundColor: COLORS.white, borderRadius: 16, padding: 20, borderWidth: 1, borderColor: COLORS.lightGray, shadowColor: COLORS.shadow, shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.1, shadowRadius: 8, elevation: 3 },
   pbRow: { flexDirection: 'row', alignItems: 'center' },
   pbIconContainer: { width: 48, height: 48, borderRadius: 24, overflow: 'hidden', marginRight: 16 },
