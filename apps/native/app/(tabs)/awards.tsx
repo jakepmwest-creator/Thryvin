@@ -374,6 +374,16 @@ const islandStyles = StyleSheet.create({
   connectorLineGradient: { width: 4, height: '100%', borderRadius: 2, position: 'relative' },
   connectorDot: { position: 'absolute', width: 8, height: 8, borderRadius: 4, backgroundColor: COLORS.white, left: -2, borderWidth: 2, borderColor: COLORS.gradientEnd },
   
+  // Coming Soon styles
+  comingSoonCard: { width: SCREEN_WIDTH - 56, marginBottom: 8, borderRadius: 20, overflow: 'hidden', alignSelf: 'center', ...CARD_SHADOW },
+  comingSoonGradient: { height: 100, justifyContent: 'center', alignItems: 'center', borderRadius: 20 },
+  comingSoonContent: { alignItems: 'center' },
+  comingSoonEmojiContainer: { width: 50, height: 50, backgroundColor: 'rgba(255,255,255,0.6)', borderRadius: 25, justifyContent: 'center', alignItems: 'center', marginBottom: 8 },
+  comingSoonEmoji: { fontSize: 24, opacity: 0.7 },
+  comingSoonTitle: { fontSize: 16, fontWeight: '700', color: '#666', marginBottom: 4 },
+  comingSoonBadge: { flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(255,255,255,0.7)', paddingHorizontal: 12, paddingVertical: 4, borderRadius: 12 },
+  comingSoonText: { fontSize: 12, fontWeight: '600', color: '#666', marginLeft: 4 },
+  
   // Themed island elements
   // Starting Line - Checkered flag
   checkeredSquare: { position: 'absolute', width: 15, height: 15, borderRadius: 2 },
