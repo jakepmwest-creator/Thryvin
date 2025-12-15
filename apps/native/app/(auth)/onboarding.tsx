@@ -353,8 +353,7 @@ export default function OnboardingScreen() {
     trainingSchedule: 'flexible', // 'flexible', 'specific', 'depends'
     selectedDays: ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'], // Default all selected for flexible
     specificDates: [], // For 'depends' - array of date strings
-    injuries: [],
-    injuriesOther: '',
+    injuriesDescription: '', // Text description of injuries
     coachingStyle: '',
   });
   
