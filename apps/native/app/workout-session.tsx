@@ -663,6 +663,17 @@ const styles = StyleSheet.create({
     color: COLORS.text,
     backgroundColor: COLORS.lightGray,
   },
+  suggestionHint: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 6,
+    gap: 4,
+  },
+  suggestionText: {
+    fontSize: 11,
+    color: COLORS.accent,
+    fontWeight: '500',
+  },
   effortContainer: {
     marginBottom: 20,
   },
