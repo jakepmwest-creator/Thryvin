@@ -1052,7 +1052,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginBottom: 16,
   },
-  // Coach Personality Modal Styles
+  // Coach Personality Modal Styles - Redesigned
   modalOverlay: {
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.5)',
@@ -1060,25 +1060,44 @@ const styles = StyleSheet.create({
   },
   personalityModal: {
     backgroundColor: COLORS.white,
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    maxHeight: '80%',
+    borderTopLeftRadius: 28,
+    borderTopRightRadius: 28,
+    maxHeight: '85%',
   },
   personalityModalHeader: {
-    paddingTop: 50,
-    paddingBottom: 24,
+    paddingTop: 24,
+    paddingBottom: 20,
+    paddingHorizontal: 24,
     alignItems: 'center',
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
+    borderTopLeftRadius: 28,
+    borderTopRightRadius: 28,
   },
   modalCloseBtn: {
     position: 'absolute',
     top: 16,
-    left: 16,
-    padding: 4,
+    right: 16,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  coachIconBubble: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: COLORS.white,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
   },
   personalityModalTitle: {
-    fontSize: 24,
+    fontSize: 22,
     fontWeight: '700',
     color: COLORS.white,
     marginTop: 12,
@@ -1089,50 +1108,65 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   personalityOptions: {
-    padding: 20,
+    paddingHorizontal: 20,
+    paddingTop: 16,
   },
-  personalityOption: {
+  personalityCard: {
     backgroundColor: COLORS.lightGray,
-    borderRadius: 16,
-    padding: 16,
-    marginBottom: 12,
+    borderRadius: 14,
+    padding: 14,
+    marginBottom: 10,
     borderWidth: 2,
     borderColor: 'transparent',
   },
-  personalityOptionActive: {
+  personalityCardActive: {
     borderColor: COLORS.accent,
-    backgroundColor: `${COLORS.accent}10`,
+    backgroundColor: `${COLORS.accent}08`,
   },
-  personalityOptionContent: {
+  personalityCardContent: {
     flexDirection: 'row',
     alignItems: 'center',
   },
-  personalityCheck: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    backgroundColor: COLORS.mediumGray,
+  personalityRadio: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: COLORS.white,
+    borderWidth: 2,
+    borderColor: COLORS.mediumGray,
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 14,
+    marginRight: 12,
   },
-  personalityCheckActive: {
+  personalityRadioActive: {
     backgroundColor: COLORS.accent,
+    borderColor: COLORS.accent,
   },
-  personalityInfo: {
+  personalityTextContainer: {
     flex: 1,
   },
-  personalityName: {
-    fontSize: 17,
+  personalityCardName: {
+    fontSize: 16,
     fontWeight: '600',
     color: COLORS.text,
-    marginBottom: 4,
+    marginBottom: 2,
   },
-  personalityNameActive: {
+  personalityCardNameActive: {
     color: COLORS.accent,
   },
-  personalityDescription: {
-    fontSize: 14,
+  personalityCardSubtitle: {
+    fontSize: 13,
     color: COLORS.mediumGray,
+  },
+  selectedBadge: {
+    backgroundColor: COLORS.accent,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 10,
+  },
+  selectedBadgeText: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: COLORS.white,
   },
 });
