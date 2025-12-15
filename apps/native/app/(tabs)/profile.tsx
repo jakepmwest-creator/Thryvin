@@ -723,6 +723,81 @@ export default function ProfileScreen() {
         onComplete={handleQuestionnaireComplete}
       />
       
+      {/* Coach Personality Modal */}
+      <Modal
+        visible={showCoachPersonality}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={() => setShowCoachPersonality(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.personalityModal}>
+            <LinearGradient
+              colors={[COLORS.accent, COLORS.accentSecondary]}
+              style={styles.personalityModalHeader}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+            >
+              <TouchableOpacity 
+                style={styles.modalCloseBtn}
+                onPress={() => setShowCoachPersonality(false)}
+              >
+                <Ionicons name="close" size={24} color={COLORS.white} />
+              </TouchableOpacity>
+              <Ionicons name="person-circle" size={48} color={COLORS.white} />
+              <Text style={styles.personalityModalTitle}>Coach Style</Text>
+              <Text style={styles.personalityModalSubtitle}>
+                Choose how {coachName} talks to you
+              </Text>
+            </LinearGradient>
+            
+            <ScrollView style={styles.personalityOptions}>
+              {COACH_PERSONALITIES.map((personality) => (
+                <TouchableOpacity
+                  key={personality.id}
+                  style={[
+                    styles.personalityOption,
+                    coachPersonality === personality.id && styles.personalityOptionActive,
+                  ]}
+                  onPress={() => {
+                    setCoachPersonality(personality.id);
+                    setShowCoachPersonality(false);
+                    showAlert({
+                      type: 'success',
+                      title: 'Coach Style Updated!',
+                      message: `${coachName} will now be ${personality.name.toLowerCase()}.`,
+                      buttons: [{ text: 'Got it!', onPress: hideAlert }]
+                    });
+                  }}
+                >
+                  <View style={styles.personalityOptionContent}>
+                    <View style={[
+                      styles.personalityCheck,
+                      coachPersonality === personality.id && styles.personalityCheckActive,
+                    ]}>
+                      {coachPersonality === personality.id && (
+                        <Ionicons name="checkmark" size={16} color={COLORS.white} />
+                      )}
+                    </View>
+                    <View style={styles.personalityInfo}>
+                      <Text style={[
+                        styles.personalityName,
+                        coachPersonality === personality.id && styles.personalityNameActive,
+                      ]}>
+                        {personality.name}
+                      </Text>
+                      <Text style={styles.personalityDescription}>
+                        {personality.description}
+                      </Text>
+                    </View>
+                  </View>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
+      
       {/* Custom Alert */}
       <CustomAlert
         visible={alertConfig.visible}
