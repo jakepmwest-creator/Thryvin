@@ -1002,4 +1002,87 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginBottom: 16,
   },
+  // Coach Personality Modal Styles
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'flex-end',
+  },
+  personalityModal: {
+    backgroundColor: COLORS.white,
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    maxHeight: '80%',
+  },
+  personalityModalHeader: {
+    paddingTop: 50,
+    paddingBottom: 24,
+    alignItems: 'center',
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+  },
+  modalCloseBtn: {
+    position: 'absolute',
+    top: 16,
+    left: 16,
+    padding: 4,
+  },
+  personalityModalTitle: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: COLORS.white,
+    marginTop: 12,
+  },
+  personalityModalSubtitle: {
+    fontSize: 14,
+    color: 'rgba(255,255,255,0.85)',
+    marginTop: 4,
+  },
+  personalityOptions: {
+    padding: 20,
+  },
+  personalityOption: {
+    backgroundColor: COLORS.lightGray,
+    borderRadius: 16,
+    padding: 16,
+    marginBottom: 12,
+    borderWidth: 2,
+    borderColor: 'transparent',
+  },
+  personalityOptionActive: {
+    borderColor: COLORS.accent,
+    backgroundColor: `${COLORS.accent}10`,
+  },
+  personalityOptionContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  personalityCheck: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: COLORS.mediumGray,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 14,
+  },
+  personalityCheckActive: {
+    backgroundColor: COLORS.accent,
+  },
+  personalityInfo: {
+    flex: 1,
+  },
+  personalityName: {
+    fontSize: 17,
+    fontWeight: '600',
+    color: COLORS.text,
+    marginBottom: 4,
+  },
+  personalityNameActive: {
+    color: COLORS.accent,
+  },
+  personalityDescription: {
+    fontSize: 14,
+    color: COLORS.mediumGray,
+  },
 });
