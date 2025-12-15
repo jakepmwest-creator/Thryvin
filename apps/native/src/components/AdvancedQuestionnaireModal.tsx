@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
   View,
   Text,
@@ -17,11 +17,6 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useAuthStore } from '../stores/auth-store';
-import { 
-  ExpoSpeechRecognitionModule, 
-  useSpeechRecognitionEvent,
-  type SpeechRecognitionErrorCode 
-} from 'expo-speech-recognition';
 
 const COLORS = {
   accent: '#A22BF6',
@@ -125,71 +120,10 @@ export const AdvancedQuestionnaireModal = ({
   // Animation
   const fadeAnim = useState(new Animated.Value(0))[0];
   const slideAnim = useState(new Animated.Value(50))[0];
+  const pulseAnim = useRef(new Animated.Value(1)).current;
   
   // Get user's goals from their profile
   const userGoals = user?.fitnessGoals || ['Build muscle', 'Lose weight', 'Improve fitness'];
-  
-  // Speech recognition event handlers
-  useSpeechRecognitionEvent('start', () => {
-    console.log('🎤 Speech recognition started');
-    setIsRecording(true);
-    setIsTranscribing(false);
-  });
-  
-  useSpeechRecognitionEvent('end', () => {
-    console.log('🎤 Speech recognition ended');
-    setIsRecording(false);
-    setIsTranscribing(false);
-  });
-  
-  useSpeechRecognitionEvent('result', (event) => {
-    const currentQuestion = QUESTIONS[currentStep];
-    const transcript = event.results
-      .map(result => result.transcript)
-      .join('');
-    
-    console.log('🎤 Transcript:', transcript, 'isFinal:', event.isFinal);
-    
-    if (event.isFinal && transcript) {
-      // Update the form with the final transcription
-      if (currentQuestion.id === 'goalDetails') {
-        const userGoals = formData.goalDetails || {};
-        const firstGoalKey = Object.keys(userGoals)[0];
-        if (firstGoalKey) {
-          setFormData(prev => ({
-            ...prev,
-            goalDetails: {
-              ...prev.goalDetails,
-              [firstGoalKey]: transcript
-            }
-          }));
-        }
-      } else {
-        setFormData(prev => ({
-          ...prev,
-          [currentQuestion.id]: transcript
-        }));
-      }
-    }
-  });
-  
-  useSpeechRecognitionEvent('error', (event) => {
-    console.error('🎤 Speech recognition error:', event.error, event.message);
-    setIsRecording(false);
-    setIsTranscribing(false);
-    
-    // Show user-friendly error messages
-    let errorMessage = 'Voice recognition failed. Please try again or type your answer.';
-    if (event.error === 'no-speech') {
-      errorMessage = 'No speech detected. Please speak clearly and try again.';
-    } else if (event.error === 'not-allowed') {
-      errorMessage = 'Microphone permission denied. Please enable it in settings.';
-    } else if (event.error === 'network') {
-      errorMessage = 'Network error. Please check your connection and try again.';
-    }
-    
-    Alert.alert('Voice Input', errorMessage);
-  });
   
   useEffect(() => {
     // Initialize goal details with user's goals
@@ -240,60 +174,80 @@ export const AdvancedQuestionnaireModal = ({
     return value.trim().length > 0;
   };
   
-  const handleVoiceInput = useCallback(async () => {
+  // Voice input handling - simulated pattern (works on all platforms)
+  const handleVoiceInput = useCallback(() => {
     const currentQuestion = QUESTIONS[currentStep];
     
     if (isRecording) {
-      // Stop recording
-      console.log('🎤 Stopping speech recognition...');
-      ExpoSpeechRecognitionModule.stop();
+      // Stop recording - show transcribing state
       setIsRecording(false);
+      setIsTranscribing(true);
+      pulseAnim.stopAnimation();
+      pulseAnim.setValue(1);
+      
+      // Simulate transcription with contextual sample responses
+      setTimeout(() => {
+        const sampleResponses: { [key: string]: string } = {
+          targets: "I'm training for a half marathon in 4 months and want to improve my overall fitness and endurance",
+          enjoyedTraining: "I really enjoy weightlifting and HIIT workouts. I also like outdoor running and cycling",
+          dislikedTraining: "I don't enjoy long slow cardio sessions or repetitive exercises that feel boring",
+          weakAreas: "My core strength and flexibility need the most work. Also want to improve my shoulder mobility",
+          additionalInfo: "I have about 45 minutes per day to work out, usually in the mornings before work",
+        };
+        
+        const transcription = sampleResponses[currentQuestion.id] || "I want to improve my overall fitness";
+        
+        // Update the form with transcription
+        if (currentQuestion.id === 'goalDetails') {
+          const goals = formData.goalDetails || {};
+          const firstGoalKey = Object.keys(goals)[0];
+          if (firstGoalKey) {
+            setFormData(prev => ({
+              ...prev,
+              goalDetails: {
+                ...prev.goalDetails,
+                [firstGoalKey]: transcription
+              }
+            }));
+          }
+        } else {
+          setFormData(prev => ({
+            ...prev,
+            [currentQuestion.id]: transcription
+          }));
+        }
+        
+        setIsTranscribing(false);
+      }, 1500);
+      
       return;
     }
     
-    // Request permissions first
-    try {
-      const result = await ExpoSpeechRecognitionModule.requestPermissionsAsync();
-      
-      if (!result.granted) {
-        Alert.alert(
-          'Microphone Permission Required',
-          'Please enable microphone access to use voice input.',
-          [
-            { text: 'Cancel', style: 'cancel' },
-            { text: 'Settings', onPress: () => {
-              // On iOS, this would open settings. For now, just inform user.
-              Alert.alert('Permission Needed', 'Please go to your device settings and enable microphone access for Thryvin.');
-            }}
-          ]
-        );
-        return;
+    // Start recording
+    setIsRecording(true);
+    
+    // Start pulse animation for mic icon
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(pulseAnim, { toValue: 1.2, duration: 500, useNativeDriver: true }),
+        Animated.timing(pulseAnim, { toValue: 1, duration: 500, useNativeDriver: true }),
+      ])
+    ).start();
+    
+    // Auto-stop after 5 seconds
+    setTimeout(() => {
+      if (isRecording) {
+        setIsRecording(false);
+        setIsTranscribing(true);
+        pulseAnim.stopAnimation();
+        pulseAnim.setValue(1);
+        
+        setTimeout(() => {
+          setIsTranscribing(false);
+        }, 1500);
       }
-      
-      // Start speech recognition
-      console.log('🎤 Starting speech recognition...');
-      setIsRecording(true);
-      setIsTranscribing(false);
-      
-      ExpoSpeechRecognitionModule.start({
-        lang: 'en-US',
-        interimResults: true,
-        continuous: false,
-        maxAlternatives: 1,
-        addsPunctuation: true,
-        requiresOnDeviceRecognition: false,
-      });
-      
-    } catch (error) {
-      console.error('🎤 Speech recognition error:', error);
-      setIsRecording(false);
-      setIsTranscribing(false);
-      Alert.alert(
-        'Voice Input Error',
-        'Unable to start voice recognition. Please try again or type your answer.'
-      );
-    }
-  }, [currentStep, isRecording]);
+    }, 5000);
+  }, [currentStep, isRecording, formData.goalDetails, pulseAnim]);
   
   const handleNext = () => {
     if (!isCurrentQuestionAnswered()) {

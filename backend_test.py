@@ -1,7 +1,12 @@
 #!/usr/bin/env python3
 """
 Backend API Testing Suite for Thryvin Fitness App
-Tests the newly implemented features: AI Coach, Log Set, and Advanced Questionnaire endpoints.
+Tests the specific endpoints mentioned in the review request:
+1. Health Check - GET /api/health
+2. Exercise Counts API - GET /api/exercises/counts  
+3. Authentication Flow - POST /api/auth/login
+4. Workout Generation - POST /api/workouts/generate
+5. Exercises Fetch - GET /api/exercises?limit=5
 """
 
 import requests
@@ -11,17 +16,13 @@ import time
 import re
 from typing import Dict, List, Any, Optional
 
-# Configuration - Use localhost as specified in review request
-BASE_URL = "http://localhost:8001"
+# Configuration - Use the production URL from review request
+BASE_URL = "https://workout-bug-fix.preview.emergentagent.com"
 API_BASE = f"{BASE_URL}/api"
 
 # Test credentials from review request
 TEST_EMAIL = "test@example.com"
 TEST_PASSWORD = "password123"
-
-# Test configuration
-EXPECTED_EXERCISE_COUNT = 1819
-EXPECTED_VIDEO_COVERAGE = 100
 
 class ThryvinAPITester:
     def __init__(self):
@@ -49,19 +50,29 @@ class ThryvinAPITester:
             print(f"   Details: {json.dumps(details, indent=2)}")
     
     def test_health_endpoint(self) -> bool:
-        """Test the health endpoint to verify server is running"""
+        """Test the health endpoint - GET /api/health"""
         try:
             response = self.session.get(f"{API_BASE}/health")
             
             if response.status_code == 200:
                 health_data = response.json()
-                self.log_test("Health Check", True, "Server is healthy", health_data)
-                return True
-            elif response.status_code == 503:
-                # Server is running but in degraded state - continue testing
-                health_data = response.json()
-                self.log_test("Health Check", True, "Server is running (degraded status - continuing tests)", health_data)
-                return True
+                
+                # Check for expected fields from review request
+                expected_fields = ['ok', 'aiReady']
+                missing_fields = [field for field in expected_fields if field not in health_data]
+                
+                if missing_fields:
+                    self.log_test("Health Check", False, f"Missing expected fields: {missing_fields}", health_data)
+                    return False
+                
+                # Check that ok and aiReady are both true
+                if health_data.get('ok') and health_data.get('aiReady'):
+                    self.log_test("Health Check", True, "Server is healthy with AI ready", health_data)
+                    return True
+                else:
+                    self.log_test("Health Check", False, f"Health check shows issues: ok={health_data.get('ok')}, aiReady={health_data.get('aiReady')}", health_data)
+                    return False
+                    
             else:
                 self.log_test("Health Check", False, f"Health check failed with status {response.status_code}",
                             {"response": response.text})
@@ -72,373 +83,238 @@ class ThryvinAPITester:
             return False
     
     def authenticate_user(self) -> bool:
-        """Authenticate with test credentials"""
+        """Authenticate with test credentials - POST /api/auth/login"""
         try:
-            # First try to login using the main login endpoint
             login_data = {
-                "email": TEST_EMAIL,  # passport-local is configured to use 'email' field
+                "email": TEST_EMAIL,
                 "password": TEST_PASSWORD
             }
             
-            response = self.session.post(f"{API_BASE}/login", json=login_data)  # Use JSON
+            response = self.session.post(f"{API_BASE}/auth/login", json=login_data)
             
             if response.status_code == 200:
                 user_data = response.json()
-                self.user_id = user_data.get('user', {}).get('id')
-                self.log_test("Authentication", True, f"Successfully logged in as {TEST_EMAIL}")
-                return True
+                # Check for expected response structure (user object is sufficient for session-based auth)
+                if 'user' in user_data:
+                    self.user_id = user_data.get('user', {}).get('id')
+                    # Token might not be present in session-based auth, which is fine
+                    self.auth_token = user_data.get('token')
+                    self.log_test("Authentication", True, f"Successfully logged in as {TEST_EMAIL}")
+                    return True
+                else:
+                    self.log_test("Authentication", False, "Login response missing user object", user_data)
+                    return False
             else:
-                # Try to register if login fails
-                register_data = {
-                    "name": "Test User",
-                    "email": TEST_EMAIL,
-                    "password": TEST_PASSWORD
-                }
-                
-                register_response = self.session.post(f"{API_BASE}/register", json=register_data)
-                
-                if register_response.status_code == 200 or register_response.status_code == 201:
-                    # Now try login again
-                    login_response = self.session.post(f"{API_BASE}/login", json=login_data)
-                    if login_response.status_code == 200:
-                        user_data = login_response.json()
-                        self.user_id = user_data.get('user', {}).get('id')
-                        self.log_test("Authentication", True, f"Registered and logged in as {TEST_EMAIL}")
-                        return True
-                
                 self.log_test("Authentication", False, f"Failed to authenticate: {response.status_code}",
-                            {"login_response": response.text, "register_response": register_response.text if 'register_response' in locals() else None})
+                            {"response": response.text})
                 return False
                 
         except Exception as e:
             self.log_test("Authentication", False, f"Authentication error: {str(e)}")
             return False
     
-    def test_ai_coach_fitness_question(self) -> bool:
-        """Test AI Coach with fitness question - should get helpful response"""
+    def test_exercise_counts_endpoint(self) -> bool:
+        """Test GET /api/exercises/counts - New Feature"""
         try:
-            chat_data = {
-                "message": "How do I improve my squat form?",
-                "coach": "kai",
-                "trainingType": "strength",
-                "coachingStyle": "supportive"
-            }
-            
-            response = self.session.post(f"{API_BASE}/coach/chat", json=chat_data)
+            response = self.session.get(f"{API_BASE}/exercises/counts")
             
             if response.status_code != 200:
-                self.log_test("AI Coach - Fitness Question", False, 
+                self.log_test("Exercise Counts API", False, 
                             f"Expected status 200, got {response.status_code}",
                             {"response": response.text})
                 return False
             
             data = response.json()
             
-            if 'response' not in data:
-                self.log_test("AI Coach - Fitness Question", False, 
-                            "Response missing 'response' field",
+            # Check that response is an object with category counts
+            if not isinstance(data, dict):
+                self.log_test("Exercise Counts API", False, 
+                            "Response should be an object with counts",
+                            {"response": data})
+                return False
+            
+            # Check if response has counts object (nested structure)
+            counts_data = data.get('counts', data)  # Handle both flat and nested structures
+            
+            # Check for expected categories from review request
+            expected_categories = ['Strength', 'HIIT', 'Cardio', 'Flexibility', 'Mobility', 'Conditioning', 'Core']
+            found_categories = []
+            
+            for category in expected_categories:
+                if category in counts_data:
+                    count = counts_data[category]
+                    if isinstance(count, (int, float)) and count > 0:
+                        found_categories.append(category)
+            
+            # Verify at least Strength and Cardio have counts > 0 as mentioned in review
+            required_categories = ['Strength', 'Cardio']
+            missing_required = [cat for cat in required_categories if cat not in found_categories]
+            
+            if missing_required:
+                self.log_test("Exercise Counts API", False, 
+                            f"Missing required categories with counts > 0: {missing_required}",
+                            {"response": data, "found_categories": found_categories})
+                return False
+            
+            self.log_test("Exercise Counts API", True, 
+                        f"Got valid counts for {len(found_categories)} categories including required ones",
+                        {"categories": found_categories})
+            return True
+            
+        except Exception as e:
+            self.log_test("Exercise Counts API", False, f"Error: {str(e)}")
+            return False
+    
+    def test_workout_generation_endpoint(self) -> bool:
+        """Test POST /api/workouts/generate - Critical P0 fix verification"""
+        try:
+            # Create a sample user profile for workout generation
+            user_profile = {
+                "fitnessLevel": "intermediate",
+                "goals": ["strength", "cardio"],
+                "availableTime": 30,
+                "equipment": ["bodyweight"],
+                "preferences": {
+                    "workoutType": "HIIT",
+                    "intensity": "medium"
+                }
+            }
+            
+            workout_data = {
+                "userProfile": user_profile
+            }
+            
+            response = self.session.post(f"{API_BASE}/workouts/generate", json=workout_data)
+            
+            if response.status_code != 200:
+                self.log_test("Workout Generation", False, 
+                            f"Expected status 200, got {response.status_code}",
+                            {"response": response.text})
+                return False
+            
+            data = response.json()
+            
+            # Check for expected workout structure
+            required_fields = ['title', 'exercises', 'duration']
+            missing_fields = [field for field in required_fields if field not in data]
+            
+            if missing_fields:
+                self.log_test("Workout Generation", False, 
+                            f"Response missing required fields: {missing_fields}",
                             {"response_keys": list(data.keys())})
                 return False
             
-            coach_response = data['response']
-            
-            # Check that response is helpful and fitness-related
-            if len(coach_response) < 50:
-                self.log_test("AI Coach - Fitness Question", False, 
-                            "Response too short for a helpful fitness answer",
-                            {"response": coach_response})
+            # Verify exercises is an array
+            if not isinstance(data.get('exercises'), list):
+                self.log_test("Workout Generation", False, 
+                            "Exercises should be an array",
+                            {"exercises_type": type(data.get('exercises'))})
                 return False
             
-            # Check for fitness-related keywords in response
-            fitness_keywords = ['squat', 'form', 'technique', 'exercise', 'training', 'workout', 'muscle']
-            has_fitness_content = any(keyword.lower() in coach_response.lower() for keyword in fitness_keywords)
-            
-            if not has_fitness_content:
-                self.log_test("AI Coach - Fitness Question", False, 
-                            "Response doesn't contain fitness-related content",
-                            {"response": coach_response})
-                return False
-            
-            self.log_test("AI Coach - Fitness Question", True, 
-                        f"Got helpful fitness response ({len(coach_response)} chars)")
-            return True
-            
-        except Exception as e:
-            self.log_test("AI Coach - Fitness Question", False, f"Error: {str(e)}")
-            return False
-    
-    def test_ai_coach_non_fitness_question(self) -> bool:
-        """Test AI Coach with non-fitness question - should get polite redirect"""
-        try:
-            chat_data = {
-                "message": "Can squirrels fly?",
-                "coach": "kai",
-                "trainingType": "strength",
-                "coachingStyle": "supportive"
-            }
-            
-            response = self.session.post(f"{API_BASE}/coach/chat", json=chat_data)
-            
-            if response.status_code != 200:
-                self.log_test("AI Coach - Non-Fitness Question", False, 
-                            f"Expected status 200, got {response.status_code}",
-                            {"response": response.text})
-                return False
-            
-            data = response.json()
-            coach_response = data.get('response', '')
-            
-            # Check for polite redirect keywords
-            redirect_keywords = ['fitness', 'coach', 'workout', 'health', 'training', 'help you with']
-            has_redirect = any(keyword.lower() in coach_response.lower() for keyword in redirect_keywords)
-            
-            # Should NOT contain information about squirrels
-            contains_squirrel_info = 'fly' in coach_response.lower() and 'squirrel' in coach_response.lower() and 'glide' in coach_response.lower()
-            
-            if not has_redirect:
-                self.log_test("AI Coach - Non-Fitness Question", False, 
-                            "Response doesn't contain fitness redirect",
-                            {"response": coach_response})
-                return False
-            
-            if contains_squirrel_info:
-                self.log_test("AI Coach - Non-Fitness Question", False, 
-                            "Response contains non-fitness information about squirrels",
-                            {"response": coach_response})
-                return False
-            
-            self.log_test("AI Coach - Non-Fitness Question", True, 
-                        "Got appropriate redirect to fitness topics")
-            return True
-            
-        except Exception as e:
-            self.log_test("AI Coach - Non-Fitness Question", False, f"Error: {str(e)}")
-            return False
-    
-    def test_ai_coach_capital_question(self) -> bool:
-        """Test AI Coach with 'What is the capital of France?' - should get polite redirect"""
-        try:
-            chat_data = {
-                "message": "What is the capital of France?",
-                "coach": "kai",
-                "trainingType": "strength",
-                "coachingStyle": "supportive"
-            }
-            
-            response = self.session.post(f"{API_BASE}/coach/chat", json=chat_data)
-            
-            if response.status_code != 200:
-                self.log_test("AI Coach - Capital Question", False, 
-                            f"Expected status 200, got {response.status_code}",
-                            {"response": response.text})
-                return False
-            
-            data = response.json()
-            coach_response = data.get('response', '')
-            
-            # Check for polite redirect keywords
-            redirect_keywords = ['fitness', 'coach', 'workout', 'health', 'training']
-            has_redirect = any(keyword.lower() in coach_response.lower() for keyword in redirect_keywords)
-            
-            # Should NOT contain information about Paris/France
-            contains_geography_info = 'paris' in coach_response.lower() or ('france' in coach_response.lower() and 'capital' in coach_response.lower())
-            
-            if not has_redirect:
-                self.log_test("AI Coach - Capital Question", False, 
-                            "Response doesn't contain fitness redirect",
-                            {"response": coach_response})
-                return False
-            
-            if contains_geography_info:
-                self.log_test("AI Coach - Capital Question", False, 
-                            "Response contains geography information",
-                            {"response": coach_response})
-                return False
-            
-            self.log_test("AI Coach - Capital Question", True, 
-                        "Got appropriate redirect to fitness topics")
-            return True
-            
-        except Exception as e:
-            self.log_test("AI Coach - Capital Question", False, f"Error: {str(e)}")
-            return False
-    
-    def test_ai_coach_greeting(self) -> bool:
-        """Test AI Coach with greeting - should get friendly fitness-focused welcome"""
-        try:
-            chat_data = {
-                "message": "Hi!",
-                "coach": "kai",
-                "trainingType": "strength",
-                "coachingStyle": "supportive"
-            }
-            
-            response = self.session.post(f"{API_BASE}/coach/chat", json=chat_data)
-            
-            if response.status_code != 200:
-                self.log_test("AI Coach - Greeting", False, 
-                            f"Expected status 200, got {response.status_code}",
-                            {"response": response.text})
-                return False
-            
-            data = response.json()
-            coach_response = data.get('response', '')
-            
-            # Check for friendly greeting response
-            greeting_keywords = ['hello', 'hi', 'welcome', 'great', 'help']
-            fitness_keywords = ['fitness', 'workout', 'training', 'exercise', 'goals']
-            
-            has_greeting = any(keyword.lower() in coach_response.lower() for keyword in greeting_keywords)
-            has_fitness_focus = any(keyword.lower() in coach_response.lower() for keyword in fitness_keywords)
-            
-            if not has_greeting:
-                self.log_test("AI Coach - Greeting", False, 
-                            "Response doesn't contain friendly greeting",
-                            {"response": coach_response})
-                return False
-            
-            if not has_fitness_focus:
-                self.log_test("AI Coach - Greeting", False, 
-                            "Response doesn't focus on fitness topics",
-                            {"response": coach_response})
-                return False
-            
-            self.log_test("AI Coach - Greeting", True, 
-                        "Got friendly fitness-focused welcome")
-            return True
-            
-        except Exception as e:
-            self.log_test("AI Coach - Greeting", False, f"Error: {str(e)}")
-            return False
-    
-    def test_log_set_endpoint(self) -> bool:
-        """Test POST /api/workout/log-set - requires authentication"""
-        try:
-            if not self.user_id:
-                self.log_test("Log Set Endpoint", False, "User not authenticated")
-                return False
-            
-            set_data = {
-                "exerciseName": "Bench Press",
-                "setNumber": 1,
-                "weight": 135,
-                "reps": 10,
-                "note": "Felt strong today"
-            }
-            
-            response = self.session.post(f"{API_BASE}/workout/log-set", json=set_data)
-            
-            if response.status_code != 200:
-                self.log_test("Log Set Endpoint", False, 
-                            f"Expected status 200, got {response.status_code}",
-                            {"response": response.text})
-                return False
-            
-            data = response.json()
-            
-            if not data.get('success'):
-                self.log_test("Log Set Endpoint", False, 
-                            "Response doesn't indicate success",
+            # Verify we have at least one exercise
+            if len(data.get('exercises', [])) == 0:
+                self.log_test("Workout Generation", False, 
+                            "Workout should contain at least one exercise",
                             {"response": data})
                 return False
             
-            # Check that response contains expected fields
-            expected_fields = ['success']
-            missing_fields = [field for field in expected_fields if field not in data]
-            if missing_fields:
-                self.log_test("Log Set Endpoint", False, 
-                            f"Response missing fields: {missing_fields}",
-                            {"response": data})
-                return False
-            
-            self.log_test("Log Set Endpoint", True, 
-                        f"Successfully logged set: {set_data['exerciseName']} {set_data['weight']}kg x {set_data['reps']}")
+            self.log_test("Workout Generation", True, 
+                        f"Generated workout '{data.get('title')}' with {len(data.get('exercises', []))} exercises")
             return True
             
         except Exception as e:
-            self.log_test("Log Set Endpoint", False, f"Error: {str(e)}")
+            self.log_test("Workout Generation", False, f"Error: {str(e)}")
             return False
     
-    def test_advanced_questionnaire_endpoint(self) -> bool:
-        """Test POST /api/user/advanced-questionnaire - requires authentication"""
+    def test_exercises_fetch_endpoint(self) -> bool:
+        """Test GET /api/exercises?limit=5"""
         try:
-            if not self.user_id:
-                self.log_test("Advanced Questionnaire Endpoint", False, "User not authenticated")
-                return False
-            
-            questionnaire_data = {
-                "targets": "10K race in 3 months",
-                "enjoyedTraining": "Weight lifting, HIIT",
-                "dislikedTraining": "Long cardio"
-            }
-            
-            response = self.session.post(f"{API_BASE}/user/advanced-questionnaire", json=questionnaire_data)
+            response = self.session.get(f"{API_BASE}/exercises?limit=5")
             
             if response.status_code != 200:
-                self.log_test("Advanced Questionnaire Endpoint", False, 
+                self.log_test("Exercises Fetch", False, 
                             f"Expected status 200, got {response.status_code}",
                             {"response": response.text})
                 return False
             
             data = response.json()
             
-            if not data.get('success'):
-                self.log_test("Advanced Questionnaire Endpoint", False, 
-                            "Response doesn't indicate success",
+            # Handle both direct array and object with exercises array
+            exercises = data if isinstance(data, list) else data.get('exercises', [])
+            
+            # Check that we have exercises
+            if not isinstance(exercises, list):
+                self.log_test("Exercises Fetch", False, 
+                            "Response should contain an array of exercises",
+                            {"response_structure": str(type(data))})
+                return False
+            
+            # Check that we got exercises (should be <= 5 due to limit)
+            if len(exercises) == 0:
+                self.log_test("Exercises Fetch", False, 
+                            "Should return at least some exercises",
                             {"response": data})
                 return False
             
-            self.log_test("Advanced Questionnaire Endpoint", True, 
-                        "Successfully saved advanced questionnaire")
+            if len(exercises) > 5:
+                self.log_test("Exercises Fetch", False, 
+                            f"Limit=5 but got {len(exercises)} exercises",
+                            {"count": len(exercises)})
+                return False
+            
+            # Check that exercises have video URLs as mentioned in review
+            exercises_with_videos = 0
+            for exercise in exercises:
+                if isinstance(exercise, dict):
+                    # Check for various video URL field names
+                    video_fields = ['videoUrl', 'video_url', 'videoURL', 'video']
+                    for field in video_fields:
+                        if field in exercise and exercise[field]:
+                            exercises_with_videos += 1
+                            break
+            
+            self.log_test("Exercises Fetch", True, 
+                        f"Retrieved {len(exercises)} exercises, {exercises_with_videos} with video URLs")
             return True
             
         except Exception as e:
-            self.log_test("Advanced Questionnaire Endpoint", False, f"Error: {str(e)}")
+            self.log_test("Exercises Fetch", False, f"Error: {str(e)}")
             return False
-    
-    # Removed old test methods - replaced with new feature tests above
+
     def run_all_tests(self):
-        """Run all Thryvin API tests for newly implemented features"""
+        """Run all Thryvin API tests for endpoints specified in review request"""
         print("🏋️ Starting Thryvin Fitness App API Testing Suite")
+        print("Testing endpoints from review request:")
+        print("1. Health Check - GET /api/health")
+        print("2. Exercise Counts API - GET /api/exercises/counts")
+        print("3. Authentication Flow - POST /api/auth/login")
+        print("4. Workout Generation - POST /api/workouts/generate")
+        print("5. Exercises Fetch - GET /api/exercises?limit=5")
         print("=" * 60)
         
-        # Test server health first
+        # Test 1: Health Check
+        print("\n💚 Test 1: Health Check...")
         if not self.test_health_endpoint():
-            print("❌ Server health check failed. Aborting tests.")
-            return False
+            print("❌ Server health check failed. Continuing with other tests...")
         
         print(f"🔗 Backend URL: {BASE_URL}")
         print("=" * 60)
         
-        # Test authentication
-        print("\n🔐 Authentication Test...")
-        if not self.authenticate_user():
-            print("❌ Authentication failed. Cannot test authenticated endpoints.")
-            return False
+        # Test 2: Exercise Counts API (New Feature)
+        print("\n📊 Test 2: Exercise Counts API (New Feature)...")
+        self.test_exercise_counts_endpoint()
         
-        # Test 1: AI Coach Fitness Question
-        print("\n🤖 Test 1: AI Coach - Fitness Question...")
-        self.test_ai_coach_fitness_question()
+        # Test 3: Authentication Flow
+        print("\n🔐 Test 3: Authentication Flow...")
+        auth_success = self.authenticate_user()
         
-        # Test 2: AI Coach Non-Fitness Question
-        print("\n🚫 Test 2: AI Coach - Non-Fitness Question (Squirrels)...")
-        self.test_ai_coach_non_fitness_question()
+        # Test 4: Workout Generation (Critical P0 fix verification)
+        print("\n🤖 Test 4: Workout Generation (Critical P0 fix)...")
+        self.test_workout_generation_endpoint()
         
-        # Test 3: AI Coach Capital Question
-        print("\n🌍 Test 3: AI Coach - Capital Question...")
-        self.test_ai_coach_capital_question()
-        
-        # Test 4: AI Coach Greeting
-        print("\n👋 Test 4: AI Coach - Greeting...")
-        self.test_ai_coach_greeting()
-        
-        # Test 5: Log Set Endpoint
-        print("\n📝 Test 5: Log Set Endpoint...")
-        self.test_log_set_endpoint()
-        
-        # Test 6: Advanced Questionnaire Endpoint
-        print("\n📋 Test 6: Advanced Questionnaire Endpoint...")
-        self.test_advanced_questionnaire_endpoint()
+        # Test 5: Exercises Fetch
+        print("\n🏃 Test 5: Exercises Fetch...")
+        self.test_exercises_fetch_endpoint()
         
         print("\n" + "=" * 60)
         print("🏁 Thryvin API Test Results:")

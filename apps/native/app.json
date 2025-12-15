@@ -30,14 +30,7 @@
       "favicon": "./assets/favicon.png"
     },
     "plugins": [
-      "expo-router",
-      [
-        "expo-speech-recognition",
-        {
-          "microphonePermission": "Allow Thryvin to use the microphone for voice input in questionnaires.",
-          "speechRecognitionPermission": "Allow Thryvin to use speech recognition for questionnaire responses."
-        }
-      ]
+      "expo-router"
     ],
     "experiments": {
       "bridgeless": false,
