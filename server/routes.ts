@@ -6763,6 +6763,7 @@ async function getCoachResponse(
   trainingType: string,
   coachingStyle: string,
   userContext: string = '',
+  personalityTone: string = '',
 ): Promise<string> {
   try {
     // STRICT fitness-only enforcement
@@ -6792,8 +6793,8 @@ async function getCoachResponse(
     
     let systemPrompt = "";
 
-    // Configure coach personality based on coach type and coaching style
-    switch (coach) {
+    // Configure coach personality based on coach type
+    switch (coach?.toLowerCase()) {
       case "kai":
         systemPrompt = `You are Kai, a calisthenics expert coach. You specialize in bodyweight training, mobility, and functional fitness.`;
         break;
@@ -6803,21 +6804,47 @@ async function getCoachResponse(
       case "lumi":
         systemPrompt = `You are Lumi, a wellness and mobility coach. You specialize in yoga, flexibility, recovery, and mindfulness practices.`;
         break;
+      case "marcus":
+        systemPrompt = `You are Marcus, a powerlifting and strength coach. You specialize in heavy compound lifts, strength development, and athletic performance.`;
+        break;
+      case "maya":
+        systemPrompt = `You are Maya, a holistic fitness coach. You specialize in balanced training, mind-body connection, and sustainable fitness habits.`;
+        break;
+      case "alex":
+        systemPrompt = `You are Alex, an athletic performance coach. You specialize in sports performance, conditioning, and functional training.`;
+        break;
       default:
-        systemPrompt = `You are a fitness coach specializing in ${trainingType || 'general fitness'}.`;
+        systemPrompt = `You are ${coach || 'a fitness coach'}, specializing in ${trainingType || 'general fitness'}.`;
     }
 
-    // Add coaching style to system prompt
-    switch (coachingStyle) {
-      case "supportive":
-        systemPrompt += ` Your coaching style is supportive and encouraging. You use positive reinforcement and motivational language.`;
-        break;
-      case "direct":
-        systemPrompt += ` Your coaching style is direct and challenging. You push your clients to their limits and use straightforward language.`;
-        break;
-      case "analytical":
-        systemPrompt += ` Your coaching style is analytical and detailed. You focus on technique, form, and data-driven insights.`;
-        break;
+    // Add personality tone - THIS IS THE KEY PERSONALIZATION
+    if (personalityTone) {
+      systemPrompt += `\n\nYOUR PERSONALITY/TONE: Be ${personalityTone}`;
+    } else {
+      // Fallback to coaching style
+      switch (coachingStyle?.toLowerCase()) {
+        case "aggressive":
+          systemPrompt += `\n\nYOUR PERSONALITY: Be intense, challenging, and pushing. Use phrases like "Push harder!", "No excuses!", "Come on, let's go!", "You can do better than that!". Be demanding but motivating.`;
+          break;
+        case "friendly":
+          systemPrompt += `\n\nYOUR PERSONALITY: Be warm, supportive, and encouraging. Use phrases like "Great job!", "You've got this!", "No worries, take your time". Be understanding and positive.`;
+          break;
+        case "disciplined":
+          systemPrompt += `\n\nYOUR PERSONALITY: Be professional, structured, and focused. Be direct and clear. Emphasize consistency and proper form. Use phrases like "Stay focused", "Maintain discipline", "Follow the plan".`;
+          break;
+        case "motivational":
+          systemPrompt += `\n\nYOUR PERSONALITY: Be inspiring, uplifting, and energetic. Use phrases like "You're unstoppable!", "This is YOUR moment!", "Champions are made here!". Share motivational insights.`;
+          break;
+        case "supportive":
+          systemPrompt += ` Your coaching style is supportive and encouraging. You use positive reinforcement and motivational language.`;
+          break;
+        case "direct":
+          systemPrompt += ` Your coaching style is direct and challenging. You push your clients to their limits and use straightforward language.`;
+          break;
+        case "analytical":
+          systemPrompt += ` Your coaching style is analytical and detailed. You focus on technique, form, and data-driven insights.`;
+          break;
+      }
     }
     
     // Add user context for personalization
