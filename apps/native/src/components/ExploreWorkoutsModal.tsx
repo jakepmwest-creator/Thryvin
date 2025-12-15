@@ -107,27 +107,42 @@ const ExerciseCard = ({ exercise, onPress }: { exercise: any; onPress: () => voi
   );
 };
 
-// Equipment filter options
-const EQUIPMENT_FILTERS = [
-  { id: 'all', label: 'All Equipment' },
-  { id: 'bodyweight', label: 'Bodyweight' },
-  { id: 'dumbbell', label: 'Dumbbells' },
-  { id: 'barbell', label: 'Barbells' },
-  { id: 'machine', label: 'Machines' },
-  { id: 'cable', label: 'Cables' },
-  { id: 'kettlebell', label: 'Kettlebells' },
-  { id: 'band', label: 'Bands' },
-];
+// Equipment filter options - varies by category
+const EQUIPMENT_FILTERS: { [key: string]: { id: string; label: string }[] } = {
+  'Strength': [
+    { id: 'all', label: 'All' },
+    { id: 'dumbbell', label: 'Dumbbells' },
+    { id: 'barbell', label: 'Barbells' },
+    { id: 'machine', label: 'Machines' },
+    { id: 'cable', label: 'Cables' },
+    { id: 'kettlebell', label: 'Kettlebells' },
+  ],
+  'Calisthenics': [
+    { id: 'all', label: 'All' },
+    { id: 'bodyweight', label: 'Bodyweight' },
+    { id: 'bar', label: 'Pull-up Bar' },
+    { id: 'rings', label: 'Rings' },
+    { id: 'parallettes', label: 'Parallettes' },
+  ],
+  'Cardio': [
+    { id: 'all', label: 'All' },
+    { id: 'machine', label: 'Machines' },
+    { id: 'outdoor', label: 'Outdoor' },
+  ],
+  'Flexibility': [
+    { id: 'all', label: 'All' },
+    { id: 'static', label: 'Static' },
+    { id: 'dynamic', label: 'Dynamic' },
+    { id: 'yoga', label: 'Yoga' },
+  ],
+};
 
-// Category mapping for filtering
+// Category mapping for filtering - updated for new categories
 const CATEGORY_MAP: { [key: string]: string[] } = {
-  'Strength': ['upper-body', 'lower-body', 'chest', 'back', 'shoulders', 'arms', 'legs'],
-  'Cardio': ['cardio', 'full-body', 'conditioning'],
-  'Core': ['core', 'abs'],
-  'Flexibility': ['warmup', 'recovery', 'mobility', 'flexibility'],
-  'Full Body': ['full-body', 'full'],
-  'Upper Body': ['upper-body', 'chest', 'back', 'shoulders', 'arms'],
-  'Lower Body': ['lower-body', 'legs', 'glutes'],
+  'Strength': ['weightlifting', 'strength', 'powerlifting', 'barbell', 'dumbbell', 'chest', 'back', 'shoulders', 'arms', 'legs', 'upper-body', 'lower-body'],
+  'Calisthenics': ['bodyweight', 'calisthenics', 'gymnastics', 'pull-up', 'push-up', 'dip', 'plank'],
+  'Cardio': ['cardio', 'running', 'cycling', 'rowing', 'swimming', 'hiit', 'jump rope', 'treadmill', 'elliptical', 'stair'],
+  'Flexibility': ['flexibility', 'stretching', 'yoga', 'mobility', 'warmup', 'recovery', 'foam roll', 'stretch'],
 };
 
 export const ExploreWorkoutsModal = ({ visible, onClose, category, categoryGradient }: ExploreWorkoutsModalProps) => {
