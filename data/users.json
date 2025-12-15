@@ -301,5 +301,57 @@
     "xpPoints": 0,
     "level": "Bronze",
     "createdAt": "2025-12-15T16:28:35.941Z"
+  },
+  {
+    "id": 14,
+    "name": "Hggb",
+    "gender": "male",
+    "dateOfBirth": "2000-01-30T00:00:00.000Z",
+    "height": "",
+    "weight": "98",
+    "heightUnit": "ft",
+    "weightUnit": "kg",
+    "feet": "6",
+    "inches": "5",
+    "experience": "intermediate",
+    "fitnessGoals": [
+      "increase_flexibility",
+      "get_toned",
+      "general_health"
+    ],
+    "nutritionGoals": [
+      "meal_prep",
+      "calorie_deficit",
+      "calorie_surplus"
+    ],
+    "equipment": [
+      "full_gym"
+    ],
+    "trainingDays": "6",
+    "sessionDuration": "60+",
+    "trainingSchedule": "flexible",
+    "selectedDays": [
+      "mon",
+      "tue",
+      "wed",
+      "thu",
+      "fri",
+      "sat",
+      "sun"
+    ],
+    "specificDates": [],
+    "injuries": [],
+    "injuriesOther": "",
+    "coachingStyle": "supportive",
+    "coachName": "Jordan Rivers",
+    "email": "gugu@yyh.com",
+    "password": "4de9669c76206be694ebfcd7960c21a48b54c249b3480716910db3e4ab9645fcb597d7e6a2100621082424d56deb2a4644c62114a12cb4fcde6df9e92cc0cb1a.52c6a6d521f3e72d027d9b98b56c35b1",
+    "trialEndsAt": "2025-12-22T16:32:05.928Z",
+    "hasActiveSubscription": false,
+    "weeklyGoalWorkouts": 5,
+    "weeklyGoalMinutes": 150,
+    "xpPoints": 0,
+    "level": "Bronze",
+    "createdAt": "2025-12-15T16:32:05.962Z"
   }
 ]
