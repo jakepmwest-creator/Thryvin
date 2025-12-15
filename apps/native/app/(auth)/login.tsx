@@ -374,6 +374,41 @@ export default function LoginScreen() {
                   >
                     <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
                   </TouchableOpacity>
+
+                  {/* Quick Login Options (PIN / Biometric) */}
+                  {(pinEnabled || (biometricAvailable && biometricEnabled)) && (
+                    <View style={styles.quickLoginContainer}>
+                      <View style={styles.quickLoginDivider}>
+                        <View style={styles.dividerLine} />
+                        <Text style={styles.dividerText}>Quick Login</Text>
+                        <View style={styles.dividerLine} />
+                      </View>
+                      <View style={styles.quickLoginButtons}>
+                        {pinEnabled && (
+                          <TouchableOpacity 
+                            style={styles.quickLoginButton}
+                            onPress={() => setShowPinLogin(true)}
+                          >
+                            <View style={styles.quickLoginIcon}>
+                              <Ionicons name="keypad" size={22} color={COLORS.accent} />
+                            </View>
+                            <Text style={styles.quickLoginText}>PIN</Text>
+                          </TouchableOpacity>
+                        )}
+                        {biometricAvailable && biometricEnabled && (
+                          <TouchableOpacity 
+                            style={styles.quickLoginButton}
+                            onPress={handleBiometricLogin}
+                          >
+                            <View style={styles.quickLoginIcon}>
+                              <Ionicons name="finger-print" size={22} color={COLORS.accent} />
+                            </View>
+                            <Text style={styles.quickLoginText}>Biometric</Text>
+                          </TouchableOpacity>
+                        )}
+                      </View>
+                    </View>
+                  )}
                 </View>
 
                 {/* Divider */}
