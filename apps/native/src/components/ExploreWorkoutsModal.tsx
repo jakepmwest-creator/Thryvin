@@ -478,11 +478,12 @@ const styles = StyleSheet.create({
   searchContainer: { flexDirection: 'row', alignItems: 'center', backgroundColor: COLORS.lightGray, margin: 16, marginBottom: 8, borderRadius: 12, paddingHorizontal: 14, gap: 10 },
   searchInput: { flex: 1, paddingVertical: 14, fontSize: 16, color: COLORS.text },
   
-  filterContainer: { paddingHorizontal: 16, paddingBottom: 12 },
-  filterChip: { paddingHorizontal: 16, paddingVertical: 8, backgroundColor: COLORS.lightGray, borderRadius: 20, marginRight: 10 },
-  filterChipActive: { backgroundColor: COLORS.accent },
-  filterChipText: { fontSize: 14, fontWeight: '500', color: COLORS.text },
-  filterChipTextActive: { color: COLORS.white },
+  filterContainer: { paddingHorizontal: 20, marginTop: 12 },
+  filterChip: { paddingHorizontal: 16, paddingVertical: 10, borderRadius: 20, backgroundColor: COLORS.lightGray, marginRight: 10, overflow: 'hidden' },
+  filterChipActiveWrapper: { padding: 0, backgroundColor: 'transparent' },
+  filterChipGradient: { paddingHorizontal: 16, paddingVertical: 10, borderRadius: 20 },
+  filterChipText: { fontSize: 14, fontWeight: '500', color: COLORS.mediumGray },
+  filterChipTextActive: { fontSize: 14, fontWeight: '600', color: COLORS.white },
   
   content: { flex: 1, paddingHorizontal: 16 },
   
