@@ -196,13 +196,16 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   logout: async () => {
     set({ isLoading: true });
     try {
+      // Reset workout store data FIRST
+      await useWorkoutStore.getState().resetAllData();
+      
       // Clear ALL stored user data for a fresh start on next login
       await deleteStorageItem('auth_user');
       await deleteStorageItem('user_email');
       await deleteStorageItem('user_password');
       await deleteStorageItem('user_pin');
       
-      // Clear workout data
+      // Clear workout data (backup - in case resetAllData missed any)
       await deleteStorageItem('week_workouts');
       await deleteStorageItem('week_workouts_date');
       await deleteStorageItem('week_workouts_version');
