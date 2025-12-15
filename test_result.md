@@ -1,80 +1,41 @@
-# Test Results - Thryvin Fitness App
+# Test Results - Thryvin AI Fitness App
 
-## Latest Test Run: December 11, 2025
+## Latest Changes Summary
+1. **Video autoplay fix**: Changed `shouldPlay={false}` to `shouldPlay={true}` in ExploreWorkoutsModal.tsx
+2. **Dynamic exercise counts**: Added `/api/exercises/counts` endpoint and updated workouts.tsx to fetch dynamic counts
+3. **Voice-to-text**: Implemented real speech recognition using expo-speech-recognition in AdvancedQuestionnaireModal.tsx
+4. **Workout error handling**: Added proper error UI with retry button in index.tsx home screen
+5. **PIN login**: Added PIN login modal to login screen with quick login buttons
+6. **Biometric login**: Already implemented, added visibility for biometric quick login option
 
-### Session Updates - Full AI Integration
+## API Endpoints to Test
+1. GET /api/exercises/counts - Returns exercise counts by category
+2. GET /api/health - Health check
+3. POST /api/workouts/generate - Generate AI workout
 
-#### 1. AI Integration - Notes Logging ✅
-**Files Modified**: 
-- `/app/apps/native/app/workout-hub.tsx`
-- `/app/apps/native/src/stores/workout-store.ts`
+## Test Credentials
+- Email: test@example.com
+- Password: password123
 
-**Features**:
-- Notes entered during sets are now saved alongside reps/weights
-- Notes display under completed sets in the UI  
-- Notes sent to backend `/api/workout/log-set` for AI learning
-- AI coach uses comprehensive user context from all data sources
+## Features to Test
+1. **Explore Workouts**: 
+   - Exercise counts should be dynamic (not static 41, 32, etc.)
+   - Videos should autoplay when viewing exercise details
+2. **Home Screen**:
+   - Error state should show with retry button if workout generation fails
+   - Workout should display properly when loaded
+3. **Login Screen**:
+   - Quick login buttons (PIN/Biometric) should appear if enabled
+   - PIN login modal should work
+4. **Voice Input**:
+   - Microphone in Advanced Questionnaire should request permissions
+   - Real speech-to-text should work (platform dependent)
 
-#### 2. AI Coach Fitness-Only Restriction ✅
-**Files Modified**: 
-- `/app/server/routes.ts` (getCoachResponse function)
-- `/app/apps/native/src/components/AICoachWidget.tsx`
+## Testing Protocol
+- Run backend testing for API endpoints
+- Run frontend testing for UI components
 
-**Features**:
-- Strict keyword filtering for fitness-related topics
-- Non-fitness questions politely redirected
-- Greetings handled gracefully
-- Backend double-check on fitness topics
-- **TESTED**: Correctly rejects "Can squirrels fly?" and "Capital of France?"
-
-#### 3. Workout Completion Popup Fixed ✅
-**File**: `/app/apps/native/app/workout-hub.tsx`
-
-**Features**:
-- Shows actual workout duration (from timer, not planned duration)
-- Shows completed exercises count
-- Calculates and shows estimated calories burned
-- "Tap anywhere to continue" hint
-- 5-second auto-dismiss
-
-#### 4. Bug Fix - cooldownExercises ✅
-**File**: `/app/apps/native/app/workout-hub.tsx`
-
-**Fix**: Changed `cooldownExercises` to `recoveryExercises` (correct variable name)
-
----
-
-### Previous Features Implemented
-
-#### 1. "When Can You Train?" Onboarding Question ✅
-**File**: `/app/apps/native/app/(auth)/onboarding.tsx`
-
-#### 2. Advanced Questionnaire Modal ✅
-**File**: `/app/apps/native/src/components/AdvancedQuestionnaireModal.tsx`
-
-#### 3. Weekly Schedule Check Modal ✅
-**File**: `/app/apps/native/src/components/WeeklyScheduleCheckModal.tsx`
-
-#### 4. Profile Integration ✅
-**File**: `/app/apps/native/app/(tabs)/profile.tsx`
-
----
-
-### Testing Notes
-
-**Backend API Tests**:
-- ✅ AI Coach (POST /api/coach/chat) - Fitness-only restriction working
-- ⚠️ Auth endpoints use Bearer token for mobile app, session cookies for web
-
-**Frontend**:
-- React Native app - requires device/simulator testing
-- Changes verified through code review and build success
-
----
-
-### Upcoming Tasks
-1. Profile page improvements (gradients, confirmations, toggles)
-2. Pin code toggle functionality
-3. Biometrics toggle
-4. Push notification toggles
-5. Voice button for Reset Program
+## Incorporate User Feedback
+- Focus on testing the workout generation flow
+- Verify exercise counts are dynamically loaded
+- Check video autoplay behavior
