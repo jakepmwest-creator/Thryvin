@@ -17,7 +17,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useAuthStore } from '../stores/auth-store';
-import { useVoiceInput } from '../hooks/useVoiceInput';
+import { Audio } from 'expo-av';
 
 const COLORS = {
   accent: '#A22BF6',
@@ -29,6 +29,8 @@ const COLORS = {
   success: '#34C759',
   danger: '#FF3B30',
 };
+
+const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL || 'https://workout-companion-23.preview.emergentagent.com';
 
 interface AdvancedQuestionnaireModalProps {
   visible: boolean;
@@ -98,6 +100,137 @@ const QUESTIONS = [
   },
 ];
 
+// Individual voice recorder component for each input
+const VoiceRecorderButton = ({ 
+  onTranscription, 
+  goalKey 
+}: { 
+  onTranscription: (text: string) => void;
+  goalKey?: string;
+}) => {
+  const [isRecording, setIsRecording] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const recordingRef = useRef<Audio.Recording | null>(null);
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  const startRecording = async () => {
+    try {
+      const { granted } = await Audio.requestPermissionsAsync();
+      if (!granted) {
+        Alert.alert('Permission Required', 'Please allow microphone access.');
+        return;
+      }
+
+      await Audio.setAudioModeAsync({
+        allowsRecordingIOS: true,
+        playsInSilentModeIOS: true,
+      });
+
+      const { recording } = await Audio.Recording.createAsync(
+        Audio.RecordingOptionsPresets.HIGH_QUALITY
+      );
+      
+      recordingRef.current = recording;
+      setIsRecording(true);
+
+      // Auto-stop after 30 seconds
+      timeoutRef.current = setTimeout(() => stopRecording(), 30000);
+    } catch (error) {
+      console.error('Failed to start recording:', error);
+      Alert.alert('Error', 'Failed to start recording');
+    }
+  };
+
+  const stopRecording = async () => {
+    if (!recordingRef.current) return;
+
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+      timeoutRef.current = null;
+    }
+
+    try {
+      setIsRecording(false);
+      setIsProcessing(true);
+
+      await recordingRef.current.stopAndUnloadAsync();
+      const uri = recordingRef.current.getURI();
+      recordingRef.current = null;
+
+      if (!uri) throw new Error('No recording URI');
+
+      const formData = new FormData();
+      formData.append('audio', {
+        uri,
+        type: 'audio/m4a',
+        name: 'recording.m4a',
+      } as any);
+
+      const response = await fetch(`${API_BASE_URL}/api/transcribe`, {
+        method: 'POST',
+        headers: { 'Bypass-Tunnel-Reminder': 'true' },
+        body: formData,
+      });
+
+      if (!response.ok) {
+        if (response.status === 503) {
+          throw new Error('Voice input temporarily unavailable. Please type instead.');
+        }
+        throw new Error('Transcription failed');
+      }
+
+      const result = await response.json();
+      if (result.text) {
+        onTranscription(result.text);
+      }
+    } catch (error: any) {
+      Alert.alert('Voice Input', error.message || 'Failed to transcribe');
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  const handlePress = () => {
+    if (isRecording) {
+      stopRecording();
+    } else {
+      startRecording();
+    }
+  };
+
+  return (
+    <TouchableOpacity
+      style={[styles.voiceButton, isRecording && styles.voiceButtonRecording]}
+      onPress={handlePress}
+      disabled={isProcessing}
+    >
+      {isRecording ? (
+        <View style={[styles.voiceButtonGradient, { backgroundColor: COLORS.danger }]}>
+          <Ionicons name="stop" size={18} color={COLORS.white} />
+        </View>
+      ) : isProcessing ? (
+        <LinearGradient
+          colors={[COLORS.accent, COLORS.accentSecondary]}
+          style={styles.voiceButtonGradient}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+        >
+          <ActivityIndicator size="small" color={COLORS.white} />
+        </LinearGradient>
+      ) : (
+        <LinearGradient
+          colors={[COLORS.accent, COLORS.accentSecondary]}
+          style={styles.voiceButtonGradient}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+        >
+          <Ionicons name="mic" size={18} color={COLORS.white} />
+        </LinearGradient>
+      )}
+    </TouchableOpacity>
+  );
+};
+
 export const AdvancedQuestionnaireModal = ({
   visible,
   onClose,
@@ -123,6 +256,9 @@ export const AdvancedQuestionnaireModal = ({
   // Get user's goals from their profile
   const userGoals = user?.fitnessGoals || ['Build muscle', 'Lose weight', 'Improve fitness'];
   
+  // Track which goals have been filled
+  const [filledGoals, setFilledGoals] = useState<Set<string>>(new Set());
+  
   useEffect(() => {
     // Initialize goal details with user's goals
     const initialGoalDetails: { [key: string]: string } = {};
@@ -132,11 +268,19 @@ export const AdvancedQuestionnaireModal = ({
     setFormData(prev => ({ ...prev, goalDetails: initialGoalDetails }));
   }, [user]);
   
+  // Update filled goals tracker
+  useEffect(() => {
+    const filled = new Set<string>();
+    Object.entries(formData.goalDetails).forEach(([key, value]) => {
+      if (value.trim().length > 0) filled.add(key);
+    });
+    setFilledGoals(filled);
+  }, [formData.goalDetails]);
+  
   useEffect(() => {
     if (visible) {
       setShowIntro(true);
       setCurrentStep(0);
-      // Animate in
       fadeAnim.setValue(0);
       slideAnim.setValue(50);
       Animated.parallel([
@@ -158,65 +302,38 @@ export const AdvancedQuestionnaireModal = ({
   const currentQuestion = QUESTIONS[currentStep] || QUESTIONS[0];
   const progress = ((currentStep + 1) / QUESTIONS.length) * 100;
   
-  // Check if current question is answered
+  // Check if current question is answered - ALL goals must be filled
   const isCurrentQuestionAnswered = () => {
     if (!currentQuestion) return false;
     
     if (currentQuestion.isGoalDetails) {
-      // Check if at least one goal has details
+      // ALL goals must have details
       const goalValues = Object.values(formData.goalDetails);
-      return goalValues.some(v => v.trim().length > 0);
+      return goalValues.length > 0 && goalValues.every(v => v.trim().length > 0);
     }
     
     const value = (formData as any)[currentQuestion.id] || '';
     return value.trim().length > 0;
   };
   
-  // Voice input using the same hook as the coach
-  const handleVoiceTranscription = useCallback((text: string) => {
-    const currentQuestion = QUESTIONS[currentStep];
-    
-    // Update the form with transcription
-    if (currentQuestion.id === 'goalDetails') {
-      const goals = formData.goalDetails || {};
-      const firstGoalKey = Object.keys(goals)[0];
-      if (firstGoalKey) {
-        setFormData(prev => ({
-          ...prev,
-          goalDetails: {
-            ...prev.goalDetails,
-            [firstGoalKey]: text
-          }
-        }));
-      }
-    } else {
-      setFormData(prev => ({
-        ...prev,
-        [currentQuestion.id]: text
-      }));
-    }
-  }, [currentStep, formData.goalDetails]);
-
-  const { isRecording, isProcessing, toggleRecording } = useVoiceInput({
-    onTranscription: handleVoiceTranscription,
-    onError: (error) => {
-      Alert.alert('Voice Input', error);
-    },
-    maxDuration: 30,
-  });
-
-  // Handle voice button press
-  const handleVoiceInput = useCallback(() => {
-    toggleRecording();
-  }, [toggleRecording]);
+  // Check how many goals are remaining
+  const remainingGoals = userGoals.length - filledGoals.size;
   
   const handleNext = () => {
     if (!isCurrentQuestionAnswered()) {
-      Alert.alert(
-        'Please Answer',
-        'Please provide an answer before continuing. This helps your AI coach create the best workouts for you.',
-        [{ text: 'OK' }]
-      );
+      if (currentQuestion.isGoalDetails) {
+        Alert.alert(
+          'Complete All Goals',
+          `Please fill in details for all ${userGoals.length} goals. You have ${remainingGoals} remaining - scroll down to see them all.`,
+          [{ text: 'OK' }]
+        );
+      } else {
+        Alert.alert(
+          'Please Answer',
+          'Please provide an answer before continuing.',
+          [{ text: 'OK' }]
+        );
+      }
       return;
     }
     
@@ -264,22 +381,18 @@ export const AdvancedQuestionnaireModal = ({
       completedAt: new Date().toISOString(),
     };
     
-    // Save locally
     await AsyncStorage.setItem('advancedQuestionnaire', JSON.stringify(completeData));
     await AsyncStorage.removeItem('advancedQuestionnaireSkipped');
     
-    // Also save to backend for AI learning (non-blocking)
     try {
-      const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL || 'https://workout-companion-23.preview.emergentagent.com';
       await fetch(`${API_BASE_URL}/api/user/advanced-questionnaire`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(completeData),
         credentials: 'include',
       });
-      console.log('✅ Advanced questionnaire saved to backend for AI learning');
     } catch (error) {
-      console.log('Could not sync questionnaire to backend (will use local)');
+      console.log('Could not sync questionnaire to backend');
     }
     
     onComplete(completeData);
@@ -305,6 +418,10 @@ export const AdvancedQuestionnaireModal = ({
   const renderTextInput = (key: string, placeholder: string, goalKey?: string) => {
     const value = goalKey ? formData.goalDetails[goalKey] || '' : (formData as any)[key] || '';
     
+    const handleVoiceTranscription = (text: string) => {
+      updateFormData(key, text, goalKey);
+    };
+    
     return (
       <View style={styles.inputContainer}>
         <TextInput
@@ -317,35 +434,10 @@ export const AdvancedQuestionnaireModal = ({
           numberOfLines={4}
           textAlignVertical="top"
         />
-        <TouchableOpacity
-          style={[styles.voiceButton, isRecording && styles.voiceButtonRecording]}
-          onPress={handleVoiceInput}
-          disabled={isProcessing}
-        >
-          {isRecording ? (
-            <View style={[styles.voiceButtonGradient, { backgroundColor: COLORS.danger }]}>
-              <Ionicons name="stop" size={20} color={COLORS.white} />
-            </View>
-          ) : isProcessing ? (
-            <LinearGradient
-              colors={[COLORS.accent, COLORS.accentSecondary]}
-              style={styles.voiceButtonGradient}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-            >
-              <ActivityIndicator size="small" color={COLORS.white} />
-            </LinearGradient>
-          ) : (
-            <LinearGradient
-              colors={[COLORS.accent, COLORS.accentSecondary]}
-              style={styles.voiceButtonGradient}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-            >
-              <Ionicons name="mic" size={20} color={COLORS.white} />
-            </LinearGradient>
-          )}
-        </TouchableOpacity>
+        <VoiceRecorderButton 
+          onTranscription={handleVoiceTranscription}
+          goalKey={goalKey}
+        />
       </View>
     );
   };
@@ -353,29 +445,59 @@ export const AdvancedQuestionnaireModal = ({
   const renderGoalDetails = () => {
     return (
       <View style={styles.goalsContainer}>
-        {userGoals.map((goal: string, index: number) => (
-          <View key={goal} style={styles.goalItem}>
-            <View style={styles.goalHeader}>
-              <View style={styles.goalNumber}>
-                <LinearGradient
-                  colors={[COLORS.accent, COLORS.accentSecondary]}
-                  style={styles.goalNumberGradient}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 1 }}
-                >
-                  <Text style={styles.goalNumberText}>{index + 1}</Text>
-                </LinearGradient>
+        {/* Scroll hint at top */}
+        <View style={styles.scrollHintTop}>
+          <Ionicons name="information-circle" size={16} color={COLORS.accent} />
+          <Text style={styles.scrollHintText}>
+            Complete all {userGoals.length} goals below • {filledGoals.size}/{userGoals.length} done
+          </Text>
+        </View>
+        
+        {userGoals.map((goal: string, index: number) => {
+          const isFilled = filledGoals.has(goal);
+          return (
+            <View key={goal} style={[styles.goalItem, isFilled && styles.goalItemFilled]}>
+              <View style={styles.goalHeader}>
+                <View style={[styles.goalNumber, isFilled && styles.goalNumberFilled]}>
+                  {isFilled ? (
+                    <View style={styles.goalCheckmark}>
+                      <Ionicons name="checkmark" size={14} color={COLORS.white} />
+                    </View>
+                  ) : (
+                    <LinearGradient
+                      colors={[COLORS.accent, COLORS.accentSecondary]}
+                      style={styles.goalNumberGradient}
+                      start={{ x: 0, y: 0 }}
+                      end={{ x: 1, y: 1 }}
+                    >
+                      <Text style={styles.goalNumberText}>{index + 1}</Text>
+                    </LinearGradient>
+                  )}
+                </View>
+                <Text style={styles.goalLabel}>{goal}</Text>
+                {isFilled && (
+                  <Ionicons name="checkmark-circle" size={18} color={COLORS.success} />
+                )}
               </View>
-              <Text style={styles.goalLabel}>{goal}</Text>
+              {renderTextInput('goalDetails', `Tell us more about your "${goal}" goal...`, goal)}
             </View>
-            {renderTextInput('goalDetails', `Tell us more about your "${goal}" goal...`, goal)}
+          );
+        })}
+        
+        {/* Scroll hint at bottom if not all filled */}
+        {remainingGoals > 0 && (
+          <View style={styles.scrollHintBottom}>
+            <Ionicons name="arrow-up" size={16} color={COLORS.accent} />
+            <Text style={styles.scrollHintText}>
+              {remainingGoals} goal{remainingGoals > 1 ? 's' : ''} remaining above
+            </Text>
           </View>
-        ))}
+        )}
       </View>
     );
   };
   
-  // Intro screen - asking if they want to do the questionnaire
+  // Intro screen
   const renderIntro = () => (
     <View style={styles.introContainer}>
       <View style={styles.introIconContainer}>
@@ -442,7 +564,6 @@ export const AdvancedQuestionnaireModal = ({
   
   // Main questionnaire content
   const renderQuestionnaire = () => {
-    // Safety check
     if (!currentQuestion) {
       return (
         <View style={{ padding: 40, alignItems: 'center' }}>
@@ -486,7 +607,7 @@ export const AdvancedQuestionnaireModal = ({
       <ScrollView
         style={styles.content}
         contentContainerStyle={styles.contentInner}
-        showsVerticalScrollIndicator={false}
+        showsVerticalScrollIndicator={true}
         keyboardShouldPersistTaps="handled"
       >
         {/* Question */}
@@ -526,13 +647,30 @@ export const AdvancedQuestionnaireModal = ({
         <View style={styles.hintContainer}>
           <Ionicons name="mic-outline" size={16} color={COLORS.mediumGray} />
           <Text style={styles.hintText}>
-            Tap the microphone to speak your answer
+            Tap each microphone to speak your answer
           </Text>
         </View>
       </ScrollView>
       
       {/* Footer Buttons */}
       <View style={styles.footer}>
+        {/* Progress indicator for goals */}
+        {currentQuestion.isGoalDetails && (
+          <View style={styles.goalsProgressBar}>
+            <Text style={styles.goalsProgressText}>
+              {filledGoals.size}/{userGoals.length} goals completed
+            </Text>
+            <View style={styles.goalsProgressTrack}>
+              <View 
+                style={[
+                  styles.goalsProgressFill, 
+                  { width: `${(filledGoals.size / userGoals.length) * 100}%` }
+                ]} 
+              />
+            </View>
+          </View>
+        )}
+        
         <View style={styles.buttonRow}>
           <TouchableOpacity style={styles.backButton} onPress={handleBack}>
             <Ionicons name="arrow-back" size={20} color={COLORS.accent} />
@@ -765,7 +903,7 @@ const styles = StyleSheet.create({
   },
   questionContainer: {
     alignItems: 'center',
-    marginBottom: 28,
+    marginBottom: 24,
     minHeight: 100,
   },
   questionIcon: {
@@ -818,19 +956,19 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.lightGray,
     borderRadius: 16,
     padding: 16,
-    paddingRight: 60,
+    paddingRight: 56,
     fontSize: 15,
     color: COLORS.text,
-    minHeight: 120,
+    minHeight: 100,
     textAlignVertical: 'top',
   },
   voiceButton: {
     position: 'absolute',
-    right: 12,
-    bottom: 12,
-    width: 44,
-    height: 44,
-    borderRadius: 22,
+    right: 10,
+    bottom: 10,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
     alignItems: 'center',
     justifyContent: 'center',
     overflow: 'hidden',
@@ -845,10 +983,42 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.danger,
   },
   goalsContainer: {
-    gap: 20,
+    gap: 16,
+  },
+  scrollHintTop: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: `${COLORS.accent}10`,
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    borderRadius: 12,
+    marginBottom: 8,
+    gap: 8,
+  },
+  scrollHintBottom: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 12,
+    gap: 8,
+  },
+  scrollHintText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: COLORS.accent,
   },
   goalItem: {
-    marginBottom: 8,
+    marginBottom: 4,
+    padding: 12,
+    backgroundColor: COLORS.lightGray,
+    borderRadius: 16,
+    borderWidth: 2,
+    borderColor: 'transparent',
+  },
+  goalItemFilled: {
+    borderColor: COLORS.success,
+    backgroundColor: `${COLORS.success}08`,
   },
   goalHeader: {
     flexDirection: 'row',
@@ -857,12 +1027,22 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   goalNumber: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
+    width: 28,
+    height: 28,
+    borderRadius: 14,
     alignItems: 'center',
     justifyContent: 'center',
     overflow: 'hidden',
+  },
+  goalNumberFilled: {
+    backgroundColor: COLORS.success,
+  },
+  goalCheckmark: {
+    width: '100%',
+    height: '100%',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: COLORS.success,
   },
   goalNumberGradient: {
     width: '100%',
@@ -871,12 +1051,12 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   goalNumberText: {
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '700',
     color: COLORS.white,
   },
   goalLabel: {
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: '600',
     color: COLORS.text,
     flex: 1,
@@ -897,6 +1077,27 @@ const styles = StyleSheet.create({
     padding: 20,
     borderTopWidth: 1,
     borderTopColor: COLORS.lightGray,
+  },
+  goalsProgressBar: {
+    marginBottom: 16,
+  },
+  goalsProgressText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: COLORS.accent,
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  goalsProgressTrack: {
+    height: 6,
+    backgroundColor: COLORS.lightGray,
+    borderRadius: 3,
+    overflow: 'hidden',
+  },
+  goalsProgressFill: {
+    height: '100%',
+    backgroundColor: COLORS.success,
+    borderRadius: 3,
   },
   buttonRow: {
     flexDirection: 'row',

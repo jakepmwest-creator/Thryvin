@@ -6604,48 +6604,60 @@ Respond with a complete workout in JSON format:
         })
         .from(exercises);
       
-      // Updated category mappings for new structure: Strength, Calisthenics, Cardio, Flexibility
-      const categoryMappings: { [key: string]: string[] } = {
-        'Strength': ['weightlifting', 'strength', 'powerlifting', 'barbell', 'dumbbell', 'chest', 'back', 'shoulders', 'arms', 'legs', 'upper-body', 'lower-body', 'biceps', 'triceps', 'quads', 'hamstrings', 'glutes'],
-        'Calisthenics': ['bodyweight', 'calisthenics', 'gymnastics'],
-        'Cardio': ['cardio', 'running', 'cycling', 'rowing', 'swimming', 'jump rope', 'treadmill', 'elliptical', 'stair'],
-        'Flexibility': ['flexibility', 'stretching', 'yoga', 'mobility', 'warmup', 'recovery', 'foam roll', 'stretch'],
+      // Count exercises per category
+      const counts: { [key: string]: number } = {
+        'Strength': 0,
+        'Calisthenics': 0,
+        'Cardio': 0,
+        'Flexibility': 0,
       };
       
-      // Count exercises per category
-      const counts: { [key: string]: number } = {};
+      // Equipment keywords to detect in exercise names (since DB equipment field is often empty)
+      const equipmentKeywords = ['dumbbell', 'barbell', 'cable', 'machine', 'kettlebell', 'smith', 'ez bar', 'ez-bar', 'resistance band', 'band', 'bench press', 'lat pull', 'pulldown', 'leg press', 'chest press', 'shoulder press'];
       
-      for (const [displayName, matchCategories] of Object.entries(categoryMappings)) {
-        counts[displayName] = allExercises.filter(ex => {
-          const exCategory = ex.category?.toLowerCase() || '';
-          const exBodyPart = ex.bodyPart?.toLowerCase() || '';
-          const exName = ex.name?.toLowerCase() || '';
-          
-          // Handle equipment as array
-          const equipmentArr = Array.isArray(ex.equipment) ? ex.equipment : [];
-          const equipmentStr = equipmentArr.map((e: any) => String(e).toLowerCase()).join(' ');
-          
-          // For Calisthenics, check if equipment is bodyweight/none
-          if (displayName === 'Calisthenics') {
-            const isBodyweight = equipmentStr.includes('bodyweight') || 
-                                 equipmentStr.includes('body weight') || 
-                                 equipmentStr === '' ||
-                                 equipmentArr.length === 0;
-            if (isBodyweight && !exCategory.includes('cardio')) return true;
-          }
-          
-          // For Strength, exclude bodyweight exercises and cardio
-          if (displayName === 'Strength') {
-            const isBodyweight = equipmentStr.includes('bodyweight') || 
-                                 equipmentStr.includes('body weight') || 
-                                 equipmentArr.length === 0;
-            if (isBodyweight || exCategory.includes('cardio')) return false;
-          }
-          
-          return matchCategories.some(cat => 
-            exCategory.includes(cat) || exBodyPart.includes(cat) || exName.includes(cat)
-          );
-        }).length;
+      // Cardio keywords
+      const cardioKeywords = ['cardio', 'running', 'cycling', 'rowing', 'swimming', 'jump rope', 'treadmill', 'elliptical', 'stair', 'hiit', 'jumping jack', 'burpee', 'mountain climber'];
+      
+      // Flexibility keywords  
+      const flexKeywords = ['stretch', 'yoga', 'mobility', 'warmup', 'warm-up', 'recovery', 'foam roll', 'flexibility'];
+      
+      // True bodyweight exercises (no equipment needed)
+      const bodyweightKeywords = ['push-up', 'pushup', 'pull-up', 'pullup', 'chin-up', 'chinup', 'dip', 'plank', 'crunch', 'sit-up', 'situp', 'leg raise', 'squat bodyweight', 'bodyweight squat', 'lunge bodyweight', 'burpee', 'mountain climber', 'jumping jack'];
+      
+      for (const ex of allExercises) {
+        const exCategory = (ex.category || '').toLowerCase();
+        const exName = (ex.name || '').toLowerCase();
+        
+        // Handle equipment as array
+        const equipmentArr = Array.isArray(ex.equipment) ? ex.equipment : [];
+        const equipmentStr = equipmentArr.map((e: any) => String(e).toLowerCase()).join(' ');
+        
+        // Check if name contains equipment keywords (more reliable than equipment field)
+        const nameHasEquipment = equipmentKeywords.some(kw => exName.includes(kw));
+        const fieldHasEquipment = equipmentArr.length > 0 && !equipmentStr.includes('bodyweight');
+        
+        // Check for cardio
+        const isCardio = cardioKeywords.some(kw => exCategory.includes(kw) || exName.includes(kw));
+        
+        // Check for flexibility
+        const isFlex = flexKeywords.some(kw => exCategory.includes(kw) || exName.includes(kw));
+        
+        // Check for true bodyweight
+        const isBodyweight = bodyweightKeywords.some(kw => exName.includes(kw)) || 
+                            equipmentStr.includes('bodyweight');
+        
+        // Categorize
+        if (isCardio) {
+          counts['Cardio']++;
+        } else if (isFlex) {
+          counts['Flexibility']++;
+        } else if (nameHasEquipment || fieldHasEquipment) {
+          // Has equipment = Strength
+          counts['Strength']++;
+        } else if (isBodyweight || (!nameHasEquipment && !fieldHasEquipment)) {
+          // No equipment and not cardio/flex = Calisthenics (bodyweight)
+          counts['Calisthenics']++;
+        }
       }
       
       console.log('✅ Exercise counts:', counts);
