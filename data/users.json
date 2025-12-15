@@ -197,5 +197,24 @@
     "xpPoints": 0,
     "level": "Bronze",
     "createdAt": "2025-12-15T15:43:11.522Z"
+  },
+  {
+    "id": 10,
+    "name": "Test New User",
+    "email": "newuser1765813528@test.com",
+    "password": "28e6da6daf105bdccc4cd0e4955bbc616b8ea926b5f1c15d45c4fc490cd9f0da1ec3838652944371a96cabc3c5f081864a51a7948c2d66e82f7c29013dc107e4.df5422961ae7f27ad3b50753ad060e23",
+    "fitnessGoals": [
+      "Build muscle"
+    ],
+    "experience": "intermediate",
+    "trainingDays": "5",
+    "sessionDuration": "45",
+    "trialEndsAt": "2025-12-22T15:45:28.377Z",
+    "hasActiveSubscription": false,
+    "weeklyGoalWorkouts": 5,
+    "weeklyGoalMinutes": 150,
+    "xpPoints": 0,
+    "level": "Bronze",
+    "createdAt": "2025-12-15T15:45:28.409Z"
   }
 ]
