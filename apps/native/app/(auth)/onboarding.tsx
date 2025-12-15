@@ -1391,6 +1391,29 @@ const styles = StyleSheet.create({
   genderTextSelected: {
     color: COLORS.accent,
   },
+  // Textarea styles
+  textareaContainer: {
+    paddingHorizontal: 24,
+    marginTop: 8,
+  },
+  textareaWrapper: {
+    backgroundColor: COLORS.lightGray,
+    borderRadius: 16,
+    overflow: 'hidden',
+  },
+  textareaInput: {
+    fontSize: 16,
+    color: COLORS.text,
+    padding: 16,
+    minHeight: 160,
+    textAlignVertical: 'top',
+  },
+  textareaHint: {
+    fontSize: 13,
+    color: COLORS.mediumGray,
+    textAlign: 'center',
+    marginTop: 12,
+  },
   datePickerButton: {
     flexDirection: 'row',
     alignItems: 'center',
