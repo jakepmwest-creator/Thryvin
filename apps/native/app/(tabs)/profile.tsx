@@ -577,6 +577,15 @@ export default function ProfileScreen() {
               value={biometricsEnabled}
               onToggle={toggleBiometrics}
             />
+            
+            {/* Auto-Login Section */}
+            <SettingToggle
+              icon="log-in"
+              title="Stay Logged In"
+              subtitle="Skip login screen on app open"
+              value={autoLoginEnabled}
+              onToggle={toggleAutoLogin}
+            />
           </View>
         </View>
 
