@@ -408,6 +408,9 @@ export default function OnboardingScreen() {
         showAlert('warning', 'Required', 'Please select at least one option to continue');
         return;
       }
+    } else if (currentStepData.type === 'textarea') {
+      // Textarea is optional (injuries can be "None" or empty)
+      // No validation needed, user can skip
     } else if (currentStepData.type === 'trainingSchedule') {
       // Validate training schedule
       const scheduleType = formData.trainingSchedule;
