@@ -4561,7 +4561,20 @@ Respond with a complete workout in JSON format:
             ? JSON.parse(user.equipmentAccess)
             : ["bodyweight"];
           const duration = user.sessionDurationPreference || 45;
-          const injuries = user.injuries || "none";
+          // Handle injuries - can be string, array, or undefined
+          let injuries = "none";
+          if (user.injuries) {
+            if (Array.isArray(user.injuries)) {
+              injuries = user.injuries.length > 0 ? user.injuries.join(", ") : "none";
+            } else if (typeof user.injuries === 'string') {
+              try {
+                const parsed = JSON.parse(user.injuries);
+                injuries = Array.isArray(parsed) ? parsed.join(", ") : user.injuries;
+              } catch {
+                injuries = user.injuries;
+              }
+            }
+          }
           const cardioPreference = user.cardioPreference || "neutral";
           const coachingStyle = user.coachingStyle || "encouraging-positive";
           const focusAreas = user.focusAreas ? JSON.parse(user.focusAreas) : ["strength"];
