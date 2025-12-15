@@ -6597,19 +6597,27 @@ Respond with a complete workout in JSON format:
         counts[displayName] = allExercises.filter(ex => {
           const exCategory = ex.category?.toLowerCase() || '';
           const exBodyPart = ex.bodyPart?.toLowerCase() || '';
-          const exEquipment = ex.equipment?.toLowerCase() || '';
           const exName = ex.name?.toLowerCase() || '';
           
-          // For Calisthenics, also check if equipment is bodyweight/none
+          // Handle equipment as array
+          const equipmentArr = Array.isArray(ex.equipment) ? ex.equipment : [];
+          const equipmentStr = equipmentArr.map((e: any) => String(e).toLowerCase()).join(' ');
+          
+          // For Calisthenics, check if equipment is bodyweight/none
           if (displayName === 'Calisthenics') {
-            const isBodyweight = exEquipment === 'bodyweight' || exEquipment === 'none' || exEquipment === 'body weight';
-            if (isBodyweight) return true;
+            const isBodyweight = equipmentStr.includes('bodyweight') || 
+                                 equipmentStr.includes('body weight') || 
+                                 equipmentStr === '' ||
+                                 equipmentArr.length === 0;
+            if (isBodyweight && !exCategory.includes('cardio')) return true;
           }
           
-          // For Strength, exclude bodyweight exercises
+          // For Strength, exclude bodyweight exercises and cardio
           if (displayName === 'Strength') {
-            const isBodyweight = exEquipment === 'bodyweight' || exEquipment === 'none' || exEquipment === 'body weight';
-            if (isBodyweight) return false;
+            const isBodyweight = equipmentStr.includes('bodyweight') || 
+                                 equipmentStr.includes('body weight') || 
+                                 equipmentArr.length === 0;
+            if (isBodyweight || exCategory.includes('cardio')) return false;
           }
           
           return matchCategories.some(cat => 
