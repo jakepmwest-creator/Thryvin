@@ -175,52 +175,43 @@ export const AdvancedQuestionnaireModal = ({
     return value.trim().length > 0;
   };
   
-  // Voice input handling - placeholder (real speech-to-text requires native build)
-  const handleVoiceInput = useCallback(() => {
+  // Voice input using the same hook as the coach
+  const handleVoiceTranscription = useCallback((text: string) => {
     const currentQuestion = QUESTIONS[currentStep];
     
-    if (isRecording) {
-      // Stop recording - show transcribing state
-      setIsRecording(false);
-      setIsTranscribing(true);
-      pulseAnim.stopAnimation();
-      pulseAnim.setValue(1);
-      
-      // Show a message that this is a placeholder
-      Alert.alert(
-        'Voice Input',
-        'Voice transcription requires a native app build. For now, please type your response.\n\nIn the full app release, you\'ll be able to speak naturally and your words will be transcribed automatically.',
-        [{ text: 'OK' }]
-      );
-      setIsTranscribing(false);
-      return;
-    }
-    
-    // Start recording animation (visual feedback)
-    setIsRecording(true);
-    
-    // Start pulse animation for mic icon
-    Animated.loop(
-      Animated.sequence([
-        Animated.timing(pulseAnim, { toValue: 1.2, duration: 500, useNativeDriver: true }),
-        Animated.timing(pulseAnim, { toValue: 1, duration: 500, useNativeDriver: true }),
-      ])
-    ).start();
-    
-    // Auto-stop after 2 seconds and show message
-    setTimeout(() => {
-      if (isRecording) {
-        setIsRecording(false);
-        pulseAnim.stopAnimation();
-        pulseAnim.setValue(1);
-        Alert.alert(
-          'Voice Input',
-          'Voice transcription requires a native app build. For now, please type your response.\n\nIn the full app release, you\'ll be able to speak naturally and your words will be transcribed automatically.',
-          [{ text: 'OK' }]
-        );
+    // Update the form with transcription
+    if (currentQuestion.id === 'goalDetails') {
+      const goals = formData.goalDetails || {};
+      const firstGoalKey = Object.keys(goals)[0];
+      if (firstGoalKey) {
+        setFormData(prev => ({
+          ...prev,
+          goalDetails: {
+            ...prev.goalDetails,
+            [firstGoalKey]: text
+          }
+        }));
       }
-    }, 2000);
-  }, [currentStep, isRecording, pulseAnim]);
+    } else {
+      setFormData(prev => ({
+        ...prev,
+        [currentQuestion.id]: text
+      }));
+    }
+  }, [currentStep, formData.goalDetails]);
+
+  const { isRecording, isProcessing, toggleRecording } = useVoiceInput({
+    onTranscription: handleVoiceTranscription,
+    onError: (error) => {
+      Alert.alert('Voice Input', error);
+    },
+    maxDuration: 30,
+  });
+
+  // Handle voice button press
+  const handleVoiceInput = useCallback(() => {
+    toggleRecording();
+  }, [toggleRecording]);
   
   const handleNext = () => {
     if (!isCurrentQuestionAnswered()) {
