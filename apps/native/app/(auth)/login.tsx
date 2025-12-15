@@ -455,6 +455,98 @@ export default function LoginScreen() {
           </View>
         </KeyboardAvoidingView>
       </SafeAreaView>
+
+      {/* PIN Login Modal */}
+      {showPinLogin && (
+        <View style={styles.pinModalOverlay}>
+          <View style={styles.pinModalContainer}>
+            <LinearGradient
+              colors={[COLORS.accent, COLORS.accentSecondary]}
+              style={styles.pinModalHeader}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+            >
+              <TouchableOpacity 
+                style={styles.pinModalClose}
+                onPress={() => {
+                  setShowPinLogin(false);
+                  setPinInput('');
+                  setPinError('');
+                }}
+              >
+                <Ionicons name="close" size={24} color={COLORS.white} />
+              </TouchableOpacity>
+              <Ionicons name="keypad" size={40} color={COLORS.white} />
+              <Text style={styles.pinModalTitle}>Enter PIN</Text>
+              <Text style={styles.pinModalSubtitle}>Enter your 6-digit PIN to log in</Text>
+            </LinearGradient>
+            
+            <View style={styles.pinInputSection}>
+              <View style={styles.pinDotsContainer}>
+                {[0, 1, 2, 3, 4, 5].map((index) => (
+                  <View 
+                    key={index} 
+                    style={[
+                      styles.pinDot,
+                      pinInput.length > index && styles.pinDotFilled,
+                      pinError && styles.pinDotError,
+                    ]}
+                  />
+                ))}
+              </View>
+              {pinError ? (
+                <Text style={styles.pinErrorText}>{pinError}</Text>
+              ) : null}
+              
+              {/* Number Pad */}
+              <View style={styles.pinNumberPad}>
+                {[['1', '2', '3'], ['4', '5', '6'], ['7', '8', '9'], ['', '0', 'back']].map((row, rowIndex) => (
+                  <View key={rowIndex} style={styles.pinNumberRow}>
+                    {row.map((num, numIndex) => {
+                      if (num === '') {
+                        return <View key={numIndex} style={styles.pinEmptyButton} />;
+                      }
+                      if (num === 'back') {
+                        return (
+                          <TouchableOpacity 
+                            key={numIndex} 
+                            style={styles.pinNumberButton}
+                            onPress={() => {
+                              setPinInput(prev => prev.slice(0, -1));
+                              setPinError('');
+                            }}
+                          >
+                            <Ionicons name="backspace-outline" size={24} color={COLORS.text} />
+                          </TouchableOpacity>
+                        );
+                      }
+                      return (
+                        <TouchableOpacity 
+                          key={numIndex} 
+                          style={styles.pinNumberButton}
+                          onPress={() => {
+                            if (pinInput.length < 6) {
+                              const newPin = pinInput + num;
+                              setPinInput(newPin);
+                              setPinError('');
+                              if (newPin.length === 6) {
+                                // Auto-submit when 6 digits entered
+                                setTimeout(() => handlePinLogin(), 200);
+                              }
+                            }
+                          }}
+                        >
+                          <Text style={styles.pinNumberText}>{num}</Text>
+                        </TouchableOpacity>
+                      );
+                    })}
+                  </View>
+                ))}
+              </View>
+            </View>
+          </View>
+        </View>
+      )}
     </View>
   );
 }
