@@ -135,6 +135,8 @@ export default function HomeScreen() {
   const stats = useWorkoutStore(state => state.stats);
   const personalBests = useWorkoutStore(state => state.personalBests);
   const isLoading = useWorkoutStore(state => state.isLoading);
+  const workoutError = useWorkoutStore(state => state.error);
+  const clearError = useWorkoutStore(state => state.clearError);
   const fetchTodayWorkout = useWorkoutStore(state => state.fetchTodayWorkout);
   const fetchWeekWorkouts = useWorkoutStore(state => state.fetchWeekWorkouts);
   const fetchStats = useWorkoutStore(state => state.fetchStats);
