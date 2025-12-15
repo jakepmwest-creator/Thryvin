@@ -122,6 +122,7 @@ export default function ProfileScreen() {
   const [pinEnabled, setPinEnabled] = useState(false);
   const [biometricsEnabled, setBiometricsEnabled] = useState(false);
   const [hasPinSet, setHasPinSet] = useState(false);
+  const [autoLoginEnabled, setAutoLoginEnabled] = useState(true); // Auto-login on by default
   
   // Profile data
   const [profileImage, setProfileImage] = useState<string | null>(null);
