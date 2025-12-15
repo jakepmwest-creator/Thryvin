@@ -758,7 +758,7 @@ export default function ProfileScreen() {
         onComplete={handleQuestionnaireComplete}
       />
       
-      {/* Coach Personality Modal */}
+      {/* Coach Personality Modal - Redesigned */}
       <Modal
         visible={showCoachPersonality}
         animationType="slide"
@@ -779,55 +779,70 @@ export default function ProfileScreen() {
               >
                 <Ionicons name="close" size={24} color={COLORS.white} />
               </TouchableOpacity>
-              <Ionicons name="person-circle" size={48} color={COLORS.white} />
+              <View style={styles.coachIconBubble}>
+                <Ionicons name="sparkles" size={28} color={COLORS.accent} />
+              </View>
               <Text style={styles.personalityModalTitle}>Coach Style</Text>
               <Text style={styles.personalityModalSubtitle}>
                 Choose how {coachName} talks to you
               </Text>
             </LinearGradient>
             
-            <ScrollView style={styles.personalityOptions}>
-              {COACH_PERSONALITIES.map((personality) => (
-                <TouchableOpacity
-                  key={personality.id}
-                  style={[
-                    styles.personalityOption,
-                    coachPersonality === personality.id && styles.personalityOptionActive,
-                  ]}
-                  onPress={() => {
-                    setCoachPersonality(personality.id);
-                    setShowCoachPersonality(false);
-                    showAlert({
-                      type: 'success',
-                      title: 'Coach Style Updated!',
-                      message: `${coachName} will now be ${personality.name.toLowerCase()}.`,
-                      buttons: [{ text: 'Got it!', onPress: hideAlert }]
-                    });
-                  }}
-                >
-                  <View style={styles.personalityOptionContent}>
-                    <View style={[
-                      styles.personalityCheck,
-                      coachPersonality === personality.id && styles.personalityCheckActive,
-                    ]}>
-                      {coachPersonality === personality.id && (
-                        <Ionicons name="checkmark" size={16} color={COLORS.white} />
+            <ScrollView 
+              style={styles.personalityOptions}
+              showsVerticalScrollIndicator={false}
+            >
+              {COACH_PERSONALITIES.map((personality) => {
+                const isSelected = coachPersonality === personality.id;
+                return (
+                  <TouchableOpacity
+                    key={personality.id}
+                    style={[
+                      styles.personalityCard,
+                      isSelected && styles.personalityCardActive,
+                    ]}
+                    onPress={() => {
+                      setCoachPersonality(personality.id);
+                      setShowCoachPersonality(false);
+                      showAlert({
+                        type: 'success',
+                        title: 'Coach Style Updated!',
+                        message: `${coachName} will now be ${personality.name.toLowerCase()}.`,
+                        buttons: [{ text: 'Got it!', onPress: hideAlert }]
+                      });
+                    }}
+                    activeOpacity={0.7}
+                  >
+                    <View style={styles.personalityCardContent}>
+                      <View style={[
+                        styles.personalityRadio,
+                        isSelected && styles.personalityRadioActive,
+                      ]}>
+                        {isSelected && (
+                          <Ionicons name="checkmark" size={14} color={COLORS.white} />
+                        )}
+                      </View>
+                      <View style={styles.personalityTextContainer}>
+                        <Text style={[
+                          styles.personalityCardName,
+                          isSelected && styles.personalityCardNameActive,
+                        ]}>
+                          {personality.name}
+                        </Text>
+                        <Text style={styles.personalityCardSubtitle}>
+                          {personality.subtitle}
+                        </Text>
+                      </View>
+                      {isSelected && (
+                        <View style={styles.selectedBadge}>
+                          <Text style={styles.selectedBadgeText}>Active</Text>
+                        </View>
                       )}
                     </View>
-                    <View style={styles.personalityInfo}>
-                      <Text style={[
-                        styles.personalityName,
-                        coachPersonality === personality.id && styles.personalityNameActive,
-                      ]}>
-                        {personality.name}
-                      </Text>
-                      <Text style={styles.personalityDescription}>
-                        {personality.subtitle}
-                      </Text>
-                    </View>
-                  </View>
-                </TouchableOpacity>
-              ))}
+                  </TouchableOpacity>
+                );
+              })}
+              <View style={{ height: 32 }} />
             </ScrollView>
           </View>
         </View>
