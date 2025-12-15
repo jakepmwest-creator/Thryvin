@@ -872,6 +872,46 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
 
   clearError: () => set({ error: null }),
   
+  // Reset all workout data for a fresh start (new user)
+  resetAllData: async () => {
+    console.log('🔄 [WORKOUT] Resetting all data for new user...');
+    set({ isLoading: true });
+    
+    try {
+      // Clear all workout storage
+      await SecureStore.deleteItemAsync('week_workouts').catch(() => {});
+      await SecureStore.deleteItemAsync('week_workouts_date').catch(() => {});
+      await SecureStore.deleteItemAsync('week_workouts_version').catch(() => {});
+      await SecureStore.deleteItemAsync('today_workout').catch(() => {});
+      await SecureStore.deleteItemAsync('today_workout_date').catch(() => {});
+      await SecureStore.deleteItemAsync('completed_workouts').catch(() => {});
+      await SecureStore.deleteItemAsync('future_weeks').catch(() => {});
+      await SecureStore.deleteItemAsync('workout_stats').catch(() => {});
+      await SecureStore.deleteItemAsync('personal_bests').catch(() => {});
+      
+      // Reset the store state
+      set({
+        currentWorkout: null,
+        todayWorkout: null,
+        weekWorkouts: [],
+        completedWorkouts: [],
+        stats: null,
+        personalBests: [],
+        activeSession: null,
+        isLoading: false,
+        error: null,
+      });
+      
+      // Reset awards
+      useAwardsStore.getState().resetAllAwards();
+      
+      console.log('✅ [WORKOUT] All data reset successfully');
+    } catch (error) {
+      console.error('❌ [WORKOUT] Error resetting data:', error);
+      set({ isLoading: false });
+    }
+  },
+  
   // Set the current workout (for viewing/starting)
   setCurrentWorkout: (workout: Workout) => {
     set({ currentWorkout: workout });
