@@ -1010,6 +1010,8 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
     
     try {
       // Clear all workout storage using AsyncStorage
+      await deleteStorageItem('workout_generation_lock'); // Clear locks first
+      await deleteStorageItem('workout_generation_in_progress'); // Clear legacy lock
       await deleteStorageItem('week_workouts');
       await deleteStorageItem('week_workouts_date');
       await deleteStorageItem('week_workouts_version');
