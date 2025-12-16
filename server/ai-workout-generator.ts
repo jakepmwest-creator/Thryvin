@@ -242,12 +242,39 @@ ${advancedContext}
 
 4. **PERSONALIZATION** - Use their enjoyed/disliked training to customize
 
-=== CRITICAL: EXERCISE COUNT LIMITS ===
+=== CRITICAL: EXERCISE COUNT LIMITS (READ CAREFULLY) ===
 
-Based on ${userProfile.sessionDuration || 45} minute session:
-- 30 min session: 2 warmup, 4-5 main exercises, 2 cooldown (8-9 total max)
-- 45 min session: 2-3 warmup, 5-6 main exercises, 2 cooldown (9-11 total max)
-- 60 min session: 3 warmup, 6-7 main exercises, 2-3 cooldown (11-13 total max)
+The user's session duration is ${userProfile.sessionDuration || 45} minutes. Use this to determine exercise count:
+
+**30 minute session:**
+- 1-2 warmup exercises (5 mins)
+- 4-5 main exercises (20 mins)
+- 1-2 cooldown stretches (5 mins)
+- TOTAL: 6-9 exercises maximum
+
+**45 minute session:**
+- 2 warmup exercises (5-7 mins)
+- 5-6 main exercises (30 mins)
+- 2 cooldown stretches (5-8 mins)
+- TOTAL: 9-10 exercises maximum
+
+**60 minute session:**
+- 2-3 warmup exercises (8-10 mins)
+- 7-9 main exercises (40-45 mins)
+- 2-3 cooldown stretches (8-10 mins)
+- TOTAL: 11-15 exercises acceptable
+
+**75+ minute session:**
+- 3 warmup exercises (10 mins)
+- 9-12 main exercises (50-55 mins)
+- 2-3 cooldown stretches (10 mins)
+- TOTAL: 14-18 exercises acceptable
+
+IMPORTANT: For a ${userProfile.sessionDuration || 45} minute session, the absolute MAXIMUM is ${
+  (userProfile.sessionDuration || 45) <= 30 ? '9' :
+  (userProfile.sessionDuration || 45) <= 45 ? '10' :
+  (userProfile.sessionDuration || 45) <= 60 ? '15' : '18'
+} exercises. Going over this limit will make the workout impossible to complete!
 
 COOLDOWN MUST ONLY BE STRETCHES - no strength exercises in cooldown!
 Examples of valid cooldown: Standing Quad Stretch, Child's Pose, Seated Forward Bend, Standing Calf Stretch, Hip Flexor Stretch
