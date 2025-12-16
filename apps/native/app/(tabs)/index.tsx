@@ -614,16 +614,11 @@ export default function HomeScreen() {
                 <ActivityIndicator size="large" color={COLORS.gradientStart} />
                 <Text style={styles.generatingTitle}>Generating Your Workouts</Text>
                 <Text style={styles.generatingSubtitle}>
-                  {weekWorkouts.length > 0 
-                    ? `Creating your personalized plan... ${weekWorkouts.length}/21 days complete`
-                    : 'Your AI coach is creating personalized workouts for the next 3 weeks. This may take a minute...'}
+                  Your AI coach is creating personalized workouts for the next 3 weeks. This may take a minute...
                 </Text>
-                <View style={styles.generatingProgress}>
-                  <View style={styles.generatingProgressBar}>
-                    <View style={[styles.generatingProgressFill, { width: `${(weekWorkouts.length / 21) * 100}%` }]} />
-                  </View>
-                  <Text style={styles.generatingProgressText}>{Math.round((weekWorkouts.length / 21) * 100)}%</Text>
-                </View>
+                <Text style={styles.generatingNotice}>
+                  We'll let you know when it's finished ✨
+                </Text>
               </View>
             </View>
           ) : workoutError ? (
