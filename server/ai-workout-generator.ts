@@ -241,7 +241,17 @@ ${advancedContext}
 
 4. **PERSONALIZATION** - Use their enjoyed/disliked training to customize
 
-Create a balanced workout with warmup (3-4 exercises), main work (5-8 exercises based on duration), and cooldown (2-3 stretches).`;
+=== CRITICAL: EXERCISE COUNT LIMITS ===
+
+Based on ${userProfile.sessionDuration || 45} minute session:
+- 30 min session: 2 warmup, 4-5 main exercises, 2 cooldown (8-9 total max)
+- 45 min session: 2-3 warmup, 5-6 main exercises, 2 cooldown (9-11 total max)
+- 60 min session: 3 warmup, 6-7 main exercises, 2-3 cooldown (11-13 total max)
+
+COOLDOWN MUST ONLY BE STRETCHES - no strength exercises in cooldown!
+Examples of valid cooldown: Standing Quad Stretch, Child's Pose, Seated Forward Bend, Standing Calf Stretch, Hip Flexor Stretch
+
+Create a balanced workout respecting these limits.`;
 
   // Step 3: Call AI
   console.log('  🤖 Calling GPT-4o...');
