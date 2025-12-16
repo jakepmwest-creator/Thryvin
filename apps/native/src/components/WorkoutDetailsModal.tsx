@@ -257,7 +257,14 @@ export function WorkoutDetailsModal({
             <TouchableOpacity style={styles.closeButton} onPress={onClose}>
               <Ionicons name="close" size={28} color="#FFFFFF" />
             </TouchableOpacity>
-            <Text style={styles.headerLabel}>Workout Details</Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+              <Text style={styles.headerLabel}>
+                {currentWorkout?.completed ? 'Workout Completed' : 'Workout Details'}
+              </Text>
+              {currentWorkout?.completed && (
+                <Ionicons name="checkmark-circle" size={20} color="#34C759" />
+              )}
+            </View>
             <View style={styles.placeholder} />
           </View>
           
