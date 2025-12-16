@@ -390,15 +390,21 @@ export default function WorkoutHubScreen() {
     }
   };
 
+  // State for duration confirmation modal
+  const [showDurationConfirm, setShowDurationConfirm] = useState(false);
+  const [confirmedDuration, setConfirmedDuration] = useState('');
+  const [pendingFinishData, setPendingFinishData] = useState<any>(null);
+  
   const handleFinishWorkout = async () => {
     // Get completion stats
     const completedExercisesCount = activeSession?.completedExercises?.size || 0;
     const totalExercises = (finalWarmup.length + finalMain.length + finalRecovery.length);
-    const durationMinutes = Math.ceil(workoutElapsedSeconds / 60);
+    
+    // Use the planned workout duration as default (not real-time timer)
+    const plannedDuration = currentWorkout?.duration || 45;
     
     // Estimate calories burned (rough estimate: ~5-8 calories per minute of exercise)
-    // Adjust based on workout type
-    let caloriesPerMinute = 6; // Default moderate intensity
+    let caloriesPerMinute = 6;
     const workoutType = currentWorkout?.type?.toLowerCase() || '';
     if (workoutType.includes('hiit') || workoutType.includes('cardio')) {
       caloriesPerMinute = 10;
@@ -407,31 +413,32 @@ export default function WorkoutHubScreen() {
     } else if (workoutType.includes('yoga') || workoutType.includes('stretch')) {
       caloriesPerMinute = 4;
     }
-    const caloriesBurned = Math.round(durationMinutes * caloriesPerMinute);
     
-    // Pause the timer
-    if (!timerPaused) {
-      setPausedAtSeconds(workoutElapsedSeconds);
-      setTimerPaused(true);
-    }
+    // Store pending data and show duration confirmation
+    setPendingFinishData({
+      completedExercisesCount,
+      totalExercises,
+      caloriesPerMinute,
+    });
+    setConfirmedDuration(String(plannedDuration));
+    setShowDurationConfirm(true);
+  };
+  
+  const confirmFinishWorkout = async () => {
+    if (!pendingFinishData) return;
     
-    // Show confirmation with stats
-    showAlert('success', 'Finish Workout?', 
-      `Are you sure you want to finish?\n\n` +
-      `✅ ${completedExercisesCount} of ${totalExercises} exercises completed\n` +
-      `⏱️ Duration: ${durationMinutes} min`, 
-      [
-        { text: 'Continue', style: 'cancel' },
-        {
-          text: 'Yes, Finish',
-          onPress: async () => {
-            // Save the stats for the celebration popup
-            setFinishStats({
-              completedExercises: completedExercisesCount,
-              totalExercises,
-              durationMinutes,
-              caloriesBurned,
-            });
+    const durationMinutes = parseInt(confirmedDuration) || currentWorkout?.duration || 45;
+    const caloriesBurned = Math.round(durationMinutes * pendingFinishData.caloriesPerMinute);
+    
+    setShowDurationConfirm(false);
+    
+    // Save the stats for the celebration popup
+    setFinishStats({
+      completedExercises: pendingFinishData.completedExercisesCount,
+      totalExercises: pendingFinishData.totalExercises,
+      durationMinutes,
+      caloriesBurned,
+    });
             
             // Immediately show celebration
             setShowCelebration(true);
