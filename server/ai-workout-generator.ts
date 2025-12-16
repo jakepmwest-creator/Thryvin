@@ -252,6 +252,14 @@ Based on ${userProfile.sessionDuration || 45} minute session:
 COOLDOWN MUST ONLY BE STRETCHES - no strength exercises in cooldown!
 Examples of valid cooldown: Standing Quad Stretch, Child's Pose, Seated Forward Bend, Standing Calf Stretch, Hip Flexor Stretch
 
+${recentExercises.length > 0 ? `
+=== VARIETY REQUIREMENT (CRITICAL) ===
+DO NOT use these exercises - they were used in recent workouts:
+${recentExercises.slice(0, 15).join(', ')}
+
+Pick DIFFERENT exercises to maintain variety!
+` : ''}
+
 Create a balanced workout respecting these limits.`;
 
   // Step 3: Call AI
