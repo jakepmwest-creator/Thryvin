@@ -669,7 +669,7 @@ export default function HomeScreen() {
                 </View>
                 <TouchableOpacity 
                   style={styles.restDayButton}
-                  onPress={() => openChat("It&apos;s my rest day but I&apos;m feeling energetic. Can you suggest something light I could do?")}
+                  onPress={() => openChat("It's my rest day but I'm feeling energetic. Can you suggest something light I could do?")}
                 >
                   <LinearGradient
                     colors={[COLORS.gradientStart, COLORS.gradientEnd]}
