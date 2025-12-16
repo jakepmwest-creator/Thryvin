@@ -303,18 +303,35 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
 
   // Fetch 3 weeks of workouts (21 days, AI-generated with caching)
   fetchWeekWorkouts: async () => {
-    // Prevent double generation
-    const isGenerating = await getStorageItem('workout_generation_in_progress');
-    if (isGenerating === 'true') {
-      console.log('⏳ [3-WEEK] Generation already in progress, skipping...');
-      return;
+    // Prevent double generation with timeout-based lock (5 minute timeout)
+    const lockData = await getStorageItem('workout_generation_lock');
+    if (lockData) {
+      try {
+        const lock = JSON.parse(lockData);
+        const lockAge = Date.now() - lock.timestamp;
+        const LOCK_TIMEOUT = 5 * 60 * 1000; // 5 minutes
+        
+        if (lockAge < LOCK_TIMEOUT) {
+          console.log('⏳ [3-WEEK] Generation already in progress (started', Math.round(lockAge/1000), 'seconds ago), skipping...');
+          return;
+        } else {
+          console.log('🔓 [3-WEEK] Clearing stale lock (', Math.round(lockAge/60000), 'minutes old)');
+          await deleteStorageItem('workout_generation_lock');
+        }
+      } catch {
+        // Invalid lock data, clear it
+        await deleteStorageItem('workout_generation_lock');
+      }
     }
+    
+    // Also clear legacy lock key
+    await deleteStorageItem('workout_generation_in_progress');
     
     set({ isLoading: true, error: null });
     
     try {
-      // Set lock
-      await setStorageItem('workout_generation_in_progress', 'true');
+      // Set lock with timestamp
+      await setStorageItem('workout_generation_lock', JSON.stringify({ timestamp: Date.now() }));
       
       const storedUser = await getStorageItem('auth_user');
       if (!storedUser) {
