@@ -287,18 +287,52 @@ export function setupAuth(app: Express) {
       
       while (retryCount < maxRetries) {
         try {
+          // Parse session duration (handle strings like '60+' -> 60)
+          let sessionDuration = req.body.sessionDuration;
+          if (typeof sessionDuration === 'string') {
+            sessionDuration = parseInt(sessionDuration.replace('+', '')) || 45;
+          }
+          
+          // Parse equipment array - could be string or array
+          let equipmentAccess = req.body.equipment;
+          if (equipmentAccess && typeof equipmentAccess === 'object' && !Array.isArray(equipmentAccess)) {
+            equipmentAccess = Object.keys(equipmentAccess).filter(k => equipmentAccess[k]);
+          }
+          if (Array.isArray(equipmentAccess)) {
+            equipmentAccess = JSON.stringify(equipmentAccess);
+          }
+          
+          // Parse fitness goals
+          let fitnessGoals = req.body.fitnessGoals;
+          if (Array.isArray(fitnessGoals)) {
+            fitnessGoals = JSON.stringify(fitnessGoals);
+          }
+          
+          // Parse injuries - could be array or string
+          let injuries = req.body.injuries || req.body.injuriesDescription;
+          if (Array.isArray(injuries)) {
+            injuries = injuries.join(', ');
+          }
+          
           user = await storage.createUser({
             name: req.body.name,
             email: req.body.email,
             password: await hashPassword(req.body.password),
             // Provide default values for required fields - user will set these during onboarding
             trainingType: req.body.trainingType || 'general-fitness',
-            goal: req.body.goal || 'improve-health',
+            goal: req.body.goal || (req.body.fitnessGoals?.[0]) || 'improve-health',
             coachingStyle: req.body.coachingStyle || 'encouraging-positive',
-            selectedCoach: req.body.selectedCoach || 'nate-green',
+            selectedCoach: req.body.coachName || req.body.selectedCoach || 'nate-green',
             trialEndsAt,
+            // CRITICAL: Save all onboarding data for AI workout generation
+            sessionDurationPreference: sessionDuration || 45,
+            equipmentAccess: equipmentAccess || JSON.stringify(['bodyweight']),
+            trainingDaysPerWeek: parseInt(req.body.trainingDays) || 4,
+            injuries: injuries || null,
+            focusAreas: fitnessGoals || null,
+            hasCompletedAIOnboarding: true, // Mark as completed since they went through full onboarding
           });
-          console.log('✅ User created successfully in database!');
+          console.log('✅ User created successfully in database with full onboarding data!');
           break; // Success, exit retry loop
         } catch (dbError: any) {
           console.log(`User creation attempt ${retryCount + 1} failed:`, dbError?.message || dbError);
