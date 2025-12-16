@@ -530,6 +530,8 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
                 await setStorageItem('week_workouts', JSON.stringify(weekWorkouts));
                 await setStorageItem('week_workouts_date', weekKey);
                 await setStorageItem('week_workouts_version', CACHE_VERSION);
+                // Release lock on partial save
+                await deleteStorageItem('workout_generation_lock');
                 set({ weekWorkouts, isLoading: false, error: `Generated ${weekWorkouts.length}/21 days. ${lastError || 'Some days failed to generate.'}` });
                 return;
               }
