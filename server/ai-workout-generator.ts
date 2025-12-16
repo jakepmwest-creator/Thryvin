@@ -229,11 +229,28 @@ Vary the exercises and focus areas each day.`;
   let workoutPlan: any;
   try {
     const jsonMatch = aiResponse.match(/\{[\s\S]*\}/);
-    if (!jsonMatch) throw new Error('No JSON in response');
+    if (!jsonMatch) {
+      console.error('  ❌ No JSON found in AI response. Raw response:', aiResponse.substring(0, 500));
+      throw new Error('No JSON in response');
+    }
     workoutPlan = JSON.parse(jsonMatch[0]);
-  } catch (error) {
-    console.error('  Parse error:', error);
-    throw new Error('Invalid AI response');
+    
+    // Validate required fields
+    if (!workoutPlan.exercises || !Array.isArray(workoutPlan.exercises)) {
+      console.error('  ❌ AI response missing exercises array:', JSON.stringify(workoutPlan).substring(0, 500));
+      throw new Error('AI response missing exercises');
+    }
+    
+    if (workoutPlan.exercises.length === 0) {
+      console.error('  ❌ AI returned empty exercises array');
+      throw new Error('AI returned no exercises');
+    }
+    
+    console.log(`  ✅ Parsed AI response: ${workoutPlan.exercises.length} exercises`);
+  } catch (error: any) {
+    console.error('  ❌ Parse error:', error.message);
+    console.error('  Raw AI response (first 800 chars):', aiResponse.substring(0, 800));
+    throw new Error(`Invalid AI response: ${error.message}`);
   }
   
   // Step 5: Fetch ALL exercise data from database for matching
