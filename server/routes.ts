@@ -4764,26 +4764,54 @@ Respond with a complete workout in JSON format:
 
           const userPrompt = `Generate a personalized ${goal}-focused workout for ${duration} minutes. Focus on: ${focusAreas.join(", ")}. Use ${coachingStyle} coaching tone in coach_notes. Equipment available: ${equipmentAccess.join(", ")}. ${injuries !== "none" ? `Avoid exercises that might aggravate: ${injuries}.` : "No injury limitations."}`;
 
-          // Call OpenAI with 20s timeout
-          const timeoutPromise = new Promise((_, reject) =>
-            setTimeout(
-              () => reject(new Error("OpenAI timeout after 20s")),
-              20000,
-            ),
-          );
+          // Call OpenAI with retry logic and longer timeout
+          const maxRetries = 3;
+          let lastError: Error | null = null;
+          let aiResponse: any = null;
+          
+          for (let attempt = 1; attempt <= maxRetries; attempt++) {
+            try {
+              console.log(`  🤖 AI call attempt ${attempt}/${maxRetries}...`);
+              
+              const timeoutPromise = new Promise((_, reject) =>
+                setTimeout(
+                  () => reject(new Error("OpenAI timeout after 30s")),
+                  30000, // Increased to 30s
+                ),
+              );
 
-          const aiResponse: any = await Promise.race([
-            openai.chat.completions.create({
-              model: "gpt-4o",
-              messages: [
-                { role: "system", content: systemPrompt },
-                { role: "user", content: userPrompt },
-              ],
-              temperature: 0.7,
-              max_tokens: 2000,
-            }),
-            timeoutPromise,
-          ]);
+              aiResponse = await Promise.race([
+                openai.chat.completions.create({
+                  model: "gpt-4o",
+                  messages: [
+                    { role: "system", content: systemPrompt },
+                    { role: "user", content: userPrompt },
+                  ],
+                  temperature: 0.7,
+                  max_tokens: 2000,
+                }),
+                timeoutPromise,
+              ]);
+              
+              // If we got here, the call succeeded
+              console.log(`  ✅ AI call succeeded on attempt ${attempt}`);
+              break;
+            } catch (retryError: any) {
+              lastError = retryError;
+              console.error(`  ⚠️ AI call attempt ${attempt} failed: ${retryError.message}`);
+              
+              if (attempt < maxRetries) {
+                // Exponential backoff: 2s, 4s, 8s
+                const delay = Math.pow(2, attempt) * 1000;
+                console.log(`  ⏳ Waiting ${delay/1000}s before retry...`);
+                await new Promise(resolve => setTimeout(resolve, delay));
+              }
+            }
+          }
+          
+          if (!aiResponse) {
+            throw lastError || new Error("AI generation failed after all retries");
+          }
 
           // Clean up the response content (remove markdown code blocks if present)
           let responseContent = aiResponse.choices[0].message.content || "{}";
