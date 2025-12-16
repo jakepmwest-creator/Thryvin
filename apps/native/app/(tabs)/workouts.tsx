@@ -287,8 +287,19 @@ export default function WorkoutsScreen() {
       >
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Today's Workout</Text>
-          {isLoading ? (
-            <ActivityIndicator size="large" color={COLORS.gradientStart} style={{ marginTop: 20 }} />
+          {isLoading || weekWorkouts.length < 21 ? (
+            <View style={styles.workoutCard}>
+              <View style={styles.generatingContainer}>
+                <ActivityIndicator size="large" color={COLORS.gradientStart} />
+                <Text style={styles.generatingTitle}>Generating Your Workouts</Text>
+                <Text style={styles.generatingSubtitle}>
+                  Your AI coach is creating personalized workouts for the next 3 weeks. This may take a minute...
+                </Text>
+                <Text style={styles.generatingNotice}>
+                  We'll let you know when it's finished ✨
+                </Text>
+              </View>
+            </View>
           ) : actualTodayWorkout?.isRestDay ? (
             <View style={styles.workoutCard}>
               <View style={styles.workoutCardContent}>
