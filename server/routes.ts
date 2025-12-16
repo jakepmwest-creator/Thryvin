@@ -1513,7 +1513,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // AI Workout Generation (with fallback)
   app.post("/api/workouts/generate", async (req, res) => {
     try {
-      const { userProfile, dayOfWeek } = req.body;
+      const { userProfile, dayOfWeek, weekNumber, recentExercises } = req.body;
       
       if (!userProfile) {
         return res.status(400).json({ error: 'User profile is required' });
