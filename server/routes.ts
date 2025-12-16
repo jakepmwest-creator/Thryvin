@@ -4820,7 +4820,28 @@ Respond with a complete workout in JSON format:
             .replace(/```\n?/g, "")
             .trim();
 
-          const workoutJson = JSON.parse(responseContent);
+          let workoutJson;
+          try {
+            // Try to extract JSON from response
+            const jsonMatch = responseContent.match(/\{[\s\S]*\}/);
+            if (!jsonMatch) {
+              console.error(`  ❌ No JSON found in response: ${responseContent.substring(0, 200)}`);
+              throw new Error("No valid JSON in AI response");
+            }
+            workoutJson = JSON.parse(jsonMatch[0]);
+            
+            // Validate structure
+            if (!workoutJson.blocks || !Array.isArray(workoutJson.blocks)) {
+              console.error(`  ❌ Invalid workout structure - missing blocks`);
+              throw new Error("Invalid workout structure");
+            }
+            
+            console.log(`  ✅ Parsed workout: ${workoutJson.title || 'Untitled'} with ${workoutJson.blocks.length} blocks`);
+          } catch (parseError: any) {
+            console.error(`  ❌ JSON parse error: ${parseError.message}`);
+            console.error(`  Raw response: ${responseContent.substring(0, 500)}`);
+            throw new Error(`Invalid AI response: ${parseError.message}`);
+          }
 
           // Map exercise names to IDs and validate
           console.log(`🔄 Mapping exercise names to IDs for validation`);
