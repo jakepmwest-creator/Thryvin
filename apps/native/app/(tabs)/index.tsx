@@ -1085,6 +1085,13 @@ const styles = StyleSheet.create({
     lineHeight: 20,
     paddingHorizontal: 16,
   },
+  generatingNotice: {
+    fontSize: 13,
+    color: COLORS.gradientStart,
+    textAlign: 'center',
+    marginTop: 12,
+    fontWeight: '500',
+  },
   workoutContent: {
     gap: 16,
   },
