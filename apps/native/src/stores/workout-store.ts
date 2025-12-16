@@ -1587,6 +1587,31 @@ async function updateBadgesAfterWorkout() {
       .filter(w => w.type?.toLowerCase().includes('cardio'))
       .reduce((sum, w) => sum + (w.duration || 0), 0);
     
+    // Calculate total sets and reps from completed workouts
+    let totalSets = 0;
+    let totalReps = 0;
+    
+    completedWorkouts.forEach(workout => {
+      if (workout.exercises && Array.isArray(workout.exercises)) {
+        workout.exercises.forEach(exercise => {
+          // Add sets
+          totalSets += exercise.sets || 3;
+          
+          // Parse reps - handle different formats like "10", "8-12", "30 sec", etc.
+          const repsStr = String(exercise.reps || '10');
+          const repsMatch = repsStr.match(/^(\d+)/);
+          const repsNum = repsMatch ? parseInt(repsMatch[1], 10) : 10;
+          
+          // Multiply reps by sets
+          totalReps += repsNum * (exercise.sets || 3);
+        });
+      }
+    });
+    
+    // IMPORTANT: For cardio, every minute counts as a "rep" for badge tracking
+    // This allows cardio users to progress on rep-based badges
+    totalReps += cardioMinutes;
+    
     // Get coach conversation count for badge progress
     let coachConversations = 0;
     try {
@@ -1600,8 +1625,8 @@ async function updateBadgesAfterWorkout() {
     const workoutStats = {
       totalWorkouts: stats.totalWorkouts,
       currentStreak: stats.currentStreak,
-      totalSets: 0, // We don't track this in current stats, could be enhanced
-      totalReps: 0, // We don't track this in current stats, could be enhanced
+      totalSets,
+      totalReps,
       totalMinutes: stats.totalMinutes,
       cardioMinutes,
       strengthSessions,
