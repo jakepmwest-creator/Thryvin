@@ -98,28 +98,63 @@ agent_communication:
   - agent: "main"
     message: "Implemented new features: 1) Duration confirmation modal in workout-hub.tsx - allows users to confirm/edit workout duration before finishing. 2) Weekly/monthly calendar updated to keep purple highlight for today even when completed (with green tick). 3) View Summary hint added to workouts page for completed today's workout. 4) AI Coach actionable buttons for adding workouts - detects 'add a back day' type requests and shows action button. 5) New badges added: 'First Steps' (first workout) and 'Making Friends' (first coach conversation). All TypeScript compiles. Need frontend testing."
 
-new_implementations:
+frontend:
   - task: "Duration Confirmation Modal"
+    implemented: true
+    working: "NA"
     file: "apps/native/app/workout-hub.tsx"
-    description: "Modal that appears when finishing workout to confirm/edit duration"
-    needs_testing: true
-  
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "testing"
+        comment: "NEEDS TESTING: Duration confirmation modal implementation found in workout-hub.tsx lines 394-462. Modal shows when user clicks 'Finish' button, allows editing duration before confirming workout completion."
+
   - task: "Calendar Purple Highlight Fix"
+    implemented: true
+    working: "NA"
     file: "apps/native/app/(tabs)/workouts.tsx"
-    description: "Today keeps purple highlight even when workout is completed (green tick overlays)"
-    needs_testing: true
-  
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "testing"
+        comment: "NEEDS TESTING: Calendar fix implemented in workouts.tsx lines 461-506. Today's date shows purple highlight (showPurple variable) even when completed. Green checkmark overlays on purple background."
+
   - task: "View Summary on Workouts Page"
+    implemented: true
+    working: "NA"
     file: "apps/native/app/(tabs)/workouts.tsx"
-    description: "Completed workout card shows 'Tap to view summary' like homepage"
-    needs_testing: true
-  
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "testing"
+        comment: "NEEDS TESTING: View summary feature implemented in workouts.tsx lines 365-370. When workout is completed, shows 'Tap to view summary' hint with chevron icon."
+
   - task: "AI Coach Add Workout Action"
+    implemented: true
+    working: "NA"
     file: "apps/native/src/components/AICoachWidget.tsx"
-    description: "When user says 'add a back day', coach shows action button to add workout"
-    needs_testing: true
-  
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "testing"
+        comment: "NEEDS TESTING: AI Coach add workout feature implemented in AICoachWidget.tsx lines 222-273. Detects 'add a back day' type requests and shows action button to add workout to schedule."
+
   - task: "New Milestone Badges"
+    implemented: true
+    working: "NA"
     file: "apps/native/src/stores/awards-store.ts"
-    description: "Added 'First Steps' (first workout) and 'Making Friends' (first coach chat) badges"
-    needs_testing: true
+    stuck_count: 0
+    priority: "medium"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "testing"
+        comment: "NEEDS TESTING: New badges implemented in awards-store.ts lines 180-181. Added 'i1_first_workout' (First Steps) and 'i1_first_coach_chat' (Making Friends) badges. Coach conversation tracking implemented lines 683-727."
