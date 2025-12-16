@@ -539,6 +539,29 @@ export const AICoachWidget = ({ visible, onClose }: AICoachWidgetProps) => {
           addMessage("Done! ✅ Your workout has been updated. Head to your workout to see the changes!", true);
           break;
           
+        case 'add_workout':
+          // Add a workout to the specified date
+          const { workoutType, targetDate, duration } = action.params || {};
+          const parsedDate = new Date(targetDate || new Date());
+          parsedDate.setDate(parsedDate.getDate());
+          
+          const newWorkout = await addWorkoutToDate(parsedDate, workoutType || 'cardio', duration || 30);
+          
+          if (newWorkout) {
+            const dayName = parsedDate.toLocaleDateString('en-US', { weekday: 'long' });
+            addMessage(
+              `Done! ✅ I've added "${newWorkout.title}" to your schedule for ${dayName}.\n\n` +
+              `📅 ${parsedDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric' })}\n` +
+              `⏱️ ${newWorkout.duration} minutes\n` +
+              `🔥 ${newWorkout.exercises?.length || 0} exercises\n\n` +
+              `Check your Workouts tab to see it!`,
+              true
+            );
+          } else {
+            addMessage("I couldn't add the workout. Please try again! 😓", true);
+          }
+          break;
+          
         default:
           addMessage("I've noted your request. This feature is coming soon! 🚀", true);
       }
