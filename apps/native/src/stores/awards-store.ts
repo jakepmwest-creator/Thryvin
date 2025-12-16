@@ -648,6 +648,9 @@ export const useAwardsStore = create<AwardsState>((set, get) => ({
             currentProgress = workoutStats.cardioSessions;
           }
           break;
+        case 'coachConversations':
+          currentProgress = workoutStats.coachConversations || 0;
+          break;
       }
       
       const completed = currentProgress >= badge.targetValue;
