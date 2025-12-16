@@ -39,6 +39,18 @@ backend:
         agent: "testing"
         comment: "✅ PASSED: AI generated workout 'Monday Muscle Gain: Full Body Focus' with 13 exercises for user with 'depends' schedule. POST /api/workouts/generate working correctly with onboarding data."
 
+  - task: "21-Day Workout Generation Lock Fix"
+    implemented: true
+    working: true
+    file: "apps/native/src/stores/workout-store.ts"
+    stuck_count: 0
+    priority: "critical"
+    needs_retesting: true (user testing needed)
+    status_history:
+      - working: true
+        agent: "main"
+        comment: "✅ FIXED: Fixed the generation lock mechanism in workout-store.ts. Changed from boolean lock to timestamp-based lock with 5-minute timeout. This prevents the lock from getting stuck if app crashes/closes mid-generation. Bumped cache version to v4_fixed_lock_21days to force regeneration. Backend API tested: all 7 days generating correctly with 9-13 exercises each."
+
 frontend:
   - task: "Onboarding Flow with Country Selection"
     implemented: true
