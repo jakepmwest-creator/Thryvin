@@ -679,4 +679,50 @@ export const useAwardsStore = create<AwardsState>((set, get) => ({
     
     return newlyUnlocked;
   },
+  
+  trackCoachConversation: async () => {
+    try {
+      // Get current count from storage
+      const stored = await getStorageItem('coach_conversation_count');
+      const currentCount = stored ? parseInt(stored, 10) : 0;
+      const newCount = currentCount + 1;
+      
+      // Save updated count
+      await setStorageItem('coach_conversation_count', String(newCount));
+      
+      console.log('💬 [AWARDS] Coach conversation tracked:', newCount);
+      
+      // Check if this triggers the badge
+      const { userBadges } = get();
+      const coachBadge = userBadges.find(ub => ub.badgeId === 'i1_first_coach_chat');
+      
+      if (!coachBadge?.completed) {
+        // Update just this badge
+        const badge = BADGE_DEFINITIONS.find(b => b.id === 'i1_first_coach_chat');
+        if (badge && newCount >= badge.targetValue) {
+          const updatedBadges = userBadges.map(ub => 
+            ub.badgeId === 'i1_first_coach_chat' 
+              ? { ...ub, progress: newCount, completed: true, unlockedAt: new Date().toISOString() }
+              : ub
+          );
+          
+          // Add if not exists
+          if (!coachBadge) {
+            updatedBadges.push({
+              badgeId: 'i1_first_coach_chat',
+              progress: newCount,
+              completed: true,
+              unlockedAt: new Date().toISOString(),
+            });
+          }
+          
+          set({ userBadges: updatedBadges });
+          await setStorageItem('user_badges', JSON.stringify(updatedBadges));
+          console.log('🎉 [AWARDS] First Coach Chat badge unlocked!');
+        }
+      }
+    } catch (error) {
+      console.error('Error tracking coach conversation:', error);
+    }
+  },
 }));
