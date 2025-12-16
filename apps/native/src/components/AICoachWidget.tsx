@@ -414,8 +414,8 @@ export const AICoachWidget = ({ visible, onClose }: AICoachWidgetProps) => {
           addMessage(`Got it! I'll be more intense and pushing from now on. Let's crush it! 💪🔥`, true);
           setIsLoading(false);
           return;
-        } else if (lowerMessage.includes('friendly')) {
-          setCoachPersonality('friendly');
+        } else if (lowerMessage.includes('friendly') || lowerMessage.includes('supportive')) {
+          setCoachPersonality('supportive');
           addMessage(`Sure thing! I'll be more supportive and encouraging. You've got this! 😊`, true);
           setIsLoading(false);
           return;
