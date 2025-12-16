@@ -1587,6 +1587,15 @@ async function updateBadgesAfterWorkout() {
       .filter(w => w.type?.toLowerCase().includes('cardio'))
       .reduce((sum, w) => sum + (w.duration || 0), 0);
     
+    // Get coach conversation count for badge progress
+    let coachConversations = 0;
+    try {
+      const stored = await getStorageItem('coach_conversation_count');
+      coachConversations = stored ? parseInt(stored, 10) : 0;
+    } catch (e) {
+      // ignore
+    }
+    
     // Prepare workout stats for badge system
     const workoutStats = {
       totalWorkouts: stats.totalWorkouts,
@@ -1600,6 +1609,7 @@ async function updateBadgesAfterWorkout() {
       upperBodySessions,
       lowerBodySessions,
       fullBodySessions,
+      coachConversations,
     };
     
     console.log('🏆 [BADGES] Updating badges with workout stats:', workoutStats);
