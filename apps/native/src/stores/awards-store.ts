@@ -358,7 +358,9 @@ interface AwardsState {
     upperBodySessions: number;
     lowerBodySessions: number;
     fullBodySessions: number;
+    coachConversations?: number;
   }) => Promise<Badge[]>;
+  trackCoachConversation: () => Promise<void>;
 }
 
 interface WorkoutDataForBadges {
