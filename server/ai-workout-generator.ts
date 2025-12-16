@@ -271,9 +271,9 @@ The user's session duration is ${userProfile.sessionDuration || 45} minutes. Use
 - TOTAL: 14-18 exercises acceptable
 
 IMPORTANT: For a ${userProfile.sessionDuration || 45} minute session, the absolute MAXIMUM is ${
-  (userProfile.sessionDuration || 45) <= 30 ? '9' :
-  (userProfile.sessionDuration || 45) <= 45 ? '10' :
-  (userProfile.sessionDuration || 45) <= 60 ? '15' : '18'
+  Number(userProfile.sessionDuration || 45) <= 30 ? '9' :
+  Number(userProfile.sessionDuration || 45) <= 45 ? '10' :
+  Number(userProfile.sessionDuration || 45) <= 60 ? '15' : '18'
 } exercises. Going over this limit will make the workout impossible to complete!
 
 COOLDOWN MUST ONLY BE STRETCHES - no strength exercises in cooldown!
