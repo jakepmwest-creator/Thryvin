@@ -316,35 +316,60 @@ export default function WorkoutsScreen() {
               </View>
             </View>
           ) : (
-            <View style={styles.workoutCard}>
+            <TouchableOpacity 
+              style={styles.workoutCard}
+              onPress={() => {
+                const today = new Date();
+                const dayOfWeek = today.getDay();
+                const todayIndex = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
+                setSelectedDayIndex(todayIndex);
+                setModalVisible(true);
+              }}
+              activeOpacity={0.9}
+            >
               <View style={styles.workoutCardContent}>
-                <Text style={styles.sectionLabel}>TODAY'S WORKOUT</Text>
-                <Text style={styles.workoutName}>{actualTodayWorkout?.title || 'Loading...'}</Text>
-                <Text style={styles.workoutMeta}>
-                  {actualTodayWorkout?.duration || 45} min • {actualTodayWorkout?.exercises?.length || 0} exercises • {actualTodayWorkout?.difficulty || 'Intermediate'}
-                </Text>
-                <TouchableOpacity 
-                  style={styles.startButton}
-                  onPress={() => {
-                    const today = new Date();
-                    const dayOfWeek = today.getDay();
-                    const todayIndex = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
-                    setSelectedDayIndex(todayIndex);
-                    setModalVisible(true);
-                  }}
-                >
-                  <LinearGradient
-                    colors={[COLORS.gradientStart, COLORS.gradientEnd]}
-                    style={styles.startGradient}
-                    start={{ x: 0, y: 0 }}
-                    end={{ x: 1, y: 1 }}
-                  >
-                    <Ionicons name="play" size={20} color={COLORS.white} />
-                    <Text style={styles.startText}>Start Workout</Text>
-                  </LinearGradient>
-                </TouchableOpacity>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                  <Text style={[
+                    styles.sectionLabel,
+                    actualTodayWorkout?.completed && { color: COLORS.success }
+                  ]}>
+                    {actualTodayWorkout?.completed ? 'COMPLETED ✓' : 'TODAY\'S WORKOUT'}
+                  </Text>
+                </View>
+                <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <View style={{ flex: 1 }}>
+                    <Text style={styles.workoutName}>{actualTodayWorkout?.title || 'Loading...'}</Text>
+                    <Text style={styles.workoutMeta}>
+                      {actualTodayWorkout?.duration || 45} min • {actualTodayWorkout?.exercises?.length || 0} exercises • {actualTodayWorkout?.difficulty || 'Intermediate'}
+                    </Text>
+                  </View>
+                  {actualTodayWorkout?.completed && (
+                    <View style={styles.completedBadge}>
+                      <Ionicons name="checkmark-circle" size={32} color={COLORS.success} />
+                    </View>
+                  )}
+                </View>
+                {!actualTodayWorkout?.completed && (
+                  <View style={styles.startButton}>
+                    <LinearGradient
+                      colors={[COLORS.gradientStart, COLORS.gradientEnd]}
+                      style={styles.startGradient}
+                      start={{ x: 0, y: 0 }}
+                      end={{ x: 1, y: 1 }}
+                    >
+                      <Ionicons name="play" size={20} color={COLORS.white} />
+                      <Text style={styles.startText}>Start Workout</Text>
+                    </LinearGradient>
+                  </View>
+                )}
+                {actualTodayWorkout?.completed && (
+                  <View style={styles.viewSummaryHint}>
+                    <Text style={styles.viewSummaryText}>Tap to view summary</Text>
+                    <Ionicons name="chevron-forward" size={16} color={COLORS.mediumGray} />
+                  </View>
+                )}
               </View>
-            </View>
+            </TouchableOpacity>
           )}
         </View>
 
