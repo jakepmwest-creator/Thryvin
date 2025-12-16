@@ -87,7 +87,11 @@ metadata:
 
 test_plan:
   current_focus:
-    - "All backend tests completed successfully per review request"
+    - "Duration Confirmation Modal"
+    - "Calendar Purple Highlight Fix"
+    - "View Summary on Workouts Page"
+    - "AI Coach Add Workout Action"
+    - "New Milestone Badges"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
