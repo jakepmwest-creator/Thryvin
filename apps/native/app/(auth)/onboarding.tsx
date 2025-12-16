@@ -353,6 +353,7 @@ export default function OnboardingScreen() {
   const { register, isLoading } = useAuthStore();
   const [currentStep, setCurrentStep] = useState(0);
   const [showDatePicker, setShowDatePicker] = useState(false);
+  const [showCountryPicker, setShowCountryPicker] = useState(false);
   const [formData, setFormData] = useState<any>({
     name: '',
     country: '', // User's country for timezone
