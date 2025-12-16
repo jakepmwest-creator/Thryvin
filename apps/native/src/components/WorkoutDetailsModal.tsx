@@ -450,7 +450,8 @@ export function WorkoutDetailsModal({
           </ScrollView>
         </Animated.View>
         
-        {!currentWorkout?.isRestDay && (
+        {/* Only show footer buttons for non-rest days that are NOT completed */}
+        {!currentWorkout?.isRestDay && !currentWorkout?.completed && (
         <View style={styles.footer}>
           <TouchableOpacity style={styles.editButton} onPress={() => setEditModalVisible(true)}>
             <View style={styles.editButtonContent}>
@@ -464,21 +465,13 @@ export function WorkoutDetailsModal({
             onPress={handleStartWorkoutPress}
           >
             <LinearGradient
-              colors={currentWorkout?.completed 
-                ? ['#34C759', '#30D158'] 
-                : [COLORS.gradientStart, COLORS.gradientEnd]}
+              colors={[COLORS.gradientStart, COLORS.gradientEnd]}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 0 }}
               style={styles.startButtonGradient}
             >
-              <Ionicons 
-                name={currentWorkout?.completed ? 'eye' : 'play'} 
-                size={24} 
-                color="#FFFFFF" 
-              />
-              <Text style={styles.startButtonText}>
-                {currentWorkout?.completed ? 'View Summary' : 'Start Workout'}
-              </Text>
+              <Ionicons name="play" size={24} color="#FFFFFF" />
+              <Text style={styles.startButtonText}>Start Workout</Text>
             </LinearGradient>
           </TouchableOpacity>
         </View>
