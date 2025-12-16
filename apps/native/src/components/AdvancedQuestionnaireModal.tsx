@@ -30,7 +30,7 @@ const COLORS = {
   danger: '#FF3B30',
 };
 
-const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL || 'https://ai-trainer-21.preview.emergentagent.com';
+const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL || 'https://thryvin-app-1.preview.emergentagent.com';
 
 interface AdvancedQuestionnaireModalProps {
   visible: boolean;

@@ -3,7 +3,7 @@
 ## Problem
 The mobile app was getting **404 errors** when trying to reach the backend at:
 ```
-https://ai-trainer-21.preview.emergentagent.com/api/*
+https://thryvin-app-1.preview.emergentagent.com/api/*
 ```
 
 This preview URL routes to the Emergent marketing page, NOT the backend API.
