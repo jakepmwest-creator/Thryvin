@@ -695,7 +695,7 @@ const styles = StyleSheet.create({
   divider: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginVertical: 16,
+    marginVertical: 24,
   },
   dividerLine: {
     flex: 1,
@@ -711,9 +711,9 @@ const styles = StyleSheet.create({
   whyJoinContainer: {
     backgroundColor: `${COLORS.accent}08`,
     borderRadius: 12,
-    padding: 12,
-    marginBottom: 14,
-    gap: 8,
+    padding: 14,
+    marginBottom: 20,
+    gap: 10,
   },
   bulletPoint: {
     flexDirection: 'row',
@@ -731,7 +731,7 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   startJourneyGradient: {
-    paddingVertical: 14,
+    paddingVertical: 16,
     paddingHorizontal: 20,
     flexDirection: 'row',
     alignItems: 'center',
