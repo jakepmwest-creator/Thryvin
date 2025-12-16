@@ -160,8 +160,14 @@ export function setupAuth(app: Express) {
       while (retryCount < maxRetries) {
         try {
           user = await storage.createUser({
-            ...req.body,
+            name: req.body.name,
+            email: req.body.email,
             password: await hashPassword(req.body.password),
+            // Provide default values for required fields - user will set these during onboarding
+            trainingType: req.body.trainingType || 'general-fitness',
+            goal: req.body.goal || 'improve-health',
+            coachingStyle: req.body.coachingStyle || 'encouraging-positive',
+            selectedCoach: req.body.selectedCoach || 'nate-green',
             trialEndsAt,
           });
           console.log('✅ User created successfully in database!');
@@ -282,8 +288,14 @@ export function setupAuth(app: Express) {
       while (retryCount < maxRetries) {
         try {
           user = await storage.createUser({
-            ...req.body,
+            name: req.body.name,
+            email: req.body.email,
             password: await hashPassword(req.body.password),
+            // Provide default values for required fields - user will set these during onboarding
+            trainingType: req.body.trainingType || 'general-fitness',
+            goal: req.body.goal || 'improve-health',
+            coachingStyle: req.body.coachingStyle || 'encouraging-positive',
+            selectedCoach: req.body.selectedCoach || 'nate-green',
             trialEndsAt,
           });
           console.log('✅ User created successfully in database!');
