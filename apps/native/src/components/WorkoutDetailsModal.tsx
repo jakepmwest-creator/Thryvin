@@ -370,16 +370,35 @@ export function WorkoutDetailsModal({
               </View>
             ) : (
               <>
-                <View style={styles.section}>
-                  <Text style={styles.sectionTitle}>
-                    {currentWorkout?.completed ? 'Summary' : 'Overview'}
-                  </Text>
-                  <Text style={styles.overviewText}>
-                    {currentWorkout?.completed 
-                      ? `Completed on ${new Date(currentWorkout.completedAt || currentWorkout.date).toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })}. Great work!`
-                      : (currentWorkout?.overview || 'Complete workout designed for your fitness level.')}
-                  </Text>
-                </View>
+                {currentWorkout?.completed ? (
+                  <View style={styles.section}>
+                    <Text style={styles.summaryTitle}>WORKOUT SUMMARY</Text>
+                    <Text style={styles.summarySubtitle}>
+                      Completed on {new Date(currentWorkout.completedAt || currentWorkout.date).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
+                    </Text>
+                    <View style={styles.summaryStatsRow}>
+                      <View style={styles.summaryStat}>
+                        <Text style={styles.summaryStatValue}>{currentWorkout.duration || 45}</Text>
+                        <Text style={styles.summaryStatLabel}>minutes</Text>
+                      </View>
+                      <View style={styles.summaryStat}>
+                        <Text style={styles.summaryStatValue}>{currentWorkout.exercises?.length || 0}</Text>
+                        <Text style={styles.summaryStatLabel}>exercises</Text>
+                      </View>
+                      <View style={styles.summaryStat}>
+                        <Text style={styles.summaryStatValue}>{currentWorkout.caloriesBurn || 300}</Text>
+                        <Text style={styles.summaryStatLabel}>calories</Text>
+                      </View>
+                    </View>
+                  </View>
+                ) : (
+                  <View style={styles.section}>
+                    <Text style={styles.sectionTitle}>Overview</Text>
+                    <Text style={styles.overviewText}>
+                      {currentWorkout?.overview || 'Complete workout designed for your fitness level.'}
+                    </Text>
+                  </View>
+                )}
             
             {warmupExercises.length > 0 && (
               <View style={styles.section}>
