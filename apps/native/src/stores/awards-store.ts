@@ -156,7 +156,7 @@ export interface Badge {
   category: BadgeCategory;
   rarity: BadgeRarity;
   icon: string;
-  targetType: 'workouts' | 'streak' | 'totalSets' | 'totalReps' | 'totalMinutes' | 'categorySessions' | 'weeklyConsistency';
+  targetType: 'workouts' | 'streak' | 'totalSets' | 'totalReps' | 'totalMinutes' | 'categorySessions' | 'weeklyConsistency' | 'coachConversations';
   targetValue: number;
   targetCategory?: string;
   tier?: number;
