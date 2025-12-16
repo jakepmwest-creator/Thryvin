@@ -176,6 +176,9 @@ export interface UserBadge {
 // ============ MASSIVE BADGE LIST BY ISLAND ============
 export const BADGE_DEFINITIONS: Badge[] = [
   // ==================== ISLAND 1: THE STARTING LINE ====================
+  // Milestone badges - First achievements
+  { id: 'i1_first_workout', name: 'First Steps', description: 'Complete your first workout', category: 'program', rarity: 'common', icon: 'footsteps', targetType: 'workouts', targetValue: 1, tier: 0, gradient: ['#34C759', '#00C7BE'], xp: 100, island: 1 },
+  { id: 'i1_first_coach_chat', name: 'Making Friends', description: 'Have your first conversation with your AI coach', category: 'program', rarity: 'common', icon: 'chatbubbles', targetType: 'coachConversations', targetValue: 1, tier: 0, gradient: ['#5B8DEF', '#34C4E5'], xp: 75, island: 1 },
   // Consistency
   { id: 'i1_streak_3', name: 'Getting Moving', description: '3 day streak', category: 'consistency', rarity: 'common', icon: 'flame', targetType: 'streak', targetValue: 3, tier: 1, gradient: ['#A22BF6', '#FF4EC7'], xp: 50, island: 1 },
   { id: 'i1_streak_5', name: 'Warming Up', description: '5 day streak', category: 'consistency', rarity: 'common', icon: 'flame', targetType: 'streak', targetValue: 5, tier: 2, gradient: ['#A22BF6', '#FF4EC7'], xp: 100, island: 1 },
