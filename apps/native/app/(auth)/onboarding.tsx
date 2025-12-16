@@ -772,38 +772,23 @@ export default function OnboardingScreen() {
           }
           
           if (field.type === 'country') {
+            const selectedCountry = COUNTRY_OPTIONS.find(c => c.value === formData.country);
             return (
               <View key={field.key} style={styles.fieldWrapper}>
                 <Text style={styles.fieldLabel}>{field.label}</Text>
-                <View style={styles.countryGrid}>
-                  {COUNTRY_OPTIONS.map((country) => {
-                    const isSelected = formData.country === country.value;
-                    return (
-                      <TouchableOpacity
-                        key={country.value}
-                        style={[
-                          styles.countryOption,
-                          isSelected && styles.countryOptionSelected,
-                        ]}
-                        onPress={() => setFormData({ 
-                          ...formData, 
-                          country: country.value,
-                          timezone: country.timezone,
-                        })}
-                      >
-                        <Text style={[
-                          styles.countryLabel,
-                          isSelected && styles.countryLabelSelected,
-                        ]}>
-                          {country.label}
-                        </Text>
-                        {isSelected && (
-                          <Ionicons name="checkmark-circle" size={18} color={COLORS.accent} />
-                        )}
-                      </TouchableOpacity>
-                    );
-                  })}
-                </View>
+                <TouchableOpacity 
+                  style={styles.countryPickerButton}
+                  onPress={() => setShowCountryPicker(true)}
+                >
+                  <Ionicons name="globe-outline" size={20} color={COLORS.accent} />
+                  <Text style={[
+                    styles.countryPickerText,
+                    !selectedCountry && styles.countryPickerPlaceholder
+                  ]}>
+                    {selectedCountry ? selectedCountry.label : 'Select your country'}
+                  </Text>
+                  <Ionicons name="chevron-down" size={20} color={COLORS.mediumGray} />
+                </TouchableOpacity>
               </View>
             );
           }
