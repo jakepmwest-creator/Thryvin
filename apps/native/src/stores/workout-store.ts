@@ -1086,13 +1086,15 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
   
   // Force regenerate week workouts (for debugging/testing)
   forceRegenerateWeek: async () => {
-    console.log('🔄 [3-WEEK] Force clearing cache...');
+    console.log('🔄 [3-WEEK] Force clearing cache and locks...');
+    await deleteStorageItem('workout_generation_lock'); // Clear any stuck locks
+    await deleteStorageItem('workout_generation_in_progress'); // Clear legacy lock
     await setStorageItem('week_workouts', '[]'); // Clear workouts
     await setStorageItem('week_workouts_date', ''); // Clear date
     await setStorageItem('week_workouts_version', ''); // Clear version
     await setStorageItem('today_workout', ''); // Clear today
     await setStorageItem('today_workout_date', ''); // Clear today date
-    set({ weekWorkouts: [], todayWorkout: null });
+    set({ weekWorkouts: [], todayWorkout: null, isLoading: false, error: null });
     console.log('🔄 [3-WEEK] Starting generation...');
     await get().fetchWeekWorkouts();
     await get().fetchTodayWorkout();
