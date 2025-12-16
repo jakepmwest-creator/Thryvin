@@ -212,18 +212,37 @@ Create a UNIQUE workout different from other days. Design a balanced workout wit
 Vary the exercises and focus areas each day.`;
 
   // Step 3: Call AI
-  console.log('  Calling GPT-5...');
+  console.log('  🤖 Calling GPT-4o...');
+  console.log('  📝 User profile:', JSON.stringify({
+    goals: userProfile.fitnessGoals || userProfile.goal,
+    experience: userProfile.experience,
+    duration: userProfile.sessionDuration,
+    injuries: userProfile.injuries,
+  }));
   
-  const completion = await openai.chat.completions.create({
-    model: 'gpt-4o',
-    messages: [
-      { role: 'system', content: systemMessage },
-      { role: 'user', content: userMessage },
-    ],
-    temperature: 0.7,
-  });
+  let completion;
+  try {
+    completion = await openai.chat.completions.create({
+      model: 'gpt-4o',
+      messages: [
+        { role: 'system', content: systemMessage },
+        { role: 'user', content: userMessage },
+      ],
+      temperature: 0.7,
+    });
+    console.log('  ✅ OpenAI responded successfully');
+  } catch (openaiError: any) {
+    console.error('  ❌ OpenAI API error:', openaiError.message);
+    throw new Error(`OpenAI API error: ${openaiError.message}`);
+  }
   
   const aiResponse = completion.choices[0].message.content || '';
+  console.log('  📄 AI response length:', aiResponse.length, 'chars');
+  
+  if (!aiResponse || aiResponse.length < 50) {
+    console.error('  ❌ AI returned empty or very short response');
+    throw new Error('AI returned empty response');
+  }
   
   // Step 4: Parse JSON
   let workoutPlan: any;
