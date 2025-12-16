@@ -4697,11 +4697,15 @@ Respond with a complete workout in JSON format:
           
           INJURY HANDLING (CRITICAL):
           ${injuries !== "none" ? `The user has reported: "${injuries}". 
-          - AVOID all exercises that could aggravate these conditions
-          - Suggest alternative/modified exercises where appropriate
-          - If the injury affects a major muscle group, focus on other areas
+          - READ CAREFULLY: Parse the injury description to understand what the user CAN and CANNOT do
+          - If the user says something is "fixed" or "healing" or they "can do" something, include appropriate exercises with modifications
+          - For tennis elbow or elbow injuries: AVOID wrist curls, heavy grip exercises, and movements with palm-down wrist extension. USE neutral grip, lower weights, higher reps (12-15), and include forearm stretches
+          - For back injuries: AVOID heavy spinal loading, use supported movements
+          - For knee injuries: AVOID deep squats and jumping, modify to partial range
+          - If user says they can do upper body "with care" or "be careful", include upper body but with lighter loads and more reps
+          - Be adaptive, not restrictive - read the user's full injury description
           - Include mobility/recovery work that may help the injury
-          - Be conservative - user safety is the top priority` : "No injuries reported - full exercise selection available."}
+          - Add "Go lighter on this exercise" in coach notes for sensitive movements` : "No injuries reported - full exercise selection available."}
           
           Generate a workout with EXACTLY this structure:
           {
