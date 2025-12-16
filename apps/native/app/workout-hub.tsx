@@ -886,7 +886,7 @@ export default function WorkoutHubScreen() {
                                     <Text style={styles.inputLabel}>Hold Time (sec)</Text>
                                     <TextInput
                                       style={styles.input}
-                                      placeholder={exercise.duration || '60'}
+                                      placeholder={String(exercise.duration || '60')}
                                       placeholderTextColor={COLORS.mediumGray}
                                       keyboardType="numeric"
                                       value={holdTime}
