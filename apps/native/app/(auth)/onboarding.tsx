@@ -1168,8 +1168,73 @@ export default function OnboardingScreen() {
     );
   };
 
+  // Country picker modal renderer
+  const renderCountryPickerModal = () => (
+    <Modal
+      visible={showCountryPicker}
+      animationType="slide"
+      transparent={true}
+      onRequestClose={() => setShowCountryPicker(false)}
+    >
+      <View style={styles.countryModalOverlay}>
+        <View style={styles.countryModalContent}>
+          {/* Header */}
+          <View style={styles.countryModalHeader}>
+            <Text style={styles.countryModalTitle}>Select Your Country</Text>
+            <TouchableOpacity 
+              style={styles.countryModalClose}
+              onPress={() => setShowCountryPicker(false)}
+            >
+              <Ionicons name="close" size={24} color={COLORS.text} />
+            </TouchableOpacity>
+          </View>
+          
+          {/* Country List */}
+          <FlatList
+            data={COUNTRY_OPTIONS}
+            keyExtractor={(item) => item.value}
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={styles.countryList}
+            renderItem={({ item: country }) => {
+              const isSelected = formData.country === country.value;
+              return (
+                <TouchableOpacity
+                  style={[
+                    styles.countryListItem,
+                    isSelected && styles.countryListItemSelected,
+                  ]}
+                  onPress={() => {
+                    setFormData({ 
+                      ...formData, 
+                      country: country.value,
+                      timezone: country.timezone,
+                    });
+                    setShowCountryPicker(false);
+                  }}
+                >
+                  <Text style={[
+                    styles.countryListItemText,
+                    isSelected && styles.countryListItemTextSelected,
+                  ]}>
+                    {country.label}
+                  </Text>
+                  {isSelected && (
+                    <Ionicons name="checkmark-circle" size={22} color={COLORS.accent} />
+                  )}
+                </TouchableOpacity>
+              );
+            }}
+          />
+        </View>
+      </View>
+    </Modal>
+  );
+
   return (
     <View style={styles.container}>
+      {/* Country Picker Modal */}
+      {renderCountryPickerModal()}
+      
       {/* Custom Alert */}
       <CustomAlert
         visible={alertConfig.visible}
