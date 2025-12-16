@@ -173,7 +173,7 @@ export function setupAuth(app: Express) {
           console.log('✅ User created successfully in database!');
           break; // Success, exit retry loop
         } catch (dbError: any) {
-          console.log(`User creation attempt ${retryCount + 1} failed, retrying...`);
+          console.log(`User creation attempt ${retryCount + 1} failed:`, dbError?.message || dbError);
           retryCount++;
           
           if (retryCount >= maxRetries) {
@@ -301,7 +301,7 @@ export function setupAuth(app: Express) {
           console.log('✅ User created successfully in database!');
           break; // Success, exit retry loop
         } catch (dbError: any) {
-          console.log(`User creation attempt ${retryCount + 1} failed, retrying...`);
+          console.log(`User creation attempt ${retryCount + 1} failed:`, dbError?.message || dbError);
           retryCount++;
           
           if (retryCount >= maxRetries) {
