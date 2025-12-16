@@ -58,7 +58,8 @@ interface GeneratedWorkout {
 export async function generateAIWorkout(
   userProfile: UserProfile,
   dayOfWeek: number = 0,
-  weekNumber: number = 1 // Week number for variation
+  weekNumber: number = 1, // Week number for variation
+  recentExercises: string[] = [] // Exercises from previous days to avoid repetition
 ): Promise<GeneratedWorkout> {
   console.log('🤖 Generating AI workout for user profile:', userProfile, 'Week:', weekNumber);
   
