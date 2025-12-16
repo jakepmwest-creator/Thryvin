@@ -487,6 +487,12 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
             
             const weekNumber = Math.floor(i / 7) + 1; // 1, 2, or 3
             
+            // Collect recent exercises from generated workouts to avoid repetition
+            const recentExercises = generatedWorkouts
+              .slice(-3) // Last 3 workouts
+              .flatMap(w => w.exercises?.map((e: any) => e.name) || [])
+              .filter(Boolean);
+            
             let workout = null;
             let retries = 3;
             let lastError = null;
@@ -503,6 +509,7 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
                     userProfile,
                     dayOfWeek: workoutDayCounter % 7,
                     weekNumber,
+                    recentExercises, // Pass recent exercises to avoid repetition
                   }),
                 });
                 
