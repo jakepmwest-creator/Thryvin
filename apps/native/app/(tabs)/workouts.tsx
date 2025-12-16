@@ -642,5 +642,4 @@ const styles = StyleSheet.create({
   completedBadge: { marginLeft: 8 },
   viewSummaryHint: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginTop: 16, gap: 4 },
   viewSummaryText: { fontSize: 14, color: COLORS.mediumGray, fontWeight: '500' },
-  success: COLORS.success,
 });
