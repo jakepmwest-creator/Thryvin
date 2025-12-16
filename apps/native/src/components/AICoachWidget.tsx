@@ -40,7 +40,7 @@ interface Message {
   text: string;
   isAI: boolean;
   action?: {
-    type: 'swap_days' | 'modify_workout' | 'regenerate' | 'add_exercise' | 'remove_exercise' | 'change_intensity';
+    type: 'swap_days' | 'modify_workout' | 'regenerate' | 'add_exercise' | 'remove_exercise' | 'change_intensity' | 'add_workout' | 'smart_regenerate';
     params?: any;
     label?: string;
   };
