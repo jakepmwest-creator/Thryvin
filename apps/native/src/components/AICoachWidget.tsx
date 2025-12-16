@@ -17,6 +17,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { useWorkoutStore } from '../stores/workout-store';
 import { useCoachStore } from '../stores/coach-store';
+import { useAwardsStore } from '../stores/awards-store';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as SecureStore from 'expo-secure-store';
 
