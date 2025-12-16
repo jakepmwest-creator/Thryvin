@@ -126,6 +126,9 @@ export const AICoachWidget = ({ visible, onClose }: AICoachWidgetProps) => {
     setInputText('');
     addMessage(userMessage, false);
     processMessage(userMessage);
+    
+    // Track coach conversation for badge progress
+    useAwardsStore.getState().trackCoachConversation();
   };
   
   const processMessage = async (message: string) => {
