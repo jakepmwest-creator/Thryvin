@@ -684,13 +684,23 @@ export default function HomeScreen() {
               </View>
             </View>
           ) : (
-            <View ref={todayWorkoutRef} style={styles.todayWorkoutCard}>
+            <TouchableOpacity 
+              ref={todayWorkoutRef} 
+              style={styles.todayWorkoutCard}
+              onPress={() => setModalVisible(true)}
+              activeOpacity={0.9}
+            >
               <View style={styles.workoutContent}>
                 <View style={styles.workoutHeader}>
                   <View style={{ flex: 1 }}>
-                    <Text style={styles.sectionLabel}>
-                      {actualTodayWorkout?.completed ? 'COMPLETED' : 'TODAY\'S WORKOUT'}
-                    </Text>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                      <Text style={[
+                        styles.sectionLabel, 
+                        actualTodayWorkout?.completed && { color: '#34C759' }
+                      ]}>
+                        {actualTodayWorkout?.completed ? 'COMPLETED ✓' : 'TODAY\'S WORKOUT'}
+                      </Text>
+                    </View>
                     <Text style={styles.workoutTitle}>{actualTodayWorkout?.title || 'Loading...'}</Text>
                     <Text style={styles.workoutMeta}>
                       {actualTodayWorkout?.duration || 45} min • {actualTodayWorkout?.exercises?.length || 0} exercises • {actualTodayWorkout?.difficulty || 'Intermediate'}
@@ -698,34 +708,33 @@ export default function HomeScreen() {
                   </View>
                   {actualTodayWorkout?.completed && (
                     <View style={styles.completedBadge}>
-                      <Ionicons name="checkmark-circle" size={24} color={COLORS.success || '#34C759'} />
+                      <Ionicons name="checkmark-circle" size={32} color={'#34C759'} />
                     </View>
                   )}
                 </View>
-                <TouchableOpacity 
-                  style={styles.startButton}
-                  onPress={() => setModalVisible(true)}
-                >
-                  <LinearGradient
-                    colors={actualTodayWorkout?.completed 
-                      ? ['#34C759', '#30D158'] 
-                      : [COLORS.gradientStart, COLORS.gradientEnd]}
-                    style={styles.startGradient}
-                    start={{ x: 0, y: 0 }}
-                    end={{ x: 1, y: 1 }}
-                  >
-                    <Ionicons 
-                      name={actualTodayWorkout?.completed ? 'eye' : 'play'} 
-                      size={20} 
-                      color={COLORS.white} 
-                    />
-                    <Text style={styles.startText}>
-                      {actualTodayWorkout?.completed ? 'View Summary' : 'Start Workout'}
-                    </Text>
-                  </LinearGradient>
-                </TouchableOpacity>
+                {/* Only show Start Workout button if NOT completed */}
+                {!actualTodayWorkout?.completed && (
+                  <View style={styles.startButton}>
+                    <LinearGradient
+                      colors={[COLORS.gradientStart, COLORS.gradientEnd]}
+                      style={styles.startGradient}
+                      start={{ x: 0, y: 0 }}
+                      end={{ x: 1, y: 1 }}
+                    >
+                      <Ionicons name="play" size={20} color={COLORS.white} />
+                      <Text style={styles.startText}>Start Workout</Text>
+                    </LinearGradient>
+                  </View>
+                )}
+                {/* For completed workouts, show a subtle "tap to view" hint */}
+                {actualTodayWorkout?.completed && (
+                  <View style={styles.viewSummaryHint}>
+                    <Text style={styles.viewSummaryHintText}>Tap to view summary</Text>
+                    <Ionicons name="chevron-forward" size={16} color={COLORS.mediumGray} />
+                  </View>
+                )}
               </View>
-            </View>
+            </TouchableOpacity>
           )}
         </View>
 
