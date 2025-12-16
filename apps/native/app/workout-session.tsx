@@ -13,7 +13,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter, useLocalSearchParams } from 'expo-router';
-import { ExerciseVideoPlayer } from '../src/components/ExerciseVideoPlayer';
+import { WorkoutVideoPlayer } from '../src/components/ExerciseVideoPlayer';
 import { CustomAlert } from '../src/components/CustomAlert';
 import { useWorkoutStore } from '../src/stores/workout-store';
 
@@ -240,13 +240,13 @@ export default function WorkoutSessionScreen() {
           </Text>
         </View>
 
-        {/* Video Player */}
+        {/* Video Player - Auto-plays 3x then stops */}
         {currentExercise.videoUrl ? (
           <View style={styles.videoContainer}>
-            <ExerciseVideoPlayer
+            <WorkoutVideoPlayer
               videoUrl={currentExercise.videoUrl}
               exerciseName={currentExercise.name}
-              autoPlay={false}
+              isVisible={true}
             />
           </View>
         ) : (

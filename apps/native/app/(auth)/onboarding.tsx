@@ -438,6 +438,22 @@ export default function OnboardingScreen() {
         showAlert('warning', 'Required', 'Please fill in all fields to continue');
         return;
       }
+      
+      // Age validation for birthdate step (must be 16+)
+      if (currentStepData.id === 'birthdate' && formData.dateOfBirth) {
+        const today = new Date();
+        const birthDate = new Date(formData.dateOfBirth);
+        let age = today.getFullYear() - birthDate.getFullYear();
+        const monthDiff = today.getMonth() - birthDate.getMonth();
+        if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+          age--;
+        }
+        
+        if (age < 16) {
+          showAlert('error', 'Age Restriction', 'You must be at least 16 years old to use Thryvin. This is to ensure we provide safe and appropriate fitness guidance.');
+          return;
+        }
+      }
     }
 
     if (currentStep < ONBOARDING_STEPS.length - 1) {
@@ -593,7 +609,12 @@ export default function OnboardingScreen() {
                 setFormData({ ...formData, dateOfBirth: selectedDate });
               }
             }}
-            maximumDate={new Date()}
+            maximumDate={(() => {
+              // Maximum date is 16 years ago (user must be at least 16)
+              const maxDate = new Date();
+              maxDate.setFullYear(maxDate.getFullYear() - 16);
+              return maxDate;
+            })()}
             minimumDate={new Date(1940, 0, 1)}
           />
         )}

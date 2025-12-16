@@ -23,158 +23,235 @@ interface LegalModalProps {
   type: 'privacy' | 'terms';
 }
 
-const PRIVACY_POLICY = `Last Updated: December 2024
+const PRIVACY_POLICY = `Privacy Policy – Thryvin
+
+Last updated: December 2024
+
+Thryvin ("we", "our", or "us") respects your privacy and is committed to protecting your personal data. This Privacy Policy explains what information we collect, how we use it, and your rights when using the Thryvin app.
+
 
 1. INFORMATION WE COLLECT
 
-Personal Information:
-• Name and email address (provided during registration)
-• Fitness preferences and goals
-• Workout history and progress data
+We collect information you provide directly when you create an account and use the app, including:
 
-Automatically Collected Information:
-• Device information (type, OS version)
-• Usage data (features used, session duration)
-• Performance data (crash reports)
+Account Information
+• Name
+• Email address
+• Password (stored securely in encrypted/hashed form)
+
+Personal & Fitness Information
+• Age
+• Height and weight
+• Fitness goals and preferences
+• Injury information (provided by you)
+• Training history, workouts completed, and progress data
+
+Injury information is used only to tailor workouts and avoid recommending exercises that may aggravate existing injuries. Thryvin does not provide medical diagnosis or injury treatment advice.
+
+App Usage Information
+• Interactions with the app and AI coach
+• Feature usage and basic analytics to improve performance and reliability
+
 
 2. HOW WE USE YOUR INFORMATION
 
-• To provide and personalize your workout experience
-• To generate AI-powered workout recommendations
-• To track your progress and achievements
-• To send workout reminders (if enabled)
-• To improve our app and services
+We use your information to:
+• Create and manage your account
+• Provide personalised fitness guidance and workout plans
+• Adapt training recommendations based on your goals, preferences, and injuries
+• Improve app functionality and user experience
+• Communicate important account or service-related information
 
-3. DATA STORAGE
+We do not sell your personal data.
 
-Your workout data is primarily stored locally on your device. Cloud storage is used for:
-• Account authentication
-• Cross-device syncing (if enabled)
-• Backup of preferences
 
-4. DATA SHARING
+3. AI PROCESSING
 
-We do NOT sell your personal information. We may share data with:
-• Service providers who help operate our app
-• Analytics partners (anonymized data only)
-• When required by law
+Thryvin uses artificial intelligence to generate personalised fitness guidance based on the information you provide. Some user inputs may be processed by third-party AI service providers strictly for the purpose of generating responses.
 
-5. YOUR RIGHTS
+AI-generated content is intended for general fitness guidance only and should not be considered medical advice.
+
+
+4. PAYMENTS
+
+If you choose to subscribe to paid features in the future:
+• Payments are processed by third-party payment providers (such as Apple, Google, or Stripe)
+• We do not store or have access to your full payment or banking details
+• Payment providers process your data according to their own privacy policies
+
+
+5. DATA STORAGE & SECURITY
+
+We take reasonable technical and organisational measures to protect your data, including secure storage and encryption where appropriate. However, no system is completely secure, and we cannot guarantee absolute security.
+
+
+6. DATA RETENTION
+
+We retain your personal data only for as long as necessary to:
+• Provide the service
+• Comply with legal obligations
+• Resolve disputes and enforce agreements
+
+You may request deletion of your account and associated data at any time.
+
+
+7. YOUR RIGHTS (UK/EU USERS)
 
 You have the right to:
 • Access your personal data
-• Correct inaccurate data
-• Delete your account and data
-• Opt out of analytics collection
-• Export your data
+• Request correction of inaccurate data
+• Request deletion of your data
+• Withdraw consent where applicable
 
-6. SECURITY
+To exercise these rights, contact us at:
+support@thryvin.app
 
-We implement industry-standard security measures including:
-• Encryption of data in transit and at rest
-• Secure authentication protocols
-• Regular security audits
 
-7. CHILDREN'S PRIVACY
+8. CHILDREN'S PRIVACY
 
-Thryvin is not intended for children under 13. We do not knowingly collect data from children under 13.
+Thryvin is not intended for use by individuals under the age of 16. We do not knowingly collect personal data from children.
 
-8. CHANGES TO THIS POLICY
 
-We may update this policy periodically. We will notify you of significant changes via the app or email.
+9. CHANGES TO THIS POLICY
 
-9. CONTACT US
+We may update this Privacy Policy from time to time. Any changes will be posted on this page, and continued use of the app constitutes acceptance of the updated policy.
 
-For privacy-related questions:
-Email: privacy@thryvin.app
 
-For general inquiries:
+10. CONTACT US
+
+If you have any questions about this Privacy Policy or how your data is handled, contact:
 Email: support@thryvin.app`;
 
-const TERMS_OF_SERVICE = `Last Updated: December 2024
+const TERMS_OF_SERVICE = `Terms and Conditions – Thryvin
 
-1. ACCEPTANCE OF TERMS
+Last updated: December 2024
 
-By downloading, installing, or using Thryvin, you agree to be bound by these Terms of Service. If you do not agree, do not use the app.
+These Terms and Conditions ("Terms") govern your use of the Thryvin mobile application ("Thryvin", "the App", "we", "our", or "us"). By creating an account or using the App, you agree to these Terms.
 
-2. DESCRIPTION OF SERVICE
+If you do not agree, you must not use the App.
 
-Thryvin is an AI-powered fitness application that provides:
-• Personalized workout programs
-• Progress tracking and statistics
-• Achievement and badge systems
-• Fitness goal management
 
-3. USER ACCOUNTS
+1. PURPOSE OF THE APP
 
-• You must provide accurate registration information
-• You are responsible for maintaining account security
-• One account per person
-• You must be at least 13 years old to use the service
+Thryvin provides general fitness guidance, workout planning, and motivational support using AI-powered tools. The App is designed to help users stay consistent with training and improve overall fitness.
 
-4. USER CONDUCT
+Thryvin is not a medical service and does not provide medical, diagnostic, or rehabilitation advice.
 
-You agree NOT to:
-• Misuse or attempt to hack the service
-• Share your account credentials
-• Use the app for unlawful purposes
-• Interfere with other users' experience
-• Circumvent security features
 
-5. HEALTH DISCLAIMER
+2. FITNESS & MEDICAL DISCLAIMER
 
-IMPORTANT: Thryvin is NOT a medical service.
-• Always consult a healthcare provider before starting any exercise program
-• Listen to your body and stop if you experience pain
-• We are not responsible for injuries resulting from workouts
-• The app is for informational purposes only
+You acknowledge and agree that:
+• All fitness guidance provided is for general informational purposes only
+• You may wish to consult a qualified healthcare professional before starting any exercise program
+• Thryvin does not diagnose, treat, or prevent injuries or medical conditions
 
-6. INTELLECTUAL PROPERTY
+You use the App at your own risk.
 
-• All content, features, and functionality are owned by Thryvin
-• You may not copy, modify, or distribute our content
-• User-generated content remains yours, but you grant us license to use it
+
+3. AI-GENERATED CONTENT
+
+Some content within Thryvin is generated by artificial intelligence.
+
+You acknowledge that:
+• AI-generated responses may not always be accurate or complete
+• You remain responsible for deciding how to act on the information provided
+• AI guidance does not replace professional advice
+
+
+4. USER ACCOUNTS
+
+To use Thryvin, you must create an account.
+
+You agree to:
+• Provide accurate and truthful information
+• Keep your login details secure
+• Notify us of any unauthorised account use
+
+You are responsible for all activity that occurs under your account.
+
+You must be at least 16 years old to use Thryvin.
+
+
+5. USER RESPONSIBILITIES
+
+You agree not to:
+• Use the App for unlawful purposes
+• Misuse, abuse, or attempt to exploit the App or its systems
+• Provide false or misleading information
+• Attempt to reverse engineer or disrupt the App
+
+We reserve the right to restrict or terminate access if these Terms are violated.
+
+
+6. INJURIES & LIMITATIONS
+
+If you provide information about injuries or physical limitations:
+• Thryvin will attempt to avoid recommending exercises that may worsen those injuries
+• This does not guarantee injury prevention
+• You remain responsible for listening to your body and stopping if pain or discomfort occurs
+
 
 7. SUBSCRIPTIONS & PAYMENTS
 
-• Some features may require a paid subscription
-• Subscriptions auto-renew unless cancelled
-• Refunds are handled per app store policies
-• Prices may change with notice
+Thryvin may offer free and paid subscription plans.
 
-8. TERMINATION
+If you purchase a subscription:
+• Payments are processed by Apple App Store or Google Play
+• Pricing, billing frequency, and renewal terms are shown at purchase
+• You can manage or cancel subscriptions through your app store account
 
-We may suspend or terminate your account if you:
-• Violate these terms
-• Engage in fraudulent activity
-• Haven't used the app for extended periods
+We do not control app store billing systems.
 
-9. LIMITATION OF LIABILITY
 
-Thryvin is provided "as is" without warranties. We are not liable for:
-• Fitness injuries or health issues
-• Data loss
-• Service interruptions
-• Third-party actions
+8. NO GUARANTEES
 
-10. INDEMNIFICATION
+We do not guarantee:
+• Specific fitness results
+• Continuous availability of the App
+• Error-free or uninterrupted service
 
-You agree to indemnify Thryvin against claims arising from your use of the service or violation of these terms.
+Results vary between individuals.
 
-11. GOVERNING LAW
 
-These terms are governed by the laws of the jurisdiction where Thryvin is headquartered.
+9. INTELLECTUAL PROPERTY
 
-12. CHANGES TO TERMS
+All content, features, designs, text, graphics, and software within Thryvin are owned by or licensed to us.
 
-We may update these terms. Continued use after changes constitutes acceptance.
+You may not copy, modify, distribute, or exploit any part of the App without permission.
 
-13. CONTACT
 
-Questions about these terms:
-Email: legal@thryvin.app
+10. TERMINATION
 
-General support:
+We may suspend or terminate your account:
+• If you violate these Terms
+• If required by law
+• To protect the integrity of the App
+
+You may stop using the App at any time.
+
+
+11. LIMITATION OF LIABILITY
+
+To the maximum extent permitted by law:
+• Thryvin is not liable for injuries, losses, or damages resulting from use of the App
+• Use of the App is entirely at your own risk
+
+Nothing in these Terms limits liability that cannot legally be excluded.
+
+
+12. CHANGES TO THESE TERMS
+
+We may update these Terms from time to time. Continued use of the App after changes means you accept the updated Terms.
+
+
+13. GOVERNING LAW
+
+These Terms are governed by the laws of the United Kingdom.
+
+
+14. CONTACT
+
+If you have questions about these Terms, contact:
 Email: support@thryvin.app`;
 
 export const LegalModal = ({ visible, onClose, type }: LegalModalProps) => {

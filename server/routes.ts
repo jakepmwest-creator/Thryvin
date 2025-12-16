@@ -3083,6 +3083,50 @@ Previous conversation:`;
   });
 
   // User routes
+  
+  // Admin: List all users (for cleanup)
+  app.get("/api/admin/users", async (req, res) => {
+    try {
+      const allUsers = await db.select().from(users);
+      res.json({ users: allUsers.map(u => ({ id: u.id, email: u.email, name: u.name, createdAt: u.createdAt })) });
+    } catch (error) {
+      console.error("Error listing users:", error);
+      res.status(500).json({ error: "Failed to list users" });
+    }
+  });
+  
+  // Admin: Delete user by ID (except test user)
+  app.delete("/api/admin/users/:id", async (req, res) => {
+    try {
+      const userId = parseInt(req.params.id, 10);
+      
+      // Protect test user
+      const user = await storage.getUser(userId);
+      if (user?.email === 'test@example.com') {
+        return res.status(403).json({ error: "Cannot delete test user" });
+      }
+      
+      await db.delete(users).where(eq(users.id, userId));
+      res.json({ success: true, message: `User ${userId} deleted` });
+    } catch (error) {
+      console.error("Error deleting user:", error);
+      res.status(500).json({ error: "Failed to delete user" });
+    }
+  });
+  
+  // Admin: Delete all users except test user
+  app.delete("/api/admin/users", async (req, res) => {
+    try {
+      const result = await db.delete(users).where(
+        sql`email != 'test@example.com'`
+      );
+      res.json({ success: true, message: "All non-test users deleted" });
+    } catch (error) {
+      console.error("Error deleting users:", error);
+      res.status(500).json({ error: "Failed to delete users" });
+    }
+  });
+  
   app.post("/api/users", async (req, res) => {
     try {
       const userInput = insertUserSchema.parse(req.body);
@@ -4621,6 +4665,13 @@ Respond with a complete workout in JSON format:
           - Injuries/Limitations: ${injuries}
           - Cardio Preference: ${cardioPreference} (only include cardio if 'love' or 'like')
           
+          EXERCISE COUNT GUIDELINES (CRITICAL - based on ${duration} minute duration):
+          ${duration <= 20 ? '- SHORT WORKOUT (20min or less): 3-4 main exercises MAXIMUM, quick warmup (2-3 exercises), brief cooldown (1-2 exercises)' : ''}
+          ${duration > 20 && duration <= 30 ? '- MEDIUM-SHORT WORKOUT (21-30min): 4-5 main exercises, standard warmup (3 exercises), brief cooldown (2 exercises)' : ''}
+          ${duration > 30 && duration <= 45 ? '- MEDIUM WORKOUT (31-45min): 5-6 main exercises, full warmup (3-4 exercises), proper cooldown (2-3 exercises)' : ''}
+          ${duration > 45 && duration <= 60 ? '- STANDARD WORKOUT (46-60min): 6-7 main exercises, comprehensive warmup (4 exercises), full cooldown (3 exercises)' : ''}
+          ${duration > 60 ? '- LONG WORKOUT (60min+): 7-8 main exercises, thorough warmup (4-5 exercises), extended cooldown (3-4 exercises)' : ''}
+          
           INJURY HANDLING (CRITICAL):
           ${injuries !== "none" ? `The user has reported: "${injuries}". 
           - AVOID all exercises that could aggravate these conditions
@@ -4659,7 +4710,7 @@ Respond with a complete workout in JSON format:
                     "load": 0,
                     "rest_sec": 60
                   }
-                  // Include 3-6 exercises total
+                  // Follow exercise count guidelines above based on duration
                 ]
               },
               {
@@ -4678,9 +4729,9 @@ Respond with a complete workout in JSON format:
           }
           
           Requirements:
-          - EXACTLY 1 warmup block with at least 1 item
-          - EXACTLY 1 main block with 3-6 items  
-          - EXACTLY 1 recovery block with at least 1 item
+          - EXACTLY 1 warmup block with exercises
+          - EXACTLY 1 main block - FOLLOW EXERCISE COUNT GUIDELINES ABOVE (do NOT exceed)
+          - EXACTLY 1 recovery block with stretches
           - CRITICAL: Use ONLY exercise names from the exercises library above with EXACT canonical names
           - Use exercise_id starting from 1 and incrementing
           - Match exercises to available equipment: ${equipmentAccess.join(", ")}

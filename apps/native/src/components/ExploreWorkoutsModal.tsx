@@ -11,7 +11,7 @@ import {
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
-import { Video, ResizeMode } from 'expo-av';
+import { PreviewVideoPlayer } from './ExerciseVideoPlayer';
 import { usePreferencesStore } from '../stores/preferences-store';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
@@ -399,16 +399,12 @@ export const ExploreWorkoutsModal = ({ visible, onClose, category, categoryGradi
                       {selectedExercise.description || 'Perform this exercise with proper form and controlled movements.'}
                     </Text>
                     
-                    {/* Video - Only show if valid, otherwise show "Coming Soon" */}
+                    {/* Video - Thumbnail first, click to play, loops 3x */}
                     {hasValidVideo(selectedExercise) ? (
                       <View style={styles.videoContainer}>
-                        <Video
-                          source={{ uri: selectedExercise.videoUrl }}
-                          style={styles.videoPlayer}
-                          useNativeControls
-                          resizeMode={ResizeMode.COVER}
-                          isLooping
-                          shouldPlay={true}
+                        <PreviewVideoPlayer
+                          videoUrl={selectedExercise.videoUrl}
+                          exerciseName={selectedExercise.name}
                         />
                       </View>
                     ) : (

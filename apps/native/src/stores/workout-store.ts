@@ -1,13 +1,13 @@
 import { create } from 'zustand';
-import * as SecureStore from 'expo-secure-store';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useAwardsStore } from './awards-store';
 
 const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL || 'https://workout-companion-23.preview.emergentagent.com';
 
-// Storage helpers
+// Storage helpers - Use AsyncStorage for large data (workout plans are >2KB)
 const getStorageItem = async (key: string): Promise<string | null> => {
   try {
-    return await SecureStore.getItemAsync(key);
+    return await AsyncStorage.getItem(key);
   } catch {
     return null;
   }
@@ -15,9 +15,17 @@ const getStorageItem = async (key: string): Promise<string | null> => {
 
 const setStorageItem = async (key: string, value: string): Promise<void> => {
   try {
-    await SecureStore.setItemAsync(key, value);
+    await AsyncStorage.setItem(key, value);
   } catch (error) {
     console.error('Storage error:', error);
+  }
+};
+
+const deleteStorageItem = async (key: string): Promise<void> => {
+  try {
+    await AsyncStorage.removeItem(key);
+  } catch (error) {
+    console.error('Delete storage error:', error);
   }
 };
 
@@ -54,9 +62,14 @@ interface Workout {
 // Helper function to determine rest days based on training days per week
 function getRestDayPattern(trainingDays: number): number[] {
   // Returns array of day indices (0=Monday, 6=Sunday) that are rest days
+  // Logic: Spread workout days evenly, fill the rest with rest days
   switch (trainingDays) {
+    case 1:
+      return [1, 2, 3, 4, 5, 6]; // Only Mon workout, rest Tue-Sun
+    case 2:
+      return [1, 2, 4, 5, 6]; // Mon & Thu workout, rest others
     case 3:
-      return [1, 3, 5, 6]; // Rest: Tue, Thu, Sat, Sun
+      return [1, 3, 5, 6]; // Mon, Wed, Fri workout; Rest: Tue, Thu, Sat, Sun
     case 4:
       return [2, 4, 6]; // Rest: Wed, Fri, Sun
     case 5:
@@ -904,16 +917,16 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
     set({ isLoading: true });
     
     try {
-      // Clear all workout storage
-      await SecureStore.deleteItemAsync('week_workouts').catch(() => {});
-      await SecureStore.deleteItemAsync('week_workouts_date').catch(() => {});
-      await SecureStore.deleteItemAsync('week_workouts_version').catch(() => {});
-      await SecureStore.deleteItemAsync('today_workout').catch(() => {});
-      await SecureStore.deleteItemAsync('today_workout_date').catch(() => {});
-      await SecureStore.deleteItemAsync('completed_workouts').catch(() => {});
-      await SecureStore.deleteItemAsync('future_weeks').catch(() => {});
-      await SecureStore.deleteItemAsync('workout_stats').catch(() => {});
-      await SecureStore.deleteItemAsync('personal_bests').catch(() => {});
+      // Clear all workout storage using AsyncStorage
+      await deleteStorageItem('week_workouts');
+      await deleteStorageItem('week_workouts_date');
+      await deleteStorageItem('week_workouts_version');
+      await deleteStorageItem('today_workout');
+      await deleteStorageItem('today_workout_date');
+      await deleteStorageItem('completed_workouts');
+      await deleteStorageItem('future_weeks');
+      await deleteStorageItem('workout_stats');
+      await deleteStorageItem('personal_bests');
       
       // Reset the store state
       set({
@@ -1632,20 +1645,11 @@ async function updatePersonalBests(exercises: any[]) {
 }
 
 
-// Helper to delete storage item
-const deleteStorageItem = async (key: string): Promise<void> => {
-  try {
-    await SecureStore.deleteItemAsync(key);
-  } catch (error) {
-    console.error('Delete storage error:', error);
-  }
-};
-
 // Reset all workout data (for new user or logout)
 export async function resetAllWorkoutData(): Promise<void> {
   console.log('🔄 Resetting all workout data...');
   
-  // Clear all workout-related storage
+  // Clear all workout-related storage using AsyncStorage
   await deleteStorageItem('week_workouts');
   await deleteStorageItem('week_workouts_date');
   await deleteStorageItem('week_workouts_version');

@@ -1,20 +1,28 @@
 import { create } from 'zustand';
-import * as SecureStore from 'expo-secure-store';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
-// Storage helpers
+// Storage helpers - Use AsyncStorage for badges (can be large)
 const getStorageItem = async (key: string): Promise<string | null> => {
   try {
-    return await SecureStore.getItemAsync(key);
-  } catch {
+    return await AsyncStorage.getItem(key);
+  } catch (error) {
     return null;
   }
 };
 
 const setStorageItem = async (key: string, value: string): Promise<void> => {
   try {
-    await SecureStore.setItemAsync(key, value);
+    await AsyncStorage.setItem(key, value);
   } catch (error) {
-    console.error('Error storing item:', error);
+    console.error('Storage error:', error);
+  }
+};
+
+const deleteStorageItem = async (key: string): Promise<void> => {
+  try {
+    await AsyncStorage.removeItem(key);
+  } catch (error) {
+    console.warn('Delete storage error:', error);
   }
 };
 
@@ -573,7 +581,7 @@ export const useAwardsStore = create<AwardsState>((set, get) => ({
         currentIsland: 1 
       }));
       // Also clear the old key
-      await SecureStore.deleteItemAsync('user_badges').catch(() => {});
+      await deleteStorageItem('user_badges');
     } catch (e) {
       console.error('Error resetting awards:', e);
     }

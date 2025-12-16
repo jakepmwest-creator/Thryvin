@@ -1,30 +1,46 @@
 import { create } from 'zustand';
 import * as SecureStore from 'expo-secure-store';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { notificationService } from '../services/notificationService';
 import { useWorkoutStore } from './workout-store';
 
 const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL || 'https://workout-companion-23.preview.emergentagent.com';
 
-// Web-compatible storage helpers
+// Storage helpers - Use AsyncStorage for large data (user profiles can be >2KB)
+// Only use SecureStore for small secrets (email, password, tokens)
 const getStorageItem = async (key: string): Promise<string | null> => {
   try {
-    return await SecureStore.getItemAsync(key);
-  } catch (error) {
-    // Fallback to localStorage for web
-    if (typeof window !== 'undefined') {
-      return localStorage.getItem(key);
+    // Small secrets use SecureStore
+    if (['user_email', 'user_password', 'user_pin', 'biometric_token'].includes(key)) {
+      return await SecureStore.getItemAsync(key);
     }
-    return null;
+    // Large data uses AsyncStorage
+    return await AsyncStorage.getItem(key);
+  } catch (error) {
+    // Fallback to AsyncStorage if SecureStore fails
+    try {
+      return await AsyncStorage.getItem(key);
+    } catch {
+      return null;
+    }
   }
 };
 
 const setStorageItem = async (key: string, value: string): Promise<void> => {
   try {
-    await SecureStore.setItemAsync(key, value);
+    // Small secrets use SecureStore (must be under 2048 bytes)
+    if (['user_email', 'user_password', 'user_pin', 'biometric_token'].includes(key)) {
+      await SecureStore.setItemAsync(key, value);
+    } else {
+      // Large data uses AsyncStorage
+      await AsyncStorage.setItem(key, value);
+    }
   } catch (error) {
-    // Fallback to localStorage for web
-    if (typeof window !== 'undefined') {
-      localStorage.setItem(key, value);
+    // Fallback to AsyncStorage
+    try {
+      await AsyncStorage.setItem(key, value);
+    } catch (e) {
+      console.error('Storage error:', e);
     }
   }
 };
@@ -32,12 +48,11 @@ const setStorageItem = async (key: string, value: string): Promise<void> => {
 
 const deleteStorageItem = async (key: string): Promise<void> => {
   try {
-    await SecureStore.deleteItemAsync(key);
+    // Try both to ensure cleanup
+    await SecureStore.deleteItemAsync(key).catch(() => {});
+    await AsyncStorage.removeItem(key).catch(() => {});
   } catch (error) {
-    // Fallback to localStorage for web
-    if (typeof window !== 'undefined') {
-      localStorage.removeItem(key);
-    }
+    console.warn('Delete storage error:', error);
   }
 };
 

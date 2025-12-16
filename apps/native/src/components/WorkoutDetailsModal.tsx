@@ -13,7 +13,7 @@ import {
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
-import { ExerciseVideoPlayer } from './ExerciseVideoPlayer';
+import { PreviewVideoPlayer } from './ExerciseVideoPlayer';
 import { useWorkoutStore } from '../stores/workout-store';
 import { EditWorkoutModal } from './EditWorkoutModal';
 import { CustomAlert } from './CustomAlert';
@@ -528,10 +528,9 @@ function ExerciseCard({ exercise, index, isExpanded, onToggle }: any) {
       {isExpanded && (
         exercise.videoUrl ? (
           <View style={styles.videoContainer}>
-            <ExerciseVideoPlayer
+            <PreviewVideoPlayer
               videoUrl={exercise.videoUrl}
               exerciseName={exercise.name}
-              autoPlay={false}
             />
           </View>
         ) : (

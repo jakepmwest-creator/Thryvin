@@ -15,7 +15,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import { ExerciseVideoPlayer } from '../src/components/ExerciseVideoPlayer';
+import { WorkoutVideoPlayer } from '../src/components/ExerciseVideoPlayer';
 import { VoiceInputButton } from '../src/components/VoiceInputButton';
 import { CustomAlert } from '../src/components/CustomAlert';
 import { useWorkoutStore } from '../src/stores/workout-store';
@@ -630,13 +630,13 @@ export default function WorkoutHubScreen() {
                       </View>
 
                       <ScrollView style={styles.modalContent} showsVerticalScrollIndicator={false}>
-                        {/* Video Player */}
+                        {/* Video Player - Auto-plays 3x then stops */}
                         {exercise.videoUrl && (
                           <View style={styles.videoContainer}>
-                            <ExerciseVideoPlayer
+                            <WorkoutVideoPlayer
                               videoUrl={exercise.videoUrl}
                               exerciseName={exercise.name}
-                              autoPlay={false}
+                              isVisible={true}
                             />
                           </View>
                         )}
