@@ -335,7 +335,7 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
       
       const storedUser = await getStorageItem('auth_user');
       if (!storedUser) {
-        await deleteStorageItem('workout_generation_in_progress');
+        await deleteStorageItem('workout_generation_lock');
         throw new Error('User not authenticated');
       }
       
@@ -575,7 +575,7 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
         
       } catch (error: any) {
         console.error('❌ [WEEK] Generation failed:', error);
-        await deleteStorageItem('workout_generation_in_progress');
+        await deleteStorageItem('workout_generation_lock');
         // In the catch block, we don't have access to local weekWorkouts - set empty state
         set({ 
           error: error.message || 'Failed to generate workouts',
