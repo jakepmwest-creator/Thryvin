@@ -440,27 +440,25 @@ export default function WorkoutHubScreen() {
       caloriesBurned,
     });
             
-            // Immediately show celebration
-            setShowCelebration(true);
-            confettiRef.current?.start();
-            
-            // Save workout in background
-            try {
-              await finishWorkoutSession(durationMinutes);
-              console.log(`✅ Workout finished - ${completedExercisesCount} exercises, ${durationMinutes} min, ~${caloriesBurned} cal`);
-            } catch (error) {
-              console.error('❌ Error finishing workout:', error);
-            }
-            
-            // Navigate back after celebration (wait for user to dismiss or auto-navigate)
-            setTimeout(() => {
-              setShowCelebration(false);
-              router.replace('/(tabs)');
-            }, 5000); // Give user 5 seconds to see the popup
-          },
-        },
-      ]
-    );
+    // Immediately show celebration
+    setShowCelebration(true);
+    confettiRef.current?.start();
+    
+    // Save workout in background
+    try {
+      await finishWorkoutSession(durationMinutes);
+      console.log(`✅ Workout finished - ${pendingFinishData.completedExercisesCount} exercises, ${durationMinutes} min, ~${caloriesBurned} cal`);
+    } catch (error) {
+      console.error('❌ Error finishing workout:', error);
+    }
+    
+    // Navigate back after celebration
+    setTimeout(() => {
+      setShowCelebration(false);
+      router.replace('/(tabs)');
+    }, 5000);
+    
+    setPendingFinishData(null);
   };
 
   const handleExit = () => {
