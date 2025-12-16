@@ -570,7 +570,7 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
         await setStorageItem('week_workouts_version', CACHE_VERSION);
         
         // Release lock
-        await deleteStorageItem('workout_generation_in_progress');
+        await deleteStorageItem('workout_generation_lock');
         set({ weekWorkouts, isLoading: false, error: null });
         
       } catch (error: any) {
@@ -585,7 +585,7 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
       }
     } catch (error) {
       console.error('Error fetching week workouts:', error);
-      await deleteStorageItem('workout_generation_in_progress');
+      await deleteStorageItem('workout_generation_lock');
       set({ 
         error: error instanceof Error ? error.message : 'Failed to load workouts',
         isLoading: false,
