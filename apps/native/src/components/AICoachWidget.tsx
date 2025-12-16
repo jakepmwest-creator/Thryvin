@@ -215,6 +215,59 @@ export const AICoachWidget = ({ visible, onClose }: AICoachWidgetProps) => {
       }
     }
     
+    // Detect "add workout" intent - user wants to add a workout to schedule
+    const addWorkoutKeywords = ['add a', 'add workout', 'want to add', 'can you add', 'include a', 'schedule a', 'put in a'];
+    const workoutTypes = {
+      'back': 'strength',
+      'chest': 'strength',
+      'arm': 'strength',
+      'leg': 'strength',
+      'shoulder': 'strength',
+      'strength': 'strength',
+      'cardio': 'cardio',
+      'run': 'cardio',
+      'running': 'cardio',
+      'yoga': 'yoga',
+      'stretch': 'yoga',
+      'flexibility': 'yoga',
+    };
+    
+    const hasAddIntent = addWorkoutKeywords.some(k => lowerMessage.includes(k));
+    
+    if (hasAddIntent) {
+      // Determine what type of workout they want to add
+      let detectedType = 'cardio'; // default
+      let detectedName = 'workout';
+      
+      for (const [keyword, type] of Object.entries(workoutTypes)) {
+        if (lowerMessage.includes(keyword)) {
+          detectedType = type;
+          detectedName = keyword.charAt(0).toUpperCase() + keyword.slice(1);
+          break;
+        }
+      }
+      
+      // Find the next available date (default to tomorrow)
+      const tomorrow = new Date();
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      
+      setIsLoading(false);
+      addMessage(
+        `Sure! I can add a ${detectedName} workout to your schedule. 💪\n\nI'll add it for tomorrow (${tomorrow.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })}).\n\nReady to add it?`,
+        true,
+        { 
+          type: 'add_workout', 
+          params: { 
+            workoutType: detectedType,
+            targetDate: tomorrow.toISOString(),
+            duration: 30
+          }, 
+          label: `Add ${detectedName} Workout` 
+        }
+      );
+      return;
+    }
+    
     // Detect intensity change locally
     if (lowerMessage.includes('more intense') || lowerMessage.includes('harder') || lowerMessage.includes('challenging')) {
       setIsLoading(false);
