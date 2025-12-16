@@ -1241,6 +1241,18 @@ const styles = StyleSheet.create({
   completedBadge: {
     marginLeft: 8,
   },
+  viewSummaryHint: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingTop: 12,
+    gap: 4,
+  },
+  viewSummaryHintText: {
+    fontSize: 14,
+    color: COLORS.mediumGray,
+    fontWeight: '500',
+  },
   comingSoonBadge: {
     flexDirection: 'row',
     alignItems: 'center',
