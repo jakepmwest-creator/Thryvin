@@ -1574,7 +1574,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Use AI workout generator
       const { generateAIWorkout } = await import('./ai-workout-generator');
-      const workout = await generateAIWorkout(enrichedProfile, dayOfWeek || 0);
+      const workout = await generateAIWorkout(
+        enrichedProfile, 
+        dayOfWeek || 0, 
+        weekNumber || 1,
+        recentExercises || []
+      );
       
       console.log('✅ AI Workout generated:', workout.title, `(${workout.exercises.length} exercises)`);
       
