@@ -457,18 +457,25 @@ export default function WorkoutsScreen() {
                 <View key={weekIndex} style={styles.monthWeekRow}>
                   {week.map((date, dayIndex) => {
                     const dateStatus = date ? getDateStatus(date) : 'none';
+                    const today = new Date();
+                    const isToday = date === today.getDate() && 
+                                    today.getMonth() === new Date(today.getFullYear(), today.getMonth(), date || 1).getMonth();
+                    const isCompleted = dateStatus === 'completed';
+                    // Show purple for today OR selected date
+                    const showPurple = isToday || date === selectedDate;
+                    
                     return (
                     <TouchableOpacity
                       key={dayIndex}
                       style={[
                         styles.monthDayCell,
                         !date && styles.monthDayCellEmpty,
-                        date === selectedDate && styles.monthDayCellSelected,
+                        showPurple && styles.monthDayCellSelected,
                       ]}
                       onPress={() => date && handleDayPress(date)}
                       disabled={!date}
                     >
-                      {date === selectedDate && (
+                      {showPurple && (
                         <LinearGradient
                           colors={[COLORS.accent, COLORS.accentSecondary]}
                           style={StyleSheet.absoluteFill}
@@ -480,18 +487,18 @@ export default function WorkoutsScreen() {
                         <>
                           <Text style={[
                             styles.monthDayText,
-                            date === selectedDate && styles.monthDayTextActive
+                            showPurple && styles.monthDayTextActive
                           ]}>
                             {date}
                           </Text>
-                          {dateStatus === 'completed' ? (
+                          {isCompleted ? (
                             <View style={styles.completedIconSmall}>
-                              <Ionicons name="checkmark-circle" size={12} color={COLORS.success} />
+                              <Ionicons name="checkmark-circle" size={12} color={showPurple ? COLORS.white : COLORS.success} />
                             </View>
                           ) : dateStatus !== 'rest' && dateStatus !== 'none' ? (
                             <View style={[
                               styles.monthDayDot,
-                              { backgroundColor: getStatusColor(dateStatus) }
+                              { backgroundColor: showPurple ? COLORS.white : getStatusColor(dateStatus) }
                             ]} />
                           ) : null}
                         </>
