@@ -187,13 +187,15 @@ export const BADGE_DEFINITIONS: Badge[] = [
   { id: 'i1_workout_7', name: 'First Week', description: 'Complete 7 workouts', category: 'program', rarity: 'common', icon: 'footsteps', targetType: 'workouts', targetValue: 7, tier: 1, gradient: ['#34C759', '#00C7BE'], xp: 75, island: 1 },
   { id: 'i1_workout_14', name: 'Two Weeks Strong', description: 'Complete 14 workouts', category: 'program', rarity: 'common', icon: 'fitness', targetType: 'workouts', targetValue: 14, tier: 2, gradient: ['#5B8DEF', '#34C4E5'], xp: 150, island: 1 },
   { id: 'i1_workout_21', name: 'Three Week Champion', description: 'Complete 21 workouts', category: 'program', rarity: 'rare', icon: 'checkmark-done', targetType: 'workouts', targetValue: 21, tier: 3, gradient: ['#34C759', '#00C7BE'], xp: 250, island: 1 },
-  // Volume
-  { id: 'i1_sets_50', name: 'Set Starter', description: 'Complete 50 sets', category: 'volume', rarity: 'common', icon: 'layers', targetType: 'totalSets', targetValue: 50, tier: 1, gradient: ['#5B8DEF', '#34C4E5'], xp: 75, island: 1 },
+  // Volume - Reps (cardio minutes also count as reps)
   { id: 'i1_reps_500', name: 'Rep Rookie', description: 'Complete 500 reps', category: 'volume', rarity: 'common', icon: 'barbell', targetType: 'totalReps', targetValue: 500, tier: 1, gradient: ['#FF6B35', '#FFD60A'], xp: 75, island: 1 },
-  // Cardio (for cardio-focused users)
-  { id: 'i1_cardio_30min', name: 'Cardio Starter', description: '30 minutes of cardio', category: 'focus', rarity: 'common', icon: 'heart', targetType: 'totalMinutes', targetValue: 30, targetCategory: 'cardio', tier: 1, gradient: ['#FF3B30', '#FF9500'], xp: 75, island: 1 },
-  { id: 'i1_cardio_60min', name: 'Cardio Hour', description: '60 minutes of cardio', category: 'focus', rarity: 'common', icon: 'heart', targetType: 'totalMinutes', targetValue: 60, targetCategory: 'cardio', tier: 2, gradient: ['#FF6B35', '#FFD60A'], xp: 150, island: 1 },
-  { id: 'i1_cardio_180min', name: 'Cardio Crusher', description: '180 minutes of cardio', category: 'focus', rarity: 'rare', icon: 'heart-circle', targetType: 'totalMinutes', targetValue: 180, targetCategory: 'cardio', tier: 3, gradient: ['#34C759', '#00C7BE'], xp: 250, island: 1 },
+  // Time-based badges (applies to everyone)
+  { id: 'i1_minutes_60', name: 'Hour One', description: 'Train for 60 minutes total', category: 'volume', rarity: 'common', icon: 'time', targetType: 'totalMinutes', targetValue: 60, tier: 1, gradient: ['#5B8DEF', '#34C4E5'], xp: 75, island: 1 },
+  { id: 'i1_minutes_200', name: 'Time Committed', description: 'Train for 200 minutes total', category: 'volume', rarity: 'common', icon: 'time', targetType: 'totalMinutes', targetValue: 200, tier: 2, gradient: ['#FF6B35', '#FFD60A'], xp: 150, island: 1 },
+  { id: 'i1_minutes_500', name: 'Dedicated Trainer', description: 'Train for 500 minutes total', category: 'volume', rarity: 'rare', icon: 'timer', targetType: 'totalMinutes', targetValue: 500, tier: 3, gradient: ['#34C759', '#00C7BE'], xp: 250, island: 1 },
+  // Coach interaction badges
+  { id: 'i1_coach_10', name: 'Getting to Know You', description: 'Have 10 conversations with your coach', category: 'program', rarity: 'common', icon: 'chatbubbles', targetType: 'coachConversations', targetValue: 10, tier: 1, gradient: ['#5B8DEF', '#34C4E5'], xp: 100, island: 1 },
+  { id: 'i1_coach_100', name: 'Best Friends', description: 'Have 100 conversations with your coach', category: 'program', rarity: 'rare', icon: 'people', targetType: 'coachConversations', targetValue: 100, tier: 2, gradient: ['#A22BF6', '#FF4EC7'], xp: 300, island: 1 },
 
   // ==================== ISLAND 2: NEWBIE GAINS ====================
   // Consistency
