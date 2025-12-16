@@ -95,3 +95,31 @@ test_plan:
 agent_communication:
   - agent: "testing"
     message: "✅ ALL BACKEND TESTS PASSED: Comprehensive testing completed as per review request. Health endpoint (GET /api/health) returns ok: true. User registration with full onboarding data working correctly with trainingSchedule='depends', specificDates, country='US', timezone='America/New_York'. Workout generation for multiple days (0-6) produces 8-15 exercises per workout. Advanced questionnaire integration working - AI respects user focus requests like 'Make today a back day'. All endpoints return 200 status. Backend is fully functional and ready for production."
+  - agent: "main"
+    message: "Implemented new features: 1) Duration confirmation modal in workout-hub.tsx - allows users to confirm/edit workout duration before finishing. 2) Weekly/monthly calendar updated to keep purple highlight for today even when completed (with green tick). 3) View Summary hint added to workouts page for completed today's workout. 4) AI Coach actionable buttons for adding workouts - detects 'add a back day' type requests and shows action button. 5) New badges added: 'First Steps' (first workout) and 'Making Friends' (first coach conversation). All TypeScript compiles. Need frontend testing."
+
+new_implementations:
+  - task: "Duration Confirmation Modal"
+    file: "apps/native/app/workout-hub.tsx"
+    description: "Modal that appears when finishing workout to confirm/edit duration"
+    needs_testing: true
+  
+  - task: "Calendar Purple Highlight Fix"
+    file: "apps/native/app/(tabs)/workouts.tsx"
+    description: "Today keeps purple highlight even when workout is completed (green tick overlays)"
+    needs_testing: true
+  
+  - task: "View Summary on Workouts Page"
+    file: "apps/native/app/(tabs)/workouts.tsx"
+    description: "Completed workout card shows 'Tap to view summary' like homepage"
+    needs_testing: true
+  
+  - task: "AI Coach Add Workout Action"
+    file: "apps/native/src/components/AICoachWidget.tsx"
+    description: "When user says 'add a back day', coach shows action button to add workout"
+    needs_testing: true
+  
+  - task: "New Milestone Badges"
+    file: "apps/native/src/stores/awards-store.ts"
+    description: "Added 'First Steps' (first workout) and 'Making Friends' (first coach chat) badges"
+    needs_testing: true
