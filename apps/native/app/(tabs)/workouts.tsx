@@ -653,4 +653,9 @@ const styles = StyleSheet.create({
   completedBadge: { marginLeft: 8 },
   viewSummaryHint: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginTop: 16, gap: 4 },
   viewSummaryText: { fontSize: 14, color: COLORS.mediumGray, fontWeight: '500' },
+  // Generating state styles
+  generatingContainer: { alignItems: 'center', padding: 32 },
+  generatingTitle: { fontSize: 18, fontWeight: '700', color: COLORS.text, marginTop: 16, marginBottom: 8 },
+  generatingSubtitle: { fontSize: 14, color: COLORS.mediumGray, textAlign: 'center', lineHeight: 20, paddingHorizontal: 16 },
+  generatingNotice: { fontSize: 13, color: COLORS.gradientStart, textAlign: 'center', marginTop: 12, fontWeight: '500' },
 });
