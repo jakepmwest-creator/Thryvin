@@ -1678,11 +1678,19 @@ class FileStorage implements IStorage {
   async isMilestoneLikedByUser(milestoneId: number, userId: number): Promise<boolean> { return false; }
 }
 
-export const storage = new FileStorage();
+// Use PostgreSQL database for all storage - single source of truth
+export const storage = new DatabaseStorage();
 
-// Create test user for immediate functionality
+// Create test user if it doesn't exist
 (async () => {
   try {
+    // Check if test user already exists
+    const existingUser = await storage.getUserByEmail('test@example.com');
+    if (existingUser) {
+      console.log('✅ Test user exists - Login with: test@example.com / password123');
+      return;
+    }
+    
     const { scrypt, randomBytes } = await import('crypto');
     const { promisify } = await import('util');
     const scryptAsync = promisify(scrypt);
@@ -1699,14 +1707,15 @@ export const storage = new FileStorage();
       goal: 'improve-health',
       coachingStyle: 'encouraging-positive',
       selectedCoach: 'nate-green',
-      trialEndsAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
     });
     
     console.log('✅ Test user created - Login with: test@example.com / password123');
-  } catch (error) {
-    console.error('Error creating test user:', error);
+  } catch (error: any) {
+    // Ignore duplicate user errors
+    if (!error?.message?.includes('duplicate') && !error?.message?.includes('already exists')) {
+      console.error('Error with test user:', error?.message || error);
+    }
   }
 })();
 
-console.log("Using memory storage for immediate functionality");
-console.log("NOTE: User accounts work instantly but reset on server restart");
+console.log("📦 Using PostgreSQL database for all storage - single source of truth");
