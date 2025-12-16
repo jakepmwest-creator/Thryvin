@@ -3127,6 +3127,29 @@ Previous conversation:`;
     }
   });
   
+  // Admin: Reset test user password
+  app.post("/api/admin/reset-test-user", async (req, res) => {
+    try {
+      const { scrypt, randomBytes } = await import('crypto');
+      const { promisify } = await import('util');
+      const scryptAsync = promisify(scrypt);
+      
+      const salt = randomBytes(16).toString("hex");
+      const buf = (await scryptAsync('password123', salt, 64)) as Buffer;
+      const hashedPassword = `${buf.toString("hex")}.${salt}`;
+      
+      // Update test user password
+      await db.update(users)
+        .set({ password: hashedPassword })
+        .where(eq(users.email, 'test@example.com'));
+      
+      res.json({ success: true, message: "Test user password reset to: password123" });
+    } catch (error) {
+      console.error("Error resetting test user:", error);
+      res.status(500).json({ error: "Failed to reset test user" });
+    }
+  });
+  
   app.post("/api/users", async (req, res) => {
     try {
       const userInput = insertUserSchema.parse(req.body);
