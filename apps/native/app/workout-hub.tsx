@@ -1144,6 +1144,70 @@ export default function WorkoutHubScreen() {
         </TouchableOpacity>
       </Modal>
       
+      {/* Duration Confirmation Modal */}
+      <Modal
+        visible={showDurationConfirm}
+        transparent
+        animationType="fade"
+      >
+        <TouchableOpacity 
+          style={styles.durationModalOverlay}
+          activeOpacity={1}
+          onPress={() => setShowDurationConfirm(false)}
+        >
+          <TouchableOpacity 
+            activeOpacity={1}
+            onPress={(e) => e.stopPropagation()}
+          >
+            <View style={styles.durationModalCard}>
+              <Text style={styles.durationModalTitle}>Confirm Workout Duration</Text>
+              <Text style={styles.durationModalSubtitle}>
+                How long was your workout? You can adjust the time if needed.
+              </Text>
+              
+              <View style={styles.durationInputContainer}>
+                <TextInput
+                  style={styles.durationInput}
+                  value={confirmedDuration}
+                  onChangeText={setConfirmedDuration}
+                  keyboardType="numeric"
+                  placeholder="45"
+                  placeholderTextColor={COLORS.mediumGray}
+                />
+                <Text style={styles.durationUnit}>minutes</Text>
+              </View>
+              
+              <View style={styles.durationButtonsRow}>
+                <TouchableOpacity 
+                  style={styles.durationCancelButton}
+                  onPress={() => {
+                    setShowDurationConfirm(false);
+                    setPendingFinishData(null);
+                  }}
+                >
+                  <Text style={styles.durationCancelText}>Cancel</Text>
+                </TouchableOpacity>
+                
+                <TouchableOpacity 
+                  style={styles.durationConfirmButton}
+                  onPress={confirmFinishWorkout}
+                >
+                  <LinearGradient
+                    colors={[COLORS.gradientStart, COLORS.gradientEnd]}
+                    style={styles.durationConfirmGradient}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 1 }}
+                  >
+                    <Ionicons name="checkmark" size={20} color={COLORS.white} />
+                    <Text style={styles.durationConfirmText}>Confirm</Text>
+                  </LinearGradient>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </TouchableOpacity>
+        </TouchableOpacity>
+      </Modal>
+      
       {/* Custom Alert */}
       <CustomAlert
         visible={alertConfig.visible}
