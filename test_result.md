@@ -87,12 +87,9 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Duration Confirmation Modal"
-    - "Calendar Purple Highlight Fix"
-    - "View Summary on Workouts Page"
+    - "AI Coach Add Workout Action - TypeScript interface fix needed"
+  stuck_tasks:
     - "AI Coach Add Workout Action"
-    - "New Milestone Badges"
-  stuck_tasks: []
   test_all: false
   test_priority: "high_first"
 
