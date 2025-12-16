@@ -151,7 +151,7 @@ interface WorkoutStore {
   completeSet: (exerciseIndex: number, setIndex: number, reps: number, weight: number | undefined, effort: string, note?: string) => void;
   addExerciseNote: (exerciseIndex: number, note: string) => void;
   navigateToExercise: (exerciseIndex: number) => void;
-  finishWorkoutSession: () => Promise<void>;
+  finishWorkoutSession: (actualDurationMinutes?: number) => Promise<void>;
   completeWorkout: (workoutId: string, exercises: any[], actualDurationMinutes?: number) => Promise<void>;
   logManualWorkout: (workoutData: Partial<Workout>) => Promise<void>;
   clearError: () => void;
