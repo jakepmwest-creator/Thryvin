@@ -1854,36 +1854,86 @@ const styles = StyleSheet.create({
   calendarDayTextSelected: {
     color: COLORS.white,
   },
-  // Country selector styles
-  countryGrid: {
+  // Country picker button styles
+  countryPickerButton: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
-    marginTop: 8,
+    alignItems: 'center',
+    backgroundColor: COLORS.lightGray,
+    borderRadius: 16,
+    paddingHorizontal: 16,
+    paddingVertical: 16,
+    gap: 12,
   },
-  countryOption: {
+  countryPickerText: {
+    flex: 1,
+    fontSize: 16,
+    fontWeight: '500',
+    color: COLORS.text,
+  },
+  countryPickerPlaceholder: {
+    color: COLORS.mediumGray,
+  },
+  // Country picker modal styles
+  countryModalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'flex-end',
+  },
+  countryModalContent: {
+    backgroundColor: COLORS.white,
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    maxHeight: '70%',
+    paddingBottom: 40,
+  },
+  countryModalHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingVertical: 12,
-    paddingHorizontal: 14,
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.lightGray,
+  },
+  countryModalTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: COLORS.text,
+  },
+  countryModalClose: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: COLORS.lightGray,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  countryList: {
+    paddingHorizontal: 16,
+    paddingTop: 8,
+  },
+  countryListItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 16,
+    paddingHorizontal: 16,
+    marginVertical: 4,
     backgroundColor: COLORS.lightGray,
     borderRadius: 12,
     borderWidth: 2,
     borderColor: 'transparent',
-    minWidth: '47%',
-    maxWidth: '100%',
   },
-  countryOptionSelected: {
-    backgroundColor: `${COLORS.accent}15`,
+  countryListItemSelected: {
+    backgroundColor: `${COLORS.accent}10`,
     borderColor: COLORS.accent,
   },
-  countryLabel: {
-    fontSize: 14,
+  countryListItemText: {
+    fontSize: 16,
     fontWeight: '500',
     color: COLORS.text,
   },
-  countryLabelSelected: {
+  countryListItemTextSelected: {
     fontWeight: '600',
     color: COLORS.accent,
   },
