@@ -389,52 +389,57 @@ export default function WorkoutsScreen() {
 
           {calendarView === 'week' ? (
             <View style={styles.weekCalendar}>
-              {WEEK_DAYS.map((day, index) => (
-                <TouchableOpacity
-                  key={index}
-                  style={[
-                    styles.dayCard,
-                    day.status === 'today' && styles.dayCardToday,
-                  ]}
-                  onPress={() => {
-                    setSelectedDayIndex(index);
-                    setSelectedFullDate(day.fullDate);
-                    setModalVisible(true);
-                  }}
-                >
-                  {day.status === 'today' && (
-                    <LinearGradient
-                      colors={[COLORS.accent, COLORS.accentSecondary]}
-                      style={StyleSheet.absoluteFill}
-                      start={{ x: 0, y: 0 }}
-                      end={{ x: 1, y: 1 }}
-                    />
-                  )}
-                  <Text style={[
-                    styles.dayText,
-                    day.status === 'today' && styles.dayTextActive
-                  ]}>
-                    {day.day}
-                  </Text>
-                  <Text style={[
-                    styles.dateText,
-                    day.status === 'today' && styles.dateTextActive
-                  ]}>
-                    {day.date}
-                  </Text>
-                  {day.isRestDay ? (
-                    <View style={styles.restDayIcon}>
-                      <Ionicons name="bed-outline" size={12} color={COLORS.mediumGray} />
-                    </View>
-                  ) : day.status === 'completed' ? (
-                    <View style={styles.completedIcon}>
-                      <Ionicons name="checkmark-circle" size={16} color={COLORS.success} />
-                    </View>
-                  ) : day.hasWorkout ? (
-                    <View style={[styles.statusDot, { backgroundColor: getStatusColor(day.status) }]} />
-                  ) : null}
-                </TouchableOpacity>
-              ))}
+              {WEEK_DAYS.map((day, index) => {
+                const isToday = day.fullDate.toDateString() === new Date().toDateString();
+                const isCompleted = day.status === 'completed';
+                
+                return (
+                  <TouchableOpacity
+                    key={index}
+                    style={[
+                      styles.dayCard,
+                      isToday && styles.dayCardToday,
+                    ]}
+                    onPress={() => {
+                      setSelectedDayIndex(index);
+                      setSelectedFullDate(day.fullDate);
+                      setModalVisible(true);
+                    }}
+                  >
+                    {isToday && (
+                      <LinearGradient
+                        colors={[COLORS.accent, COLORS.accentSecondary]}
+                        style={StyleSheet.absoluteFill}
+                        start={{ x: 0, y: 0 }}
+                        end={{ x: 1, y: 1 }}
+                      />
+                    )}
+                    <Text style={[
+                      styles.dayText,
+                      isToday && styles.dayTextActive
+                    ]}>
+                      {day.day}
+                    </Text>
+                    <Text style={[
+                      styles.dateText,
+                      isToday && styles.dateTextActive
+                    ]}>
+                      {day.date}
+                    </Text>
+                    {day.isRestDay ? (
+                      <View style={styles.restDayIcon}>
+                        <Ionicons name="bed-outline" size={12} color={isToday ? COLORS.white : COLORS.mediumGray} />
+                      </View>
+                    ) : isCompleted ? (
+                      <View style={styles.completedIcon}>
+                        <Ionicons name="checkmark-circle" size={16} color={isToday ? COLORS.white : COLORS.success} />
+                      </View>
+                    ) : day.hasWorkout ? (
+                      <View style={[styles.statusDot, { backgroundColor: isToday ? COLORS.white : getStatusColor(day.status) }]} />
+                    ) : null}
+                  </TouchableOpacity>
+                );
+              })}
             </View>
           ) : (
             <View style={styles.monthCalendar}>
