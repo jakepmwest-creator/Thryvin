@@ -14,8 +14,8 @@ import time
 import re
 from typing import Dict, List, Any, Optional
 
-# Configuration - Use the correct backend URL from native app config
-BASE_URL = "https://ai-trainer-21.preview.emergentagent.com"
+# Configuration - Use localhost as specified in review request
+BASE_URL = "http://localhost:8001"
 API_BASE = f"{BASE_URL}/api"
 
 class ThryvinAPITester:
@@ -30,6 +30,26 @@ class ThryvinAPITester:
         self.user_id = None
         self.user_profile = None
         self.registered_user = None
+        
+    def test_health_endpoint(self) -> bool:
+        """Test Health Endpoint"""
+        try:
+            response = self.session.get(f"{API_BASE}/health")
+            
+            if response.status_code == 200:
+                data = response.json()
+                if data.get('ok') is True:
+                    self.log_test("Health Endpoint", True, "Health endpoint returned ok: true")
+                    return True
+                else:
+                    self.log_test("Health Endpoint", False, f"Health endpoint returned ok: {data.get('ok')}", data)
+                    return False
+            else:
+                self.log_test("Health Endpoint", False, f"Health endpoint failed with status {response.status_code}", {"response": response.text})
+                return False
+        except Exception as e:
+            self.log_test("Health Endpoint", False, f"Health endpoint error: {str(e)}")
+            return False
         
     def log_test(self, test_name: str, success: bool, message: str, details: Dict = None):
         """Log test results"""
@@ -50,25 +70,20 @@ class ThryvinAPITester:
         try:
             # Use timestamp to ensure unique email
             timestamp = int(time.time())
-            unique_email = f"testuser_backend_{timestamp}@test.com"
+            unique_email = f"testuser_{timestamp}@test.com"
             
             # Registration data as specified in review request
             registration_data = {
-                "name": "Test User UK",
+                "name": "Test User",
                 "email": unique_email,
-                "password": "test123",
-                "trainingType": "strength",
-                "goal": "gain_muscle",
-                "coachingStyle": "balanced",
+                "password": "Test123!",
                 "trainingSchedule": "depends",
-                "specificDates": ["2025-12-16", "2025-12-18", "2025-12-19"],
-                "country": "UK",
-                "timezone": "Europe/London",
-                "fitnessGoals": ["gain_muscle"],
-                "equipment": ["barbell", "dumbbell"]
+                "specificDates": ["2025-12-16", "2025-12-18", "2025-12-20"],
+                "country": "US",
+                "timezone": "America/New_York"
             }
             
-            response = self.session.post(f"{API_BASE}/register", json=registration_data)
+            response = self.session.post(f"{API_BASE}/auth/register", json=registration_data)
             
             if response.status_code in [200, 201]:
                 user_data = response.json()
@@ -98,9 +113,9 @@ class ThryvinAPITester:
                     # Verify required fields in onboardingResponses
                     required_fields = {
                         'trainingSchedule': 'depends',
-                        'specificDates': ["2025-12-16", "2025-12-18", "2025-12-19"],
-                        'country': 'UK',
-                        'timezone': 'Europe/London'
+                        'specificDates': ["2025-12-16", "2025-12-18", "2025-12-20"],
+                        'country': 'US',
+                        'timezone': 'America/New_York'
                     }
                     
                     missing_or_incorrect = []
@@ -171,9 +186,9 @@ class ThryvinAPITester:
                 # Verify the same required fields are still there
                 required_fields = {
                     'trainingSchedule': 'depends',
-                    'specificDates': ["2025-12-16", "2025-12-18", "2025-12-19"],
-                    'country': 'UK',
-                    'timezone': 'Europe/London'
+                    'specificDates': ["2025-12-16", "2025-12-18", "2025-12-20"],
+                    'country': 'US',
+                    'timezone': 'America/New_York'
                 }
                 
                 missing_or_incorrect = []
@@ -286,32 +301,180 @@ class ThryvinAPITester:
             self.log_test("Workout Generation with It Depends Schedule", False, f"Error: {str(e)}")
             return False
     
+    def test_workout_generation_multiple_days(self) -> bool:
+        """Test Workout Generation for Multiple Days (0-6)"""
+        try:
+            if not self.registered_user:
+                self.log_test("Workout Generation Multiple Days", False, 
+                            "No registered user available from previous test")
+                return False
+            
+            # Test workout generation for days 0-6 (full week)
+            all_days_success = True
+            generated_workouts = []
+            
+            for day in range(7):
+                workout_data = {
+                    "userProfile": {
+                        "fitnessGoals": ["gain_muscle"],
+                        "goal": "gain_muscle",
+                        "experience": "intermediate",
+                        "sessionDuration": 60,
+                        "trainingDays": 5,
+                        "equipment": ["barbell", "dumbbell"],
+                        "injuries": [],
+                        "trainingSchedule": "depends",
+                        "specificDates": ["2025-12-16", "2025-12-18", "2025-12-20"],
+                        "country": "US",
+                        "timezone": "America/New_York"
+                    },
+                    "dayOfWeek": day
+                }
+                
+                response = self.session.post(f"{API_BASE}/workouts/generate", json=workout_data)
+                
+                if response.status_code == 200:
+                    data = response.json()
+                    
+                    # Verify workout structure
+                    required_fields = ['title', 'exercises', 'duration', 'type']
+                    missing_fields = [field for field in required_fields if field not in data]
+                    
+                    if missing_fields:
+                        self.log_test("Workout Generation Multiple Days", False, 
+                                    f"Day {day} missing fields: {missing_fields}")
+                        all_days_success = False
+                        continue
+                    
+                    # Verify exercises array
+                    exercises = data.get('exercises', [])
+                    if not isinstance(exercises, list) or len(exercises) < 8 or len(exercises) > 15:
+                        self.log_test("Workout Generation Multiple Days", False, 
+                                    f"Day {day} has {len(exercises)} exercises, expected 8-15")
+                        all_days_success = False
+                        continue
+                    
+                    generated_workouts.append({
+                        'day': day,
+                        'title': data.get('title'),
+                        'exercise_count': len(exercises),
+                        'duration': data.get('duration'),
+                        'type': data.get('type')
+                    })
+                else:
+                    self.log_test("Workout Generation Multiple Days", False, 
+                                f"Day {day} generation failed with status {response.status_code}")
+                    all_days_success = False
+            
+            if all_days_success:
+                self.log_test("Workout Generation Multiple Days", True, 
+                            f"Successfully generated workouts for all 7 days with 8-15 exercises each")
+                return True
+            else:
+                return False
+                
+        except Exception as e:
+            self.log_test("Workout Generation Multiple Days", False, f"Error: {str(e)}")
+            return False
+    
+    def test_workout_generation_with_advanced_questionnaire(self) -> bool:
+        """Test Workout Generation with Advanced Questionnaire"""
+        try:
+            if not self.registered_user:
+                self.log_test("Workout Generation with Advanced Questionnaire", False, 
+                            "No registered user available from previous test")
+                return False
+            
+            # Test with advanced questionnaire data
+            workout_data = {
+                "userProfile": {
+                    "fitnessGoals": ["gain_muscle"],
+                    "goal": "gain_muscle",
+                    "experience": "intermediate",
+                    "sessionDuration": 60,
+                    "trainingDays": 5,
+                    "equipment": ["barbell", "dumbbell"],
+                    "injuries": [],
+                    "advancedQuestionnaire": {
+                        "todayFocus": "Make today a back day",
+                        "enjoyedTraining": "weightlifting",
+                        "dislikedTraining": "running"
+                    }
+                },
+                "dayOfWeek": 1
+            }
+            
+            response = self.session.post(f"{API_BASE}/workouts/generate", json=workout_data)
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                # Verify workout structure
+                required_fields = ['title', 'exercises', 'duration', 'type']
+                missing_fields = [field for field in required_fields if field not in data]
+                
+                if missing_fields:
+                    self.log_test("Workout Generation with Advanced Questionnaire", False, 
+                                f"Response missing required fields: {missing_fields}")
+                    return False
+                
+                # Verify exercises array
+                exercises = data.get('exercises', [])
+                if not isinstance(exercises, list) or len(exercises) < 8 or len(exercises) > 15:
+                    self.log_test("Workout Generation with Advanced Questionnaire", False, 
+                                f"Generated {len(exercises)} exercises, expected 8-15")
+                    return False
+                
+                # Check if AI respected the focus request (look for back-related exercises)
+                title = data.get('title', '').lower()
+                back_focused = 'back' in title or any('back' in ex.get('name', '').lower() or 
+                                                    'pull' in ex.get('name', '').lower() or
+                                                    'row' in ex.get('name', '').lower()
+                                                    for ex in exercises)
+                
+                self.log_test("Workout Generation with Advanced Questionnaire", True, 
+                            f"AI generated workout '{data.get('title')}' with {len(exercises)} exercises, back focus: {back_focused}")
+                return True
+            else:
+                self.log_test("Workout Generation with Advanced Questionnaire", False, 
+                            f"Generation failed with status {response.status_code}")
+                return False
+                
+        except Exception as e:
+            self.log_test("Workout Generation with Advanced Questionnaire", False, f"Error: {str(e)}")
+            return False
+    
     def run_all_tests(self):
-        """Run all Thryvin API tests for onboarding data fix verification"""
-        print("🏋️ Starting Thryvin Fitness App - Onboarding Data Fix Testing")
+        """Run all Thryvin API tests as specified in review request"""
+        print("🏋️ Starting Thryvin Fitness App Backend Testing")
         print("Testing scenarios from review request:")
-        print("1. Test User Registration with Full Onboarding Data")
-        print("2. Test Fetch User to Verify Persistence")
-        print("3. Test Workout Generation with 'It Depends' Schedule")
+        print("1. Test Health Endpoint")
+        print("2. Test User Registration with Full Onboarding Data")
+        print("3. Test Workout Generation for Multiple Days (0-6)")
+        print("4. Test Workout Generation with Advanced Questionnaire")
         print("=" * 60)
         
         print(f"🔗 Backend URL: {BASE_URL}")
         print("=" * 60)
         
-        # Test 1: User Registration with Full Onboarding Data
-        print("\n👤 Test 1: User Registration with Full Onboarding Data...")
+        # Test 1: Health Endpoint
+        print("\n💚 Test 1: Health Endpoint...")
+        health_success = self.test_health_endpoint()
+        
+        # Test 2: User Registration with Full Onboarding Data
+        print("\n👤 Test 2: User Registration with Full Onboarding Data...")
         registration_success = self.test_user_registration_with_onboarding_data()
         
-        # Test 2: Fetch User to Verify Persistence
-        print("\n🔍 Test 2: Fetch User to Verify Persistence...")
-        fetch_success = self.test_fetch_user_to_verify_persistence()
+        # Test 3: Workout Generation for Multiple Days
+        print("\n📅 Test 3: Workout Generation for Multiple Days (0-6)...")
+        multiple_days_success = self.test_workout_generation_multiple_days()
         
-        # Test 3: Workout Generation with "It Depends" Schedule
-        print("\n🤖 Test 3: Workout Generation with 'It Depends' Schedule...")
-        workout_success = self.test_workout_generation_with_depends_schedule()
+        # Test 4: Workout Generation with Advanced Questionnaire
+        print("\n🧠 Test 4: Workout Generation with Advanced Questionnaire...")
+        advanced_success = self.test_workout_generation_with_advanced_questionnaire()
         
         print("\n" + "=" * 60)
-        print("🏁 Thryvin Onboarding Data Fix Test Results:")
+        print("🏁 Thryvin Backend Test Results:")
         
         passed_tests = sum(1 for result in self.test_results if result['success'])
         total_tests = len(self.test_results)
@@ -319,7 +482,7 @@ class ThryvinAPITester:
         print(f"✅ {passed_tests}/{total_tests} tests passed")
         
         if passed_tests == total_tests:
-            print("🎉 All onboarding data fix tests passed!")
+            print("🎉 All backend tests passed!")
             return True
         else:
             print(f"⚠️ {total_tests - passed_tests} tests had issues")

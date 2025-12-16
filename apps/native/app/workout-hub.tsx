@@ -101,13 +101,19 @@ export default function WorkoutHubScreen() {
   const confettiRef = useRef<any>(null);
 
   // Determine exercise type based on name, category, or type
-  const getExerciseType = (exercise: any): 'strength' | 'cardio' | 'yoga' | 'hiit' | 'stretching' => {
+  const getExerciseType = (exercise: any): 'strength' | 'cardio' | 'cardio-time' | 'yoga' | 'hiit' | 'stretching' => {
     const name = (exercise.name || '').toLowerCase();
     const category = (exercise.category || '').toLowerCase();
     const type = (exercise.type || '').toLowerCase();
     
-    // Cardio exercises
-    const cardioKeywords = ['run', 'jog', 'sprint', 'cycling', 'bike', 'swim', 'rowing', 'elliptical', 'treadmill', 'walk', 'stair', 'jump rope', 'skipping'];
+    // Time-only cardio exercises (no distance)
+    const timeOnlyCardio = ['jump rope', 'skipping', 'jumping rope', 'battle rope', 'rope'];
+    if (timeOnlyCardio.some(k => name.includes(k))) {
+      return 'cardio-time';
+    }
+    
+    // Distance cardio exercises
+    const cardioKeywords = ['run', 'jog', 'sprint', 'cycling', 'bike', 'swim', 'rowing', 'elliptical', 'treadmill', 'walk', 'stair'];
     if (cardioKeywords.some(k => name.includes(k) || category.includes(k) || type.includes(k))) {
       return 'cardio';
     }
@@ -200,37 +206,56 @@ export default function WorkoutHubScreen() {
     }
   };
 
-  // Split exercises into blocks intelligently
+  // Split exercises into blocks based on their actual category
   const exercises = currentWorkout?.exercises || [];
   
-  let warmupExercises: any[] = [];
-  let mainExercises: any[] = [];
-  let recoveryExercises: any[] = [];
+  // Use the category field from the backend to properly categorize exercises
+  const warmupExercises = exercises.filter((ex: any) => {
+    const category = (ex.category || '').toLowerCase();
+    return category === 'warmup' || category === 'warm-up' || category === 'warm up';
+  });
   
-  // Smart splitting based on exercise count
-  if (exercises.length <= 3) {
-    // Too few exercises, put all in main workout
-    mainExercises = exercises;
-  } else if (exercises.length === 4) {
-    // Split: 1 warmup, 2 main, 1 recovery
-    warmupExercises = exercises.slice(0, 1);
-    mainExercises = exercises.slice(1, 3);
-    recoveryExercises = exercises.slice(3);
-  } else {
-    // Standard split: first 2 for warmup, last 2 for recovery, rest for main
-    warmupExercises = exercises.slice(0, 2);
-    mainExercises = exercises.slice(2, -2);
-    recoveryExercises = exercises.slice(-2);
+  const recoveryExercises = exercises.filter((ex: any) => {
+    const category = (ex.category || '').toLowerCase();
+    return category === 'cooldown' || category === 'cool-down' || category === 'recovery' || category === 'stretch';
+  });
+  
+  // Main exercises are everything that's not warmup or recovery
+  const mainExercises = exercises.filter((ex: any) => {
+    const category = (ex.category || '').toLowerCase();
+    return category === 'main' || 
+           category === 'workout' || 
+           (!category && !warmupExercises.includes(ex) && !recoveryExercises.includes(ex));
+  });
+  
+  // Fallback: if no categories defined, use position-based split
+  const usePositionSplit = warmupExercises.length === 0 && recoveryExercises.length === 0 && mainExercises.length === exercises.length;
+  
+  let finalWarmup = warmupExercises;
+  let finalMain = mainExercises;
+  let finalRecovery = recoveryExercises;
+  
+  if (usePositionSplit && exercises.length > 4) {
+    // Fallback to position-based split if no categories
+    finalWarmup = exercises.slice(0, 2);
+    finalMain = exercises.slice(2, -2);
+    finalRecovery = exercises.slice(-2);
+  } else if (usePositionSplit && exercises.length === 4) {
+    finalWarmup = exercises.slice(0, 1);
+    finalMain = exercises.slice(1, 3);
+    finalRecovery = exercises.slice(3);
+  } else if (usePositionSplit) {
+    finalMain = exercises;
   }
 
   const getExercisesForTab = (tab: TabType) => {
     switch (tab) {
       case 'warmup':
-        return warmupExercises;
+        return finalWarmup;
       case 'workout':
-        return mainExercises;
+        return finalMain;
       case 'recovery':
-        return recoveryExercises;
+        return finalRecovery;
       default:
         return [];
     }
@@ -302,14 +327,17 @@ export default function WorkoutHubScreen() {
     }
 
     const actualIndex = activeTab === 'warmup' ? exerciseIndex : 
-                        activeTab === 'workout' ? exerciseIndex + warmupExercises.length :
-                        exerciseIndex + warmupExercises.length + mainExercises.length;
+                        activeTab === 'workout' ? exerciseIndex + finalWarmup.length :
+                        exerciseIndex + finalWarmup.length + finalMain.length;
 
     // Build performance data based on exercise type
     let performanceValue = 0;
     let performanceWeight: number | undefined = undefined;
     
-    if (exerciseType === 'cardio') {
+    if (exerciseType === 'cardio-time') {
+      // Time-only cardio (jump rope, etc) - just duration in seconds
+      performanceValue = parseInt(duration) || 0;
+    } else if (exerciseType === 'cardio') {
       performanceValue = parseInt(duration) || 0; // Store duration as main value
       performanceWeight = distance ? parseFloat(distance) : undefined; // Store distance as secondary
     } else if (exerciseType === 'yoga' || exerciseType === 'stretching') {
@@ -365,7 +393,7 @@ export default function WorkoutHubScreen() {
   const handleFinishWorkout = async () => {
     // Get completion stats
     const completedExercisesCount = activeSession?.completedExercises?.size || 0;
-    const totalExercises = (warmupExercises.length + mainExercises.length + recoveryExercises.length);
+    const totalExercises = (finalWarmup.length + finalMain.length + finalRecovery.length);
     const durationMinutes = Math.ceil(workoutElapsedSeconds / 60);
     
     // Estimate calories burned (rough estimate: ~5-8 calories per minute of exercise)
@@ -570,8 +598,8 @@ export default function WorkoutHubScreen() {
             const isExpanded = expandedExercise === index;
             // Calculate actual index in the full exercise list
             const actualIndex = activeTab === 'warmup' ? index : 
-                                activeTab === 'workout' ? index + warmupExercises.length :
-                                index + warmupExercises.length + mainExercises.length;
+                                activeTab === 'workout' ? index + finalWarmup.length :
+                                index + finalWarmup.length + finalMain.length;
             const exerciseSetData = activeSession?.exerciseData.get(actualIndex);
             const completedSets = exerciseSetData?.completedSets || [];
 
@@ -656,7 +684,22 @@ export default function WorkoutHubScreen() {
                               </View>
                               <Text style={styles.exerciseDetailTitle}>Exercise Details</Text>
                               <View style={styles.exerciseStats}>
-                                {exType === 'cardio' ? (
+                                {exType === 'cardio-time' ? (
+                                  <>
+                                    <View style={styles.statItem}>
+                                      <Ionicons name="time" size={20} color={COLORS.gradientStart} />
+                                      <Text style={styles.statValue}>{exercise.reps || '60 sec'}</Text>
+                                    </View>
+                                    <View style={styles.statItem}>
+                                      <Ionicons name="repeat" size={20} color={COLORS.gradientStart} />
+                                      <Text style={styles.statValue}>{exercise.sets || 1} Set{(exercise.sets || 1) > 1 ? 's' : ''}</Text>
+                                    </View>
+                                    <View style={styles.statItem}>
+                                      <Ionicons name="flame" size={20} color={COLORS.gradientStart} />
+                                      <Text style={styles.statValue}>Cardio</Text>
+                                    </View>
+                                  </>
+                                ) : exType === 'cardio' ? (
                                   <>
                                     <View style={styles.statItem}>
                                       <Ionicons name="time" size={20} color={COLORS.gradientStart} />
@@ -743,6 +786,23 @@ export default function WorkoutHubScreen() {
                                  exType === 'yoga' || exType === 'stretching' ? `Round ${currentSet + 1} of ${exercise.sets || 1}` :
                                  `Set ${currentSet + 1} of ${exercise.sets}`}
                               </Text>
+
+                              {/* TIME-ONLY CARDIO: Just time (jump rope, etc) */}
+                              {exType === 'cardio-time' && (
+                                <View style={styles.inputRow}>
+                                  <View style={[styles.inputWrapper, { flex: 1 }]}>
+                                    <Text style={styles.inputLabel}>Time (seconds)</Text>
+                                    <TextInput
+                                      style={styles.input}
+                                      placeholder={exercise.reps || '60'}
+                                      placeholderTextColor={COLORS.mediumGray}
+                                      keyboardType="numeric"
+                                      value={duration}
+                                      onChangeText={setDuration}
+                                    />
+                                  </View>
+                                </View>
+                              )}
 
                               {/* CARDIO INPUTS: Time + Distance */}
                               {exType === 'cardio' && (

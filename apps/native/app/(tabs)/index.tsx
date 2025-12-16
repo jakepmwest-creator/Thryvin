@@ -608,7 +608,7 @@ export default function HomeScreen() {
           >
             <Text style={styles.sectionTitle}>Today&apos;s Workout</Text>
           </TouchableOpacity>
-          {isLoading || (weekWorkouts.length > 0 && weekWorkouts.length < 21) ? (
+          {isLoading || weekWorkouts.length < 21 ? (
             <View style={styles.todayWorkoutCard}>
               <View style={styles.generatingContainer}>
                 <ActivityIndicator size="large" color={COLORS.gradientStart} />
@@ -618,14 +618,12 @@ export default function HomeScreen() {
                     ? `Creating your personalized plan... ${weekWorkouts.length}/21 days complete`
                     : 'Your AI coach is creating personalized workouts for the next 3 weeks. This may take a minute...'}
                 </Text>
-                {weekWorkouts.length > 0 && (
-                  <View style={styles.generatingProgress}>
-                    <View style={styles.generatingProgressBar}>
-                      <View style={[styles.generatingProgressFill, { width: `${(weekWorkouts.length / 21) * 100}%` }]} />
-                    </View>
-                    <Text style={styles.generatingProgressText}>{Math.round((weekWorkouts.length / 21) * 100)}%</Text>
+                <View style={styles.generatingProgress}>
+                  <View style={styles.generatingProgressBar}>
+                    <View style={[styles.generatingProgressFill, { width: `${(weekWorkouts.length / 21) * 100}%` }]} />
                   </View>
-                )}
+                  <Text style={styles.generatingProgressText}>{Math.round((weekWorkouts.length / 21) * 100)}%</Text>
+                </View>
               </View>
             </View>
           ) : workoutError ? (
@@ -690,25 +688,40 @@ export default function HomeScreen() {
               <View style={styles.workoutContent}>
                 <View style={styles.workoutHeader}>
                   <View style={{ flex: 1 }}>
-                    <Text style={styles.sectionLabel}>TODAY&apos;S WORKOUT</Text>
+                    <Text style={styles.sectionLabel}>
+                      {actualTodayWorkout?.completed ? 'COMPLETED' : 'TODAY\'S WORKOUT'}
+                    </Text>
                     <Text style={styles.workoutTitle}>{actualTodayWorkout?.title || 'Loading...'}</Text>
                     <Text style={styles.workoutMeta}>
                       {actualTodayWorkout?.duration || 45} min • {actualTodayWorkout?.exercises?.length || 0} exercises • {actualTodayWorkout?.difficulty || 'Intermediate'}
                     </Text>
                   </View>
+                  {actualTodayWorkout?.completed && (
+                    <View style={styles.completedBadge}>
+                      <Ionicons name="checkmark-circle" size={24} color={COLORS.success || '#34C759'} />
+                    </View>
+                  )}
                 </View>
                 <TouchableOpacity 
                   style={styles.startButton}
                   onPress={() => setModalVisible(true)}
                 >
                   <LinearGradient
-                    colors={[COLORS.gradientStart, COLORS.gradientEnd]}
+                    colors={actualTodayWorkout?.completed 
+                      ? ['#34C759', '#30D158'] 
+                      : [COLORS.gradientStart, COLORS.gradientEnd]}
                     style={styles.startGradient}
                     start={{ x: 0, y: 0 }}
                     end={{ x: 1, y: 1 }}
                   >
-                    <Ionicons name="play" size={20} color={COLORS.white} />
-                    <Text style={styles.startText}>Start Workout</Text>
+                    <Ionicons 
+                      name={actualTodayWorkout?.completed ? 'eye' : 'play'} 
+                      size={20} 
+                      color={COLORS.white} 
+                    />
+                    <Text style={styles.startText}>
+                      {actualTodayWorkout?.completed ? 'View Summary' : 'Start Workout'}
+                    </Text>
                   </LinearGradient>
                 </TouchableOpacity>
               </View>
@@ -1215,6 +1228,9 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: '700',
     color: COLORS.gradientStart,
+  },
+  completedBadge: {
+    marginLeft: 8,
   },
   comingSoonBadge: {
     flexDirection: 'row',

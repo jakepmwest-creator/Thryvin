@@ -216,22 +216,13 @@ export function WorkoutDetailsModal({
       return;
     }
     
-    // Check if today's workout is already completed
+    // Check if today's workout is already completed - let them view it
     if (currentWorkout?.completed) {
-      setAlertConfig({
-        visible: true,
-        type: 'success',
-        title: 'Already Completed! ✅',
-        message: "You've already completed today's session.\n\nWas there something you didn't complete? Ask the AI Coach for help!",
-        buttons: [
-          { text: 'OK', style: 'cancel', onPress: () => setAlertConfig(prev => ({ ...prev, visible: false })) },
-          { text: 'Ask Coach', onPress: () => {
-            setAlertConfig(prev => ({ ...prev, visible: false }));
-            onClose();
-            openChat("I completed today's workout but want to add something. Can you help?");
-          }}
-        ]
-      });
+      // For completed workouts, just close and go to workout hub to view summary
+      if (currentWorkout) {
+        setCurrentWorkout(currentWorkout);
+      }
+      onStartWorkout(); // This will navigate to workout hub to view completed workout
       return;
     }
     
@@ -373,9 +364,13 @@ export function WorkoutDetailsModal({
             ) : (
               <>
                 <View style={styles.section}>
-                  <Text style={styles.sectionTitle}>Overview</Text>
+                  <Text style={styles.sectionTitle}>
+                    {currentWorkout?.completed ? 'Summary' : 'Overview'}
+                  </Text>
                   <Text style={styles.overviewText}>
-                    {currentWorkout?.overview || 'Complete workout designed for your fitness level.'}
+                    {currentWorkout?.completed 
+                      ? `Completed on ${new Date(currentWorkout.completedAt || currentWorkout.date).toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })}. Great work!`
+                      : (currentWorkout?.overview || 'Complete workout designed for your fitness level.')}
                   </Text>
                 </View>
             
@@ -462,13 +457,21 @@ export function WorkoutDetailsModal({
             onPress={handleStartWorkoutPress}
           >
             <LinearGradient
-              colors={[COLORS.gradientStart, COLORS.gradientEnd]}
+              colors={currentWorkout?.completed 
+                ? ['#34C759', '#30D158'] 
+                : [COLORS.gradientStart, COLORS.gradientEnd]}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 0 }}
               style={styles.startButtonGradient}
             >
-              <Ionicons name="play" size={24} color="#FFFFFF" />
-              <Text style={styles.startButtonText}>Start Workout</Text>
+              <Ionicons 
+                name={currentWorkout?.completed ? 'eye' : 'play'} 
+                size={24} 
+                color="#FFFFFF" 
+              />
+              <Text style={styles.startButtonText}>
+                {currentWorkout?.completed ? 'View Summary' : 'Start Workout'}
+              </Text>
             </LinearGradient>
           </TouchableOpacity>
         </View>
