@@ -28,7 +28,7 @@ const COLORS = {
   mediumGray: '#8E8E93',
 };
 
-const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL || 'https://thryvin-ai-fix.preview.emergentagent.com';
+const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL || 'https://ai-trainer-21.preview.emergentagent.com';
 
 // BeReal-style reactions
 const REACTION_TYPES = [

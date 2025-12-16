@@ -15,7 +15,7 @@ import re
 from typing import Dict, List, Any, Optional
 
 # Configuration - Use the correct backend URL from native app config
-BASE_URL = "https://thryvin-ai-fix.preview.emergentagent.com"
+BASE_URL = "https://ai-trainer-21.preview.emergentagent.com"
 API_BASE = f"{BASE_URL}/api"
 
 class ThryvinAPITester:
