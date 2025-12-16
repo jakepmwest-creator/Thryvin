@@ -603,6 +603,7 @@ export const useAwardsStore = create<AwardsState>((set, get) => ({
     upperBodySessions: number;
     lowerBodySessions: number;
     fullBodySessions: number;
+    coachConversations?: number;
   }) => {
     const { userBadges } = get();
     const updatedBadges: UserBadge[] = [];
