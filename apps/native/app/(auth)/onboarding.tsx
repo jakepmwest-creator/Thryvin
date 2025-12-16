@@ -128,6 +128,25 @@ const OPTION_ICONS: any = {
   fun: 'happy-outline',
 };
 
+// Country options for timezone handling
+const COUNTRY_OPTIONS = [
+  { value: 'UK', label: '🇬🇧 United Kingdom', timezone: 'Europe/London' },
+  { value: 'US', label: '🇺🇸 United States', timezone: 'America/New_York' },
+  { value: 'US_WEST', label: '🇺🇸 United States (West)', timezone: 'America/Los_Angeles' },
+  { value: 'AU', label: '🇦🇺 Australia', timezone: 'Australia/Sydney' },
+  { value: 'CA', label: '🇨🇦 Canada', timezone: 'America/Toronto' },
+  { value: 'DE', label: '🇩🇪 Germany', timezone: 'Europe/Berlin' },
+  { value: 'FR', label: '🇫🇷 France', timezone: 'Europe/Paris' },
+  { value: 'ES', label: '🇪🇸 Spain', timezone: 'Europe/Madrid' },
+  { value: 'IT', label: '🇮🇹 Italy', timezone: 'Europe/Rome' },
+  { value: 'NL', label: '🇳🇱 Netherlands', timezone: 'Europe/Amsterdam' },
+  { value: 'JP', label: '🇯🇵 Japan', timezone: 'Asia/Tokyo' },
+  { value: 'IN', label: '🇮🇳 India', timezone: 'Asia/Kolkata' },
+  { value: 'BR', label: '🇧🇷 Brazil', timezone: 'America/Sao_Paulo' },
+  { value: 'MX', label: '🇲🇽 Mexico', timezone: 'America/Mexico_City' },
+  { value: 'OTHER', label: '🌍 Other', timezone: 'UTC' },
+];
+
 // Onboarding steps configuration - SPLIT FOR NO SCROLLING
 const ONBOARDING_STEPS = [
   {
@@ -137,6 +156,7 @@ const ONBOARDING_STEPS = [
     emoji: '✨',
     fields: [
       { key: 'name', label: 'What should we call you?', icon: 'person-outline', type: 'text', placeholder: 'Your name' },
+      { key: 'country', label: 'Where are you from?', icon: 'globe-outline', type: 'country', placeholder: 'Select your country' },
     ],
   },
   {
@@ -335,6 +355,8 @@ export default function OnboardingScreen() {
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [formData, setFormData] = useState<any>({
     name: '',
+    country: '', // User's country for timezone
+    timezone: '', // Timezone string
     gender: '',
     dateOfBirth: null,
     height: '',
@@ -745,6 +767,43 @@ export default function OnboardingScreen() {
               <View key={field.key} style={styles.fieldWrapper}>
                 <Text style={styles.fieldLabel}>{field.label}</Text>
                 {renderMeasurementField(field)}
+              </View>
+            );
+          }
+          
+          if (field.type === 'country') {
+            return (
+              <View key={field.key} style={styles.fieldWrapper}>
+                <Text style={styles.fieldLabel}>{field.label}</Text>
+                <View style={styles.countryGrid}>
+                  {COUNTRY_OPTIONS.map((country) => {
+                    const isSelected = formData.country === country.value;
+                    return (
+                      <TouchableOpacity
+                        key={country.value}
+                        style={[
+                          styles.countryOption,
+                          isSelected && styles.countryOptionSelected,
+                        ]}
+                        onPress={() => setFormData({ 
+                          ...formData, 
+                          country: country.value,
+                          timezone: country.timezone,
+                        })}
+                      >
+                        <Text style={[
+                          styles.countryLabel,
+                          isSelected && styles.countryLabelSelected,
+                        ]}>
+                          {country.label}
+                        </Text>
+                        {isSelected && (
+                          <Ionicons name="checkmark-circle" size={18} color={COLORS.accent} />
+                        )}
+                      </TouchableOpacity>
+                    );
+                  })}
+                </View>
               </View>
             );
           }
@@ -1741,5 +1800,38 @@ const styles = StyleSheet.create({
   },
   calendarDayTextSelected: {
     color: COLORS.white,
+  },
+  // Country selector styles
+  countryGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    marginTop: 8,
+  },
+  countryOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 12,
+    paddingHorizontal: 14,
+    backgroundColor: COLORS.lightGray,
+    borderRadius: 12,
+    borderWidth: 2,
+    borderColor: 'transparent',
+    minWidth: '47%',
+    maxWidth: '100%',
+  },
+  countryOptionSelected: {
+    backgroundColor: `${COLORS.accent}15`,
+    borderColor: COLORS.accent,
+  },
+  countryLabel: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: COLORS.text,
+  },
+  countryLabelSelected: {
+    fontWeight: '600',
+    color: COLORS.accent,
   },
 });

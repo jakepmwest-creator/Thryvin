@@ -4,7 +4,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { notificationService } from '../services/notificationService';
 import { useWorkoutStore } from './workout-store';
 
-const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL || 'https://thryvin-backend-fix.preview.emergentagent.com';
+const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL || 'https://thryvin-ai-fix.preview.emergentagent.com';
 
 // Storage helpers - Use AsyncStorage for large data (user profiles can be >2KB)
 // Only use SecureStore for small secrets (email, password, tokens)
@@ -268,6 +268,15 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         equipment: userData.equipment,
         injuries: userData.injuries,
         fitnessGoals: userData.fitnessGoals,
+        // Training schedule data
+        trainingSchedule: userData.trainingSchedule || 'flexible',
+        selectedDays: userData.selectedDays || [],
+        specificDates: userData.specificDates || [],
+        // Location/timezone data
+        country: userData.country || null,
+        timezone: userData.timezone || null,
+        // Full onboarding responses from backend (includes all data)
+        onboardingResponses: data.user.onboardingResponses || null,
         hasCompletedOnboarding: true,
         createdAt: new Date().toISOString(),
       };

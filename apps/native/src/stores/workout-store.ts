@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useAwardsStore } from './awards-store';
 
-const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL || 'https://thryvin-backend-fix.preview.emergentagent.com';
+const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL || 'https://thryvin-ai-fix.preview.emergentagent.com';
 
 // Storage helpers - Use AsyncStorage for large data (workout plans are >2KB)
 const getStorageItem = async (key: string): Promise<string | null> => {
@@ -212,13 +212,23 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
         duration: user.sessionDuration,
       });
       
+      // Get advanced questionnaire data if available (stored as 'advancedQuestionnaire')
+      const advancedQuestionnaireRaw = await getStorageItem('advancedQuestionnaire');
+      const advancedQuestionnaire = advancedQuestionnaireRaw ? JSON.parse(advancedQuestionnaireRaw) : null;
+      
+      if (advancedQuestionnaire) {
+        console.log('📚 [WORKOUT] Advanced questionnaire found:', Object.keys(advancedQuestionnaire));
+      }
+      
       const response = await fetch(`${API_BASE_URL}/api/workouts/generate`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
+        credentials: 'include', // Include cookies for session auth
         body: JSON.stringify({
           userProfile: {
+            userId: user.id, // Include user ID for comprehensive context
             fitnessGoals: user.fitnessGoals || [user.goal],
             goal: user.goal,
             experience: user.experience,
@@ -227,6 +237,7 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
             trainingDays: user.trainingDays,
             equipment: user.equipment || [],
             injuries: user.injuries || [],
+            advancedQuestionnaire: advancedQuestionnaire, // Include advanced questionnaire
           },
           dayOfWeek: convertedDay, // Convert to 0=Monday
         }),
@@ -292,10 +303,22 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
 
   // Fetch 3 weeks of workouts (21 days, AI-generated with caching)
   fetchWeekWorkouts: async () => {
+    // Prevent double generation
+    const isGenerating = await getStorageItem('workout_generation_in_progress');
+    if (isGenerating === 'true') {
+      console.log('⏳ [3-WEEK] Generation already in progress, skipping...');
+      return;
+    }
+    
     set({ isLoading: true, error: null });
+    
     try {
+      // Set lock
+      await setStorageItem('workout_generation_in_progress', 'true');
+      
       const storedUser = await getStorageItem('auth_user');
       if (!storedUser) {
+        await deleteStorageItem('workout_generation_in_progress');
         throw new Error('User not authenticated');
       }
       
@@ -335,6 +358,10 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
       
       // Generate workouts for 3 weeks (21 days) with rest days
       try {
+        // Get advanced questionnaire data if available
+        const advancedQuestionnaireRaw = await getStorageItem('advancedQuestionnaire');
+        const advancedQuestionnaire = advancedQuestionnaireRaw ? JSON.parse(advancedQuestionnaireRaw) : null;
+        
         const userProfile = {
           fitnessGoals: user.fitnessGoals || [user.goal],
           goal: user.goal,
@@ -345,6 +372,8 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
           equipment: user.equipment,
           injuries: user.injuries,
           userId: user.id,
+          advancedQuestionnaire: advancedQuestionnaire, // Include for AI personalization
+          preferredTrainingDays: user.preferredTrainingDays, // Specific days user can train
         };
         
         // Calculate all 21 dates (3 weeks starting from this Monday)
@@ -357,10 +386,37 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
         
         console.log('📅 [3-WEEK] Generating for 21 days starting:', mondayOfThisWeek.toDateString());
         
-        // Determine rest days based on trainingDays setting
+        // Get training schedule type and specific dates from onboarding
+        const onboardingData = user.onboardingResponses ? 
+          (typeof user.onboardingResponses === 'string' ? JSON.parse(user.onboardingResponses) : user.onboardingResponses) : {};
+        const trainingScheduleType = onboardingData.trainingSchedule || 'flexible';
+        const specificDatesFromOnboarding = onboardingData.specificDates || [];
+        
+        // Convert specific dates to a Set for quick lookup
+        const specificDatesSet = new Set(specificDatesFromOnboarding.map((d: string) => d.split('T')[0])); // Remove time component
+        
+        console.log(`📅 [3-WEEK] Training schedule type: ${trainingScheduleType}`);
+        if (trainingScheduleType === 'depends' && specificDatesSet.size > 0) {
+          console.log(`📅 [3-WEEK] Using SPECIFIC DATES from "It Depends" mode:`, Array.from(specificDatesSet));
+        }
+        
+        // Determine rest days based on schedule type
         const trainingDaysPerWeek = parseInt(String(userProfile.trainingDays)) || 5;
-        const restDayPattern = getRestDayPattern(trainingDaysPerWeek);
-        console.log(`📅 [3-WEEK] Training ${trainingDaysPerWeek} days/week. Rest days:`, restDayPattern);
+        let restDayPattern: number[] = [];
+        
+        // For 'specific' mode - use selected day names
+        const preferredDays = user.preferredTrainingDays || user.selectedDays || onboardingData.selectedDays;
+        if (trainingScheduleType === 'specific' && preferredDays && Array.isArray(preferredDays) && preferredDays.length > 0) {
+          const dayNameToIndex: Record<string, number> = { 'mon': 0, 'tue': 1, 'wed': 2, 'thu': 3, 'fri': 4, 'sat': 5, 'sun': 6 };
+          const trainingDayIndices = preferredDays.map((d: string) => dayNameToIndex[d.toLowerCase()]).filter((i: number) => i !== undefined);
+          restDayPattern = [0, 1, 2, 3, 4, 5, 6].filter(i => !trainingDayIndices.includes(i));
+          console.log(`📅 [3-WEEK] Using SPECIFIC day pattern: ${preferredDays.join(', ')}. Rest days:`, restDayPattern);
+        } else if (trainingScheduleType !== 'depends') {
+          // For 'flexible' mode - use generic pattern
+          restDayPattern = getRestDayPattern(trainingDaysPerWeek);
+          console.log(`📅 [3-WEEK] Using FLEXIBLE pattern - ${trainingDaysPerWeek} days/week. Rest days:`, restDayPattern);
+        }
+        // Note: For 'depends' mode, we check specific dates directly in the loop below
         
         // Generate workout for each day
         const weekWorkouts: Workout[] = [];
@@ -368,8 +424,21 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
         
         for (let i = 0; i < 21; i++) {
           const date = allDates[i];
+          const dateStr = date.toISOString().split('T')[0]; // YYYY-MM-DD format
           const dayOfWeek = i % 7; // 0=Monday, 6=Sunday
-          const isRestDay = restDayPattern.includes(dayOfWeek);
+          
+          // Determine if this is a rest day
+          let isRestDay = false;
+          if (trainingScheduleType === 'depends') {
+            // For "It Depends" mode - check if this specific date was selected
+            isRestDay = !specificDatesSet.has(dateStr);
+            if (isRestDay) {
+              console.log(`😴 [3-WEEK] Day ${i + 1}/21 (${dateStr}): REST - not in selected dates`);
+            }
+          } else {
+            // For other modes - use the pattern
+            isRestDay = restDayPattern.includes(dayOfWeek);
+          }
           
           if (isRestDay) {
             // Create rest day entry
@@ -483,10 +552,13 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
         await setStorageItem('week_workouts_date', weekKey);
         await setStorageItem('week_workouts_version', CACHE_VERSION);
         
+        // Release lock
+        await deleteStorageItem('workout_generation_in_progress');
         set({ weekWorkouts, isLoading: false, error: null });
         
       } catch (error: any) {
         console.error('❌ [WEEK] Generation failed:', error);
+        await deleteStorageItem('workout_generation_in_progress');
         // In the catch block, we don't have access to local weekWorkouts - set empty state
         set({ 
           error: error.message || 'Failed to generate workouts',
@@ -496,6 +568,7 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
       }
     } catch (error) {
       console.error('Error fetching week workouts:', error);
+      await deleteStorageItem('workout_generation_in_progress');
       set({ 
         error: error instanceof Error ? error.message : 'Failed to load workouts',
         isLoading: false,

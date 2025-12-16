@@ -497,7 +497,46 @@ export function WorkoutDetailsModal({
   );
 }
 
+// Helper function to get equipment alternatives for an exercise
+function getEquipmentAlternatives(exerciseName: string): string | null {
+  const nameLower = exerciseName.toLowerCase();
+  
+  // Define equipment alternatives for common exercises
+  const alternatives: { [key: string]: string } = {
+    'barbell squat': 'Also try with: dumbbells, machine, Smith machine',
+    'barbell bench press': 'Also try with: dumbbells, cable, machine',
+    'barbell deadlift': 'Also try with: dumbbells, trap bar, kettlebells',
+    'barbell row': 'Also try with: dumbbells, cable, machine',
+    'barbell curl': 'Also try with: dumbbells, EZ bar, cable',
+    'barbell overhead press': 'Also try with: dumbbells, machine, landmine',
+    'dumbbell bench press': 'Also try with: barbell, cable, machine',
+    'dumbbell squat': 'Also try with: barbell, goblet (kettlebell), leg press',
+    'lat pulldown': 'Also try with: pull-ups, resistance bands',
+    'leg press': 'Also try with: squats, lunges, hack squat',
+    'cable fly': 'Also try with: dumbbells, machine, resistance bands',
+    'tricep pushdown': 'Also try with: dumbbells, barbell, bodyweight dips',
+    'bicep curl': 'Also try with: barbell, cable, resistance bands',
+  };
+  
+  // Check for matches
+  for (const [key, value] of Object.entries(alternatives)) {
+    if (nameLower.includes(key) || key.includes(nameLower)) {
+      return value;
+    }
+  }
+  
+  // Generic alternatives based on equipment in name
+  if (nameLower.includes('barbell')) return 'Also try with: dumbbells, machine, cable';
+  if (nameLower.includes('dumbbell')) return 'Also try with: barbell, cable, machine';
+  if (nameLower.includes('machine')) return 'Also try with: free weights, cable, bodyweight';
+  if (nameLower.includes('cable')) return 'Also try with: dumbbells, resistance bands';
+  
+  return null;
+}
+
 function ExerciseCard({ exercise, index, isExpanded, onToggle }: any) {
+  const alternatives = getEquipmentAlternatives(exercise.name);
+  
   return (
     <View style={styles.exerciseCard}>
       <TouchableOpacity style={styles.exerciseHeader} onPress={onToggle}>
@@ -517,6 +556,13 @@ function ExerciseCard({ exercise, index, isExpanded, onToggle }: any) {
               <Text style={styles.detailText}>{exercise.restTime}s rest</Text>
             </View>
           </View>
+          {/* Equipment alternatives suggestion */}
+          {alternatives && (
+            <View style={styles.alternativesContainer}>
+              <Ionicons name="swap-horizontal-outline" size={12} color={COLORS.accent} />
+              <Text style={styles.alternativesText}>{alternatives}</Text>
+            </View>
+          )}
         </View>
         <Ionicons
           name={isExpanded ? 'chevron-up' : 'chevron-down'}
@@ -611,6 +657,8 @@ const styles = StyleSheet.create({
   exerciseDetails: { flexDirection: 'row', gap: 16 },
   detailItem: { flexDirection: 'row', alignItems: 'center', gap: 4 },
   detailText: { fontSize: 13, color: COLORS.mediumGray },
+  alternativesContainer: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 8, backgroundColor: `${COLORS.accent}10`, paddingHorizontal: 10, paddingVertical: 6, borderRadius: 8 },
+  alternativesText: { fontSize: 12, color: COLORS.accent, fontStyle: 'italic', flex: 1 },
   videoContainer: { marginTop: 12, borderRadius: 12, overflow: 'hidden' },
   noVideoContainer: { height: 120, justifyContent: 'center', alignItems: 'center', backgroundColor: COLORS.lightGray },
   noVideoText: { fontSize: 14, color: COLORS.mediumGray, marginTop: 8 },

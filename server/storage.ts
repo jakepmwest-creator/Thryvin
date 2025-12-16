@@ -172,7 +172,10 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createUser(insertUser: InsertUser): Promise<User> {
-    const trialEndsAt = add(new Date(), { days: 14 }); // 14-day trial
+    const trialEndsAt = insertUser.trialEndsAt || add(new Date(), { days: 14 }); // 14-day trial
+    
+    // Debug: Log the onboardingResponses being saved
+    console.log('💾 Storage.createUser - onboardingResponses:', insertUser.onboardingResponses);
     
     const result = await db.insert(users).values({
       ...insertUser,
@@ -181,6 +184,8 @@ export class DatabaseStorage implements IStorage {
       weeklyGoalWorkouts: 5,
       weeklyGoalMinutes: 150,
     }).returning();
+    
+    console.log('💾 Storage.createUser - Result onboardingResponses:', result[0]?.onboardingResponses);
     
     return result[0];
   }

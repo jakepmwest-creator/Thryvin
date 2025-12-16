@@ -195,21 +195,53 @@ Respond ONLY with valid JSON:
 }`;
 
   const dayNames = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
-  const workoutFocus = ['Upper Body', 'Lower Body', 'Full Body', 'Push', 'Pull', 'Legs', 'Core & Cardio'];
   const userGoals = userProfile.fitnessGoals?.join(', ') || userProfile.goal || 'general fitness';
   
-  const userMessage = `Create a ${userProfile.sessionDuration || 45}-minute workout for ${dayNames[dayOfWeek]}.
+  // Build context from advanced questionnaire - AI uses ALL of this
+  let advancedContext = '';
+  if (userProfile.advancedQuestionnaire) {
+    const aq = userProfile.advancedQuestionnaire;
+    advancedContext = `
+=== USER'S DETAILED PREFERENCES (READ ALL OF THIS) ===
+${aq.targets ? `🎯 TARGETS/EVENTS: ${aq.targets}` : ''}
+${aq.goalDetails ? `📋 GOAL DETAILS: ${JSON.stringify(aq.goalDetails)}` : ''}
+${aq.enjoyedTraining ? `💚 ENJOYS (include MORE): ${aq.enjoyedTraining}` : ''}
+${aq.dislikedTraining ? `⚠️ DISLIKES (include less but don't eliminate): ${aq.dislikedTraining}` : ''}
+${aq.weakAreas ? `💪 WEAK AREAS (focus on these): ${aq.weakAreas}` : ''}
+${aq.additionalInfo ? `📝 ADDITIONAL REQUESTS: ${aq.additionalInfo}` : ''}
+`;
+    console.log('  📚 Loaded advanced questionnaire for AI context');
+  }
+  
+  const userMessage = `Create a ${userProfile.sessionDuration || 45}-minute workout for ${dayNames[dayOfWeek]} (Day ${dayOfWeek + 1} of 7).
 
-User:
+USER PROFILE:
 - Goals: ${userGoals}
 - Experience: ${userProfile.experience || 'intermediate'}
-- Type: ${userProfile.trainingType || 'General Fitness'}
-- Time: ${userProfile.sessionDuration || 45} min
-${userProfile.injuries?.length ? `- Injuries: ${userProfile.injuries.join(', ')}` : ''}
+- Training Type: ${userProfile.trainingType || 'General Fitness'}
+- Session Duration: ${userProfile.sessionDuration || 45} min
+${userProfile.injuries?.length ? `- Injuries/Limitations: ${userProfile.injuries.join(', ')}` : ''}
+${advancedContext}
 
-Day ${dayOfWeek + 1}/7 - Focus: ${workoutFocus[dayOfWeek]}. 
-Create a UNIQUE workout different from other days. Design a balanced workout with warmup, main exercises, and cooldown.
-Vary the exercises and focus areas each day.`;
+=== CRITICAL RULES FOR WORKOUT PROGRAMMING ===
+
+1. **READ THE ADDITIONAL REQUESTS ABOVE** - If user asked for a specific focus today (like "back day"), HONOR IT!
+
+2. **SMART MUSCLE GROUP ROTATION** - You are an expert PT. You KNOW:
+   - NEVER work the same major muscle group on consecutive days
+   - If yesterday was chest, today should NOT be chest
+   - Allow 48-72 hours recovery for each muscle group
+   - You decide the best split based on user's goals and preferences
+   - Could be PPL, Bro split, Upper/Lower, Full Body - YOU choose what's best for THIS user
+
+3. **LONG-TERM PLANNING** - If user mentioned events/shows:
+   - Competition in 1-2 years? → Focus on building mass now
+   - Wedding in 3 months? → Include more conditioning
+   - Plan phases accordingly
+
+4. **PERSONALIZATION** - Use their enjoyed/disliked training to customize
+
+Create a balanced workout with warmup (3-4 exercises), main work (5-8 exercises based on duration), and cooldown (2-3 stretches).`;
 
   // Step 3: Call AI
   console.log('  🤖 Calling GPT-4o...');

@@ -186,6 +186,38 @@ export function setupAuth(app: Express) {
             injuries = injuries.join(', ');
           }
           
+          // Parse training schedule - could be 'flexible', 'specific', or 'depends'
+          const trainingScheduleType = req.body.trainingSchedule || 'flexible';
+          
+          // Parse selected training days - for 'specific' mode (day codes like ['mon', 'tue'])
+          let preferredDays = req.body.selectedDays;
+          if (Array.isArray(preferredDays)) {
+            preferredDays = JSON.stringify(preferredDays);
+          }
+          
+          // Parse specific dates - for 'depends' mode (actual date strings like ['2025-12-16', '2025-12-18'])
+          let specificDates = req.body.specificDates;
+          if (Array.isArray(specificDates)) {
+            specificDates = JSON.stringify(specificDates);
+          }
+          
+          // Build complete onboarding responses object
+          const onboardingResponses = {
+            trainingSchedule: trainingScheduleType,
+            selectedDays: req.body.selectedDays || [],
+            specificDates: req.body.specificDates || [],
+            // Include any other onboarding data
+            fitnessGoals: req.body.fitnessGoals || [],
+            nutritionGoals: req.body.nutritionGoals || [],
+            experience: req.body.experience,
+            equipment: req.body.equipment || [],
+            // Location/timezone for correct date handling
+            country: req.body.country || null,
+            timezone: req.body.timezone || null,
+          };
+          
+          console.log('📋 Building onboarding responses:', JSON.stringify(onboardingResponses));
+          
           user = await storage.createUser({
             name: req.body.name,
             email: req.body.email,
@@ -202,9 +234,13 @@ export function setupAuth(app: Express) {
             trainingDaysPerWeek: parseInt(req.body.trainingDays) || 4,
             injuries: injuries || null,
             focusAreas: fitnessGoals || null,
-            hasCompletedAIOnboarding: true, // Mark as completed since they went through full onboarding
+            hasCompletedAIOnboarding: true,
+            // Training schedule preferences
+            preferredTrainingDays: preferredDays || null, // For 'specific' mode
+            // Store FULL onboarding data for "It Depends" mode and AI context
+            onboardingResponses: JSON.stringify(onboardingResponses),
           });
-          console.log('✅ User created successfully in database with full onboarding data!');
+          console.log('✅ User created with full onboarding data including training schedule!');
           break; // Success, exit retry loop
         } catch (dbError: any) {
           console.log(`User creation attempt ${retryCount + 1} failed:`, dbError?.message || dbError);
@@ -348,6 +384,38 @@ export function setupAuth(app: Express) {
             injuries = injuries.join(', ');
           }
           
+          // Parse training schedule - could be 'flexible', 'specific', or 'depends'
+          const trainingScheduleType = req.body.trainingSchedule || 'flexible';
+          
+          // Parse selected training days - for 'specific' mode (day codes like ['mon', 'tue'])
+          let preferredDays = req.body.selectedDays;
+          if (Array.isArray(preferredDays)) {
+            preferredDays = JSON.stringify(preferredDays);
+          }
+          
+          // Parse specific dates - for 'depends' mode (actual date strings like ['2025-12-16', '2025-12-18'])
+          let specificDates = req.body.specificDates;
+          if (Array.isArray(specificDates)) {
+            specificDates = JSON.stringify(specificDates);
+          }
+          
+          // Build complete onboarding responses object
+          const onboardingResponses = {
+            trainingSchedule: trainingScheduleType,
+            selectedDays: req.body.selectedDays || [],
+            specificDates: req.body.specificDates || [],
+            // Include any other onboarding data
+            fitnessGoals: req.body.fitnessGoals || [],
+            nutritionGoals: req.body.nutritionGoals || [],
+            experience: req.body.experience,
+            equipment: req.body.equipment || [],
+            // Location/timezone for correct date handling
+            country: req.body.country || null,
+            timezone: req.body.timezone || null,
+          };
+          
+          console.log('📋 Building onboarding responses:', JSON.stringify(onboardingResponses));
+          
           user = await storage.createUser({
             name: req.body.name,
             email: req.body.email,
@@ -364,9 +432,13 @@ export function setupAuth(app: Express) {
             trainingDaysPerWeek: parseInt(req.body.trainingDays) || 4,
             injuries: injuries || null,
             focusAreas: fitnessGoals || null,
-            hasCompletedAIOnboarding: true, // Mark as completed since they went through full onboarding
+            hasCompletedAIOnboarding: true,
+            // Training schedule preferences
+            preferredTrainingDays: preferredDays || null, // For 'specific' mode
+            // Store FULL onboarding data for "It Depends" mode and AI context
+            onboardingResponses: JSON.stringify(onboardingResponses),
           });
-          console.log('✅ User created successfully in database with full onboarding data!');
+          console.log('✅ User created with full onboarding data including training schedule!');
           break; // Success, exit retry loop
         } catch (dbError: any) {
           console.log(`User creation attempt ${retryCount + 1} failed:`, dbError?.message || dbError);

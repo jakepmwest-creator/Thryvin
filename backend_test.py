@@ -1,11 +1,10 @@
 #!/usr/bin/env python3
 """
-Backend API Testing Suite for Thryvin Fitness App
-Tests the specific endpoints mentioned in the review request:
-1. Health Check - GET /api/health
-2. Create NEW User Account - POST /api/auth/register
-3. Workout Generation API - POST /api/workouts/generate
-4. Login with Existing Test Account - POST /api/login
+Backend API Testing Suite for Thryvin Fitness App - Onboarding Data Fix
+Tests the specific scenarios mentioned in the review request:
+1. Test User Registration with Full Onboarding Data
+2. Test Fetch User to Verify Persistence  
+3. Test Workout Generation with "It Depends" Schedule
 """
 
 import requests
@@ -15,17 +14,9 @@ import time
 import re
 from typing import Dict, List, Any, Optional
 
-# Configuration - Use the production URL from review request
-BASE_URL = "https://thryvin-backend-fix.preview.emergentagent.com"
+# Configuration - Use the correct backend URL from native app config
+BASE_URL = "https://thryvin-ai-fix.preview.emergentagent.com"
 API_BASE = f"{BASE_URL}/api"
-
-# Test credentials from review request
-TEST_EMAIL = "test@example.com"
-TEST_PASSWORD = "password123"
-
-# New user credentials for registration test
-NEW_USER_EMAIL = "newuser123@test.com"
-NEW_USER_PASSWORD = "password123"
 
 class ThryvinAPITester:
     def __init__(self):
@@ -37,6 +28,8 @@ class ThryvinAPITester:
         self.test_results = []
         self.auth_token = None
         self.user_id = None
+        self.user_profile = None
+        self.registered_user = None
         
     def log_test(self, test_name: str, success: bool, message: str, details: Dict = None):
         """Log test results"""
@@ -52,210 +45,273 @@ class ThryvinAPITester:
         if details and not success:
             print(f"   Details: {json.dumps(details, indent=2)}")
     
-    def test_health_endpoint(self) -> bool:
-        """Test the health endpoint - GET /api/health"""
-        try:
-            response = self.session.get(f"{API_BASE}/health")
-            
-            if response.status_code == 200:
-                health_data = response.json()
-                
-                # Check for expected fields from review request
-                expected_fields = ['ok', 'aiReady']
-                missing_fields = [field for field in expected_fields if field not in health_data]
-                
-                if missing_fields:
-                    self.log_test("Health Check", False, f"Missing expected fields: {missing_fields}", health_data)
-                    return False
-                
-                # Check that ok and aiReady are both true
-                if health_data.get('ok') and health_data.get('aiReady'):
-                    self.log_test("Health Check", True, "Server is healthy with AI ready", health_data)
-                    return True
-                else:
-                    self.log_test("Health Check", False, f"Health check shows issues: ok={health_data.get('ok')}, aiReady={health_data.get('aiReady')}", health_data)
-                    return False
-                    
-            else:
-                self.log_test("Health Check", False, f"Health check failed with status {response.status_code}",
-                            {"response": response.text})
-                return False
-                
-        except Exception as e:
-            self.log_test("Health Check", False, f"Health check error: {str(e)}")
-            return False
-    
-    def test_new_user_registration(self) -> bool:
-        """Test creating a NEW user account - POST /api/auth/register"""
+    def test_user_registration_with_onboarding_data(self) -> bool:
+        """Test 1: User Registration with Full Onboarding Data"""
         try:
             # Use timestamp to ensure unique email
             timestamp = int(time.time())
-            unique_email = f"newuser{timestamp}@test.com"
+            unique_email = f"testuser_backend_{timestamp}@test.com"
             
+            # Registration data as specified in review request
             registration_data = {
-                "name": "Test New User",
+                "name": "Test User UK",
                 "email": unique_email,
-                "password": NEW_USER_PASSWORD,
-                "fitnessGoals": ["Build muscle"],
-                "experience": "intermediate",
-                "trainingDays": "5",
-                "sessionDuration": "45"
+                "password": "test123",
+                "trainingType": "strength",
+                "goal": "gain_muscle",
+                "coachingStyle": "balanced",
+                "trainingSchedule": "depends",
+                "specificDates": ["2025-12-16", "2025-12-18", "2025-12-19"],
+                "country": "UK",
+                "timezone": "Europe/London",
+                "fitnessGoals": ["gain_muscle"],
+                "equipment": ["barbell", "dumbbell"]
             }
             
-            response = self.session.post(f"{API_BASE}/auth/register", json=registration_data)
+            response = self.session.post(f"{API_BASE}/register", json=registration_data)
             
-            if response.status_code == 201:
+            if response.status_code in [200, 201]:
                 user_data = response.json()
                 
                 # Check for expected response structure
                 if 'user' in user_data and user_data.get('ok'):
                     user = user_data['user']
+                    self.registered_user = user
+                    self.user_id = user.get('id')
                     
-                    # Verify user has fresh data (no old streaks/awards)
-                    if user.get('email') == unique_email and user.get('name') == "Test New User":
-                        self.log_test("New User Registration", True, 
-                                    f"Successfully created new user: {unique_email}")
-                        return True
-                    else:
-                        self.log_test("New User Registration", False, 
-                                    "User data doesn't match registration input", user_data)
+                    # VERIFY the response contains user.onboardingResponses with required fields
+                    onboarding_responses = user.get('onboardingResponses')
+                    if not onboarding_responses:
+                        self.log_test("User Registration with Onboarding Data", False, 
+                                    "Missing onboardingResponses field", user)
                         return False
+                    
+                    # Parse onboardingResponses if it's a string
+                    if isinstance(onboarding_responses, str):
+                        try:
+                            onboarding_responses = json.loads(onboarding_responses)
+                        except:
+                            self.log_test("User Registration with Onboarding Data", False, 
+                                        "Could not parse onboardingResponses JSON", user)
+                            return False
+                    
+                    # Verify required fields in onboardingResponses
+                    required_fields = {
+                        'trainingSchedule': 'depends',
+                        'specificDates': ["2025-12-16", "2025-12-18", "2025-12-19"],
+                        'country': 'UK',
+                        'timezone': 'Europe/London'
+                    }
+                    
+                    missing_or_incorrect = []
+                    for field, expected_value in required_fields.items():
+                        actual_value = onboarding_responses.get(field)
+                        
+                        if field == 'specificDates':
+                            # Check if arrays match
+                            if not isinstance(actual_value, list) or set(actual_value) != set(expected_value):
+                                missing_or_incorrect.append(f"{field}: expected {expected_value}, got {actual_value}")
+                        else:
+                            if actual_value != expected_value:
+                                missing_or_incorrect.append(f"{field}: expected {expected_value}, got {actual_value}")
+                    
+                    if missing_or_incorrect:
+                        self.log_test("User Registration with Onboarding Data", False, 
+                                    f"onboardingResponses missing or incorrect fields: {missing_or_incorrect}", 
+                                    {"onboardingResponses": onboarding_responses})
+                        return False
+                    else:
+                        self.log_test("User Registration with Onboarding Data", True, 
+                                    f"Successfully registered user with complete onboarding data: {unique_email}")
+                        return True
                 else:
-                    self.log_test("New User Registration", False, 
+                    self.log_test("User Registration with Onboarding Data", False, 
                                 "Registration response missing user object or ok flag", user_data)
                     return False
             else:
-                self.log_test("New User Registration", False, 
+                self.log_test("User Registration with Onboarding Data", False, 
                             f"Registration failed with status {response.status_code}",
                             {"response": response.text})
                 return False
                 
         except Exception as e:
-            self.log_test("New User Registration", False, f"Registration error: {str(e)}")
+            self.log_test("User Registration with Onboarding Data", False, f"Registration error: {str(e)}")
             return False
     
-    def test_workout_generation_endpoint(self) -> bool:
-        """Test POST /api/workouts/generate - Critical fix verification"""
+    def test_fetch_user_to_verify_persistence(self) -> bool:
+        """Test 2: Fetch User to Verify Persistence"""
         try:
-            # Use exact payload from review request
+            if not self.registered_user or not self.user_id:
+                self.log_test("Fetch User to Verify Persistence", False, 
+                            "No registered user available from previous test")
+                return False
+            
+            # GET /api/users/{id} with the ID from Test 1
+            response = self.session.get(f"{API_BASE}/users/{self.user_id}")
+            
+            if response.status_code == 200:
+                user_data = response.json()
+                
+                # VERIFY onboardingResponses is still present and correct
+                onboarding_responses = user_data.get('onboardingResponses')
+                if not onboarding_responses:
+                    self.log_test("Fetch User to Verify Persistence", False, 
+                                "Missing onboardingResponses field in fetched user", user_data)
+                    return False
+                
+                # Parse onboardingResponses if it's a string
+                if isinstance(onboarding_responses, str):
+                    try:
+                        onboarding_responses = json.loads(onboarding_responses)
+                    except:
+                        self.log_test("Fetch User to Verify Persistence", False, 
+                                    "Could not parse onboardingResponses JSON in fetched user", user_data)
+                        return False
+                
+                # Verify the same required fields are still there
+                required_fields = {
+                    'trainingSchedule': 'depends',
+                    'specificDates': ["2025-12-16", "2025-12-18", "2025-12-19"],
+                    'country': 'UK',
+                    'timezone': 'Europe/London'
+                }
+                
+                missing_or_incorrect = []
+                for field, expected_value in required_fields.items():
+                    actual_value = onboarding_responses.get(field)
+                    
+                    if field == 'specificDates':
+                        # Check if arrays match
+                        if not isinstance(actual_value, list) or set(actual_value) != set(expected_value):
+                            missing_or_incorrect.append(f"{field}: expected {expected_value}, got {actual_value}")
+                    else:
+                        if actual_value != expected_value:
+                            missing_or_incorrect.append(f"{field}: expected {expected_value}, got {actual_value}")
+                
+                if missing_or_incorrect:
+                    self.log_test("Fetch User to Verify Persistence", False, 
+                                f"Fetched user onboardingResponses missing or incorrect fields: {missing_or_incorrect}", 
+                                {"onboardingResponses": onboarding_responses})
+                    return False
+                else:
+                    self.log_test("Fetch User to Verify Persistence", True, 
+                                f"Successfully fetched user {self.user_id} with persistent onboarding data")
+                    return True
+            else:
+                self.log_test("Fetch User to Verify Persistence", False, 
+                            f"Failed to fetch user with status {response.status_code}",
+                            {"response": response.text})
+                return False
+                
+        except Exception as e:
+            self.log_test("Fetch User to Verify Persistence", False, f"Fetch user error: {str(e)}")
+            return False
+    
+    def test_workout_generation_with_depends_schedule(self) -> bool:
+        """Test 3: Workout Generation with "It Depends" Schedule"""
+        try:
+            if not self.registered_user:
+                self.log_test("Workout Generation with It Depends Schedule", False, 
+                            "No registered user available from previous test")
+                return False
+            
+            # POST /api/workouts/generate with the newly registered user profile
             workout_data = {
                 "userProfile": {
-                    "fitnessGoals": ["Build muscle"],
+                    "fitnessGoals": ["gain_muscle"],
+                    "goal": "gain_muscle",
                     "experience": "intermediate",
-                    "trainingDays": "5",
-                    "sessionDuration": "45"
+                    "sessionDuration": 60,
+                    "trainingDays": 5,
+                    "equipment": ["barbell", "dumbbell"],
+                    "injuries": [],
+                    # Include the onboarding data with "depends" schedule
+                    "trainingSchedule": "depends",
+                    "specificDates": ["2025-12-16", "2025-12-18", "2025-12-19"],
+                    "country": "UK",
+                    "timezone": "Europe/London"
                 },
                 "dayOfWeek": 0
             }
             
             response = self.session.post(f"{API_BASE}/workouts/generate", json=workout_data)
             
-            # The critical test: should NOT return 500 error
-            if response.status_code == 500:
-                self.log_test("Workout Generation", False, 
-                            "CRITICAL: Workout generation returned 500 error (bug not fixed)",
-                            {"response": response.text})
-                return False
-            
             if response.status_code == 200:
                 data = response.json()
                 
-                # Check for expected workout structure
+                # VERIFY the AI generates a workout correctly
                 required_fields = ['title', 'exercises']
                 missing_fields = [field for field in required_fields if field not in data]
                 
                 if missing_fields:
-                    self.log_test("Workout Generation", False, 
+                    self.log_test("Workout Generation with It Depends Schedule", False, 
                                 f"Response missing required fields: {missing_fields}",
                                 {"response_keys": list(data.keys())})
                     return False
                 
-                # Verify exercises is an array
-                if not isinstance(data.get('exercises'), list):
-                    self.log_test("Workout Generation", False, 
+                # Verify exercises is an array with proper structure
+                exercises = data.get('exercises', [])
+                if not isinstance(exercises, list):
+                    self.log_test("Workout Generation with It Depends Schedule", False, 
                                 "Exercises should be an array",
-                                {"exercises_type": type(data.get('exercises'))})
+                                {"exercises_type": type(exercises)})
                     return False
                 
-                self.log_test("Workout Generation", True, 
-                            f"Generated workout '{data.get('title')}' with {len(data.get('exercises', []))} exercises")
+                if len(exercises) == 0:
+                    self.log_test("Workout Generation with It Depends Schedule", False, 
+                                "No exercises generated in workout")
+                    return False
+                
+                # Check each exercise has required fields: name, sets, reps
+                for i, exercise in enumerate(exercises):
+                    required_exercise_fields = ['name', 'sets', 'reps']
+                    missing_exercise_fields = [field for field in required_exercise_fields if field not in exercise]
+                    
+                    if missing_exercise_fields:
+                        self.log_test("Workout Generation with It Depends Schedule", False, 
+                                    f"Exercise {i+1} missing fields: {missing_exercise_fields}",
+                                    {"exercise": exercise})
+                        return False
+                
+                self.log_test("Workout Generation with It Depends Schedule", True, 
+                            f"AI generated workout '{data.get('title')}' with {len(exercises)} exercises for 'depends' schedule user")
                 return True
             else:
-                self.log_test("Workout Generation", False, 
-                            f"Unexpected status code {response.status_code}",
+                self.log_test("Workout Generation with It Depends Schedule", False, 
+                            f"Workout generation failed with status {response.status_code}",
                             {"response": response.text})
                 return False
             
         except Exception as e:
-            self.log_test("Workout Generation", False, f"Error: {str(e)}")
+            self.log_test("Workout Generation with It Depends Schedule", False, f"Error: {str(e)}")
             return False
     
-    def test_existing_user_login(self) -> bool:
-        """Test login with existing test account - POST /api/login"""
-        try:
-            login_data = {
-                "email": TEST_EMAIL,
-                "password": TEST_PASSWORD
-            }
-            
-            # Note: Based on auth.ts, the endpoint is /api/login, not /api/auth/login
-            response = self.session.post(f"{API_BASE}/login", json=login_data)
-            
-            if response.status_code == 200:
-                user_data = response.json()
-                
-                # Check for expected response structure
-                if 'user' in user_data and user_data.get('ok'):
-                    user = user_data['user']
-                    self.user_id = user.get('id')
-                    self.log_test("Existing User Login", True, 
-                                f"Successfully logged in as {TEST_EMAIL}")
-                    return True
-                else:
-                    self.log_test("Existing User Login", False, 
-                                "Login response missing user object or ok flag", user_data)
-                    return False
-            else:
-                self.log_test("Existing User Login", False, 
-                            f"Login failed with status {response.status_code}",
-                            {"response": response.text})
-                return False
-                
-        except Exception as e:
-            self.log_test("Existing User Login", False, f"Login error: {str(e)}")
-            return False
-
     def run_all_tests(self):
-        """Run all Thryvin API tests for endpoints specified in review request"""
-        print("🏋️ Starting Thryvin Fitness App API Testing Suite")
-        print("Testing endpoints from review request:")
-        print("1. Health Check - GET /api/health")
-        print("2. Create NEW User Account - POST /api/auth/register")
-        print("3. Workout Generation API - POST /api/workouts/generate")
-        print("4. Login with Existing Test Account - POST /api/login")
+        """Run all Thryvin API tests for onboarding data fix verification"""
+        print("🏋️ Starting Thryvin Fitness App - Onboarding Data Fix Testing")
+        print("Testing scenarios from review request:")
+        print("1. Test User Registration with Full Onboarding Data")
+        print("2. Test Fetch User to Verify Persistence")
+        print("3. Test Workout Generation with 'It Depends' Schedule")
         print("=" * 60)
-        
-        # Test 1: Health Check
-        print("\n💚 Test 1: Health Check...")
-        health_success = self.test_health_endpoint()
         
         print(f"🔗 Backend URL: {BASE_URL}")
         print("=" * 60)
         
-        # Test 2: Create NEW User Account
-        print("\n👤 Test 2: Create NEW User Account...")
-        registration_success = self.test_new_user_registration()
+        # Test 1: User Registration with Full Onboarding Data
+        print("\n👤 Test 1: User Registration with Full Onboarding Data...")
+        registration_success = self.test_user_registration_with_onboarding_data()
         
-        # Test 3: Workout Generation (Critical P0 fix verification)
-        print("\n🤖 Test 3: Workout Generation (Critical Fix Verification)...")
-        workout_success = self.test_workout_generation_endpoint()
+        # Test 2: Fetch User to Verify Persistence
+        print("\n🔍 Test 2: Fetch User to Verify Persistence...")
+        fetch_success = self.test_fetch_user_to_verify_persistence()
         
-        # Test 4: Login with Existing Test Account
-        print("\n🔐 Test 4: Login with Existing Test Account...")
-        login_success = self.test_existing_user_login()
+        # Test 3: Workout Generation with "It Depends" Schedule
+        print("\n🤖 Test 3: Workout Generation with 'It Depends' Schedule...")
+        workout_success = self.test_workout_generation_with_depends_schedule()
         
         print("\n" + "=" * 60)
-        print("🏁 Thryvin API Test Results:")
+        print("🏁 Thryvin Onboarding Data Fix Test Results:")
         
         passed_tests = sum(1 for result in self.test_results if result['success'])
         total_tests = len(self.test_results)
@@ -263,7 +319,7 @@ class ThryvinAPITester:
         print(f"✅ {passed_tests}/{total_tests} tests passed")
         
         if passed_tests == total_tests:
-            print("🎉 All Thryvin API tests passed!")
+            print("🎉 All onboarding data fix tests passed!")
             return True
         else:
             print(f"⚠️ {total_tests - passed_tests} tests had issues")

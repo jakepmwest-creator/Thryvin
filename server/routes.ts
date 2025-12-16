@@ -1519,11 +1519,62 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: 'User profile is required' });
       }
       
-      console.log('🤖 Generating AI workout for:', userProfile);
+      // ENHANCEMENT: If user is authenticated, enrich userProfile with database data
+      let enrichedProfile = { ...userProfile };
+      
+      if (req.isAuthenticated() && req.user) {
+        const user = req.user;
+        console.log('🔐 Authenticated user detected, enriching profile from DB');
+        
+        // Add userId for comprehensive context lookup
+        enrichedProfile.userId = user.id;
+        
+        // Parse and add advanced questionnaire from onboarding_responses
+        if (user.onboardingResponses) {
+          try {
+            const onboardingData = typeof user.onboardingResponses === 'string' 
+              ? JSON.parse(user.onboardingResponses) 
+              : user.onboardingResponses;
+            
+            if (onboardingData.advancedQuestionnaire) {
+              enrichedProfile.advancedQuestionnaire = onboardingData.advancedQuestionnaire;
+              console.log('📚 Advanced questionnaire loaded:', Object.keys(onboardingData.advancedQuestionnaire));
+            }
+          } catch (parseErr) {
+            console.log('⚠️ Could not parse onboarding responses');
+          }
+        }
+        
+        // Add any missing profile data from database
+        if (!enrichedProfile.sessionDuration && user.sessionDurationPreference) {
+          enrichedProfile.sessionDuration = user.sessionDurationPreference;
+        }
+        if (!enrichedProfile.equipment && user.equipmentAccess) {
+          try {
+            enrichedProfile.equipment = typeof user.equipmentAccess === 'string' 
+              ? JSON.parse(user.equipmentAccess) 
+              : user.equipmentAccess;
+          } catch { /* ignore */ }
+        }
+        if (!enrichedProfile.trainingDays && user.trainingDaysPerWeek) {
+          enrichedProfile.trainingDays = user.trainingDaysPerWeek;
+        }
+        if (!enrichedProfile.injuries && user.injuries) {
+          enrichedProfile.injuries = user.injuries;
+        }
+        if (!enrichedProfile.goal && user.goal) {
+          enrichedProfile.goal = user.goal;
+        }
+      }
+      
+      console.log('🤖 Generating AI workout for:', {
+        ...enrichedProfile,
+        advancedQuestionnaire: enrichedProfile.advancedQuestionnaire ? '✓ Present' : '✗ Missing'
+      });
       
       // Use AI workout generator
       const { generateAIWorkout } = await import('./ai-workout-generator');
-      const workout = await generateAIWorkout(userProfile, dayOfWeek || 0);
+      const workout = await generateAIWorkout(enrichedProfile, dayOfWeek || 0);
       
       console.log('✅ AI Workout generated:', workout.title, `(${workout.exercises.length} exercises)`);
       
@@ -6832,6 +6883,37 @@ Respond with a complete workout in JSON format:
     } catch (error) {
       console.error("Error fetching exercise:", error);
       res.status(500).json({ error: "Failed to fetch exercise" });
+    }
+  });
+  
+  // PATCH /api/exercises/:id/video - Update exercise video URL (admin endpoint)
+  app.patch("/api/exercises/:id/video", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { videoUrl, thumbnailUrl } = req.body;
+      
+      if (!videoUrl) {
+        return res.status(400).json({ error: "videoUrl is required" });
+      }
+      
+      const result = await db
+        .update(exercises)
+        .set({ 
+          videoUrl, 
+          thumbnailUrl: thumbnailUrl || videoUrl.replace('.mp4', '.jpg').replace('.webm', '.jpg')
+        })
+        .where(eq(exercises.id, parseInt(id)))
+        .returning();
+      
+      if (result.length === 0) {
+        return res.status(404).json({ error: "Exercise not found" });
+      }
+      
+      console.log(`✅ Updated exercise ${id} video URL to: ${videoUrl}`);
+      res.json({ success: true, exercise: result[0] });
+    } catch (error) {
+      console.error("Error updating exercise video:", error);
+      res.status(500).json({ error: "Failed to update exercise video" });
     }
   });
 
