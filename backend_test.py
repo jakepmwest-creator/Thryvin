@@ -16,7 +16,7 @@ import re
 from typing import Dict, List, Any, Optional
 
 # Configuration - Use the production URL from review request
-BASE_URL = "https://workout-companion-23.preview.emergentagent.com"
+BASE_URL = "https://thryvin-backend-fix.preview.emergentagent.com"
 API_BASE = f"{BASE_URL}/api"
 
 # Test credentials from review request

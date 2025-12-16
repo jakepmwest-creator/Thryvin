@@ -16,7 +16,7 @@ import { ExerciseVideoPlayer } from '../src/components/ExerciseVideoPlayer';
 import { CustomAlert } from '../src/components/CustomAlert';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
-const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL || 'https://workout-companion-23.preview.emergentagent.com';
+const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL || 'https://thryvin-backend-fix.preview.emergentagent.com';
 
 const COLORS = {
   accent: '#a259ff',

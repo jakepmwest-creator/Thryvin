@@ -116,7 +116,7 @@ const AlternativeCard: React.FC<AlternativeCardProps> = ({
   );
 };
 
-const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL || 'https://workout-companion-23.preview.emergentagent.com';
+const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL || 'https://thryvin-backend-fix.preview.emergentagent.com';
 
 export function EditWorkoutModal({
   visible,

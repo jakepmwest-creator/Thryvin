@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useAwardsStore } from './awards-store';
 
-const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL || 'https://workout-companion-23.preview.emergentagent.com';
+const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL || 'https://thryvin-backend-fix.preview.emergentagent.com';
 
 // Storage helpers - Use AsyncStorage for large data (workout plans are >2KB)
 const getStorageItem = async (key: string): Promise<string | null> => {

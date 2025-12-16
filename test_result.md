@@ -201,7 +201,7 @@
 
 ### Backend API Testing Results (Completed)
 
-**Test Environment:** https://workout-companion-23.preview.emergentagent.com
+**Test Environment:** https://thryvin-backend-fix.preview.emergentagent.com
 
 1. **Health Check API** ✅ - Working
 2. **New User Registration** ✅ - Working  
