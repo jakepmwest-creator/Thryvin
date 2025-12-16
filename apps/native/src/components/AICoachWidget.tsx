@@ -61,7 +61,7 @@ interface AICoachWidgetProps {
 }
 
 export const AICoachWidget = ({ visible, onClose }: AICoachWidgetProps) => {
-  const { weekWorkouts, swapWorkoutDays, forceRegenerateWeek, currentWorkout } = useWorkoutStore();
+  const { weekWorkouts, swapWorkoutDays, forceRegenerateWeek, currentWorkout, addWorkoutToDate, replaceRestDayWithWorkout } = useWorkoutStore();
   const { coachName, coachPersonality, loadCoachSettings, getPersonalityTone, setCoachPersonality } = useCoachStore();
   
   const [messages, setMessages] = useState<Message[]>([]);
