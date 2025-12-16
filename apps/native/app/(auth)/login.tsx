@@ -579,10 +579,8 @@ const styles = StyleSheet.create({
   },
   contentContainer: {
     flex: 1,
-    justifyContent: 'space-between',
+    justifyContent: 'center',
     paddingHorizontal: 20,
-    paddingTop: 20,
-    paddingBottom: 32,
   },
   cardContainer: {
     borderRadius: 28,
@@ -592,30 +590,30 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.10,
     shadowRadius: 20,
     elevation: 10,
-    marginBottom: 16,
   },
   card: {
     borderRadius: 28,
-    padding: 20,
+    paddingHorizontal: 24,
+    paddingVertical: 32,
     backgroundColor: COLORS.white,
   },
   cardLogoContainer: {
     alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: 28,
   },
   cardLogo: {
     width: 160,
     height: 36,
   },
   welcomeContainer: {
-    marginBottom: 20,
+    marginBottom: 28,
     alignItems: 'center',
   },
   welcomeTitle: {
     fontSize: 24,
     fontWeight: '700',
     color: COLORS.text,
-    marginBottom: 4,
+    marginBottom: 6,
     textAlign: 'center',
   },
   welcomeSubtitle: {
@@ -633,7 +631,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.lightGray,
     borderRadius: 14,
     paddingHorizontal: 14,
-    marginBottom: 12,
+    marginBottom: 14,
     borderWidth: 2,
     borderColor: 'transparent',
   },
