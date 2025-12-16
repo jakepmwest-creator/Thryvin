@@ -694,34 +694,54 @@ export const useAwardsStore = create<AwardsState>((set, get) => ({
       
       console.log('💬 [AWARDS] Coach conversation tracked:', newCount);
       
-      // Check if this triggers the badge
+      // Get all coach conversation badges
+      const coachBadgeIds = ['i1_first_coach_chat', 'i1_coach_10', 'i1_coach_100'];
       const { userBadges } = get();
-      const coachBadge = userBadges.find(ub => ub.badgeId === 'i1_first_coach_chat');
+      let updatedBadges = [...userBadges];
+      let anyUnlocked = false;
       
-      if (!coachBadge?.completed) {
-        // Update just this badge
-        const badge = BADGE_DEFINITIONS.find(b => b.id === 'i1_first_coach_chat');
-        if (badge && newCount >= badge.targetValue) {
-          const updatedBadges = userBadges.map(ub => 
-            ub.badgeId === 'i1_first_coach_chat' 
-              ? { ...ub, progress: newCount, completed: true, unlockedAt: new Date().toISOString() }
+      // Check each coach conversation badge
+      for (const badgeId of coachBadgeIds) {
+        const existingBadge = updatedBadges.find(ub => ub.badgeId === badgeId);
+        const badgeDef = BADGE_DEFINITIONS.find(b => b.id === badgeId);
+        
+        if (!badgeDef) continue;
+        
+        const wasCompleted = existingBadge?.completed || false;
+        const isNowCompleted = newCount >= badgeDef.targetValue;
+        
+        if (existingBadge) {
+          // Update existing badge
+          updatedBadges = updatedBadges.map(ub => 
+            ub.badgeId === badgeId 
+              ? { 
+                  ...ub, 
+                  progress: newCount, 
+                  completed: isNowCompleted,
+                  unlockedAt: isNowCompleted && !wasCompleted ? new Date().toISOString() : ub.unlockedAt
+                }
               : ub
           );
-          
-          // Add if not exists
-          if (!coachBadge) {
-            updatedBadges.push({
-              badgeId: 'i1_first_coach_chat',
-              progress: newCount,
-              completed: true,
-              unlockedAt: new Date().toISOString(),
-            });
-          }
-          
-          set({ userBadges: updatedBadges });
-          await setStorageItem('user_badges', JSON.stringify(updatedBadges));
-          console.log('🎉 [AWARDS] First Coach Chat badge unlocked!');
+        } else {
+          // Add badge if not exists
+          updatedBadges.push({
+            badgeId,
+            progress: newCount,
+            completed: isNowCompleted,
+            unlockedAt: isNowCompleted ? new Date().toISOString() : undefined,
+          });
         }
+        
+        if (isNowCompleted && !wasCompleted) {
+          console.log(`🎉 [AWARDS] Coach badge unlocked: ${badgeDef.name}`);
+          anyUnlocked = true;
+        }
+      }
+      
+      if (anyUnlocked || newCount <= 3) {
+        // Save updated badges
+        set({ userBadges: updatedBadges });
+        await setStorageItem('user_badges', JSON.stringify(updatedBadges));
       }
     } catch (error) {
       console.error('Error tracking coach conversation:', error);
