@@ -23,7 +23,7 @@ export type DayPayload = {
   blocks: { type: "warmup" | "main" | "recovery"; items: BlockItem[] }[];
 };
 
-const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL || 'https://thryvin-app-1.preview.emergentagent.com';
+const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL || 'https://fitness-ui-patch.preview.emergentagent.com';
 
 async function api(path: string, init: RequestInit = {}) {
   const fullUrl = `${API_BASE_URL}${path}`;
