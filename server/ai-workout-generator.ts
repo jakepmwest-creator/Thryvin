@@ -15,8 +15,18 @@ const openai = new OpenAI({
 // ZOD VALIDATION SCHEMAS
 // =============================================================================
 
+// Helper to generate unique exercise ID from name
+function generateExerciseId(name: string, index: number): string {
+  const slug = name
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-|-$/g, '')
+    .substring(0, 30);
+  return `${slug}-${index}-${Date.now().toString(36)}`;
+}
+
 const ExerciseSchema = z.object({
-  id: z.string().optional().default(''),
+  id: z.string().optional(), // Will be generated server-side if missing
   name: z.string().min(1, 'Exercise name is required'),
   sets: z.number().min(1).max(10).default(3),
   reps: z.union([z.string(), z.number()]).transform(val => String(val)),
