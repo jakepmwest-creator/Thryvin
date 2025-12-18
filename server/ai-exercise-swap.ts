@@ -8,6 +8,176 @@ import { buildAiContext } from './ai-user-context';
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
 // =============================================================================
+// INJURY CONSTRAINT RULES - Explicit safety checks (not just prompt text)
+// =============================================================================
+
+interface InjuryConstraint {
+  keywords: string[];  // Keywords to detect in injury description
+  blockedPatterns: string[];  // Exercise name patterns to block
+  preferredPatterns: string[];  // Exercise name patterns to prefer
+  description: string;
+}
+
+const INJURY_CONSTRAINTS: Record<string, InjuryConstraint> = {
+  'lower_back': {
+    keywords: ['lower back', 'lumbar', 'l4', 'l5', 'disc', 'sciatica'],
+    blockedPatterns: [
+      'deadlift', 'good morning', 'stiff leg', 'romanian deadlift', 'rdl',
+      'bent over row', 'barbell row', 'pendlay row',  // Unsupported rows
+      'back extension', 'hyperextension',
+      'clean', 'snatch',  // Olympic lifts
+      'sit-up', 'crunch',  // Spinal flexion
+    ],
+    preferredPatterns: [
+      'machine', 'cable', 'seated', 'supported', 'chest supported',
+      'lat pulldown', 'seated row', 'chest-supported row',
+      'leg press', 'leg curl', 'leg extension',
+    ],
+    description: 'Avoid spinal loading, hinges, and unsupported bent-over positions',
+  },
+  'knee': {
+    keywords: ['knee', 'acl', 'mcl', 'meniscus', 'patella'],
+    blockedPatterns: [
+      'jump', 'plyometric', 'box jump', 'burpee',
+      'deep squat', 'pistol squat', 'sissy squat',
+      'lunge', 'split squat',  // Deep knee flexion
+    ],
+    preferredPatterns: [
+      'leg press', 'leg curl', 'leg extension',
+      'partial squat', 'box squat',
+      'glute bridge', 'hip thrust',
+    ],
+    description: 'Avoid deep knee flexion and high-impact movements',
+  },
+  'shoulder': {
+    keywords: ['shoulder', 'rotator cuff', 'impingement', 'labrum', 'deltoid'],
+    blockedPatterns: [
+      'overhead press', 'military press', 'push press',
+      'upright row', 'behind neck',
+      'dip',  // Can aggravate shoulder
+      'kipping', 'butterfly pull-up',
+    ],
+    preferredPatterns: [
+      'landmine press', 'neutral grip', 'cable',
+      'face pull', 'external rotation',
+      'low incline', 'floor press',
+    ],
+    description: 'Avoid overhead movements and internal rotation under load',
+  },
+  'wrist': {
+    keywords: ['wrist', 'carpal', 'forearm'],
+    blockedPatterns: [
+      'front squat', 'clean grip',
+      'wrist curl', 'reverse curl',
+      'push-up',  // Standard push-ups stress wrist
+    ],
+    preferredPatterns: [
+      'neutral grip', 'ez bar', 'dumbbell', 'machine',
+      'knuckle push-up', 'push-up handles',
+    ],
+    description: 'Avoid wrist extension under load',
+  },
+};
+
+/**
+ * Filter exercises based on injury constraints
+ * Returns only safe exercises for the user's injuries
+ */
+function filterByInjuryConstraints(
+  alternatives: Array<{ name: string; reason?: string; sets: number; reps: string }>,
+  userContext: string
+): Array<{ name: string; reason?: string; sets: number; reps: string }> {
+  if (!userContext) return alternatives;
+  
+  const contextLower = userContext.toLowerCase();
+  
+  // Detect which injuries apply
+  const activeConstraints: InjuryConstraint[] = [];
+  for (const [key, constraint] of Object.entries(INJURY_CONSTRAINTS)) {
+    if (constraint.keywords.some(kw => contextLower.includes(kw))) {
+      activeConstraints.push(constraint);
+      if (process.env.NODE_ENV !== 'production' || process.env.DEBUG) {
+        console.log(`   🛡️ [SAFETY] Detected ${key} injury - applying constraints`);
+      }
+    }
+  }
+  
+  if (activeConstraints.length === 0) return alternatives;
+  
+  // Filter out blocked exercises
+  return alternatives.filter(alt => {
+    const nameLower = alt.name.toLowerCase();
+    
+    for (const constraint of activeConstraints) {
+      // Check if exercise matches any blocked pattern
+      if (constraint.blockedPatterns.some(pattern => nameLower.includes(pattern))) {
+        if (process.env.NODE_ENV !== 'production' || process.env.DEBUG) {
+          console.log(`   ❌ [SAFETY] Blocked: ${alt.name} (matches blocked pattern)`);
+        }
+        return false;
+      }
+    }
+    
+    return true;
+  });
+}
+
+/**
+ * Get safe fallback alternatives based on injury
+ */
+function getSafeFallbackForInjury(
+  currentExercise: Exercise,
+  userContext: string
+): AlternativesResponse {
+  const contextLower = (userContext || '').toLowerCase();
+  
+  // Default safe alternatives based on detected injury
+  let safeExercises: Array<{ name: string; description: string }> = [];
+  
+  if (contextLower.includes('lower back') || contextLower.includes('lumbar')) {
+    safeExercises = [
+      { name: 'Chest-Supported Dumbbell Row', description: 'Supported position protects lower back' },
+      { name: 'Seated Cable Row', description: 'Machine support eliminates spinal loading' },
+      { name: 'Lat Pulldown', description: 'Vertical pull with no lower back involvement' },
+      { name: 'Machine Row', description: 'Full back support throughout movement' },
+    ];
+  } else if (contextLower.includes('knee')) {
+    safeExercises = [
+      { name: 'Leg Press', description: 'Controlled range of motion' },
+      { name: 'Leg Curl', description: 'Isolated hamstring work' },
+      { name: 'Glute Bridge', description: 'Hip-focused with minimal knee stress' },
+    ];
+  } else if (contextLower.includes('shoulder')) {
+    safeExercises = [
+      { name: 'Landmine Press', description: 'Shoulder-friendly angle' },
+      { name: 'Cable Lateral Raise', description: 'Controlled resistance' },
+      { name: 'Face Pull', description: 'Promotes shoulder health' },
+    ];
+  } else {
+    // Generic safe fallback
+    safeExercises = [
+      { name: 'Machine Alternative', description: 'Controlled, supported movement' },
+      { name: 'Cable Alternative', description: 'Adjustable resistance and angle' },
+    ];
+  }
+  
+  const fallbackExercises: Exercise[] = safeExercises.map((ex, i) => ({
+    id: `safe-${i}`,
+    name: ex.name,
+    description: ex.description,
+    sets: currentExercise.sets,
+    reps: currentExercise.reps,
+    restTime: currentExercise.restTime || 60,
+    category: currentExercise.category || 'main',
+  }));
+  
+  return {
+    recommended: fallbackExercises[0],
+    alternatives: fallbackExercises.slice(1),
+  };
+}
+
+// =============================================================================
 // ZOD VALIDATION SCHEMAS
 // =============================================================================
 
