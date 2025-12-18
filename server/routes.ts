@@ -39,7 +39,7 @@ import {
 import { generateExerciseAlternative } from "./ai-exercise-swap";
 import { generateWeekWorkouts } from "./week-generator";
 import { db } from "./db";
-import { eq, count, sql, inArray, ilike, and } from "drizzle-orm";
+import { eq, count, sql, inArray, ilike, and, like } from "drizzle-orm";
 import {
   posts,
   postLikes,
@@ -50,6 +50,8 @@ import {
   workoutDays,
   exercises,
   aiLearningContext,
+  workoutSets,
+  userWorkouts,
 } from "@shared/schema";
 import { sendPasswordResetEmail } from "./email-service-resend";
 import { generateSecureToken, hashPassword } from "./crypto-utils";
