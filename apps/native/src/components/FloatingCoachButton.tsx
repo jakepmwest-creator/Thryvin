@@ -741,8 +741,8 @@ export function FloatingCoachButton() {
       return;
     }
     
-    // Otherwise, call OpenAI
-    const aiResponse = await callOpenAI(userMessage);
+    // Otherwise, call backend coach API (includes full user context)
+    const aiResponse = await callCoachAPI(userMessage);
     
     setMessages(prev => [...prev, { role: 'assistant', text: aiResponse }]);
     setIsLoading(false);
