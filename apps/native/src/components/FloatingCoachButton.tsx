@@ -132,45 +132,42 @@ export function FloatingCoachButton() {
     }
   };
 
-  const callOpenAI = async (userMessage: string) => {
-    // Check if API key exists
-    if (!OPENAI_API_KEY) {
-      console.error('Missing OpenAI API key');
-      return "🔑 OpenAI API key not configured. Please add EXPO_PUBLIC_OPENAI_API_KEY to your .env file.";
-    }
-
+  // Call backend coach API (includes full user context: onboarding, advanced questionnaire, workout history)
+  const callCoachAPI = async (userMessage: string) => {
     try {
-      const response = await fetch('https://api.openai.com/v1/chat/completions', {
+      // Get user ID from AsyncStorage for personalized context
+      const userDataStr = await AsyncStorage.getItem('user_data');
+      const userData = userDataStr ? JSON.parse(userDataStr) : null;
+      const userId = userData?.id || userData?.userId;
+      
+      console.log('🤖 [COACH] Calling backend API with userId:', userId);
+      
+      const response = await fetch(`${API_BASE_URL}/api/coach/chat`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${OPENAI_API_KEY}`,
         },
         body: JSON.stringify({
-          model: 'gpt-4o',
-          messages: [
-            {
-              role: 'system',
-              content: 'You are an enthusiastic and knowledgeable AI fitness coach for the Thryvin app. You help users with workout advice, nutrition tips, motivation, and can modify their workout plans. Keep responses concise, encouraging, and actionable. Use emojis occasionally to keep it fun.'
-            },
-            ...messages.map(m => ({ role: m.role, content: m.text })),
-            { role: 'user', content: userMessage }
-          ],
-          max_tokens: 300,
-          temperature: 0.7,
+          message: userMessage,
+          coach: coachName || 'default',
+          userId: userId, // Backend will load full context (onboarding + advanced questionnaire + history)
+          conversationHistory: messages.slice(-6).map(m => ({
+            role: m.role === 'assistant' ? 'coach' : 'user',
+            content: m.text
+          })),
         }),
       });
 
-      const data = await response.json();
-      
-      if (data.error) {
-        console.error('OpenAI API Error:', data.error);
-        throw new Error(data.error.message);
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        console.error('Coach API Error:', response.status, errorData);
+        throw new Error(errorData.error || `Request failed with status ${response.status}`);
       }
 
-      return data.choices[0].message.content;
+      const data = await response.json();
+      return data.response || "I'm here to help! What would you like to know? 💪";
     } catch (error: any) {
-      console.error('OpenAI Error:', error);
+      console.error('Coach API Error:', error);
       return `I'm having trouble connecting right now. ${error?.message || 'Please try again in a moment!'} 💪`;
     }
   };
