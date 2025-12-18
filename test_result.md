@@ -87,9 +87,7 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Workout Generation Dynamic Exercise Count"
-    - "Badge System Coach Conversation Tracking"
-    - "Recent Activity Card UI Fix"
+    - "AI Pipeline Consolidation Complete"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
