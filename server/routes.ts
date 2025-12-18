@@ -2379,71 +2379,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Conversational AI Chat endpoint
+  // DEPRECATED: Use /api/coach/chat instead
+  // This endpoint now redirects to the unified coach service for consistency
   app.post("/api/chat", async (req, res) => {
     try {
-      const { message, coachName, coachSpecialty, conversationHistory } =
-        req.body;
-
-      // Get user data for personalization
+      const { message, coachName, conversationHistory } = req.body;
       const user = req.isAuthenticated() ? req.user : null;
-      const userName = user?.name || "there";
-
-      // Build conversation context from history
-      let context = `You are ${coachName}, a professional ${coachSpecialty} coach and fitness expert. You are knowledgeable, motivating, supportive, and can discuss anything - not just fitness. Be conversational, friendly, and helpful. You can talk about fitness, nutrition, motivation, daily life, hobbies, work, relationships, or any topic the user brings up. Always maintain your coach persona but be flexible and engaging.
-
-Key traits:
-- Professional but approachable
-- Motivating and positive
-- Knowledgeable about fitness and nutrition
-- Able to discuss any topic naturally
-- Address the user as ${userName} when appropriate
-- Give practical, actionable advice
-- Be encouraging and supportive
-
-User Information:
-- Name: ${userName}
-${user?.goal ? `- Fitness Goal: ${user.goal}` : ""}
-${user?.fitnessLevel ? `- Fitness Level: ${user.fitnessLevel}` : ""}
-${user?.trainingType ? `- Preferred Training: ${user.trainingType}` : ""}
-
-Previous conversation:`;
-
-      // Add conversation history for context
-      if (conversationHistory && conversationHistory.length > 0) {
-        conversationHistory.slice(-6).forEach((msg: any) => {
-          context += `\n${msg.type === "user" ? "User" : coachName}: ${msg.content}`;
-        });
-      }
-
-      context += `\n\nUser: ${message}\n${coachName}:`;
-
-      const response = await openai.chat.completions.create({
-        model: "gpt-4o",
-        messages: [
-          {
-            role: "system",
-            content: `You are ${coachName}, a professional ${coachSpecialty} coach. You're knowledgeable, motivating, and can discuss any topic naturally. Be conversational and helpful while maintaining your coach persona.`,
-          },
-          {
-            role: "user",
-            content: message,
-          },
-        ],
-        max_tokens: 200,
-        temperature: 0.8,
+      
+      console.log('⚠️ [DEPRECATED] /api/chat called - redirecting to unified coach service');
+      
+      // Map to unified coach service
+      const result = await getUnifiedCoachResponse({
+        message,
+        coach: coachName?.toLowerCase() || 'default',
+        userId: user?.id,
+        conversationHistory: conversationHistory?.map((msg: any) => ({
+          role: msg.type === 'user' ? 'user' : 'coach',
+          content: msg.content,
+        })),
       });
-
-      const aiResponse =
-        response.choices[0].message.content ||
-        "I'm here to help! What would you like to talk about?";
-
-      res.json({ response: aiResponse });
+      
+      res.json({ response: result.response });
     } catch (error) {
       console.error("Chat API error:", error);
       res.status(500).json({
         error: "Failed to process chat message",
-        response:
-          "I'm having trouble connecting right now, but I'm here when you need me! Try again in a moment.",
+        response: "I'm having trouble connecting right now. Try again in a moment.",
       });
     }
   });
