@@ -1871,38 +1871,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // AI Coach Chat endpoint
+  // UNIFIED COACH CHAT ENDPOINT - Primary endpoint for all coach interactions
+  // Uses ai-coach-service.ts for consistent behavior
   app.post("/api/coach/chat", async (req, res) => {
     try {
-      const { message, coach, trainingType, coachingStyle, userId, coachPersonality, personalityTone } = req.body;
+      const { message, coach, coachingStyle, userId, conversationHistory } = req.body;
       
-      // Get user context for personalized response if userId provided
-      let userContext = '';
-      if (userId) {
-        try {
-          const profile = await getComprehensiveUserContext(userId);
-          userContext = formatUserContextForAI(profile);
-        } catch (e) {
-          console.log('Could not load user context for chat');
-        }
-      }
+      console.log('🤖 [COACH] Chat request:', { coach, userId: userId || 'anonymous', messageLength: message?.length });
       
-      const response = await getCoachResponse(
-        coach,
+      // Use unified coach service (includes full context builder)
+      const result = await getUnifiedCoachResponse({
         message,
-        trainingType,
-        coachingStyle || coachPersonality,
-        userContext,
-        personalityTone,
-      );
+        coach,
+        userId,
+        coachingStyle,
+        conversationHistory,
+      });
       
       // Save chat for AI learning (non-blocking)
       if (userId) {
-        saveChatForLearning(userId, message, response).catch(e => 
+        saveChatForLearning(userId, message, result.response).catch(e => 
           console.log('Non-critical: Could not save chat for learning')
         );
       }
       
-      res.json({ response });
+      res.json({ 
+        response: result.response,
+        coach: result.coach,
+        contextUsed: result.contextUsed,
+      });
     } catch (error: any) {
       console.error("AI Coach error:", error);
       res.status(500).json({ error: "Failed to get coach response" });
