@@ -186,46 +186,99 @@ export async function getComprehensiveUserContext(
   return profile;
 }
 
-// Get performance history for weight suggestions
+// Get performance history for weight suggestions - FIXED to return real data
 async function getPerformanceHistory(userId: number): Promise<ComprehensiveUserProfile['performanceHistory']> {
-  // Get recent workout sets with actual weights/reps
-  const thirtyDaysAgo = new Date();
-  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+  // Get recent workout sets with actual weights/reps, joined with exercises for names
+  const fourteenDaysAgo = new Date();
+  fourteenDaysAgo.setDate(fourteenDaysAgo.getDate() - 14);
   
-  const recentSets = await db
-    .select({
-      exerciseId: workoutSets.exerciseId,
-      actualWeight: workoutSets.actualWeight,
-      actualReps: workoutSets.actualReps,
-      completedAt: workoutSets.completedAt,
-    })
-    .from(workoutSets)
-    .innerJoin(userWorkouts, eq(workoutSets.userWorkoutId, userWorkouts.id))
-    .where(and(
-      eq(userWorkouts.userId, userId),
-      gte(workoutSets.completedAt, thirtyDaysAgo)
-    ))
-    .orderBy(desc(workoutSets.completedAt))
-    .limit(500);
-  
-  // Group by exercise and calculate progression
-  const exerciseMap = new Map<number, { weights: number[]; reps: number[]; dates: Date[] }>();
-  
-  recentSets.forEach(set => {
-    if (set.actualWeight && set.actualReps) {
-      if (!exerciseMap.has(set.exerciseId)) {
-        exerciseMap.set(set.exerciseId, { weights: [], reps: [], dates: [] });
+  try {
+    const recentSets = await db
+      .select({
+        exerciseId: workoutSets.exerciseId,
+        exerciseName: exercises.name,
+        actualWeight: workoutSets.actualWeight,
+        actualReps: workoutSets.actualReps,
+        completedAt: workoutSets.completedAt,
+      })
+      .from(workoutSets)
+      .innerJoin(userWorkouts, eq(workoutSets.userWorkoutId, userWorkouts.id))
+      .innerJoin(exercises, eq(workoutSets.exerciseId, exercises.id))
+      .where(and(
+        eq(userWorkouts.userId, userId),
+        gte(workoutSets.completedAt, fourteenDaysAgo)
+      ))
+      .orderBy(desc(workoutSets.completedAt))
+      .limit(500);
+    
+    console.log(`📊 [PERFORMANCE] Found ${recentSets.length} sets for user ${userId} in last 14 days`);
+    
+    // Group by exercise name and calculate progression
+    const exerciseMap = new Map<string, { weights: number[]; reps: number[]; dates: Date[] }>();
+    
+    recentSets.forEach(set => {
+      if (set.actualWeight && set.actualReps && set.exerciseName) {
+        const name = set.exerciseName;
+        if (!exerciseMap.has(name)) {
+          exerciseMap.set(name, { weights: [], reps: [], dates: [] });
+        }
+        const data = exerciseMap.get(name)!;
+        data.weights.push(set.actualWeight);
+        data.reps.push(set.actualReps);
+        if (set.completedAt) data.dates.push(set.completedAt);
       }
-      const data = exerciseMap.get(set.exerciseId)!;
-      data.weights.push(set.actualWeight);
-      data.reps.push(set.actualReps);
-      if (set.completedAt) data.dates.push(set.completedAt);
-    }
-  });
-  
-  // TODO: Join with exercises table to get names
-  // For now, return empty - will be enhanced when exercises are linked
-  return [];
+    });
+    
+    // Calculate progression for each exercise
+    const performanceHistory: ComprehensiveUserProfile['performanceHistory'] = [];
+    
+    exerciseMap.forEach((data, exerciseName) => {
+      if (data.weights.length === 0) return;
+      
+      // Sort by date (oldest first for progression calculation)
+      const sortedIndices = data.dates
+        .map((_, i) => i)
+        .sort((a, b) => data.dates[a].getTime() - data.dates[b].getTime());
+      
+      const sortedWeights = sortedIndices.map(i => data.weights[i]);
+      const sortedReps = sortedIndices.map(i => data.reps[i]);
+      
+      // Calculate progression trend
+      let progression: 'increasing' | 'stable' | 'decreasing' = 'stable';
+      if (sortedWeights.length >= 2) {
+        const firstHalfAvg = sortedWeights.slice(0, Math.floor(sortedWeights.length / 2))
+          .reduce((a, b) => a + b, 0) / Math.floor(sortedWeights.length / 2);
+        const secondHalfAvg = sortedWeights.slice(Math.floor(sortedWeights.length / 2))
+          .reduce((a, b) => a + b, 0) / Math.ceil(sortedWeights.length / 2);
+        
+        if (secondHalfAvg > firstHalfAvg * 1.05) progression = 'increasing';
+        else if (secondHalfAvg < firstHalfAvg * 0.95) progression = 'decreasing';
+      }
+      
+      // Get personal best
+      const maxWeight = Math.max(...data.weights);
+      const maxWeightIdx = data.weights.indexOf(maxWeight);
+      
+      performanceHistory.push({
+        exerciseName,
+        lastWeight: data.weights[0], // Most recent (already sorted desc from query)
+        lastReps: data.reps[0],
+        progression,
+        personalBest: {
+          weight: maxWeight,
+          reps: data.reps[maxWeightIdx],
+          date: data.dates[maxWeightIdx]?.toISOString().split('T')[0] || 'unknown',
+        },
+      });
+    });
+    
+    console.log(`📊 [PERFORMANCE] Processed ${performanceHistory.length} exercises with history`);
+    return performanceHistory;
+    
+  } catch (error) {
+    console.error('❌ [PERFORMANCE] Error fetching performance history:', error);
+    return [];
+  }
 }
 
 // Get recent feedback from workout notes
