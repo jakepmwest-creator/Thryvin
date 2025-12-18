@@ -87,7 +87,7 @@ metadata:
 
 test_plan:
   current_focus:
-    - "AI Pipeline Consolidation Complete"
+    - "Phase 6: Coach Suggestion Card Implementation"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
