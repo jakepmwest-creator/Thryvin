@@ -188,28 +188,60 @@ export async function getComprehensiveUserContext(
 
 // Get performance history for weight suggestions - FIXED to return real data
 async function getPerformanceHistory(userId: number): Promise<ComprehensiveUserProfile['performanceHistory']> {
-  // Get recent workout sets with actual weights/reps, joined with exercises for names
   const fourteenDaysAgo = new Date();
   fourteenDaysAgo.setDate(fourteenDaysAgo.getDate() - 14);
   
   try {
-    const recentSets = await db
-      .select({
-        exerciseId: workoutSets.exerciseId,
-        exerciseName: exercises.name,
-        actualWeight: workoutSets.actualWeight,
-        actualReps: workoutSets.actualReps,
-        completedAt: workoutSets.completedAt,
-      })
-      .from(workoutSets)
-      .innerJoin(userWorkouts, eq(workoutSets.userWorkoutId, userWorkouts.id))
-      .innerJoin(exercises, eq(workoutSets.exerciseId, exercises.id))
-      .where(and(
-        eq(userWorkouts.userId, userId),
-        gte(workoutSets.completedAt, fourteenDaysAgo)
-      ))
-      .orderBy(desc(workoutSets.completedAt))
-      .limit(500);
+    // Try to get data from workoutSets first (if properly linked)
+    let recentSets: any[] = [];
+    try {
+      recentSets = await db
+        .select({
+          exerciseId: workoutSets.exerciseId,
+          exerciseName: exercises.name,
+          actualWeight: workoutSets.actualWeight,
+          actualReps: workoutSets.actualReps,
+          completedAt: workoutSets.completedAt,
+        })
+        .from(workoutSets)
+        .innerJoin(userWorkouts, eq(workoutSets.userWorkoutId, userWorkouts.id))
+        .innerJoin(exercises, eq(workoutSets.exerciseId, exercises.id))
+        .where(and(
+          eq(userWorkouts.userId, userId),
+          gte(workoutSets.completedAt, fourteenDaysAgo)
+        ))
+        .orderBy(desc(workoutSets.completedAt))
+        .limit(500);
+    } catch (e) {
+      // Table might not have data yet
+    }
+    
+    // If no workoutSets data, extract from aiLearningContext
+    if (recentSets.length === 0) {
+      const learningInsights = await db
+        .select()
+        .from(aiLearningContext)
+        .where(and(
+          eq(aiLearningContext.userId, userId),
+          eq(aiLearningContext.category, 'performance')
+        ))
+        .orderBy(desc(aiLearningContext.createdAt))
+        .limit(100);
+      
+      // Parse performance data from insights
+      // Format: "Bench Press: 145lbs x 8 reps"
+      for (const insight of learningInsights) {
+        const match = insight.insight?.match(/^(.+?):\s*(\d+)(?:lbs?)?\s*[xX×]\s*(\d+)/);
+        if (match) {
+          recentSets.push({
+            exerciseName: match[1].trim(),
+            actualWeight: parseInt(match[2]),
+            actualReps: parseInt(match[3]),
+            completedAt: insight.createdAt,
+          });
+        }
+      }
+    }
     
     if (process.env.NODE_ENV !== 'production' || process.env.DEBUG) {
       console.log(`📊 [PERFORMANCE] Found ${recentSets.length} sets for user ${userId} in last 14 days`);
