@@ -101,9 +101,13 @@ export async function getUnifiedCoachResponse(request: CoachChatRequest): Promis
         const { formatted } = await buildAiContext(userId);
         userContext = formatted;
         contextUsed = true;
-        console.log(`🧠 [COACH] Loaded full context for user ${userId}`);
+        if (process.env.NODE_ENV !== 'production') {
+          console.log(`🧠 [COACH] Loaded full context for user ${userId}`);
+        }
       } catch (error) {
-        console.log(`⚠️ [COACH] Could not load user context: ${error}`);
+        if (process.env.NODE_ENV !== 'production') {
+          console.log(`⚠️ [COACH] Could not load user context: ${error}`);
+        }
       }
     }
     
