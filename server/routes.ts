@@ -625,6 +625,66 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       console.log(`📊 [PERFORMANCE] Logging workout for user ${userId}`);
       
+      // First, create or get userWorkout record
+      let userWorkoutRecord = await db
+        .select()
+        .from(userWorkouts)
+        .where(and(
+          eq(userWorkouts.userId, userId),
+          eq(userWorkouts.workoutId, workoutId)
+        ))
+        .limit(1);
+      
+      let userWorkoutId: number;
+      if (userWorkoutRecord.length === 0) {
+        // Create new userWorkout record
+        const [newWorkout] = await db
+          .insert(userWorkouts)
+          .values({
+            userId,
+            workoutId,
+            completed: true,
+            completedAt: new Date(),
+            duration,
+            feedback: overallFeedback,
+          })
+          .returning();
+        userWorkoutId = newWorkout.id;
+      } else {
+        userWorkoutId = userWorkoutRecord[0].id;
+      }
+      
+      // Insert individual sets into workoutSets table for performance tracking
+      for (const exercise of exercises) {
+        // Look up exercise ID from exercises table by name
+        const exerciseRecord = await db
+          .select()
+          .from(exercises as any)
+          .where(like((exercises as any).name, `%${exercise.exerciseName}%`))
+          .limit(1);
+        
+        const exerciseId = exerciseRecord[0]?.id || 0;
+        
+        if (exercise.sets && Array.isArray(exercise.sets)) {
+          for (const set of exercise.sets) {
+            await db.insert(workoutSets).values({
+              userWorkoutId,
+              exerciseId,
+              setNumber: (set.setIndex || 0) + 1,
+              targetReps: set.reps || 10,
+              actualReps: set.reps,
+              targetWeight: set.weight,
+              actualWeight: set.weight,
+              completedAt: new Date(),
+              notes: set.note || null,
+              difficulty: set.effort || 'Medium',
+            });
+          }
+        }
+      }
+      
+      console.log(`📊 [PERFORMANCE] Stored ${exercises.length} exercises in workoutSets`);
+      
       // Import AI learning service dynamically to avoid circular deps
       const { analyzeAndLearn } = await import('./ai-learning-service');
       
