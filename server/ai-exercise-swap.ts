@@ -192,7 +192,9 @@ Respond with JSON ONLY:
     console.error('❌ Error generating alternatives:', error);
     
     if (retryCount < 1) {
-      console.log('🔄 [SWAP] Retrying after error...');
+      if (process.env.NODE_ENV !== 'production' || process.env.DEBUG) {
+        console.log('🔄 [SWAP] Retrying after error...');
+      }
       return getExerciseAlternatives(request, retryCount + 1);
     }
     
