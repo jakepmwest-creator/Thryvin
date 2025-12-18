@@ -1831,11 +1831,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // AI Coach Chat endpoint
   // UNIFIED COACH CHAT ENDPOINT - Primary endpoint for all coach interactions
   // Uses ai-coach-service.ts for consistent behavior
+  // UNIFIED COACH CHAT ENDPOINT - Primary endpoint for all coach interactions
   app.post("/api/coach/chat", async (req, res) => {
     try {
-      const { message, coach, coachingStyle, userId, conversationHistory } = req.body;
+      const { message, coach, coachingStyle, userId: clientUserId, conversationHistory } = req.body;
       
-      console.log('🤖 [COACH] Chat request:', { coach, userId: userId || 'anonymous', messageLength: message?.length });
+      // SECURITY: Derive userId from authenticated session, not client
+      // Only use client-provided userId in dev mode as fallback
+      const sessionUserId = req.isAuthenticated() ? req.user?.id : undefined;
+      const userId = sessionUserId || (process.env.NODE_ENV !== 'production' ? clientUserId : undefined);
+      
+      if (process.env.NODE_ENV !== 'production') {
+        console.log('🤖 [COACH] Chat request:', { coach, userId: userId || 'anonymous', messageLength: message?.length });
+      }
       
       // Use unified coach service (includes full context builder)
       const result = await getUnifiedCoachResponse({
@@ -1848,9 +1856,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Save chat for AI learning (non-blocking)
       if (userId) {
-        saveChatForLearning(userId, message, result.response).catch(e => 
-          console.log('Non-critical: Could not save chat for learning')
-        );
+        saveChatForLearning(userId, message, result.response).catch(e => {
+          if (process.env.NODE_ENV !== 'production') {
+            console.log('Non-critical: Could not save chat for learning');
+          }
+        });
       }
       
       res.json({ 
