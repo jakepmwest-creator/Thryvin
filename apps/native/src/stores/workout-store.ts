@@ -360,7 +360,7 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
       
       // Check if we have cached week workouts
       // Version key to invalidate cache - bump this to force regeneration
-      const CACHE_VERSION = 'v4_fixed_lock_21days';
+      const CACHE_VERSION = 'v5_fixed_generatedWorkouts_ref';
       const cachedWeek = await getStorageItem('week_workouts');
       const cachedWeekDate = await getStorageItem('week_workouts_date');
       const cachedVersion = await getStorageItem('week_workouts_version');
