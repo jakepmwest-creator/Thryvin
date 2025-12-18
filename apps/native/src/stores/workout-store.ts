@@ -376,12 +376,18 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
         console.log('🔄 [3-WEEK] Cache version outdated, regenerating 3 weeks of workouts...');
       } else if (cachedWeek && cachedWeekDate === weekKey) {
         console.log('✅ [3-WEEK] Using cached 3-week workouts');
-        const workouts = JSON.parse(cachedWeek);
-        if (workouts && workouts.length >= 21) {
-          set({ weekWorkouts: workouts, isLoading: false });
-          return;
-        } else {
-          console.log('⚠️ [3-WEEK] Cached workouts incomplete:', workouts?.length, 'of 21');
+        try {
+          const parsedWorkouts = JSON.parse(cachedWeek);
+          const workouts = ensureArray<Workout>(parsedWorkouts, 'cached workouts parse');
+          if (workouts.length >= 21) {
+            set({ weekWorkouts: workouts, isLoading: false });
+            await deleteStorageItem('workout_generation_lock');
+            return;
+          } else {
+            console.log('⚠️ [3-WEEK] Cached workouts incomplete:', workouts.length, 'of 21');
+          }
+        } catch (parseError) {
+          console.warn('⚠️ [3-WEEK] Failed to parse cached workouts, regenerating...');
         }
       } else {
         console.log('⚠️ [3-WEEK] Cache miss - cachedWeek:', !!cachedWeek, 'dateMatch:', cachedWeekDate === weekKey);
