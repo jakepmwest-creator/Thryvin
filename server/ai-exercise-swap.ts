@@ -180,8 +180,8 @@ Respond with JSON ONLY:
     // Create a mapping of exercise names to video URLs
     const exerciseMap = new Map(exerciseData.map(e => [e.name.toLowerCase(), e]));
     
-    // Enrich alternatives with video URLs
-    const enrichedAlternatives = result.alternatives.map((alt: any, index: number) => {
+    // Enrich filtered alternatives with video URLs
+    const enrichedAlternatives = filteredAlternatives.map((alt: any, index: number) => {
       const dbExercise = exerciseMap.get(alt.name.toLowerCase()) || 
                         exerciseData.find(e => 
                           e.name.toLowerCase().includes(alt.name.toLowerCase()) ||
