@@ -398,22 +398,30 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
       
       // Generate workouts for 3 weeks (21 days) with rest days
       try {
-        // Get advanced questionnaire data if available
-        const advancedQuestionnaireRaw = await getStorageItem('advancedQuestionnaire');
-        const advancedQuestionnaire = advancedQuestionnaireRaw ? JSON.parse(advancedQuestionnaireRaw) : null;
+        // Get advanced questionnaire data if available (optional - new users may skip this)
+        let advancedQuestionnaire = null;
+        try {
+          const advancedQuestionnaireRaw = await getStorageItem('advancedQuestionnaire');
+          advancedQuestionnaire = advancedQuestionnaireRaw ? JSON.parse(advancedQuestionnaireRaw) : null;
+        } catch (parseErr) {
+          console.log('📝 [3-WEEK] No advanced questionnaire data (new user flow)');
+        }
         
+        // Build user profile with sensible defaults for new users
         const userProfile = {
-          fitnessGoals: user.fitnessGoals || [user.goal],
-          goal: user.goal,
-          experience: user.experience,
-          trainingType: user.trainingType,
-          sessionDuration: user.sessionDuration,
+          fitnessGoals: ensureArray(user.fitnessGoals, 'fitnessGoals').length > 0 
+            ? user.fitnessGoals 
+            : (user.goal ? [user.goal] : ['general fitness']),
+          goal: user.goal || 'general fitness',
+          experience: user.experience || 'intermediate',
+          trainingType: user.trainingType || 'strength',
+          sessionDuration: user.sessionDuration || 45,
           trainingDays: user.trainingDays || 5, // Default 5 days/week
-          equipment: user.equipment,
-          injuries: user.injuries,
+          equipment: ensureArray(user.equipment, 'equipment'),
+          injuries: user.injuries || null,
           userId: user.id,
-          advancedQuestionnaire: advancedQuestionnaire, // Include for AI personalization
-          preferredTrainingDays: user.preferredTrainingDays, // Specific days user can train
+          advancedQuestionnaire: advancedQuestionnaire, // null if skipped - AI will use defaults
+          preferredTrainingDays: ensureArray(user.preferredTrainingDays, 'preferredTrainingDays'),
         };
         
         // Calculate all 21 dates (3 weeks starting from this Monday)
