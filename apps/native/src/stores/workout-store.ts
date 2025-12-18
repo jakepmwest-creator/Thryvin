@@ -29,6 +29,17 @@ const deleteStorageItem = async (key: string): Promise<void> => {
   }
 };
 
+// Defensive array helper - ensures we always get an array, never undefined/null
+const ensureArray = <T>(arr: T[] | undefined | null, context?: string): T[] => {
+  if (!Array.isArray(arr)) {
+    if (__DEV__) {
+      console.warn(`⚠️ [WORKOUT-STORE] Expected array but got ${typeof arr}${context ? ` in ${context}` : ''}`);
+    }
+    return [];
+  }
+  return arr;
+};
+
 interface Exercise {
   id: string;
   name: string;
