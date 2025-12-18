@@ -3040,18 +3040,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
           const { getSuggestedWeight } = await import('./ai-user-context');
           const suggestion = await getSuggestedWeight(userId, exerciseName);
           
-          if (suggestion) {
-            suggestedWeight = suggestion.suggestedWeight || suggestedWeight;
+          if (suggestion && suggestion.weight > 0) {
+            const lastWeight = suggestion.weight;
             confidence = (suggestion.confidence as 'high' | 'medium' | 'low') || 'medium';
             
-            if (suggestion.suggestedWeight > 0) {
-              // Progressive overload: suggest 2.5-5% increase if last weight was used
-              const increase = Math.max(5, Math.round(suggestedWeight * 0.025));
-              suggestedWeight = suggestedWeight + increase;
-              reason = `Based on your last workout (${suggestion.suggestedWeight}lbs), try ${increase}lbs more for progressive overload.`;
-              basedOn = 'your workout history';
-              confidence = 'high';
-            }
+            // Progressive overload: suggest 2.5kg increase (standard progression)
+            const increase = 2.5;
+            suggestedWeight = lastWeight + increase;
+            reason = `Based on your last workout (${lastWeight}kg), try +${increase}kg for progressive overload.`;
+            basedOn = 'your workout history';
+            confidence = 'high';
           }
         } catch (e) {
           console.log('Could not get exercise history, using defaults');
