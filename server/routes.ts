@@ -1836,17 +1836,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // UNIFIED COACH CHAT ENDPOINT - Primary endpoint for all coach interactions
   // Uses ai-coach-service.ts for consistent behavior
   // UNIFIED COACH CHAT ENDPOINT - Primary endpoint for all coach interactions
+  // Requires authentication OR demo mode enabled
   app.post("/api/coach/chat", async (req, res) => {
     try {
-      const { message, coach, coachingStyle, userId: clientUserId, conversationHistory } = req.body;
+      const { message, coach, coachingStyle, conversationHistory } = req.body;
       
-      // SECURITY: Derive userId from authenticated session, not client
-      // Only use client-provided userId in dev mode as fallback
-      const sessionUserId = req.isAuthenticated() ? req.user?.id : undefined;
-      const userId = sessionUserId || (process.env.NODE_ENV !== 'production' ? clientUserId : undefined);
+      // SECURITY: Require authenticated user
+      // Demo mode: Use fixed demo profile (userId: -1) when DEMO_MODE=true
+      const DEMO_MODE = process.env.DEMO_MODE === 'true';
+      const DEMO_USER_ID = -1; // Fixed demo profile ID
+      
+      let userId: number | undefined;
+      
+      if (req.isAuthenticated() && req.user?.id) {
+        userId = req.user.id;
+      } else if (DEMO_MODE) {
+        userId = DEMO_USER_ID;
+        if (process.env.NODE_ENV !== 'production') {
+          console.log('🎭 [COACH] Using demo profile (DEMO_MODE=true)');
+        }
+      } else {
+        // No auth and no demo mode - reject
+        return res.status(401).json({ 
+          error: "Authentication required",
+          code: "AUTH_REQUIRED",
+          message: "Please log in to use the AI coach"
+        });
+      }
       
       if (process.env.NODE_ENV !== 'production') {
-        console.log('🤖 [COACH] Chat request:', { coach, userId: userId || 'anonymous', messageLength: message?.length });
+        console.log('🤖 [COACH] Chat request:', { coach, userId, messageLength: message?.length });
       }
       
       // Use unified coach service (includes full context builder)
@@ -1858,8 +1877,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         conversationHistory,
       });
       
-      // Save chat for AI learning (non-blocking)
-      if (userId) {
+      // Save chat for AI learning (non-blocking) - skip for demo user
+      if (userId && userId !== DEMO_USER_ID) {
         saveChatForLearning(userId, message, result.response).catch(e => {
           if (process.env.NODE_ENV !== 'production') {
             console.log('Non-critical: Could not save chat for learning');
