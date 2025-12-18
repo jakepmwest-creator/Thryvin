@@ -117,6 +117,16 @@ async function analyzeExercisePerformance(
         confidence: 'low',
       });
     }
+    
+    // Also store in 'performance' category with parseable format for getPerformanceHistory
+    await db.insert(aiLearningContext).values({
+      userId,
+      category: 'performance',
+      exerciseName,
+      insight: `${exerciseName}: ${weight}lbs x ${reps || 10} reps`,
+      dataPoints: 1,
+      confidence: 'high',
+    });
   }
 }
 
