@@ -577,5 +577,96 @@ Create a balanced workout respecting these limits.`;
   };
 }
 
+// =============================================================================
+// VALIDATED WORKOUT GENERATION (with retry and fallback)
+// =============================================================================
+
+/**
+ * Generate a workout with Zod validation, retry logic, and fallback
+ * This is the recommended function to use for production
+ */
+export async function generateValidatedWorkout(
+  userProfile: UserProfile,
+  dayOfWeek: number = 0,
+  weekNumber: number = 1,
+  recentExercises: string[] = [],
+  retryCount: number = 0
+): Promise<ValidatedWorkout> {
+  try {
+    console.log(`🔄 [VALIDATION] Generating workout (attempt ${retryCount + 1})`);
+    
+    const rawWorkout = await generateAIWorkout(userProfile, dayOfWeek, weekNumber, recentExercises);
+    
+    // Validate with Zod
+    const validation = WorkoutSchema.safeParse(rawWorkout);
+    
+    if (!validation.success) {
+      console.error('❌ [VALIDATION] Invalid workout structure:', validation.error.errors);
+      
+      if (retryCount < 1) {
+        console.log('🔄 [VALIDATION] Retrying workout generation...');
+        return generateValidatedWorkout(userProfile, dayOfWeek, weekNumber, recentExercises, retryCount + 1);
+      }
+      
+      // Return fallback workout after retry fails
+      console.log('⚠️ [VALIDATION] Using fallback workout');
+      return getFallbackWorkout(userProfile);
+    }
+    
+    console.log('✅ [VALIDATION] Workout validated successfully');
+    return validation.data;
+    
+  } catch (error) {
+    console.error('❌ [VALIDATION] Error generating workout:', error);
+    
+    if (retryCount < 1) {
+      console.log('🔄 [VALIDATION] Retrying after error...');
+      return generateValidatedWorkout(userProfile, dayOfWeek, weekNumber, recentExercises, retryCount + 1);
+    }
+    
+    return getFallbackWorkout(userProfile);
+  }
+}
+
+/**
+ * Fallback workout when AI generation fails
+ */
+function getFallbackWorkout(userProfile: UserProfile): ValidatedWorkout {
+  const duration = Number(userProfile.sessionDuration || 45);
+  const isStrength = userProfile.trainingType?.toLowerCase().includes('strength');
+  const experience = userProfile.experience || 'intermediate';
+  
+  const fallbackExercises = isStrength ? [
+    { name: 'Dumbbell Bench Press', sets: 3, reps: '10', restTime: 90, category: 'warmup' as const },
+    { name: 'Barbell Squat', sets: 4, reps: '8', restTime: 120, category: 'main' as const },
+    { name: 'Bent Over Row', sets: 3, reps: '10', restTime: 90, category: 'main' as const },
+    { name: 'Dumbbell Shoulder Press', sets: 3, reps: '10', restTime: 90, category: 'main' as const },
+    { name: 'Lat Pulldown', sets: 3, reps: '12', restTime: 60, category: 'main' as const },
+    { name: 'Standing Quad Stretch', sets: 1, reps: '30 sec', restTime: 30, category: 'cooldown' as const },
+    { name: 'Child\'s Pose', sets: 1, reps: '60 sec', restTime: 30, category: 'cooldown' as const },
+  ] : [
+    { name: 'Jumping Jacks', sets: 2, reps: '30', restTime: 30, category: 'warmup' as const },
+    { name: 'Bodyweight Squat', sets: 3, reps: '15', restTime: 45, category: 'main' as const },
+    { name: 'Push-ups', sets: 3, reps: '10', restTime: 45, category: 'main' as const },
+    { name: 'Lunges', sets: 3, reps: '12 each', restTime: 45, category: 'main' as const },
+    { name: 'Plank', sets: 3, reps: '30 sec', restTime: 30, category: 'main' as const },
+    { name: 'Standing Forward Bend', sets: 1, reps: '60 sec', restTime: 30, category: 'cooldown' as const },
+  ];
+  
+  return {
+    title: isStrength ? 'Fallback Strength Workout' : 'Fallback Full Body Workout',
+    type: isStrength ? 'strength' : 'full-body',
+    difficulty: experience,
+    duration,
+    exercises: fallbackExercises.map((ex, i) => ({
+      id: `fallback-${i}`,
+      ...ex,
+    })),
+    overview: 'A balanced fallback workout. AI generation encountered an issue.',
+    targetMuscles: 'Full Body',
+    caloriesBurn: Math.round(duration * 8),
+  };
+}
+
 // Test function - call directly if needed
 // Note: Removed CommonJS require.main check for ESM compatibility
