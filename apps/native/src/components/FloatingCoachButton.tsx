@@ -38,13 +38,8 @@ const COLORS = {
 const BUTTON_SIZE = 60;
 const EDGE_PADDING = 20;
 
-// Get OpenAI API key from expo-constants
-const OPENAI_API_KEY = Constants.expoConfig?.extra?.openaiApiKey;
-
-// Log error if key is missing
-if (!OPENAI_API_KEY) {
-  console.error('Missing OpenAI API key. Please set EXPO_PUBLIC_OPENAI_API_KEY in .env file');
-}
+// Use backend API instead of direct OpenAI calls
+const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL || 'https://fitness-ui-patch.preview.emergentagent.com';
 
 // Quick action chips for common requests
 const QUICK_ACTIONS = [
