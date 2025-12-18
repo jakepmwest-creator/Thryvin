@@ -211,7 +211,9 @@ async function getPerformanceHistory(userId: number): Promise<ComprehensiveUserP
       .orderBy(desc(workoutSets.completedAt))
       .limit(500);
     
-    console.log(`📊 [PERFORMANCE] Found ${recentSets.length} sets for user ${userId} in last 14 days`);
+    if (process.env.NODE_ENV !== 'production' || process.env.DEBUG) {
+      console.log(`📊 [PERFORMANCE] Found ${recentSets.length} sets for user ${userId} in last 14 days`);
+    }
     
     // Group by exercise name and calculate progression
     const exerciseMap = new Map<string, { weights: number[]; reps: number[]; dates: Date[] }>();
