@@ -46,14 +46,26 @@ interface AlternativesResponse {
   alternatives: Exercise[];
 }
 
-export async function getExerciseAlternatives(request: SwapRequest): Promise<AlternativesResponse> {
+export async function getExerciseAlternatives(request: SwapRequest, retryCount: number = 0): Promise<AlternativesResponse> {
   try {
-    const { currentExercise, reason, additionalNotes, userProfile } = request;
+    const { currentExercise, reason, additionalNotes, userProfile, userId } = request;
     
-    console.log('🤖 Generating alternatives for:', currentExercise.name);
+    console.log('🤖 Generating alternatives for:', currentExercise.name, `(attempt ${retryCount + 1})`);
     console.log('   Reason:', reason, additionalNotes || '');
     
-    // Build AI prompt
+    // Get user context if userId provided (includes injuries, equipment, preferences)
+    let userContext = '';
+    if (userId) {
+      try {
+        const { formatted } = await buildAiContext(userId);
+        userContext = `\n\nUSER CONTEXT (respect injuries and equipment):\n${formatted}`;
+        console.log('   ✅ Loaded user context for personalized swap');
+      } catch (e) {
+        console.log('   ⚠️ Could not load user context');
+      }
+    }
+    
+    // Build AI prompt with user context
     const prompt = `You are a professional fitness coach. A user wants to swap an exercise for a better alternative.
 
 Current Exercise: ${currentExercise.name}
@@ -61,12 +73,15 @@ Sets: ${currentExercise.sets}
 Reps: ${currentExercise.reps}
 Reason for swap: ${reason}
 ${additionalNotes ? `Additional details: ${additionalNotes}` : ''}
+${userContext}
 
 Based on the reason, suggest 4 alternative exercises that:
 1. Target similar muscle groups
 2. Address the user's specific concern (${reason})
 3. Have appropriate difficulty
 4. MUST include SPECIFIC equipment type in name (e.g., "Barbell Bench Press", "Dumbbell Chest Press", "Cable Fly")
+5. MUST respect user's injuries if mentioned above - DO NOT suggest exercises that could aggravate injuries
+6. MUST use equipment the user has access to (if specified above)
 
 IMPORTANT: Use specific names with equipment:
 - "Barbell Bench Press" not "Bench Press"
