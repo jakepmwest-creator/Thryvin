@@ -2376,8 +2376,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/chat", async (req, res) => {
     try {
       const { message, coachName, conversationHistory } = req.body;
-      // SECURITY: Always use session userId, never trust client
-      const userId = req.isAuthenticated() ? req.user?.id : undefined;
+      
+      // SECURITY: Require auth or demo mode
+      const DEMO_MODE = process.env.DEMO_MODE === 'true';
+      const DEMO_USER_ID = -1;
+      
+      let userId: number | undefined;
+      if (req.isAuthenticated() && req.user?.id) {
+        userId = req.user.id;
+      } else if (DEMO_MODE) {
+        userId = DEMO_USER_ID;
+      } else {
+        return res.status(401).json({ error: "Authentication required" });
+      }
       
       if (process.env.NODE_ENV !== 'production') {
         console.log('⚠️ [DEPRECATED] /api/chat called - using unified coach service');
