@@ -522,3 +522,57 @@ export async function getSuggestedWeight(
   
   return null;
 }
+
+
+/**
+ * Build AI Context - UNIFIED CONTEXT BUILDER
+ * Single source of truth for all AI context needs
+ * 
+ * @param userId - User ID to build context for
+ * @param options - Optional configuration
+ * @returns Context object with profile, formatted string, and JSON
+ */
+export async function buildAiContext(
+  userId: number,
+  options?: {
+    includeWorkoutHistory?: boolean;
+    includeLearning?: boolean;
+  }
+): Promise<{
+  profile: ComprehensiveUserProfile;
+  formatted: string;
+  json: object;
+}> {
+  const profile = await getComprehensiveUserContext(userId);
+  const formatted = formatUserContextForAI(profile);
+  
+  return {
+    profile,
+    formatted,
+    json: {
+      onboarding: {
+        fitnessLevel: profile.fitnessLevel,
+        goal: profile.goal,
+        fitnessGoals: profile.fitnessGoals,
+        trainingType: profile.trainingType,
+        sessionDuration: profile.sessionDurationPreference,
+        trainingDays: profile.trainingDaysPerWeek,
+      },
+      advancedQuestionnaire: profile.advancedQuestionnaire,
+      schedule: {
+        type: profile.trainingSchedule,
+        selectedDays: profile.selectedDays,
+        specificDates: profile.specificDates,
+      },
+      preferences: {
+        liked: profile.workoutHistory?.favoriteExercises || [],
+        disliked: profile.workoutHistory?.avoidedExercises || [],
+        coachingStyle: profile.coachingStyle,
+      },
+      equipment: profile.equipmentAccess,
+      injuries: profile.injuries,
+      workoutHistory: profile.workoutHistory,
+      learningInsights: profile.learningInsights?.slice(0, 20),
+    },
+  };
+}
