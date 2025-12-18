@@ -617,15 +617,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // =============================================================================
   
   // Log workout performance for AI learning
+  // SECURITY: Requires authentication - userId derived from session
   app.post("/api/workouts/log-performance", async (req, res) => {
     try {
-      const { userId, workoutId, exercises, overallFeedback, duration } = req.body;
+      const { workoutId, exercises, overallFeedback, duration } = req.body;
       
-      if (!userId || !exercises) {
-        return res.status(400).json({ error: "Missing required fields: userId, exercises" });
+      // SECURITY: Derive userId from authenticated session, never trust client
+      const DEMO_MODE = process.env.DEMO_MODE === 'true';
+      const DEMO_USER_ID = -1;
+      
+      let userId: number | undefined;
+      if (req.isAuthenticated() && req.user?.id) {
+        userId = req.user.id;
+      } else if (DEMO_MODE) {
+        userId = DEMO_USER_ID;
+      } else {
+        return res.status(401).json({ 
+          error: "Authentication required",
+          code: "AUTH_REQUIRED",
+          message: "Please log in to log workout performance"
+        });
       }
       
-      console.log(`📊 [PERFORMANCE] Logging workout for user ${userId} with ${exercises.length} exercises`);
+      if (!exercises || !Array.isArray(exercises) || exercises.length === 0) {
+        return res.status(400).json({ error: "Missing required field: exercises" });
+      }
+      
+      if (process.env.NODE_ENV !== 'production') {
+        console.log(`📊 [PERFORMANCE] Logging workout for user ${userId} with ${exercises.length} exercises`);
+      }
       
       // Import AI learning service dynamically to avoid circular deps
       const { analyzeAndLearn } = await import('./ai-learning-service');
@@ -640,7 +660,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         completedAt: new Date().toISOString(),
       });
       
-      console.log(`✅ [PERFORMANCE] Stored performance data for ${exercises.length} exercises`);
+      if (process.env.NODE_ENV !== 'production') {
+        console.log(`✅ [PERFORMANCE] Stored performance data for ${exercises.length} exercises`);
+      }
       
       res.json({ 
         success: true, 
