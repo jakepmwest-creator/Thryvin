@@ -621,71 +621,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { userId, workoutId, exercises, overallFeedback, duration } = req.body;
       
-      if (!userId || !workoutId || !exercises) {
-        return res.status(400).json({ error: "Missing required fields" });
+      if (!userId || !exercises) {
+        return res.status(400).json({ error: "Missing required fields: userId, exercises" });
       }
       
-      console.log(`📊 [PERFORMANCE] Logging workout for user ${userId}`);
-      
-      // First, create or get userWorkout record
-      let userWorkoutRecord = await db
-        .select()
-        .from(userWorkouts)
-        .where(and(
-          eq(userWorkouts.userId, userId),
-          eq(userWorkouts.workoutId, workoutId)
-        ))
-        .limit(1);
-      
-      let userWorkoutId: number;
-      if (userWorkoutRecord.length === 0) {
-        // Create new userWorkout record
-        const [newWorkout] = await db
-          .insert(userWorkouts)
-          .values({
-            userId,
-            workoutId,
-            completed: true,
-            completedAt: new Date(),
-            duration,
-            feedback: overallFeedback,
-          })
-          .returning();
-        userWorkoutId = newWorkout.id;
-      } else {
-        userWorkoutId = userWorkoutRecord[0].id;
-      }
-      
-      // Insert individual sets into workoutSets table for performance tracking
-      for (const exercise of exercises) {
-        // Look up exercise ID from exercises table by name
-        const exerciseRecord = await db
-          .select()
-          .from(exercises as any)
-          .where(like((exercises as any).name, `%${exercise.exerciseName}%`))
-          .limit(1);
-        
-        const exerciseId = exerciseRecord[0]?.id || 0;
-        
-        if (exercise.sets && Array.isArray(exercise.sets)) {
-          for (const set of exercise.sets) {
-            await db.insert(workoutSets).values({
-              userWorkoutId,
-              exerciseId,
-              setNumber: (set.setIndex || 0) + 1,
-              targetReps: set.reps || 10,
-              actualReps: set.reps,
-              targetWeight: set.weight,
-              actualWeight: set.weight,
-              completedAt: new Date(),
-              notes: set.note || null,
-              difficulty: set.effort || 'Medium',
-            });
-          }
-        }
-      }
-      
-      console.log(`📊 [PERFORMANCE] Stored ${exercises.length} exercises in workoutSets`);
+      console.log(`📊 [PERFORMANCE] Logging workout for user ${userId} with ${exercises.length} exercises`);
       
       // Import AI learning service dynamically to avoid circular deps
       const { analyzeAndLearn } = await import('./ai-learning-service');
@@ -693,12 +633,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Analyze the workout and learn from it
       await analyzeAndLearn({
         userId,
-        workoutId,
+        workoutId: workoutId || 0,
         exercises,
         overallFeedback,
         duration,
         completedAt: new Date().toISOString(),
       });
+      
+      console.log(`✅ [PERFORMANCE] Stored performance data for ${exercises.length} exercises`);
       
       res.json({ 
         success: true, 
