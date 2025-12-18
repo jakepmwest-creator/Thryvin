@@ -127,7 +127,9 @@ Respond with JSON ONLY:
       console.error('❌ [SWAP] Invalid AI response:', validation.error.errors);
       
       if (retryCount < 1) {
-        console.log('🔄 [SWAP] Retrying...');
+        if (process.env.NODE_ENV !== 'production' || process.env.DEBUG) {
+          console.log('🔄 [SWAP] Retrying...');
+        }
         return getExerciseAlternatives(request, retryCount + 1);
       }
       
