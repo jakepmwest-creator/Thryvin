@@ -499,7 +499,8 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
             const weekNumber = Math.floor(i / 7) + 1; // 1, 2, or 3
             
             // Collect recent exercises from generated workouts to avoid repetition
-            const recentExercises = generatedWorkouts
+            const recentExercises = (weekWorkouts || [])
+              .filter(w => !w.isRestDay) // Only look at actual workouts, not rest days
               .slice(-3) // Last 3 workouts
               .flatMap(w => w.exercises?.map((e: any) => e.name) || [])
               .filter(Boolean);
