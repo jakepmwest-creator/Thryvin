@@ -613,7 +613,9 @@ export async function generateValidatedWorkout(
       }
       
       // Return fallback workout after retry fails
-      console.log('⚠️ [VALIDATION] Using fallback workout');
+      if (process.env.NODE_ENV !== 'production' || process.env.DEBUG) {
+        console.log('⚠️ [VALIDATION] Using fallback workout');
+      }
       return getFallbackWorkout(userProfile);
     }
     
