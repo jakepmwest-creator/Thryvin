@@ -2,9 +2,25 @@ import OpenAI from "openai";
 import { db } from './db';
 import { exercises } from '../shared/schema';
 import { like, or } from 'drizzle-orm';
+import { z } from 'zod';
+import { buildAiContext } from './ai-user-context';
 
-// the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+
+// =============================================================================
+// ZOD VALIDATION SCHEMAS
+// =============================================================================
+
+const AlternativeExerciseSchema = z.object({
+  name: z.string().min(1, 'Exercise name required'),
+  reason: z.string().optional(),
+  sets: z.number().min(1).max(10).default(3),
+  reps: z.union([z.string(), z.number()]).transform(val => String(val)),
+});
+
+const AlternativesResponseSchema = z.object({
+  alternatives: z.array(AlternativeExerciseSchema).min(1).max(6),
+});
 
 interface Exercise {
   id: string;
@@ -22,6 +38,7 @@ interface SwapRequest {
   reason: string;
   additionalNotes?: string;
   userProfile?: any;
+  userId?: number; // For loading full context
 }
 
 interface AlternativesResponse {
