@@ -138,10 +138,28 @@ Respond with JSON ONLY:
     }
     
     const result = validation.data;
-    console.log(`   ✅ AI suggested ${result.alternatives.length} validated alternatives`);
+    if (process.env.NODE_ENV !== 'production' || process.env.DEBUG) {
+      console.log(`   ✅ AI suggested ${result.alternatives.length} validated alternatives`);
+    }
+    
+    // EXPLICIT INJURY SAFETY CHECKS - filter out unsafe exercises
+    const filteredAlternatives = filterByInjuryConstraints(result.alternatives, userContext);
+    
+    if (process.env.NODE_ENV !== 'production' || process.env.DEBUG) {
+      const blocked = result.alternatives.length - filteredAlternatives.length;
+      if (blocked > 0) {
+        console.log(`   🛡️ [SAFETY] Blocked ${blocked} exercises due to injury constraints`);
+      }
+    }
+    
+    // If all alternatives were blocked, return fallback
+    if (filteredAlternatives.length === 0) {
+      console.log('   ⚠️ [SAFETY] All AI suggestions blocked - using safe fallback');
+      return getSafeFallbackForInjury(currentExercise, userContext);
+    }
     
     // Fetch video URLs from database for each alternative
-    const exerciseNames = result.alternatives.map((alt: any) => alt.name);
+    const exerciseNames = filteredAlternatives.map((alt: any) => alt.name);
     
     const exerciseData = await db
       .select({
