@@ -628,7 +628,9 @@ export async function generateValidatedWorkout(
     console.error('❌ [VALIDATION] Error generating workout:', error);
     
     if (retryCount < 1) {
-      console.log('🔄 [VALIDATION] Retrying after error...');
+      if (process.env.NODE_ENV !== 'production' || process.env.DEBUG) {
+        console.log('🔄 [VALIDATION] Retrying after error...');
+      }
       return generateValidatedWorkout(userProfile, dayOfWeek, weekNumber, recentExercises, retryCount + 1);
     }
     
