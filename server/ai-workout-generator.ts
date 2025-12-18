@@ -629,10 +629,31 @@ export async function generateValidatedWorkout(
       return getFallbackWorkout(userProfile);
     }
     
+    // Ensure all exercises have unique IDs (never empty string)
+    const workout = validation.data;
+    const usedIds = new Set<string>();
+    
+    workout.exercises = workout.exercises.map((exercise, index) => {
+      let id = exercise.id;
+      
+      // Generate ID if missing or empty
+      if (!id || id.trim() === '') {
+        id = generateExerciseId(exercise.name, index);
+      }
+      
+      // Ensure uniqueness - append index if duplicate
+      while (usedIds.has(id)) {
+        id = `${id}-${index}`;
+      }
+      usedIds.add(id);
+      
+      return { ...exercise, id };
+    });
+    
     if (process.env.NODE_ENV !== 'production' || process.env.DEBUG) {
-      console.log('✅ [VALIDATION] Workout validated successfully');
+      console.log('✅ [VALIDATION] Workout validated with unique IDs');
     }
-    return validation.data;
+    return workout;
     
   } catch (error) {
     console.error('❌ [VALIDATION] Error generating workout:', error);
