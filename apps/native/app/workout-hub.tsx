@@ -675,24 +675,6 @@ export default function WorkoutHubScreen() {
                           </View>
                         )}
 
-                        {/* Coach Suggestion Card - AI-powered recommendations */}
-                        {getExerciseType(exercise) === 'strength' && completedSets.length === 0 && (
-                          <CoachSuggestionCard
-                            exercise={exercise}
-                            visible={true}
-                            onUseSuggestion={(suggestion) => {
-                              // Auto-fill the weight input with suggestion
-                              setWeight(String(suggestion.weight || ''));
-                              setReps(String(suggestion.reps || ''));
-                            }}
-                            onAdjustSuggestion={(adjusted) => {
-                              // Apply adjusted values
-                              setWeight(String(adjusted.weight || ''));
-                              setReps(String(adjusted.reps || ''));
-                            }}
-                          />
-                        )}
-
                         {/* Exercise Info - Adaptive based on type */}
                         {(() => {
                           const exType = getExerciseType(exercise);
