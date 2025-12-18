@@ -146,10 +146,11 @@ export function FloatingCoachButton() {
         headers: {
           'Content-Type': 'application/json',
         },
+        credentials: 'include', // Include session cookies for auth
         body: JSON.stringify({
           message: userMessage,
           coach: coachName || 'default',
-          userId: userId, // Backend will load full context (onboarding + advanced questionnaire + history)
+          // Note: Backend derives userId from session, not from body (security)
           conversationHistory: messages.slice(-6).map(m => ({
             role: m.role === 'assistant' ? 'coach' : 'user',
             content: m.text
