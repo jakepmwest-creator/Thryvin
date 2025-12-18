@@ -619,7 +619,9 @@ export async function generateValidatedWorkout(
       return getFallbackWorkout(userProfile);
     }
     
-    console.log('✅ [VALIDATION] Workout validated successfully');
+    if (process.env.NODE_ENV !== 'production' || process.env.DEBUG) {
+      console.log('✅ [VALIDATION] Workout validated successfully');
+    }
     return validation.data;
     
   } catch (error) {
