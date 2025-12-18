@@ -2349,18 +2349,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Conversational AI Chat endpoint
   // DEPRECATED: Use /api/coach/chat instead
   // This endpoint now redirects to the unified coach service for consistency
+  // DEPRECATED: Use /api/coach/chat instead - internally calls unified service (no HTTP redirect)
   app.post("/api/chat", async (req, res) => {
     try {
       const { message, coachName, conversationHistory } = req.body;
-      const user = req.isAuthenticated() ? req.user : null;
+      // SECURITY: Always use session userId, never trust client
+      const userId = req.isAuthenticated() ? req.user?.id : undefined;
       
-      console.log('⚠️ [DEPRECATED] /api/chat called - redirecting to unified coach service');
+      if (process.env.NODE_ENV !== 'production') {
+        console.log('⚠️ [DEPRECATED] /api/chat called - using unified coach service');
+      }
       
-      // Map to unified coach service
+      // Internally call unified coach service (NOT an HTTP redirect)
       const result = await getUnifiedCoachResponse({
         message,
         coach: coachName?.toLowerCase() || 'default',
-        userId: user?.id,
+        userId,
         conversationHistory: conversationHistory?.map((msg: any) => ({
           role: msg.type === 'user' ? 'user' : 'coach',
           content: msg.content,
