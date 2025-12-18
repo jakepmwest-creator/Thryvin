@@ -189,20 +189,44 @@ Respond with JSON ONLY:
   } catch (error) {
     console.error('❌ Error generating alternatives:', error);
     
-    // Fallback response
-    return {
-      recommended: {
-        id: `alt-${currentExercise.id}`,
-        name: `Modified ${currentExercise.name}`,
-        description: 'A modified version based on your feedback',
-        sets: currentExercise.sets,
-        reps: currentExercise.reps,
-        restTime: currentExercise.restTime || 60,
-        category: currentExercise.category || 'main',
-      },
-      alternatives: [],
-    };
+    if (retryCount < 1) {
+      console.log('🔄 [SWAP] Retrying after error...');
+      return getExerciseAlternatives(request, retryCount + 1);
+    }
+    
+    return getFallbackAlternatives(currentExercise);
   }
+}
+
+/**
+ * Fallback alternatives when AI generation fails
+ */
+function getFallbackAlternatives(currentExercise: Exercise): AlternativesResponse {
+  const fallbackExercises: Exercise[] = [
+    {
+      id: `alt-0`,
+      name: `Modified ${currentExercise.name}`,
+      description: 'A modified version with adjusted intensity',
+      sets: currentExercise.sets,
+      reps: currentExercise.reps,
+      restTime: (currentExercise.restTime || 60) + 15, // Extra rest
+      category: currentExercise.category || 'main',
+    },
+    {
+      id: `alt-1`,
+      name: 'Bodyweight Alternative',
+      description: 'A bodyweight variation',
+      sets: currentExercise.sets,
+      reps: String(parseInt(String(currentExercise.reps)) + 5 || '15'),
+      restTime: 45,
+      category: currentExercise.category || 'main',
+    },
+  ];
+  
+  return {
+    recommended: fallbackExercises[0],
+    alternatives: fallbackExercises.slice(1),
+  };
 }
 
 // Keep old function for backward compatibility
