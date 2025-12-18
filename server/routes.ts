@@ -3008,6 +3008,75 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Exercise-level Coach Suggestion endpoint
+  // Returns personalized weight/reps/sets suggestions based on user history
+  app.post("/api/coach/exercise-suggestion", async (req, res) => {
+    try {
+      const { exerciseName, exerciseId, currentSets, currentReps, lastWeight } = req.body;
+      
+      // SECURITY: Require auth
+      const DEMO_MODE = process.env.DEMO_MODE === 'true';
+      let userId: number | undefined;
+      if (req.isAuthenticated() && req.user?.id) {
+        userId = req.user.id;
+      } else if (DEMO_MODE) {
+        userId = -1;
+      } else {
+        return res.status(401).json({ error: "Authentication required" });
+      }
+      
+      if (!exerciseName) {
+        return res.status(400).json({ error: "Exercise name required" });
+      }
+      
+      // Get user's performance history for this exercise
+      let suggestedWeight = lastWeight || 0;
+      let confidence: 'high' | 'medium' | 'low' = 'low';
+      let reason = 'Start with a comfortable weight and focus on form.';
+      let basedOn = 'general recommendation';
+      
+      if (userId && userId > 0) {
+        try {
+          const { getSuggestedWeight } = await import('./ai-user-context');
+          const suggestion = await getSuggestedWeight(userId, exerciseName);
+          
+          if (suggestion) {
+            suggestedWeight = suggestion.suggestedWeight || suggestedWeight;
+            confidence = (suggestion.confidence as 'high' | 'medium' | 'low') || 'medium';
+            
+            if (suggestion.suggestedWeight > 0) {
+              // Progressive overload: suggest 2.5-5% increase if last weight was used
+              const increase = Math.max(5, Math.round(suggestedWeight * 0.025));
+              suggestedWeight = suggestedWeight + increase;
+              reason = `Based on your last workout (${suggestion.suggestedWeight}lbs), try ${increase}lbs more for progressive overload.`;
+              basedOn = 'your workout history';
+              confidence = 'high';
+            }
+          }
+        } catch (e) {
+          console.log('Could not get exercise history, using defaults');
+        }
+      }
+      
+      const baseReps = typeof currentReps === 'number' ? currentReps : parseInt(String(currentReps)) || 10;
+      
+      res.json({
+        suggestion: {
+          weight: suggestedWeight,
+          reps: baseReps,
+          sets: currentSets || 3,
+          reason,
+          confidence,
+          basedOn,
+        }
+      });
+      
+    } catch (error: any) {
+      console.error("Exercise suggestion error:", error);
+      res.status(500).json({ error: "Failed to generate exercise suggestion" });
+    }
+  });
+
   // Rick and Morty style coach image generation endpoint
   app.post("/api/generate-rick-morty-coach/:coachId", async (req, res) => {
     try {
