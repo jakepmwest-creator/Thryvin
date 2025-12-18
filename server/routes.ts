@@ -771,6 +771,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Core AI Chat endpoint - general coach conversations
   // DEPRECATED: Use /api/coach/chat instead
   // This endpoint now uses the unified coach service
+  // DEPRECATED: Use /api/coach/chat instead - internally calls unified service (no HTTP redirect)
   app.post("/api/ai/chat", async (req, res) => {
     try {
       if (!FEATURE_FLAGS.AI_ENABLED) {
@@ -783,15 +784,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { message, context } = req.body;
       const coach = context?.coach || "default";
       const conversationHistory = context?.conversationHistory || [];
-      const user = req.isAuthenticated() ? req.user : null;
+      // SECURITY: Always use session userId, never trust client
+      const userId = req.isAuthenticated() ? req.user?.id : undefined;
       
-      console.log('⚠️ [DEPRECATED] /api/ai/chat called - redirecting to unified coach service');
+      if (process.env.NODE_ENV !== 'production') {
+        console.log('⚠️ [DEPRECATED] /api/ai/chat called - using unified coach service');
+      }
 
-      // Use unified coach service
+      // Internally call unified coach service (NOT an HTTP redirect)
       const result = await getUnifiedCoachResponse({
         message,
         coach: coach.toLowerCase(),
-        userId: user?.id,
+        userId,
         conversationHistory,
       });
 
