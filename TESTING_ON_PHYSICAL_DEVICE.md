@@ -4,7 +4,7 @@
 
 ### 1. Environment Variable
 - Created `EXPO_PUBLIC_API_BASE_URL` in `/app/apps/native/.env`
-- Set to: `https://fitness-ui-patch.preview.emergentagent.com`
+- Set to: `https://thryvin-fitness-1.preview.emergentagent.com`
 
 ### 2. Files Updated (8 files)
 All localhost references replaced with `process.env.EXPO_PUBLIC_API_BASE_URL`:
@@ -61,9 +61,9 @@ This will:
 2. App should navigate to home screen
 3. Check console logs for these messages:
    ```
-   📱 [HOME] EXPO_PUBLIC_API_BASE_URL: https://fitness-ui-patch.preview.emergentagent.com
+   📱 [HOME] EXPO_PUBLIC_API_BASE_URL: https://thryvin-fitness-1.preview.emergentagent.com
    🤖 [WORKOUT] Calling AI API...
-   🤖 [WORKOUT] Full URL: https://fitness-ui-patch.preview.emergentagent.com/api/workouts/generate
+   🤖 [WORKOUT] Full URL: https://thryvin-fitness-1.preview.emergentagent.com/api/workouts/generate
    ✅ [WORKOUT] AI workout generated: Monday Muscle Gain Workout
    ```
 
@@ -93,7 +93,7 @@ Look for error details like:
 
 1. **Network Error / Cannot fetch**
    - Backend preview URL might not be accessible
-   - Check if backend is running: `curl https://fitness-ui-patch.preview.emergentagent.com/api/health`
+   - Check if backend is running: `curl https://thryvin-fitness-1.preview.emergentagent.com/api/health`
 
 2. **404 Error**
    - Backend routing issue
@@ -135,10 +135,10 @@ Look for error details like:
 Test backend is accessible:
 ```bash
 # Health check
-curl https://fitness-ui-patch.preview.emergentagent.com/api/health
+curl https://thryvin-fitness-1.preview.emergentagent.com/api/health
 
 # Generate workout
-curl -X POST https://fitness-ui-patch.preview.emergentagent.com/api/workouts/generate \
+curl -X POST https://thryvin-fitness-1.preview.emergentagent.com/api/workouts/generate \
   -H "Content-Type: application/json" \
   -d '{"userProfile":{"experience":"intermediate","fitnessGoals":["muscle-gain"],"sessionDuration":45},"dayOfWeek":0}'
 ```

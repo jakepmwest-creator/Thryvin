@@ -24,7 +24,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
-const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL || 'https://fitness-ui-patch.preview.emergentagent.com';
+const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL || 'https://thryvin-fitness-1.preview.emergentagent.com';
 
 const COLORS = {
   primary: '#A22BF6',

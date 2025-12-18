@@ -1,152 +1,107 @@
-<analysis>**original_problem_statement**: The user, Jake, is developing an AI fitness app named Thryvin and is extremely frustrated with its core functionality.
+<analysis>**original_problem_statement**: The user, Jake, is building Thryvin, an AI fitness app. The session began with fixing bugs in workout generation, the badge system, and UI. However, the user pivoted to a comprehensive AI pipeline audit due to inconsistent AI behavior.
 
-The current product requirements are:
-1.  **Fix 21-Day Workout Generation (CRITICAL P0)**: After a new user completes onboarding (and the advanced questionnaire), the app MUST generate a full 21-day workout plan. Currently, it only generates a single day and then stops, which is the primary source of user frustration.
-2.  **Fix AI Logic & Intelligence (P0)**:
-    *   The AI must respect specific user requests from the advanced questionnaire (e.g., make today a back day).
-    *   The AI must use the *entire context* of the onboarding and questionnaire to create a smart, non-repetitive plan (e.g., not scheduling the same muscle group on consecutive days).
-3.  **Fix It Depends Scheduling (P0)**: The AI must correctly use the specific dates a user selects during onboarding for the It Depends schedule, scheduling rest days on all other dates.
-4.  **Add Location/Timezone Feature (P1)**: The onboarding flow needs a Where are you from? country selector. This should be a smooth, scrollable modal. The selected country and corresponding timezone must be saved and used to adjust the app's calendar.
-5.  **Fix UI & Generation Flow (P1)**:
-    *   The Generating workout... state must display correctly and persist until the full 21-day plan is generated.
-    *   Fix the original bug causing the workout plan to be generated twice.
-6.  **Fix Content & Implement Features (P2)**:
-    *   Correct all incorrect exercise videos by creating a robust mapping from the exercise library to the correct Cloudinary video URLs.
-    *   Implement a UI note for exercises like barbell squats suggesting alternatives (e.g., You can also use a machine or dumbbells).
-7.  **Fix Technical Debt (P2)**:
-    *   The backend supervisor configuration is incorrect (configured for Python instead of Node.js), causing instability. This needs a permanent fix.
+The user's current and primary request is a multi-phase implementation of new product-level coaching features after a major AI system overhaul.
+
+**PRODUCT REQUIREMENTS (Post-Audit)**:
+*   **Phase 6 (In Progress)**: Implement an exercise-level Coach suggestion card in the workout hub, suggesting weight progressions based on performance history.
+*   **Phase 7**: Add an Edit workout button in the workout hub with AI-powered, intent-based actions (e.g., Make easier, Swap exercise).
+*   **Phase 8**: Integrate the floating AI coach inside the workout hub, making it context-aware of the current exercise.
+*   **Phase 9**: Add a rotating, contextual coach insight banner on the home screen.
+*   **Phase 10**: Implement a weekly/bi-weekly mental health check-in to adapt coach tone and intensity.
+*   **Phase 11**: Create a robust learning loop by persisting performance signals and using them to inform future suggestions and coaching.
 
 **User's preferred language**: English
 
 **what currently exists?**
-The application is a full-stack project with a React Native (Expo) frontend and a Node.js/Express/TypeScript backend using a PostgreSQL database.
+The application is a React Native (Expo) frontend with a Node.js/Express/TypeScript backend. This session involved a major refactoring of the entire AI pipeline. Key endpoints were consolidated, security was hardened, and data validation was introduced.
 
-The agent successfully resolved a critical bug where the user's  (including schedule choices and advanced questionnaire data) were not being saved to the database. The root cause was that the TypeScript backend code was not being compiled into JavaScript, so changes were not taking effect. This has been fixed by introducing a build step (yarn run v1.22.22
-$ vite build && esbuild server/index.ts --platform=node --packages=external --bundle --format=esm --outdir=dist
-vite v5.4.14 building for production...
-transforming...
-✓ 3279 modules transformed.
-rendering chunks...
-computing gzip size...
-../dist/public/index.html                                    2.25 kB │ gzip:   1.00 kB
-../dist/public/assets/index-DR4Hk0W_.css                   177.69 kB │ gzip:  25.14 kB
-../dist/public/assets/CalendarPreGeneration-BO29zJfN.js      8.19 kB │ gzip:   2.82 kB
-../dist/public/assets/index-CHiNctI1.js                  1,733.08 kB │ gzip: 454.81 kB
-✓ built in 16.36s
-Done in 19.43s.).
-
-Following this fix, the agent implemented several of the user's requests:
-*   Added the Country and Timezone fields to the onboarding UI and backend.
-*   Improved the country picker UI to use a scrollable modal.
-*   Fixed a specific incorrect video URL for Calf Raise by adding a new admin API endpoint.
-*   Implemented the UI for displaying exercise alternatives.
-*   Fixed the local Git repository configuration so the Save to GitHub feature can function.
-
-However, fixing the data-saving issue has revealed a new, critical bug: the app now only generates a single day's workout instead of the required 21 days. All users were deleted at the user's request to allow for clean testing.
+-   **AI Audit**: The agent performed a comprehensive audit of all AI touchpoints, producing , , and .
+-   **Consolidated AI Endpoints**: All coach-related chat endpoints (, , ) now use a single, unified service () that leverages a central context builder ().
+-   **Hardened Security**: Endpoints now derive  from the server-side auth session () instead of trusting the client. Unauthenticated requests are rejected with a 401, except in a specific .
+-   **Data Validation & Safety**: Zod schemas have been added to  and  to validate AI output, with a retry mechanism and safe fallbacks. Explicit, rule-based safety filters were added to exercise swaps to respect user injuries (e.g., blocking deadlifts for lower back pain).
+-   **Performance History**: The  function was fixed. Performance data is now correctly logged to  and retrieved to inform AI suggestions.
 
 **Last working item**:
--   **Last item agent was working**: Debugging the critical issue where the app fails to generate the full 21-day workout plan after a new user completes onboarding. The user is extremely angry about this. The agent was investigating  and suspected a race condition or stale data being passed to the generation function.
+-   **Last item agent was working**: The user requested a fork to begin a clean session focused on new product features. The agent had just started **Phase 6: Exercise-level Coach Suggestion Card** by creating the component file  and adding a new backend endpoint  to .
 -   **Status**: IN PROGRESS
--   **Agent Testing Done**: N
--   **Which testing method agent to use?**: both
-    -   **Backend testing agent**: To trigger workout generation and verify the API response contains a full 21-day plan (i.e., 21 workout objects, some of which can be rest days).
-    -   **Frontend testing agent**: To perform a full registration, complete the onboarding, trigger workout generation, and verify that all 21 days are displayed correctly in the UI's workout calendar.
--   **User Testing Done**: Y (The user reported the bug and is blocked by it).
+-   **Agent Testing Done**: N (for this specific item)
+-   **Which testing method agent to use?**: frontend testing agent
+-   **User Testing Done**: N
 
 **All Pending/In progress Issue list**:
--   **Issue 1**: App only generates 1 day of workouts, not 21 (P0)
--   **Issue 2**: AI intelligence and scheduling logic needs end-to-end verification (P0)
--   **Issue 3**: Backend Supervisor configuration is incorrect (P2)
--   **Issue 4**: Comprehensive correction of all exercise videos (P2)
--   **Issue 5**: Generating workout... UI state is buggy (P2)
+-   **Issue 1**: The  data flow is complex. Data is logged to , not the  table.  was refactored to read from . This is a fragile setup that could be a source of future bugs. (P1)
+-   **Issue 2**: The Recent Activity card UI is still broken (cut off at the bottom). This is a carry-over from the previous session. (P2)
+-   **Issue 3**: The original badge system fixes were never tested after being implemented, as the AI audit took precedence. (P2)
 
 **Issues Detail**:
--   **Issue 1: App only generates 1 day of workouts, not 21**
-    -   **Attempted fixes**: The agent identified that two different functions exist,  (generates 1 day) and  (generates 21 days). The agent was investigating why  isn't producing the full plan, suspecting stale local data or a race condition.
+-   **Issue 1: Fragile Performance Data Flow**
+    -   **Attempted fixes**: The agent first tried to populate the  table but failed due to foreign key constraints ( was missing). The agent then reverted this and instead modified  and  to use the  table as the source of truth for performance data.
     -   **Next debug checklist**:
-        1.  Trace the function call flow starting from when the user completes the advanced questionnaire in .
-        2.  Follow the call to  in .
-        3.  Add logging inside  to inspect the  object *just before* the API call is made. Confirm that the complete  object (with , etc.) is present.
-        4.  Add logging in the backend endpoint  in  to confirm it receives the correct  and .
-        5.  Examine the loop logic within  that constructs the 21 days to ensure it's not exiting prematurely.
-    -   **Why fix this issue and what will be achieved with the fix?**: This is the app's core function. Fixing it is critical to unblock the user and make the app usable.
-    -   **Status**: IN PROGRESS
-    -   **Is recurring issue?**: N (This is a new bug that appeared after a previous fix).
-    -   **Should Test frontend/backend/both after fix?**: Both
-    -   **Blocked on other issue**: None.
-
--   **Issue 2: AI intelligence and scheduling logic needs end-to-end verification**
-    -   **Attempted fixes**: The agent confirmed the backend prompt in  is designed to be flexible and respect user requests. The data saving mechanism is now fixed.
-    -   **Next debug checklist**:
-        1.  Once Issue 1 is resolved, perform a test registration.
-        2.  In the advanced questionnaire, request a specific workout (e.g., Make today a back day).
-        3.  For the It Depends schedule, select a few non-consecutive dates.
-        4.  After generation, inspect the 21-day plan to verify:
-            *   The first workout day matches the specific request.
-            *   Rest days are correctly scheduled on the dates the user did *not* select.
-            *   No two consecutive workout days target the same primary muscle group.
-    -   **Why fix this issue and what will be achieved with the fix?**: Fulfills the primary value proposition of a smart AI personal trainer.
-    -   **Status**: NOT STARTED
-    -   **Is recurring issue?**: Y
-    -   **Should Test frontend/backend/both after fix?**: Both
-    -   **Blocked on other issue**: **Issue 1**
-
--   **Issue 3: Backend Supervisor configuration is incorrect**
-    -   **Attempted fixes**: None. The agent has been manually starting the server () as a workaround.
-    -   **Next debug checklist**:
-        1.  View the file .
-        2.  Change the  to .
-        3.  Change the  to .
-        4.  Restart the supervisor daemon: No config updates to processes
-backend: ERROR (not running)
-backend: ERROR (spawn error).
-    -   **Why fix this issue and what will be achieved with the fix?**: To ensure backend stability and remove the need for manual workarounds and restarts.
+        1.  Review the  endpoint in .
+        2.  Decide on a single source of truth for workout sets: either fix the logic to correctly populate the normalized  and  tables or formally commit to using the  table and ensure all related functions use it consistently.
+        3.  Refactoring to use the normalized tables is the more robust long-term solution.
+    -   **Why fix this issue and what will be achieved with the fix?**: Unifies the data model, reduces complexity, and prevents future bugs where different parts of the app might look for performance data in different places.
     -   **Status**: NOT STARTED
     -   **Is recurring issue?**: Y
     -   **Should Test frontend/backend/both after fix?**: Backend
-    -   **Blocked on other issue**: None.
+    -   **Blocked on other issue**: None
 
--   **Issue 4 & 5**: Details can be found in the previous handoff summary. They are lower priority than the current blockers. Status for both is **NOT STARTED**.
+-   **Issue 2: Recent Activity card UI is broken**
+    -   **Attempted fixes**: None.
+    -   **Next debug checklist**:
+        1.  Locate the Recent Activity component in .
+        2.  Inspect the  for  and its container.
+        3.  Adjust height, padding, or margin to ensure content is fully visible.
+    -   **Why fix this issue and what will be achieved with the fix?**: Fixes a visible UI bug reported by the user.
+    -   **Status**: NOT STARTED
+    -   **Is recurring issue?**: N
+    -   **Should Test frontend/backend/both after fix?**: Frontend
+    -   **Blocked on other issue**: None
+
+-   **Issue 3: Badge System Status Unknown**
+    -   **Attempted fixes**: The agent refactored the badge definitions in  and updated tracking logic.
+    -   **Next debug checklist**:
+        1.  Perform a full test of the badge system from a new user state.
+        2.  Test the First Conversation badge.
+        3.  Complete a workout and verify that the new time-based badges are awarded correctly.
+    -   **Why fix this issue and what will be achieved with the fix?**: Verifies that a key gamification feature is working as per the user's request.
+    -   **Status**: USER VERIFICATION PENDING
+    -   **Is recurring issue?**: Y
+    -   **Should Test frontend/backend/both after fix?**: Frontend
+    -   **Blocked on other issue**: None
 
 **In progress Task List**:
--   **Task 1: Fix 21-Day Workout Generation (P0)**
-    -   **Where to resume**: Resume debugging in  and . The primary goal is to ensure the complete and correct  object is passed to the  function and subsequently to the backend API.
-    -   **What will be achieved with this?**: The app will generate the full 21-day workout plan, resolving the user's main frustration.
+-   **Task 1: Implement Phase 6 - Exercise-level Coach Suggestion Card (P0)**
+    -   **Where to resume**:
+        1.  Flesh out the  component with UI for showing suggestions and buttons (Use, Adjust, Why).
+        2.  Implement the logic in  to fetch suggestions from the new  endpoint when an exercise card is expanded.
+        3.  Implement the backend logic for  in , ensuring it uses  to provide context-aware weight suggestions.
+    -   **What will be achieved with this?**: The first major product-level coaching feature, providing users with actionable AI suggestions during their workout.
     -   **Status**: IN PROGRESS
     -   **Should Test frontend/backend/both after fix?**: Both
     -   **Blocked on something**: No.
 
 **Upcoming and Future Tasks**
 -   **Upcoming Tasks**:
-    -   **(P2)** Implement Push Notifications.
+    -   **(P1) Phase 7**: Implement Edit Workout feature in the workout hub.
+    -   **(P1) Phase 8**: Integrate the floating coach inside the workout hub.
+    -   **(P2) Phase 9**: Implement a proactive coach insight banner on the home screen.
 -   **Future Tasks**:
-    -   **(P3)** Implement It Depends Weekly Check-in ().
-    -   **(P3)** Refactor  to use the real  hook.
+    -   **(P2) Phase 10**: Add mental health check-ins.
+    -   **(P2) Phase 11**: Formalize the AI learning loop.
+    -   **(Tech Debt)** Fix the recurring incorrect Supervisor configuration.
+    -   **(Tech Debt)** Address the long-standing request for a foolproof system for mapping exercise videos.
 
 **Completed work in this session**
--   **Bugfix: Onboarding Data Not Saving**: Fixed the root cause where  were not saved to the database upon registration. The fix involved compiling TypeScript to JavaScript (yarn run v1.22.22
-$ vite build && esbuild server/index.ts --platform=node --packages=external --bundle --format=esm --outdir=dist
-vite v5.4.14 building for production...
-transforming...
-✓ 3279 modules transformed.
-rendering chunks...
-computing gzip size...
-../dist/public/index.html                                    2.25 kB │ gzip:   1.00 kB
-../dist/public/assets/index-DR4Hk0W_.css                   177.69 kB │ gzip:  25.14 kB
-../dist/public/assets/CalendarPreGeneration-BO29zJfN.js      8.19 kB │ gzip:   2.82 kB
-../dist/public/assets/index-CHiNctI1.js                  1,733.08 kB │ gzip: 454.81 kB
-✓ built in 13.58s
-Done in 14.19s.) and restarting the service.
--   **Feature: Country/Timezone Selection**: Added a Where are you from? field to the onboarding UI (), which now saves the country and timezone to the backend.
--   **UI: Improved Country Picker**: Replaced the basic country selector with a smooth, scrollable modal using .
--   **Bugfix: Incorrect Exercise Video**: Corrected the video URL for Calf Raise by adding a new admin endpoint () and using it.
--   **Feature: Exercise Alternatives**: Implemented the UI in  to display alternative equipment suggestions for exercises.
--   **DevOps: Git Sync Fixed**: Repaired the local Git repository's remote configuration, allowing the Save to GitHub button to function correctly.
--   **Admin: Deleted all users** from the database as per the user's request for a clean slate.
+-   **AI Pipeline Audit & Refactor (DONE)**: Audited all AI touchpoints, consolidated coach endpoints into a single service, and created a centralized context builder.
+-   **Security Hardening (DONE)**: Secured all key AI endpoints to derive  from the auth session and reject unauthenticated requests.
+-   **Zod Validation & Safety (DONE)**: Added Zod schema validation with retry logic to workout generation and exercise swaps. Implemented explicit, rule-based injury-avoidance filters.
+-   **Performance History Fix (DONE)**: Corrected the performance logging and retrieval loop, enabling context-aware AI suggestions.
+-   **Frontend Auth Fix (DONE)**: Updated the AI Coach chat () to send session credentials ().
+-   **Workout Generation Bug (FIXED)**: Resolved a crash caused by referencing  instead of .
 
 **Earlier issues found/mentioned but not fixed**
--   **Issue 1: Incorrect Supervisor Configuration**: Diagnosed but never fixed. This is a recurring technical debt that causes instability.
--   **Issue 2: Comprehensive Exercise Video Correction**: The user requested a foolproof system. Only one video was fixed as a proof-of-concept.
+-   **Issue 1: Comprehensive Exercise Video Correction**: A long-standing request to create a foolproof system for mapping exercise videos has not been addressed.
 
 **Known issue recurrence from previous fork**
 -   **Issue recurrence in previous fork**: Incorrect Supervisor Configuration
@@ -154,91 +109,69 @@ Done in 14.19s.) and restarting the service.
 -   **Status**: NOT STARTED
 
 **Code Architecture**
-buildScript started, output log file is 'typescript'.
-# 
-Script done.
+
 
 **Key Technical Concepts**
--   **Backend Build Process**: A critical point of failure was discovered. Any changes to TypeScript files in  **must** be compiled to JavaScript using yarn run v1.22.22
-$ vite build && esbuild server/index.ts --platform=node --packages=external --bundle --format=esm --outdir=dist
-vite v5.4.14 building for production...
-transforming...
-✓ 3279 modules transformed.
-rendering chunks...
-computing gzip size...
-../dist/public/index.html                                    2.25 kB │ gzip:   1.00 kB
-../dist/public/assets/index-DR4Hk0W_.css                   177.69 kB │ gzip:  25.14 kB
-../dist/public/assets/CalendarPreGeneration-BO29zJfN.js      8.19 kB │ gzip:   2.82 kB
-../dist/public/assets/index-CHiNctI1.js                  1,733.08 kB │ gzip: 454.81 kB
-✓ built in 13.79s
-Done in 14.16s. before the service is restarted (frontend: stopped
-frontend: started).
--   **Frontend State Management (Zustand)**: The  and  manage all app state. The bug likely lies in how data flows between these stores and async storage.
--   **React Native UI (Expo)**: The frontend is built with Expo, with navigation handled by  (directory-based routing).
+-   **Centralized AI Services**: Shifted from scattered AI calls to a unified  and a central context builder  for consistency.
+-   **Zod Schema Validation**: AI-generated JSON is now validated against strict schemas, with retry logic and safe fallbacks to prevent malformed data from reaching the frontend.
+-   **Rule-Based Filtering**: Post-processing AI output with explicit business logic (e.g.,  filter) to enforce safety constraints that prompts alone cannot guarantee.
+-   **Session-Based Authentication**: Hardened backend endpoints to derive  from the auth session () rather than trusting client-side input, preventing unauthorized data access.
 
 **key DB schema**
--   **users**:
-    -    (TEXT/JSON): Now correctly stores the full JSON blob from the onboarding process, including , , , and . This field is critical for AI generation.
+-   **aiLearningContext**: Now serves as the primary source for recent performance data (), storing string-based insights and parsed performance metrics.
+-   **workoutSets**: This table is currently **not** being populated correctly on workout completion. This is a point of technical debt.
+-   **userWorkouts**: Similarly, not being populated correctly, which caused foreign key constraint failures when attempting to write to .
 
 **All files of reference**
--   : **(NEEDS DEBUGGING)** Contains the logic for  which is failing.
--   : This is where workout generation is triggered after the questionnaire.
--   : Heavily modified for the new country picker UI and logic.
--   : Contains the registration logic that was fixed.
--   : Contains all API endpoints, including the workout generation and the new video-fixing endpoint.
--   : **(NEEDS FIXING)** The incorrect supervisor config file.
+-   : The user-approved plan for refactoring the AI pipeline.
+-   : The new single source of truth for all AI chat interactions.
+-   : Contains the critical  and  functions.
+-   : Contains the new explicit injury-filtering logic.
+-   : Shows the consolidated endpoints and new security measures.
+-   : Example of frontend now calling a secure backend endpoint instead of OpenAI directly.
+-   : The starting point for the next task (Phase 6).
 
 **Critical Info for New Agent**
-1.  **USER IS EXTREMELY FRUSTRATED**: The user is on the verge of giving up. Your absolute top priority is to fix the 21-day generation bug (Issue #1). Acknowledge their frustration and focus solely on fixing this problem first.
-2.  **THE CORE BUG**: The app generates only ONE workout day, not 21. Your investigation must start in  ( function) and trace the data flow from the frontend trigger to the backend API call.
-3.  **BACKEND BUILD IS MANDATORY**: Remember, any change in a  file under  requires you to run yarn run v1.22.22
-$ vite build && esbuild server/index.ts --platform=node --packages=external --bundle --format=esm --outdir=dist
-vite v5.4.14 building for production...
-transforming...
-✓ 3279 modules transformed.
-rendering chunks...
-computing gzip size...
-../dist/public/index.html                                    2.25 kB │ gzip:   1.00 kB
-../dist/public/assets/index-DR4Hk0W_.css                   177.69 kB │ gzip:  25.14 kB
-../dist/public/assets/CalendarPreGeneration-BO29zJfN.js      8.19 kB │ gzip:   2.82 kB
-../dist/public/assets/index-CHiNctI1.js                  1,733.08 kB │ gzip: 454.81 kB
-✓ built in 13.50s
-Done in 13.87s. and then frontend: stopped
-frontend: started for it to take effect. Forgetting this step will lead to debugging phantom issues.
-4.  **GIT IS READY**: The local git state has been fixed. Do not use  from the command line. Advise the user to use the Save to GitHub button in the Emergent UI to push the committed changes.
-5.  **TECHNICAL DEBT**: The supervisor configuration is still wrong. Once the critical bug is fixed, this should be addressed to improve stability.
+1.  **Start with Phase 6**: Your immediate task is to continue and complete the implementation of the Coach Suggestion Card as detailed in the In progress Task List.
+2.  **Trust the Session**: Always derive the user's identity from  on the backend. Do not trust any  sent in the request body. All endpoints have been hardened this way; maintain this pattern.
+3.  **Performance History Source**: Be aware that  in  reads from the  table, not the  table. This was a deliberate workaround. Fixing this is a tech debt task (see All Pending/In progress Issue list).
+4.  **Follow the Phased Plan**: The user has laid out a clear, multi-phase roadmap (Phases 6-11). Do not deviate. Implement and get verification for each phase before moving to the next.
+
+**documents created in this job**
+-   
+-   
+-   
 
 **Last 10 User Messages and any pending user messages**
-1.  **User (Msg 243)**: Requested a high-priority, step-by-step fix for the broken GitHub sync. (Completed)
-2.  **User (Msg 265)**: Requested an improvement to the country picker UI to make it smoother and more scrollable. (Completed)
-3.  **Agent (Msg 266-293)**: Implemented the new country picker UI, rebuilt the app, and provided a summary. (Completed)
-4.  **User (Msg 294)**: **CRITICAL ANGRY FEEDBACK**. User is furious that the app is still not generating the full 21-day workout plan. It only generates one day. Demanded an immediate fix and for all user accounts to be deleted. (IN PROGRESS)
-5.  **Agent (Msg 295-304)**: Acknowledged the user's anger, deleted the users, and began investigating the generation bug. (Completed)
-6.  **Agent (Msg 305-334)**: Investigated the  file, identified the  function as the likely culprit, and formed a hypothesis that the issue is related to data flow or a race condition. The investigation is ongoing. (IN PROGRESS)
+-   **User (Msg 518)**: Requested security fixes: ensure unique exercise IDs and secure the  endpoint. (DONE)
+-   **User (Msg 519-533)**: Agent implemented and tested the security fixes. (DONE)
+-   **User (Msg 534-554)**: Agent started work on Phase 6, creating the  component and its backend endpoint. (IN PROGRESS)
+-   **User (Msg 555)**: User provided a detailed roadmap for Phases 6 through 11 and requested to fork the session to start fresh on this new work. (DONE - This fork is the result).
+-   **Pending**: The entire multi-phase plan (Phases 6-11) is the pending work for the new session.
 
 **Project Health Check:**
 -   **Broken**:
-    -   **Core Workout Generation**: The app fails to generate the 21-day plan, making it unusable. (CRITICAL)
-    -   **Backend Supervisor Config**: Known, recurring cause of instability.
+    -   **Recent Activity card UI**: Visually cut off.
+    -   The state of the **badge system** is unknown and needs testing.
 -   **Mocked**:
     -   The voice input in .
 
 **3rd Party Integrations**
--   **OpenAI GPT-4o**: Powers AI workout generation.
--   **Neon/Postgres**: Sole database for all backend data.
--   **Cloudinary**: Hosts exercise videos.
--   **Expo AV**: Used for video playback and audio recording.
+-   OpenAI GPT-4o
+-   Neon/Postgres
+-   Cloudinary
+-   Expo AV
 
 **Testing status**
--   **Testing agent used after significant changes**: NO. The agent did not use the testing agent for the most recent batch of fixes.
+-   **Testing agent used after significant changes**: NO
 -   **Troubleshoot agent used after agent stuck in loop**: NO
--   **Test files created**: None.
--   **Known regressions**: The 21-day workout generation was presumably working before but broke after the agent's recent fixes, making it a critical regression.
+-   **Test files created**: The agent created several temporary bash scripts () to perform manual, curl-based testing of the API endpoints during the refactoring process.
+-   **Known regressions**: None. The session was focused on fixing regressions and hardening the system.
 
 **Credentials to test flow:**
--   **Test User**: No users currently exist. You will need to register a new user for every test flow.
+-   **Test User**: No persistent test users exist. You must register a new user for any end-to-end test flow. The application supports a  environment variable which allows some coach interactions without authentication.
 
 **What agent forgot to execute**
--   The agent has consistently failed to apply a permanent fix for the incorrect supervisor configuration ().
--   The agent has not yet verified the fixes for AI intelligence and scheduling end-to-end, as it has been blocked by other critical bugs.
--   The agent did not use the testing agent to validate its fixes before the user found the new critical regression.</analysis>
+-   The Recent Activity card UI bug reported in the previous session was not addressed.
+-   The Completed Workout Summary View, while implemented, was never fully user-verified before the focus shifted to the AI audit. Its state and functionality should be confirmed.
+-   The original badge system fixes were never tested.</analysis>
