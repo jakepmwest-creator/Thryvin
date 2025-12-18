@@ -118,13 +118,25 @@ Respond with JSON ONLY:
       temperature: 0.7,
     });
 
-    const result = JSON.parse(response.choices[0].message.content || '{}');
+    const rawResult = JSON.parse(response.choices[0].message.content || '{}');
     
-    if (!result.alternatives || !Array.isArray(result.alternatives)) {
-      throw new Error('Invalid AI response format');
+    // Validate with Zod
+    const validation = AlternativesResponseSchema.safeParse(rawResult);
+    
+    if (!validation.success) {
+      console.error('❌ [SWAP] Invalid AI response:', validation.error.errors);
+      
+      if (retryCount < 1) {
+        console.log('🔄 [SWAP] Retrying...');
+        return getExerciseAlternatives(request, retryCount + 1);
+      }
+      
+      // Return fallback after retry fails
+      return getFallbackAlternatives(currentExercise);
     }
-
-    console.log(`   AI suggested ${result.alternatives.length} alternatives`);
+    
+    const result = validation.data;
+    console.log(`   ✅ AI suggested ${result.alternatives.length} validated alternatives`);
     
     // Fetch video URLs from database for each alternative
     const exerciseNames = result.alternatives.map((alt: any) => alt.name);
