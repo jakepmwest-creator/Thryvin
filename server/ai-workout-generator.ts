@@ -3,12 +3,45 @@ import { db } from './db';
 import { exercises } from '../shared/schema';
 import { inArray } from 'drizzle-orm';
 import OpenAI from 'openai';
+import { z } from 'zod';
 import { getUserLearningContext, getPersonalizedAdjustments } from './ai-learning-service';
 import { getComprehensiveUserContext, formatUserContextForAI, getSuggestedWeight } from './ai-user-context';
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
+
+// =============================================================================
+// ZOD VALIDATION SCHEMAS
+// =============================================================================
+
+const ExerciseSchema = z.object({
+  id: z.string().optional().default(''),
+  name: z.string().min(1, 'Exercise name is required'),
+  sets: z.number().min(1).max(10).default(3),
+  reps: z.union([z.string(), z.number()]).transform(val => String(val)),
+  restTime: z.number().min(15).max(300).default(60),
+  category: z.enum(['warmup', 'main', 'cooldown']).default('main'),
+  videoUrl: z.string().optional(),
+  suggestedWeight: z.number().optional(),
+  suggestedReps: z.number().optional(),
+  aiNote: z.string().optional(),
+  setType: z.enum(['normal', 'drop', 'super', 'giant']).optional(),
+  supersetWith: z.string().optional(),
+});
+
+const WorkoutSchema = z.object({
+  title: z.string().min(1, 'Workout title is required'),
+  type: z.string().default('mixed'),
+  difficulty: z.string().default('intermediate'),
+  duration: z.number().min(15).max(120).default(45),
+  exercises: z.array(ExerciseSchema).min(3, 'At least 3 exercises required').max(20),
+  overview: z.string().default('A personalized workout'),
+  targetMuscles: z.string().default('Full Body'),
+  caloriesBurn: z.number().min(50).max(1500).default(300),
+});
+
+export type ValidatedWorkout = z.infer<typeof WorkoutSchema>;
 
 interface UserProfile {
   fitnessGoals?: string[];
