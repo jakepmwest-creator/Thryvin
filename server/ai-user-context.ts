@@ -274,7 +274,9 @@ async function getPerformanceHistory(userId: number): Promise<ComprehensiveUserP
       });
     });
     
-    console.log(`📊 [PERFORMANCE] Processed ${performanceHistory.length} exercises with history`);
+    if (process.env.NODE_ENV !== 'production' || process.env.DEBUG) {
+      console.log(`📊 [PERFORMANCE] Processed ${performanceHistory.length} exercises with history`);
+    }
     return performanceHistory;
     
   } catch (error) {
