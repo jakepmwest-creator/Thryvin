@@ -593,7 +593,9 @@ export async function generateValidatedWorkout(
   retryCount: number = 0
 ): Promise<ValidatedWorkout> {
   try {
-    console.log(`🔄 [VALIDATION] Generating workout (attempt ${retryCount + 1})`);
+    if (process.env.NODE_ENV !== 'production' || process.env.DEBUG) {
+      console.log(`🔄 [VALIDATION] Generating workout (attempt ${retryCount + 1})`);
+    }
     
     const rawWorkout = await generateAIWorkout(userProfile, dayOfWeek, weekNumber, recentExercises);
     
