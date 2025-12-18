@@ -769,11 +769,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Core AI Chat endpoint - general coach conversations
+  // DEPRECATED: Use /api/coach/chat instead
+  // This endpoint now uses the unified coach service
   app.post("/api/ai/chat", async (req, res) => {
     try {
-      // Validate request with Zod
-      const validatedRequest = aiChatRequestSchema.parse(req.body);
-
       if (!FEATURE_FLAGS.AI_ENABLED) {
         return res.status(503).json({
           error: "AI features are currently disabled",
@@ -781,71 +780,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      if (!process.env.OPENAI_API_KEY) {
-        return res.status(503).json({
-          error: "AI service unavailable",
-          code: "AI_SERVICE_UNAVAILABLE",
-        });
-      }
-
-      const { message, context } = validatedRequest;
-      const coach = context?.coach || "dylan-power";
-      const userProfile = context?.userProfile;
+      const { message, context } = req.body;
+      const coach = context?.coach || "default";
       const conversationHistory = context?.conversationHistory || [];
-
-      // Build conversation context for AI
-      let systemPrompt = `You are a professional fitness coach providing helpful, motivating guidance. 
-      Keep responses concise but encouraging. Focus on actionable advice.
+      const user = req.isAuthenticated() ? req.user : null;
       
-      Please respond in JSON format with your coaching advice.
-      
-      Coach personality: ${coach}
-      User context: ${userProfile ? JSON.stringify(userProfile) : "No specific profile available"}`;
+      console.log('⚠️ [DEPRECATED] /api/ai/chat called - redirecting to unified coach service');
 
-      // Add conversation history for context
-      const messages = [
-        { role: "system", content: systemPrompt },
-        ...conversationHistory.map((msg) => ({
-          role: msg.role === "coach" ? "assistant" : "user",
-          content: msg.content,
-        })),
-        { role: "user", content: message },
-      ];
-
-      const response = await openai.chat.completions.create({
-        model: "gpt-4o",
-        messages: messages as any,
-        max_tokens: 300,
-        response_format: { type: "json_object" },
+      // Use unified coach service
+      const result = await getUnifiedCoachResponse({
+        message,
+        coach: coach.toLowerCase(),
+        userId: user?.id,
+        conversationHistory,
       });
 
-      const aiResponse = JSON.parse(
-        response.choices[0].message.content || "{}",
-      );
-
-      // Validate AI response with Zod
-      const validatedResponse = aiChatResponseSchema.parse({
-        response:
-          aiResponse.response ||
-          aiResponse.content ||
-          response.choices[0].message.content,
-        coach: coach,
-        confidence: aiResponse.confidence || 0.8,
-        suggestions: aiResponse.suggestions || [],
+      // Return in expected format for backwards compatibility
+      res.json({
+        response: result.response,
+        coach: result.coach,
+        confidence: 0.9,
+        suggestions: [],
       });
-
-      res.json(validatedResponse);
     } catch (error) {
       console.error("AI chat error:", error);
-
-      if (error instanceof z.ZodError) {
-        return res.status(422).json({
-          error: "Invalid request format",
-          details: error.errors,
-          code: "VALIDATION_ERROR",
-        });
-      }
-
       res.status(500).json({
         error: "AI chat service temporarily unavailable",
         code: "AI_CHAT_ERROR",
