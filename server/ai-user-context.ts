@@ -2,7 +2,7 @@
 // This service aggregates ALL user data to create a fully personalized AI experience
 
 import { db } from './db';
-import { users, aiLearningContext, workoutSets, workoutEvents, userWorkouts, workoutNotes } from '@shared/schema';
+import { users, aiLearningContext, workoutSets, workoutEvents, userWorkouts, workoutNotes, exercises } from '@shared/schema';
 import { eq, desc, and, gte } from 'drizzle-orm';
 
 export interface ComprehensiveUserProfile {
