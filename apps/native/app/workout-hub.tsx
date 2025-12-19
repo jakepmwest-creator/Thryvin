@@ -1321,6 +1321,19 @@ const styles = StyleSheet.create({
     color: COLORS.mediumGray,
     marginTop: 2,
   },
+  headerActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  editButton: {
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    backgroundColor: COLORS.primary + '15',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   finishButton: {
     paddingHorizontal: 16,
     paddingVertical: 8,
