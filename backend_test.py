@@ -27,10 +27,6 @@ class ThryvinAPITester:
             'Accept': 'application/json'
         })
         self.test_results = []
-        self.auth_token = None
-        self.user_id = None
-        self.user_profile = None
-        self.registered_user = None
         
     def test_health_endpoint(self) -> bool:
         """Test Health Endpoint"""
