@@ -1472,12 +1472,14 @@ const styles = StyleSheet.create({
   activitiesCard: {
     borderRadius: 16,
     overflow: 'hidden',
+    backgroundColor: COLORS.white,
   },
   activitiesCardGradient: {
     padding: 16,
     borderRadius: 16,
     borderWidth: 1,
     borderColor: `${COLORS.accent}25`,
+    backgroundColor: COLORS.white,
   },
   activitiesHeader: {
     flexDirection: 'row',
