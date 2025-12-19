@@ -239,35 +239,35 @@ class ThryvinAPITester:
     
     def run_all_tests(self):
         """Run all Thryvin API tests as specified in review request"""
-        print("🏋️ Starting Thryvin Fitness App Backend Testing")
+        print("🏋️ Starting Thryvin Fitness App Backend Testing - Phase 7: Edit Workout Feature")
         print("Testing scenarios from review request:")
-        print("1. Test Health Endpoint")
-        print("2. Test User Registration with Full Onboarding Data")
-        print("3. Test Workout Generation for Multiple Days (0-6)")
-        print("4. Test Workout Generation with Advanced Questionnaire")
+        print("1. Health Check Endpoint")
+        print("2. Exercise Swap Endpoint (injury-based)")
+        print("3. AI Exercise Swap Endpoint (equipment-based)")
+        print("4. Make Easier Exercise Swap Test")
         print("=" * 60)
         
         print(f"🔗 Backend URL: {BASE_URL}")
         print("=" * 60)
         
         # Test 1: Health Endpoint
-        print("\n💚 Test 1: Health Endpoint...")
+        print("\n💚 Test 1: Health Check Endpoint...")
         health_success = self.test_health_endpoint()
         
-        # Test 2: User Registration with Full Onboarding Data
-        print("\n👤 Test 2: User Registration with Full Onboarding Data...")
-        registration_success = self.test_user_registration_with_onboarding_data()
+        # Test 2: Exercise Swap - Injury Based
+        print("\n🩹 Test 2: Exercise Swap Endpoint (injury-based)...")
+        injury_swap_success = self.test_exercise_swap_injury_based()
         
-        # Test 3: Workout Generation for Multiple Days
-        print("\n📅 Test 3: Workout Generation for Multiple Days (0-6)...")
-        multiple_days_success = self.test_workout_generation_multiple_days()
+        # Test 3: AI Exercise Swap - Equipment Based
+        print("\n🏋️ Test 3: AI Exercise Swap Endpoint (equipment-based)...")
+        equipment_swap_success = self.test_ai_exercise_swap_equipment_based()
         
-        # Test 4: Workout Generation with Advanced Questionnaire
-        print("\n🧠 Test 4: Workout Generation with Advanced Questionnaire...")
-        advanced_success = self.test_workout_generation_with_advanced_questionnaire()
+        # Test 4: Make Easier Exercise Swap
+        print("\n📉 Test 4: Make Easier Exercise Swap Test...")
+        easier_swap_success = self.test_make_easier_exercise_swap()
         
         print("\n" + "=" * 60)
-        print("🏁 Thryvin Backend Test Results:")
+        print("🏁 Phase 7 Edit Workout Feature Test Results:")
         
         passed_tests = sum(1 for result in self.test_results if result['success'])
         total_tests = len(self.test_results)
@@ -275,7 +275,7 @@ class ThryvinAPITester:
         print(f"✅ {passed_tests}/{total_tests} tests passed")
         
         if passed_tests == total_tests:
-            print("🎉 All backend tests passed!")
+            print("🎉 All Phase 7 Edit Workout backend tests passed!")
             return True
         else:
             print(f"⚠️ {total_tests - passed_tests} tests had issues")
