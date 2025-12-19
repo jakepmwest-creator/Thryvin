@@ -1268,6 +1268,17 @@ export default function WorkoutHubScreen() {
         buttons={alertConfig.buttons}
         onClose={hideAlert}
       />
+      
+      {/* Edit Workout Modal */}
+      <EditWorkoutModal
+        visible={showEditModal}
+        onClose={() => {
+          setShowEditModal(false);
+          setEditableWorkout(null);
+        }}
+        workout={editableWorkout || currentWorkout}
+        onSaveWorkout={handleSaveEditedWorkout}
+      />
     </SafeAreaView>
   );
 }
