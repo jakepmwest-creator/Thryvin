@@ -24,6 +24,7 @@ import * as SecureStore from 'expo-secure-store';
 import { COLORS } from '../src/constants/colors';
 import ConfettiCannon from 'react-native-confetti-cannon';
 import { CoachSuggestionCard } from '../src/components/CoachSuggestionCard';
+import { EditWorkoutModal } from '../src/components/EditWorkoutModal';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
