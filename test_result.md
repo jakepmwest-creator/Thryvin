@@ -141,6 +141,8 @@ agent_communication:
     message: "BUG FIX: generatedWorkouts ReferenceError. Root cause: Line 491 in workout-store.ts referenced 'generatedWorkouts' which doesn't exist - should be 'weekWorkouts'. Fix: 1) Changed reference from generatedWorkouts to weekWorkouts with defensive (weekWorkouts || []), 2) Added ensureArray helper for defensive array handling, 3) Added proper defaults for new user profiles (no advanced questionnaire), 4) Bumped cache version to v5_fixed_generatedWorkouts_ref, 5) Added try-catch around cached workouts parsing. Ready for testing new-user flow."
   - agent: "main"
     message: "Phase 7 Implementation: Edit Workout feature. Added: 1) Import EditWorkoutModal in workout-hub.tsx, 2) State for showEditModal and editableWorkout, 3) handleEditWorkout and handleSaveEditedWorkout handlers, 4) Edit button (pencil icon) in header next to Finish button, 5) EditWorkoutModal component integration at bottom of render. The modal supports AI-powered exercise swaps with intent-based actions (injury, equipment, make easier/harder). Build successful."
+  - agent: "testing"
+    message: "✅ PHASE 7 EDIT WORKOUT BACKEND TESTING COMPLETE: All 4 backend endpoints tested successfully. Health check (GET /api/health) returns ok: true. Exercise swap endpoint (POST /api/workouts/swap-exercise) handles injury-based swaps (shoulder pain → safe alternatives), equipment-based swaps (no barbell → dumbbell alternatives), and difficulty reduction (pull-ups → assisted alternatives). AI correctly respects injury constraints, equipment availability, and user experience level. All endpoints return 200 status with proper response structure."
 
 frontend:
   - task: "Duration Confirmation Modal"
