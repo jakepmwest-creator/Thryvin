@@ -538,188 +538,291 @@ export const AdvancedQuestionnaireModal = ({
     );
   };
 
-  // Phase 8.5: Weekly Schedule & Training Style
-  const DAY_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+  // Phase 8.5: Weekly Schedule & Training Style - Redesigned for Thryvin style
+  const DAY_NAMES_FULL = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+  const DAY_NAMES_SHORT = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+  const INTENSITY_OPTIONS: Array<{ value: 'low' | 'moderate' | 'hard'; label: string; color: string; icon: string }> = [
+    { value: 'low', label: 'Light', color: COLORS.success, icon: 'leaf' },
+    { value: 'moderate', label: 'Moderate', color: COLORS.accent, icon: 'fitness' },
+    { value: 'hard', label: 'Intense', color: '#FF6B6B', icon: 'flame' },
+  ];
   const SPLIT_OPTIONS = [
-    { value: 'coach_choice', label: 'Let the coach choose (recommended)' },
-    { value: 'upper_lower_full', label: 'Upper / Lower / Full (3 days)' },
-    { value: 'full_body', label: 'Full Body (2-4 days)' },
-    { value: 'push_pull_legs', label: 'Push / Pull / Legs' },
-    { value: 'bro_split', label: 'Bro Split (1 muscle/day)' },
-    { value: 'strength', label: 'Strength-focused (low reps)' },
-    { value: 'endurance', label: 'Endurance / Conditioning' },
-    { value: 'other', label: 'Other' },
+    { value: 'coach_choice', label: 'Let the coach choose', desc: 'Recommended', icon: 'sparkles' },
+    { value: 'upper_lower_full', label: 'Upper / Lower / Full', desc: '3 days', icon: 'body' },
+    { value: 'full_body', label: 'Full Body', desc: '2-4 days', icon: 'barbell' },
+    { value: 'push_pull_legs', label: 'Push / Pull / Legs', desc: 'Classic split', icon: 'layers' },
+    { value: 'bro_split', label: 'Bro Split', desc: '1 muscle/day', icon: 'trophy' },
+    { value: 'strength', label: 'Strength Focus', desc: 'Low reps, heavy', icon: 'trending-up' },
+    { value: 'endurance', label: 'Endurance', desc: 'Conditioning', icon: 'heart' },
+    { value: 'other', label: 'Other', desc: 'Custom', icon: 'create' },
   ];
 
-  const addWeeklyActivity = () => {
-    if (!newActivity.name.trim()) return;
-    setFormData(prev => ({
-      ...prev,
-      weeklyActivities: [...(prev.weeklyActivities || []), { ...newActivity }],
-    }));
-    setNewActivity({ name: '', dayOfWeek: 1, timeWindow: 'evening', intensity: 'moderate' });
+  // State for the selected day in activity picker
+  const [selectedActivityDay, setSelectedActivityDay] = useState<number | null>(null);
+  const [activityInput, setActivityInput] = useState('');
+  const [activityIntensity, setActivityIntensity] = useState<'low' | 'moderate' | 'hard'>('moderate');
+
+  const getActivityForDay = (dayIndex: number) => {
+    return (formData.weeklyActivities || []).find(a => a.dayOfWeek === dayIndex);
   };
 
-  const removeWeeklyActivity = (index: number) => {
-    setFormData(prev => ({
-      ...prev,
-      weeklyActivities: (prev.weeklyActivities || []).filter((_, i) => i !== index),
-    }));
-  };
-
-  const toggleGymDay = (day: number) => {
+  const setActivityForDay = (dayIndex: number, name: string, intensity: 'low' | 'moderate' | 'hard') => {
     setFormData(prev => {
-      const current = prev.gymDaysAvailable || [];
-      const updated = current.includes(day)
-        ? current.filter(d => d !== day)
-        : [...current, day].sort();
-      return { ...prev, gymDaysAvailable: updated };
+      const activities = (prev.weeklyActivities || []).filter(a => a.dayOfWeek !== dayIndex);
+      if (name.trim()) {
+        activities.push({
+          name: name.trim(),
+          dayOfWeek: dayIndex,
+          timeWindow: 'evening',
+          intensity,
+        });
+      }
+      return { ...prev, weeklyActivities: activities };
     });
+  };
+
+  const clearActivityForDay = (dayIndex: number) => {
+    setFormData(prev => ({
+      ...prev,
+      weeklyActivities: (prev.weeklyActivities || []).filter(a => a.dayOfWeek !== dayIndex),
+    }));
+    if (selectedActivityDay === dayIndex) {
+      setActivityInput('');
+    }
+  };
+
+  const handleDaySelect = (dayIndex: number) => {
+    const existingActivity = getActivityForDay(dayIndex);
+    setSelectedActivityDay(dayIndex);
+    setActivityInput(existingActivity?.name || '');
+    setActivityIntensity(existingActivity?.intensity || 'moderate');
+  };
+
+  const handleActivitySave = () => {
+    if (selectedActivityDay !== null) {
+      setActivityForDay(selectedActivityDay, activityInput, activityIntensity);
+    }
   };
 
   const renderWeeklySchedule = () => (
     <View style={styles.weeklyScheduleContainer}>
-      {/* Section 1: Fixed Activities */}
-      <View style={styles.scheduleSection}>
-        <Text style={styles.scheduleSectionTitle}>Fixed Weekly Activities</Text>
-        <Text style={styles.scheduleSectionHint}>
-          Any classes, sports, or commitments that affect your training?
-        </Text>
-        
-        {/* Existing activities */}
-        {(formData.weeklyActivities || []).map((act, idx) => (
-          <View key={idx} style={styles.activityItem}>
-            <View style={styles.activityInfo}>
-              <Text style={styles.activityName}>{act.name}</Text>
-              <Text style={styles.activityDetail}>
-                {DAY_NAMES[act.dayOfWeek]} {act.timeWindow} • {act.intensity}
+      {/* Section 1: Fixed Activities - Beautiful Day Grid */}
+      <View style={styles.activitiesCard}>
+        <LinearGradient
+          colors={[`${COLORS.accent}15`, `${COLORS.secondary}10`]}
+          style={styles.activitiesCardGradient}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+        >
+          <View style={styles.activitiesHeader}>
+            <Ionicons name="calendar" size={22} color={COLORS.accent} />
+            <Text style={styles.activitiesTitle}>Your Weekly Commitments</Text>
+          </View>
+          <Text style={styles.activitiesHint}>
+            Tap a day to add activities like classes, sports, or work shifts
+          </Text>
+          
+          {/* Day Grid - 7 days */}
+          <View style={styles.dayGrid}>
+            {DAY_NAMES_SHORT.map((day, idx) => {
+              const activity = getActivityForDay(idx);
+              const isSelected = selectedActivityDay === idx;
+              const hasActivity = !!activity;
+              
+              return (
+                <TouchableOpacity
+                  key={day}
+                  style={[
+                    styles.dayCard,
+                    isSelected && styles.dayCardSelected,
+                    hasActivity && styles.dayCardHasActivity,
+                  ]}
+                  onPress={() => handleDaySelect(idx)}
+                  activeOpacity={0.7}
+                >
+                  {hasActivity && (
+                    <View style={[styles.dayActivityIndicator, { 
+                      backgroundColor: INTENSITY_OPTIONS.find(i => i.value === activity.intensity)?.color || COLORS.accent 
+                    }]} />
+                  )}
+                  <Text style={[
+                    styles.dayCardText,
+                    isSelected && styles.dayCardTextSelected,
+                  ]}>
+                    {day}
+                  </Text>
+                  {hasActivity && (
+                    <Text style={styles.dayCardActivityName} numberOfLines={1}>
+                      {activity.name}
+                    </Text>
+                  )}
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+
+          {/* Activity Input Panel - Shows when day selected */}
+          {selectedActivityDay !== null && (
+            <View style={styles.activityInputPanel}>
+              <View style={styles.activityInputHeader}>
+                <Text style={styles.activityInputDayName}>
+                  {DAY_NAMES_FULL[selectedActivityDay]}
+                </Text>
+                {getActivityForDay(selectedActivityDay) && (
+                  <TouchableOpacity 
+                    onPress={() => clearActivityForDay(selectedActivityDay)}
+                    style={styles.clearActivityBtn}
+                  >
+                    <Ionicons name="trash-outline" size={18} color="#FF6B6B" />
+                  </TouchableOpacity>
+                )}
+              </View>
+              
+              <View style={styles.activityInputRow}>
+                <TextInput
+                  style={styles.activityTextInput}
+                  placeholder="e.g., Boxing, HIIT, Football..."
+                  placeholderTextColor={COLORS.mediumGray}
+                  value={activityInput}
+                  onChangeText={setActivityInput}
+                  onBlur={handleActivitySave}
+                  onSubmitEditing={handleActivitySave}
+                  returnKeyType="done"
+                />
+              </View>
+
+              {/* Intensity Selector */}
+              <View style={styles.intensitySelector}>
+                <Text style={styles.intensityLabel}>How intense?</Text>
+                <View style={styles.intensityOptions}>
+                  {INTENSITY_OPTIONS.map((opt) => (
+                    <TouchableOpacity
+                      key={opt.value}
+                      style={[
+                        styles.intensityOption,
+                        activityIntensity === opt.value && { 
+                          backgroundColor: `${opt.color}20`,
+                          borderColor: opt.color,
+                        },
+                      ]}
+                      onPress={() => {
+                        setActivityIntensity(opt.value);
+                        if (activityInput.trim()) {
+                          setActivityForDay(selectedActivityDay, activityInput, opt.value);
+                        }
+                      }}
+                    >
+                      <Ionicons 
+                        name={opt.icon as any} 
+                        size={16} 
+                        color={activityIntensity === opt.value ? opt.color : COLORS.mediumGray} 
+                      />
+                      <Text style={[
+                        styles.intensityOptionText,
+                        activityIntensity === opt.value && { color: opt.color },
+                      ]}>
+                        {opt.label}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              </View>
+
+              <Text style={styles.activityNote}>
+                💡 The AI will count this towards your weekly training and won't schedule conflicting workouts
               </Text>
             </View>
-            <TouchableOpacity onPress={() => removeWeeklyActivity(idx)}>
-              <Ionicons name="close-circle" size={22} color={COLORS.danger} />
-            </TouchableOpacity>
-          </View>
-        ))}
-        
-        {/* Add new activity */}
-        <View style={styles.addActivityRow}>
-          <TextInput
-            style={styles.activityInput}
-            placeholder="e.g., Boxing, HIIT class"
-            placeholderTextColor={COLORS.mediumGray}
-            value={newActivity.name}
-            onChangeText={(text) => setNewActivity(prev => ({ ...prev, name: text }))}
-          />
-          <View style={styles.activityOptions}>
-            <TouchableOpacity 
-              style={styles.dayPicker}
-              onPress={() => setNewActivity(prev => ({ 
-                ...prev, 
-                dayOfWeek: (prev.dayOfWeek + 1) % 7 
-              }))}
-            >
-              <Text style={styles.dayPickerText}>{DAY_NAMES[newActivity.dayOfWeek]}</Text>
-            </TouchableOpacity>
-            <TouchableOpacity 
-              style={styles.intensityPicker}
-              onPress={() => {
-                const intensities: ('low' | 'moderate' | 'hard')[] = ['low', 'moderate', 'hard'];
-                const idx = intensities.indexOf(newActivity.intensity);
-                setNewActivity(prev => ({ ...prev, intensity: intensities[(idx + 1) % 3] }));
-              }}
-            >
-              <Text style={[styles.intensityText, { 
-                color: newActivity.intensity === 'hard' ? COLORS.danger : 
-                       newActivity.intensity === 'moderate' ? COLORS.accent : COLORS.success 
-              }]}>
-                {newActivity.intensity}
-              </Text>
-            </TouchableOpacity>
-          </View>
-          <TouchableOpacity style={styles.addActivityBtn} onPress={addWeeklyActivity}>
-            <Ionicons name="add" size={20} color={COLORS.white} />
-          </TouchableOpacity>
-        </View>
+          )}
+        </LinearGradient>
       </View>
 
-      {/* Section 2: Gym Days Available */}
-      <View style={styles.scheduleSection}>
-        <Text style={styles.scheduleSectionTitle}>Which days can you train?</Text>
-        <View style={styles.daysRow}>
-          {DAY_NAMES.map((day, idx) => (
-            <TouchableOpacity
-              key={day}
-              style={[
-                styles.dayChip,
-                (formData.gymDaysAvailable || []).includes(idx) && styles.dayChipSelected
-              ]}
-              onPress={() => toggleGymDay(idx)}
-            >
-              <Text style={[
-                styles.dayChipText,
-                (formData.gymDaysAvailable || []).includes(idx) && styles.dayChipTextSelected
-              ]}>
-                {day}
-              </Text>
-            </TouchableOpacity>
-          ))}
+      {/* Section 2: Preferred Split */}
+      <View style={styles.splitSection}>
+        <View style={styles.splitHeader}>
+          <Ionicons name="grid" size={20} color={COLORS.accent} />
+          <Text style={styles.splitTitle}>Preferred Training Split</Text>
         </View>
+        <Text style={styles.splitHint}>Optional - choose a style or let us optimise for you</Text>
         
-        {/* Flexibility toggle */}
-        <TouchableOpacity 
-          style={styles.flexibilityRow}
-          onPress={() => setFormData(prev => ({ 
-            ...prev, 
-            scheduleFlexibility: !prev.scheduleFlexibility 
-          }))}
-        >
-          <Ionicons 
-            name={formData.scheduleFlexibility ? 'checkbox' : 'square-outline'} 
-            size={22} 
-            color={COLORS.accent} 
-          />
-          <Text style={styles.flexibilityText}>My schedule changes week-to-week</Text>
-        </TouchableOpacity>
-      </View>
-
-      {/* Section 3: Preferred Split */}
-      <View style={styles.scheduleSection}>
-        <Text style={styles.scheduleSectionTitle}>Preferred Training Split</Text>
-        <Text style={styles.scheduleSectionHint}>Optional - let us know if you prefer a specific style</Text>
-        
-        <View style={styles.splitOptions}>
+        <View style={styles.splitGrid}>
           {SPLIT_OPTIONS.map((option) => (
             <TouchableOpacity
               key={option.value}
               style={[
-                styles.splitOption,
-                formData.preferredSplit === option.value && styles.splitOptionSelected
+                styles.splitCard,
+                formData.preferredSplit === option.value && styles.splitCardSelected,
               ]}
               onPress={() => setFormData(prev => ({ ...prev, preferredSplit: option.value }))}
             >
+              {formData.preferredSplit === option.value && (
+                <LinearGradient
+                  colors={[COLORS.accent, COLORS.secondary]}
+                  style={styles.splitCardSelectedBg}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 1 }}
+                />
+              )}
               <Ionicons 
-                name={formData.preferredSplit === option.value ? 'radio-button-on' : 'radio-button-off'} 
-                size={18} 
-                color={formData.preferredSplit === option.value ? COLORS.accent : COLORS.mediumGray} 
+                name={option.icon as any} 
+                size={20} 
+                color={formData.preferredSplit === option.value ? COLORS.white : COLORS.accent} 
+                style={styles.splitCardIcon}
               />
               <Text style={[
-                styles.splitOptionText,
-                formData.preferredSplit === option.value && styles.splitOptionTextSelected
+                styles.splitCardLabel,
+                formData.preferredSplit === option.value && styles.splitCardLabelSelected,
               ]}>
                 {option.label}
+              </Text>
+              <Text style={[
+                styles.splitCardDesc,
+                formData.preferredSplit === option.value && styles.splitCardDescSelected,
+              ]}>
+                {option.desc}
               </Text>
             </TouchableOpacity>
           ))}
         </View>
         
+        {/* Other split - with voice button */}
         {formData.preferredSplit === 'other' && (
-          <TextInput
-            style={styles.otherSplitInput}
-            placeholder="Describe your preferred split..."
-            placeholderTextColor={COLORS.mediumGray}
-            value={formData.preferredSplitOther || ''}
-            onChangeText={(text) => setFormData(prev => ({ ...prev, preferredSplitOther: text }))}
-          />
+          <View style={styles.otherSplitContainer}>
+            <View style={styles.otherSplitInputRow}>
+              <TextInput
+                style={styles.otherSplitInput}
+                placeholder="Describe your preferred split..."
+                placeholderTextColor={COLORS.mediumGray}
+                value={formData.preferredSplitOther || ''}
+                onChangeText={(text) => setFormData(prev => ({ ...prev, preferredSplitOther: text }))}
+                multiline
+              />
+              <TouchableOpacity 
+                style={styles.voiceButton}
+                onPress={() => {
+                  // Use existing voice recording functionality
+                  if (isRecording) {
+                    stopRecording();
+                  } else {
+                    startRecording();
+                  }
+                }}
+              >
+                <LinearGradient
+                  colors={isRecording ? ['#FF6B6B', '#FF8E8E'] : [COLORS.accent, COLORS.secondary]}
+                  style={styles.voiceButtonGradient}
+                >
+                  <Ionicons 
+                    name={isRecording ? 'stop' : 'mic'} 
+                    size={20} 
+                    color={COLORS.white} 
+                  />
+                </LinearGradient>
+              </TouchableOpacity>
+            </View>
+            {isRecording && (
+              <Text style={styles.recordingHint}>🎤 Listening... tap to stop</Text>
+            )}
+          </View>
         )}
       </View>
     </View>
