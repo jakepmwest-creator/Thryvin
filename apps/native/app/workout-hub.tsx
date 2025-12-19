@@ -62,6 +62,9 @@ export default function WorkoutHubScreen() {
   const [showEditModal, setShowEditModal] = useState(false);
   const [editableWorkout, setEditableWorkout] = useState<any>(null);
   
+  // Workout Coach Sheet state (Phase 8)
+  const [showCoachSheet, setShowCoachSheet] = useState(false);
+  
   // Finish stats for celebration popup
   const [finishStats, setFinishStats] = useState({
     completedExercises: 0,
