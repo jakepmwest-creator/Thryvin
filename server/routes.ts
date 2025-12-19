@@ -1879,7 +1879,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Requires authentication OR demo mode enabled
   app.post("/api/coach/chat", async (req, res) => {
     try {
-      const { message, coach, coachingStyle, conversationHistory } = req.body;
+      const { message, coach, coachingStyle, conversationHistory, workoutContext } = req.body;
       
       // SECURITY: Require authenticated user
       // Demo mode: Use fixed demo profile (userId: -1) when DEMO_MODE=true
@@ -1904,8 +1904,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
       
+      // Log workout context if provided (Phase 8: In-Workout Coach)
       if (process.env.NODE_ENV !== 'production') {
-        console.log('🤖 [COACH] Chat request:', { coach, userId, messageLength: message?.length });
+        const contextInfo = workoutContext ? {
+          inWorkout: workoutContext.userIntentHint === 'in_workout',
+          exercise: workoutContext.currentExercise?.name,
+          progress: workoutContext.progressPercent,
+        } : null;
+        console.log('🤖 [COACH] Chat request:', { coach, userId, messageLength: message?.length, workoutContext: contextInfo });
       }
       
       // Use unified coach service (includes full context builder)
@@ -1915,6 +1921,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         userId,
         coachingStyle,
         conversationHistory,
+        workoutContext, // Phase 8: Pass workout context for in-workout coaching
       });
       
       // Save chat for AI learning (non-blocking) - skip for demo user
