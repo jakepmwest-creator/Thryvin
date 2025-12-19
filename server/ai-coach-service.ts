@@ -186,13 +186,35 @@ export async function getUnifiedCoachResponse(request: CoachChatRequest): Promis
       systemPrompt += `\n\nCoaching style preference: ${coachingStyle}`;
     }
     
-    // Add strict fitness-only instruction
-    systemPrompt += `\n\n=== CRITICAL RULES ===
+    // Add workout context if provided (Phase 8: In-Workout Coach)
+    const isInWorkout = workoutContext?.userIntentHint === 'in_workout' || workoutContext?.currentExercise;
+    
+    if (workoutContext) {
+      systemPrompt += buildWorkoutContextPrompt(workoutContext);
+    }
+    
+    // Add strict fitness-only instruction with mode-specific behavior
+    if (isInWorkout) {
+      // IN-WORKOUT MODE: Shorter, more actionable responses
+      systemPrompt += `\n\n=== CRITICAL RULES (IN-WORKOUT MODE) ===
+1. You are STRICTLY a fitness coach helping during an active workout
+2. Keep responses SHORT and ACTIONABLE (1-3 bullet points max)
+3. Focus on immediate, practical guidance
+4. For weight questions: reference their logged data and suggest specific numbers
+5. For form questions: give 2-3 quick cues
+6. For swap requests: suggest ONE alternative that respects their equipment/injuries
+7. Don't ask clarifying questions unless absolutely necessary
+8. Be encouraging but efficient - they're mid-workout!
+9. Never give medical advice - redirect to professionals if needed
+10. Never mention you're an AI model`;
+    } else {
+      systemPrompt += `\n\n=== CRITICAL RULES ===
 1. You are STRICTLY a fitness, health, and nutrition coach
 2. If asked about non-fitness topics, politely redirect to fitness
 3. Be concise (1-3 paragraphs max)
 4. Be personal and encouraging
 5. Never mention you're an AI model`;
+    }
     
     // Build messages array with conversation history
     const messages: Array<{ role: 'system' | 'user' | 'assistant'; content: string }> = [
