@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
 """
-Backend API Testing Suite for Thryvin Fitness App - Onboarding Data Fix
+Backend API Testing Suite for Thryvin Fitness App - Phase 7: Edit Workout Feature
 Tests the specific scenarios mentioned in the review request:
-1. Test User Registration with Full Onboarding Data
-2. Test Fetch User to Verify Persistence  
-3. Test Workout Generation with "It Depends" Schedule
+1. Health Check Endpoint
+2. Exercise Swap Endpoint (injury-based)
+3. AI Exercise Swap Endpoint (equipment-based)
+4. Make Easier Exercise Swap Test
 """
 
 import requests
