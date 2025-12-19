@@ -66,6 +66,42 @@ backend:
         agent: "testing"
         comment: "✅ VERIFIED: Backend API confirmed working correctly for 21-day workout generation. All 7 days generate unique workouts with proper exercise counts (8-15 exercises per workout)."
 
+  - task: "Phase 7: Edit Workout - Exercise Swap (Injury-based)"
+    implemented: true
+    working: true
+    file: "server/ai-exercise-swap.ts"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "✅ PASSED: Exercise swap endpoint POST /api/workouts/swap-exercise successfully handles injury-based swaps. Test case: Barbell Bench Press → Resistance Band External Rotation for shoulder pain. AI correctly avoids shoulder-aggravating exercises and suggests safe alternatives."
+
+  - task: "Phase 7: Edit Workout - Exercise Swap (Equipment-based)"
+    implemented: true
+    working: true
+    file: "server/ai-exercise-swap.ts"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "✅ PASSED: Exercise swap endpoint successfully handles equipment-based swaps. Test case: Deadlift → Dumbbell Goblet Squat when no barbell available. AI correctly suggests alternatives using available equipment (dumbbells, kettlebell)."
+
+  - task: "Phase 7: Edit Workout - Make Easier Exercise Swap"
+    implemented: true
+    working: true
+    file: "server/ai-exercise-swap.ts"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "✅ PASSED: Exercise swap endpoint successfully handles difficulty reduction. Test case: Pull-ups → Assisted Pull-Up Machine for beginner who can't do pull-ups yet. AI provides appropriate easier alternatives."
+
 frontend:
   - task: "Onboarding Flow with Country Selection"
     implemented: true
