@@ -233,24 +233,28 @@ export function generateWeeklyTemplate(input: SplitPlannerInput): WeeklyTemplate
   let patternIndex = 0;
   
   for (let dayIndex = 0; dayIndex < 7; dayIndex++) {
-    const conflicts = getDayConflicts(dayIndex, weeklyActivities);
-    const hasHardConflict = conflicts.some(c => c.includes('heavy_') || c === 'evening_session');
+    const activity = weeklyActivities.find(a => a.dayOfWeek === dayIndex);
+    const hasActivity = !!activity && (activity.intensity === 'hard' || activity.intensity === 'moderate');
     
-    if (scheduledDays.includes(dayIndex)) {
+    if (hasActivity) {
+      // User has a scheduled activity - this IS their training for this day
+      // Don't generate a gym workout, but mark it as their activity
+      days.push({
+        dayIndex,
+        focus: 'cardio', // Treat external activities as cardio/conditioning
+        exerciseCount: { min: 0, max: 0 }, // No gym exercises needed
+        warmupCount: 0,
+        mainCount: { min: 0, max: 0 },
+        cooldownCount: 0,
+        notes: `📅 ${activity.name} (${activity.intensity} intensity) - counts as training`,
+        avoidPatterns: ['gym_workout'], // Signal that this is an external activity day
+      });
+    } else if (scheduledDays.includes(dayIndex)) {
       const focus = splitPattern[patternIndex % splitPattern.length] as DayPlan['focus'];
-      
-      // Adjust focus if conflicts exist
-      let adjustedFocus = focus;
-      if (conflicts.includes('heavy_legs') && (focus === 'legs' || focus === 'lower')) {
-        adjustedFocus = 'upper'; // Swap to upper if legs conflict
-      }
-      if (conflicts.includes('heavy_upper') && (focus === 'upper' || focus === 'push' || focus === 'pull')) {
-        adjustedFocus = 'lower'; // Swap to lower if upper conflict
-      }
       
       days.push({
         dayIndex,
-        focus: adjustedFocus,
+        focus,
         exerciseCount: { min: counts.min, max: counts.max },
         warmupCount: counts.warmup,
         mainCount: { 
@@ -258,23 +262,9 @@ export function generateWeeklyTemplate(input: SplitPlannerInput): WeeklyTemplate
           max: counts.max - counts.warmup - counts.cooldown 
         },
         cooldownCount: counts.cooldown,
-        avoidPatterns: conflicts.length > 0 ? conflicts : undefined,
-        notes: conflicts.length > 0 ? `Adjusted due to ${conflicts.join(', ')}` : undefined,
       });
       
       patternIndex++;
-    } else if (hasHardConflict) {
-      // Day has hard activity - suggest light recovery if user still wants to train
-      days.push({
-        dayIndex,
-        focus: 'recovery',
-        exerciseCount: { min: 2, max: 4 }, // Light recovery workout
-        warmupCount: 1,
-        mainCount: { min: 1, max: 2 },
-        cooldownCount: 1,
-        avoidPatterns: conflicts,
-        notes: `Recovery day - hard activity (${conflicts.join(', ')}) scheduled`,
-      });
     } else {
       // Regular rest day
       days.push({
