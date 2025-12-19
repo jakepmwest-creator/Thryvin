@@ -40,7 +40,7 @@ const TABS: { id: TabType; label: string }[] = [
 
 export default function WorkoutHubScreen() {
   const router = useRouter();
-  const { currentWorkout, activeSession, startWorkoutSession, completeSet, finishWorkoutSession } = useWorkoutStore();
+  const { currentWorkout, activeSession, startWorkoutSession, completeSet, finishWorkoutSession, setCurrentWorkout, weekWorkouts } = useWorkoutStore();
   
   const [activeTab, setActiveTab] = useState<TabType>('warmup');
   const [expandedExercise, setExpandedExercise] = useState<number | null>(null);
