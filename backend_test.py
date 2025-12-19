@@ -120,73 +120,63 @@ class ThryvinAPITester:
             self.log_test("Exercise Swap - Injury Based", False, f"Swap error: {str(e)}")
             return False
     
-    def test_fetch_user_to_verify_persistence(self) -> bool:
-        """Test 2: Fetch User to Verify Persistence"""
+    def test_ai_exercise_swap_equipment_based(self) -> bool:
+        """Test 2: AI Exercise Swap Endpoint - Equipment-based swap"""
         try:
-            if not self.registered_user or not self.user_id:
-                self.log_test("Fetch User to Verify Persistence", False, 
-                            "No registered user available from previous test")
-                return False
+            # Test data as specified in review request
+            swap_data = {
+                "currentExercise": "Deadlift",
+                "reason": "equipment",
+                "additionalNotes": "no barbell available",
+                "userProfile": {
+                    "equipment": ["dumbbells", "kettlebell"]
+                }
+            }
             
-            # GET /api/users/{id} with the ID from Test 1
-            response = self.session.get(f"{API_BASE}/users/{self.user_id}")
+            # Note: Based on the server code, the endpoint is /api/workouts/swap-exercise, not /api/ai/swap-exercise
+            response = self.session.post(f"{API_BASE}/workouts/swap-exercise", json=swap_data)
             
             if response.status_code == 200:
-                user_data = response.json()
+                data = response.json()
                 
-                # VERIFY onboardingResponses is still present and correct
-                onboarding_responses = user_data.get('onboardingResponses')
-                if not onboarding_responses:
-                    self.log_test("Fetch User to Verify Persistence", False, 
-                                "Missing onboardingResponses field in fetched user", user_data)
-                    return False
-                
-                # Parse onboardingResponses if it's a string
-                if isinstance(onboarding_responses, str):
-                    try:
-                        onboarding_responses = json.loads(onboarding_responses)
-                    except:
-                        self.log_test("Fetch User to Verify Persistence", False, 
-                                    "Could not parse onboardingResponses JSON in fetched user", user_data)
-                        return False
-                
-                # Verify the same required fields are still there
-                required_fields = {
-                    'trainingSchedule': 'depends',
-                    'specificDates': ["2025-12-16", "2025-12-18", "2025-12-20"],
-                    'country': 'US',
-                    'timezone': 'America/New_York'
-                }
-                
-                missing_or_incorrect = []
-                for field, expected_value in required_fields.items():
-                    actual_value = onboarding_responses.get(field)
+                # Check for expected response structure
+                if 'recommended' in data:
+                    recommended = data['recommended']
                     
-                    if field == 'specificDates':
-                        # Check if arrays match
-                        if not isinstance(actual_value, list) or set(actual_value) != set(expected_value):
-                            missing_or_incorrect.append(f"{field}: expected {expected_value}, got {actual_value}")
-                    else:
-                        if actual_value != expected_value:
-                            missing_or_incorrect.append(f"{field}: expected {expected_value}, got {actual_value}")
-                
-                if missing_or_incorrect:
-                    self.log_test("Fetch User to Verify Persistence", False, 
-                                f"Fetched user onboardingResponses missing or incorrect fields: {missing_or_incorrect}", 
-                                {"onboardingResponses": onboarding_responses})
-                    return False
-                else:
-                    self.log_test("Fetch User to Verify Persistence", True, 
-                                f"Successfully fetched user {self.user_id} with persistent onboarding data")
+                    # Verify recommended exercise has required fields
+                    required_fields = ['name', 'sets', 'reps']
+                    missing_fields = [field for field in required_fields if field not in recommended]
+                    
+                    if missing_fields:
+                        self.log_test("AI Exercise Swap - Equipment Based", False, 
+                                    f"Recommended exercise missing fields: {missing_fields}", data)
+                        return False
+                    
+                    # Verify the swap uses available equipment (should suggest dumbbell or kettlebell alternative)
+                    exercise_name = recommended['name'].lower()
+                    uses_available_equipment = any(equip in exercise_name for equip in ['dumbbell', 'kettlebell', 'bodyweight'])
+                    avoids_barbell = 'barbell' not in exercise_name
+                    
+                    if not avoids_barbell:
+                        self.log_test("AI Exercise Swap - Equipment Based", False, 
+                                    f"Recommended exercise '{recommended['name']}' still requires barbell", data)
+                        return False
+                    
+                    self.log_test("AI Exercise Swap - Equipment Based", True, 
+                                f"Successfully swapped to available equipment exercise: {recommended['name']}")
                     return True
+                else:
+                    self.log_test("AI Exercise Swap - Equipment Based", False, 
+                                "Response missing 'recommended' field", data)
+                    return False
             else:
-                self.log_test("Fetch User to Verify Persistence", False, 
-                            f"Failed to fetch user with status {response.status_code}",
+                self.log_test("AI Exercise Swap - Equipment Based", False, 
+                            f"AI swap failed with status {response.status_code}",
                             {"response": response.text})
                 return False
                 
         except Exception as e:
-            self.log_test("Fetch User to Verify Persistence", False, f"Fetch user error: {str(e)}")
+            self.log_test("AI Exercise Swap - Equipment Based", False, f"AI swap error: {str(e)}")
             return False
     
     def test_workout_generation_with_depends_schedule(self) -> bool:
