@@ -123,7 +123,7 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Phase 6: Coach Suggestion Card Implementation"
+    - "Phase 7: Edit Workout Feature Testing Complete"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
