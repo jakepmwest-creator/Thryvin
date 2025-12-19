@@ -151,6 +151,10 @@ function getDayConflicts(dayIndex: number, activities: WeeklyActivity[]): string
 
 /**
  * Main function: Generate a weekly workout template
+ * 
+ * KEY LOGIC: If user has fixed activities (boxing, classes, etc.), those COUNT
+ * towards their weekly training days. So if they want 4 days/week and have boxing
+ * on Monday, we only generate 3 gym workouts.
  */
 export function generateWeeklyTemplate(input: SplitPlannerInput): WeeklyTemplate {
   const {
@@ -164,21 +168,31 @@ export function generateWeeklyTemplate(input: SplitPlannerInput): WeeklyTemplate
     preferredSplit,
   } = input;
   
-  // Determine split pattern
+  // Count hard/moderate activities as training days
+  const activityDays = weeklyActivities
+    .filter(a => a.intensity === 'hard' || a.intensity === 'moderate')
+    .map(a => a.dayOfWeek);
+  
+  // Effective gym days needed = total training days - activity days
+  const gymDaysNeeded = Math.max(1, frequency - activityDays.length);
+  
+  console.log(`  📊 Split planner: ${frequency} days/week requested, ${activityDays.length} activity days, ${gymDaysNeeded} gym days needed`);
+  
+  // Determine split pattern for GYM days only
   let splitPattern: string[];
   
   if (preferredSplit && preferredSplit !== 'coach_choice' && PREFERRED_SPLIT_MAP[preferredSplit]) {
     // User has a preferred split
-    splitPattern = PREFERRED_SPLIT_MAP[preferredSplit].slice(0, frequency);
+    splitPattern = PREFERRED_SPLIT_MAP[preferredSplit].slice(0, gymDaysNeeded);
     // Pad if needed
-    while (splitPattern.length < frequency) {
+    while (splitPattern.length < gymDaysNeeded) {
       splitPattern.push(splitPattern[splitPattern.length - 1] || 'full');
     }
   } else {
-    // Use default template based on frequency + experience
-    const templateKey = `${frequency}_${experience}`;
-    const templateFn = SPLIT_TEMPLATES[templateKey] || SPLIT_TEMPLATES[`${Math.min(frequency, 5)}_intermediate`];
-    splitPattern = templateFn ? templateFn(input) : ['full'];
+    // Use default template based on gym days needed + experience
+    const templateKey = `${gymDaysNeeded}_${experience}`;
+    const templateFn = SPLIT_TEMPLATES[templateKey] || SPLIT_TEMPLATES[`${Math.min(gymDaysNeeded, 5)}_intermediate`];
+    splitPattern = templateFn ? templateFn({ ...input, frequency: gymDaysNeeded }) : ['full'];
   }
   
   // Get exercise counts
