@@ -92,11 +92,53 @@ export interface CoachChatResponse {
 }
 
 /**
+ * Build workout context string for injection into coach prompt
+ */
+function buildWorkoutContextPrompt(workoutContext: WorkoutContext): string {
+  const parts: string[] = [];
+  
+  parts.push('\n=== CURRENT WORKOUT SESSION ===');
+  
+  if (workoutContext.workoutTitle) {
+    parts.push(`Workout: ${workoutContext.workoutTitle}`);
+  }
+  if (workoutContext.workoutType) {
+    parts.push(`Type: ${workoutContext.workoutType}`);
+  }
+  if (workoutContext.progressPercent !== undefined) {
+    parts.push(`Progress: ${workoutContext.progressPercent}% complete`);
+  }
+  if (workoutContext.remainingExercisesCount !== undefined) {
+    parts.push(`Remaining: ${workoutContext.remainingExercisesCount} exercises left`);
+  }
+  
+  if (workoutContext.currentExercise) {
+    const ex = workoutContext.currentExercise;
+    parts.push('\n--- Current Exercise ---');
+    parts.push(`Exercise: ${ex.name}`);
+    if (ex.sets) parts.push(`Target sets: ${ex.sets}`);
+    if (ex.reps) parts.push(`Target reps: ${ex.reps}`);
+    if (ex.restTime) parts.push(`Rest time: ${ex.restTime}s`);
+    if (ex.userLoggedSets !== undefined) {
+      parts.push(`Sets completed: ${ex.userLoggedSets}/${ex.sets || '?'}`);
+    }
+    if (ex.lastEnteredWeight !== undefined) {
+      parts.push(`Last logged weight: ${ex.lastEnteredWeight}kg`);
+    }
+    if (ex.lastEnteredReps !== undefined) {
+      parts.push(`Last logged reps: ${ex.lastEnteredReps}`);
+    }
+  }
+  
+  return parts.join('\n');
+}
+
+/**
  * Get coach response with full user context
  * This is the ONLY function that should be called for coach interactions
  */
 export async function getUnifiedCoachResponse(request: CoachChatRequest): Promise<CoachChatResponse> {
-  const { message, coach = 'default', userId, coachingStyle, conversationHistory = [] } = request;
+  const { message, coach = 'default', userId, coachingStyle, conversationHistory = [], workoutContext } = request;
   
   try {
     // Get coach personality
