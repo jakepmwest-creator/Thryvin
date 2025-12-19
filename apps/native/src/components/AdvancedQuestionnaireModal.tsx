@@ -554,11 +554,6 @@ export const AdvancedQuestionnaireModal = ({
     { value: 'other', label: 'Other', desc: 'Custom', icon: 'create' },
   ];
 
-  // State for the selected day in activity picker
-  const [selectedActivityDay, setSelectedActivityDay] = useState<number | null>(null);
-  const [activityInput, setActivityInput] = useState('');
-  const [activityIntensity, setActivityIntensity] = useState<'low' | 'moderate' | 'hard'>('moderate');
-
   const getActivityForDay = (dayIndex: number) => {
     return (formData.weeklyActivities || []).find(a => a.dayOfWeek === dayIndex);
   };
