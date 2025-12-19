@@ -277,13 +277,10 @@ export const AdvancedQuestionnaireModal = ({
     preferredSplit: 'coach_choice',
   });
   
-  // Weekly schedule state
-  const [newActivity, setNewActivity] = useState<WeeklyActivity>({
-    name: '',
-    dayOfWeek: 1,
-    timeWindow: 'evening',
-    intensity: 'moderate',
-  });
+  // Weekly schedule state - redesigned for better UX
+  const [selectedActivityDay, setSelectedActivityDay] = useState<number | null>(null);
+  const [activityInput, setActivityInput] = useState('');
+  const [activityIntensity, setActivityIntensity] = useState<'low' | 'moderate' | 'hard'>('moderate');
   
   // Animation
   const fadeAnim = useState(new Animated.Value(0))[0];
