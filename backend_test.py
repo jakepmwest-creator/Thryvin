@@ -62,92 +62,62 @@ class ThryvinAPITester:
         if details and not success:
             print(f"   Details: {json.dumps(details, indent=2)}")
     
-    def test_user_registration_with_onboarding_data(self) -> bool:
-        """Test 1: User Registration with Full Onboarding Data"""
+    def test_exercise_swap_injury_based(self) -> bool:
+        """Test 1: Exercise Swap Endpoint - Injury-based swap"""
         try:
-            # Use timestamp to ensure unique email
-            timestamp = int(time.time())
-            unique_email = f"testuser_{timestamp}@test.com"
-            
-            # Registration data as specified in review request
-            registration_data = {
-                "name": "Test User",
-                "email": unique_email,
-                "password": "Test123!",
-                "trainingSchedule": "depends",
-                "specificDates": ["2025-12-16", "2025-12-18", "2025-12-20"],
-                "country": "US",
-                "timezone": "America/New_York"
+            # Test data as specified in review request
+            swap_data = {
+                "currentExercise": "Barbell Bench Press",
+                "reason": "injury",
+                "additionalNotes": "shoulder pain",
+                "userProfile": {
+                    "injuries": "shoulder",
+                    "equipment": ["dumbbells", "barbell"]
+                }
             }
             
-            response = self.session.post(f"{API_BASE}/auth/register", json=registration_data)
+            response = self.session.post(f"{API_BASE}/workouts/swap-exercise", json=swap_data)
             
-            if response.status_code in [200, 201]:
-                user_data = response.json()
+            if response.status_code == 200:
+                data = response.json()
                 
                 # Check for expected response structure
-                if 'user' in user_data and user_data.get('ok'):
-                    user = user_data['user']
-                    self.registered_user = user
-                    self.user_id = user.get('id')
+                if 'recommended' in data:
+                    recommended = data['recommended']
                     
-                    # VERIFY the response contains user.onboardingResponses with required fields
-                    onboarding_responses = user.get('onboardingResponses')
-                    if not onboarding_responses:
-                        self.log_test("User Registration with Onboarding Data", False, 
-                                    "Missing onboardingResponses field", user)
+                    # Verify recommended exercise has required fields
+                    required_fields = ['name', 'sets', 'reps']
+                    missing_fields = [field for field in required_fields if field not in recommended]
+                    
+                    if missing_fields:
+                        self.log_test("Exercise Swap - Injury Based", False, 
+                                    f"Recommended exercise missing fields: {missing_fields}", data)
                         return False
                     
-                    # Parse onboardingResponses if it's a string
-                    if isinstance(onboarding_responses, str):
-                        try:
-                            onboarding_responses = json.loads(onboarding_responses)
-                        except:
-                            self.log_test("User Registration with Onboarding Data", False, 
-                                        "Could not parse onboardingResponses JSON", user)
-                            return False
+                    # Verify the swap respects injury constraint (should avoid shoulder-aggravating exercises)
+                    exercise_name = recommended['name'].lower()
+                    shoulder_unsafe = any(term in exercise_name for term in ['overhead', 'military press', 'upright row', 'behind neck'])
                     
-                    # Verify required fields in onboardingResponses
-                    required_fields = {
-                        'trainingSchedule': 'depends',
-                        'specificDates': ["2025-12-16", "2025-12-18", "2025-12-20"],
-                        'country': 'US',
-                        'timezone': 'America/New_York'
-                    }
-                    
-                    missing_or_incorrect = []
-                    for field, expected_value in required_fields.items():
-                        actual_value = onboarding_responses.get(field)
-                        
-                        if field == 'specificDates':
-                            # Check if arrays match
-                            if not isinstance(actual_value, list) or set(actual_value) != set(expected_value):
-                                missing_or_incorrect.append(f"{field}: expected {expected_value}, got {actual_value}")
-                        else:
-                            if actual_value != expected_value:
-                                missing_or_incorrect.append(f"{field}: expected {expected_value}, got {actual_value}")
-                    
-                    if missing_or_incorrect:
-                        self.log_test("User Registration with Onboarding Data", False, 
-                                    f"onboardingResponses missing or incorrect fields: {missing_or_incorrect}", 
-                                    {"onboardingResponses": onboarding_responses})
+                    if shoulder_unsafe:
+                        self.log_test("Exercise Swap - Injury Based", False, 
+                                    f"Recommended exercise '{recommended['name']}' may aggravate shoulder injury", data)
                         return False
-                    else:
-                        self.log_test("User Registration with Onboarding Data", True, 
-                                    f"Successfully registered user with complete onboarding data: {unique_email}")
-                        return True
+                    
+                    self.log_test("Exercise Swap - Injury Based", True, 
+                                f"Successfully swapped to shoulder-safe exercise: {recommended['name']}")
+                    return True
                 else:
-                    self.log_test("User Registration with Onboarding Data", False, 
-                                "Registration response missing user object or ok flag", user_data)
+                    self.log_test("Exercise Swap - Injury Based", False, 
+                                "Response missing 'recommended' field", data)
                     return False
             else:
-                self.log_test("User Registration with Onboarding Data", False, 
-                            f"Registration failed with status {response.status_code}",
+                self.log_test("Exercise Swap - Injury Based", False, 
+                            f"Swap failed with status {response.status_code}",
                             {"response": response.text})
                 return False
                 
         except Exception as e:
-            self.log_test("User Registration with Onboarding Data", False, f"Registration error: {str(e)}")
+            self.log_test("Exercise Swap - Injury Based", False, f"Swap error: {str(e)}")
             return False
     
     def test_fetch_user_to_verify_persistence(self) -> bool:
