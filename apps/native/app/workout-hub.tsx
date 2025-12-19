@@ -502,6 +502,27 @@ export default function WorkoutHubScreen() {
     }
   };
 
+  // Handle opening the Edit Workout modal
+  const handleEditWorkout = () => {
+    setEditableWorkout(currentWorkout);
+    setShowEditModal(true);
+  };
+
+  // Handle saving the edited workout
+  const handleSaveEditedWorkout = (updatedWorkout: any) => {
+    console.log('✅ Saving edited workout:', updatedWorkout.title);
+    
+    // Update the current workout in the store
+    setCurrentWorkout(updatedWorkout);
+    
+    // Close the modal
+    setShowEditModal(false);
+    setEditableWorkout(null);
+    
+    // Show success feedback
+    showAlert('success', 'Workout Updated', 'Your workout has been modified successfully!');
+  };
+
   // Safety check: if no workout, show message
   if (!currentWorkout || exercises.length === 0) {
     return (
