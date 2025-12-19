@@ -55,12 +55,34 @@ const FITNESS_KEYWORDS = [
   'hi', 'hello', 'hey', 'thanks', 'thank', 'how', 'what', 'should',
 ];
 
+export interface WorkoutContext {
+  workoutId?: string;
+  workoutTitle?: string;
+  workoutType?: string;
+  currentDay?: number;
+  currentWeek?: number;
+  currentExercise?: {
+    id?: string;
+    name: string;
+    sets?: number;
+    reps?: number | string;
+    restTime?: number;
+    userLoggedSets?: number;
+    lastEnteredWeight?: number;
+    lastEnteredReps?: number;
+  };
+  remainingExercisesCount?: number;
+  progressPercent?: number;
+  userIntentHint?: 'in_workout' | 'planning' | 'review';
+}
+
 export interface CoachChatRequest {
   message: string;
   coach?: string;
   userId?: number;
   coachingStyle?: string;
   conversationHistory?: Array<{ role: string; content: string }>;
+  workoutContext?: WorkoutContext;
 }
 
 export interface CoachChatResponse {
