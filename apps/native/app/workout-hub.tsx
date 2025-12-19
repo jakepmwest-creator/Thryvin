@@ -25,6 +25,7 @@ import { COLORS } from '../src/constants/colors';
 import ConfettiCannon from 'react-native-confetti-cannon';
 import { CoachSuggestionCard } from '../src/components/CoachSuggestionCard';
 import { EditWorkoutModal } from '../src/components/EditWorkoutModal';
+import { WorkoutCoachSheet } from '../src/components/WorkoutCoachSheet';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
