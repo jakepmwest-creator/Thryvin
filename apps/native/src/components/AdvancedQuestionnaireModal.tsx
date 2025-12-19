@@ -1472,157 +1472,256 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: COLORS.white,
   },
-  // Phase 8.5: Weekly Schedule styles
+  // Phase 8.5: Weekly Schedule styles - Thryvin Style
   weeklyScheduleContainer: {
-    gap: 20,
+    gap: 16,
   },
-  scheduleSection: {
-    backgroundColor: COLORS.white,
-    borderRadius: 12,
-    padding: 14,
-    gap: 10,
+  // Activities Card
+  activitiesCard: {
+    borderRadius: 16,
+    overflow: 'hidden',
   },
-  scheduleSectionTitle: {
-    fontSize: 15,
+  activitiesCardGradient: {
+    padding: 16,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: `${COLORS.accent}25`,
+  },
+  activitiesHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 4,
+  },
+  activitiesTitle: {
+    fontSize: 16,
     fontWeight: '700',
     color: COLORS.text,
   },
-  scheduleSectionHint: {
-    fontSize: 12,
+  activitiesHint: {
+    fontSize: 13,
     color: COLORS.mediumGray,
-    marginBottom: 4,
+    marginBottom: 14,
   },
-  activityItem: {
+  // Day Grid
+  dayGrid: {
     flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    backgroundColor: COLORS.lightGray,
-    padding: 10,
-    borderRadius: 8,
-  },
-  activityInfo: {
-    flex: 1,
-  },
-  activityName: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: COLORS.text,
-  },
-  activityDetail: {
-    fontSize: 12,
-    color: COLORS.mediumGray,
-  },
-  addActivityRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexWrap: 'wrap',
     gap: 8,
+    marginBottom: 12,
   },
-  activityInput: {
-    flex: 1,
-    backgroundColor: COLORS.lightGray,
-    borderRadius: 8,
-    padding: 10,
-    fontSize: 14,
-    color: COLORS.text,
-  },
-  activityOptions: {
-    flexDirection: 'row',
-    gap: 6,
-  },
-  dayPicker: {
-    backgroundColor: COLORS.lightGray,
-    paddingHorizontal: 10,
-    paddingVertical: 8,
-    borderRadius: 6,
-  },
-  dayPickerText: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: COLORS.accent,
-  },
-  intensityPicker: {
-    backgroundColor: COLORS.lightGray,
-    paddingHorizontal: 8,
-    paddingVertical: 8,
-    borderRadius: 6,
-  },
-  intensityText: {
-    fontSize: 11,
-    fontWeight: '600',
-    textTransform: 'capitalize',
-  },
-  addActivityBtn: {
-    width: 36,
-    height: 36,
-    borderRadius: 8,
-    backgroundColor: COLORS.accent,
+  dayCard: {
+    width: '13%',
+    minWidth: 42,
+    aspectRatio: 1,
+    backgroundColor: COLORS.white,
+    borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
+    borderWidth: 2,
+    borderColor: 'transparent',
+    position: 'relative',
+    overflow: 'hidden',
   },
-  daysRow: {
+  dayCardSelected: {
+    borderColor: COLORS.accent,
+    backgroundColor: `${COLORS.accent}10`,
+  },
+  dayCardHasActivity: {
+    backgroundColor: COLORS.white,
+  },
+  dayActivityIndicator: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    height: 3,
+    borderTopLeftRadius: 10,
+    borderTopRightRadius: 10,
+  },
+  dayCardText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: COLORS.text,
+  },
+  dayCardTextSelected: {
+    color: COLORS.accent,
+  },
+  dayCardActivityName: {
+    fontSize: 8,
+    color: COLORS.mediumGray,
+    marginTop: 2,
+    textAlign: 'center',
+    paddingHorizontal: 2,
+  },
+  // Activity Input Panel
+  activityInputPanel: {
+    backgroundColor: COLORS.white,
+    borderRadius: 12,
+    padding: 14,
+    marginTop: 4,
+    borderWidth: 1,
+    borderColor: COLORS.lightGray,
+  },
+  activityInputHeader: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    gap: 4,
-  },
-  dayChip: {
-    flex: 1,
     alignItems: 'center',
-    paddingVertical: 10,
-    borderRadius: 8,
+    justifyContent: 'space-between',
+    marginBottom: 10,
+  },
+  activityInputDayName: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: COLORS.accent,
+  },
+  clearActivityBtn: {
+    padding: 4,
+  },
+  activityInputRow: {
+    marginBottom: 12,
+  },
+  activityTextInput: {
     backgroundColor: COLORS.lightGray,
+    borderRadius: 10,
+    padding: 12,
+    fontSize: 15,
+    color: COLORS.text,
   },
-  dayChipSelected: {
-    backgroundColor: COLORS.accent,
+  intensitySelector: {
+    marginBottom: 10,
   },
-  dayChipText: {
+  intensityLabel: {
     fontSize: 12,
     fontWeight: '600',
-    color: COLORS.text,
+    color: COLORS.mediumGray,
+    marginBottom: 8,
   },
-  dayChipTextSelected: {
-    color: COLORS.white,
+  intensityOptions: {
+    flexDirection: 'row',
+    gap: 8,
   },
-  flexibilityRow: {
+  intensityOption: {
+    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
-    marginTop: 6,
-  },
-  flexibilityText: {
-    fontSize: 13,
-    color: COLORS.text,
-  },
-  splitOptions: {
+    justifyContent: 'center',
     gap: 6,
+    paddingVertical: 10,
+    borderRadius: 10,
+    backgroundColor: COLORS.lightGray,
+    borderWidth: 1,
+    borderColor: 'transparent',
   },
-  splitOption: {
+  intensityOptionText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: COLORS.mediumGray,
+  },
+  activityNote: {
+    fontSize: 11,
+    color: COLORS.mediumGray,
+    fontStyle: 'italic',
+    textAlign: 'center',
+    marginTop: 4,
+  },
+  // Split Section
+  splitSection: {
+    backgroundColor: COLORS.white,
+    borderRadius: 16,
+    padding: 16,
+  },
+  splitHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    paddingVertical: 10,
-    paddingHorizontal: 12,
-    backgroundColor: COLORS.lightGray,
-    borderRadius: 8,
+    marginBottom: 4,
   },
-  splitOptionSelected: {
-    backgroundColor: `${COLORS.accent}15`,
+  splitTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: COLORS.text,
+  },
+  splitHint: {
+    fontSize: 13,
+    color: COLORS.mediumGray,
+    marginBottom: 14,
+  },
+  splitGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  splitCard: {
+    width: '48%',
+    backgroundColor: COLORS.lightGray,
+    borderRadius: 12,
+    padding: 12,
+    alignItems: 'center',
+    position: 'relative',
+    overflow: 'hidden',
     borderWidth: 1,
+    borderColor: 'transparent',
+  },
+  splitCardSelected: {
     borderColor: COLORS.accent,
   },
-  splitOptionText: {
-    fontSize: 13,
-    color: COLORS.text,
+  splitCardSelectedBg: {
+    ...StyleSheet.absoluteFillObject,
+    opacity: 0.15,
   },
-  splitOptionTextSelected: {
+  splitCardIcon: {
+    marginBottom: 6,
+  },
+  splitCardLabel: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: COLORS.text,
+    textAlign: 'center',
+  },
+  splitCardLabelSelected: {
     color: COLORS.accent,
-    fontWeight: '600',
+  },
+  splitCardDesc: {
+    fontSize: 10,
+    color: COLORS.mediumGray,
+    marginTop: 2,
+  },
+  splitCardDescSelected: {
+    color: COLORS.accent,
+  },
+  // Other Split with Voice
+  otherSplitContainer: {
+    marginTop: 12,
+  },
+  otherSplitInputRow: {
+    flexDirection: 'row',
+    gap: 10,
+    alignItems: 'flex-start',
   },
   otherSplitInput: {
+    flex: 1,
     backgroundColor: COLORS.lightGray,
-    borderRadius: 8,
+    borderRadius: 12,
     padding: 12,
     fontSize: 14,
     color: COLORS.text,
+    minHeight: 60,
+    textAlignVertical: 'top',
+  },
+  voiceButton: {
+    borderRadius: 12,
+    overflow: 'hidden',
+  },
+  voiceButtonGradient: {
+    width: 44,
+    height: 44,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  recordingHint: {
+    fontSize: 12,
+    color: COLORS.accent,
+    textAlign: 'center',
     marginTop: 8,
   },
 });
