@@ -576,9 +576,14 @@ export default function WorkoutHubScreen() {
               : new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric' })}
           </Text>
         </View>
-        <TouchableOpacity style={styles.finishButton} onPress={handleFinishWorkout}>
-          <Text style={styles.finishButtonText}>Finish</Text>
-        </TouchableOpacity>
+        <View style={styles.headerActions}>
+          <TouchableOpacity style={styles.editButton} onPress={handleEditWorkout}>
+            <Ionicons name="create-outline" size={20} color={COLORS.primary} />
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.finishButton} onPress={handleFinishWorkout}>
+            <Text style={styles.finishButtonText}>Finish</Text>
+          </TouchableOpacity>
+        </View>
       </View>
 
       {/* Progress Bar */}
