@@ -184,6 +184,25 @@ export async function generateAIWorkout(
   
   const { focus, constraints: dayConstraints } = getDayFocus(dayOfWeek, weekNumber, splitPlannerInput);
   
+  // Check if this is an ACTIVITY day (user has boxing, classes, etc.)
+  const isActivityDay = dayConstraints.avoidPatterns?.includes('gym_workout');
+  if (isActivityDay) {
+    // Return special response indicating this is an activity day
+    console.log(`  📅 Day ${dayOfWeek} is an activity day: ${dayConstraints.notes}`);
+    return {
+      title: dayConstraints.notes?.replace('📅 ', '').split(' (')[0] || 'Scheduled Activity',
+      type: 'external_activity',
+      difficulty: 'moderate',
+      duration: 60,
+      exercises: [],
+      overview: dayConstraints.notes || 'You have a scheduled activity today',
+      targetMuscles: 'Various',
+      caloriesBurn: 400,
+      isActivityDay: true,
+      activityName: dayConstraints.notes?.replace('📅 ', '').split(' (')[0],
+    } as any;
+  }
+  
   // Handle rest days - if they explicitly request a workout, give them a recovery workout
   if (focus === 'rest' && dayConstraints.exerciseCount.max === 0) {
     // Override to recovery workout with minimal exercises
