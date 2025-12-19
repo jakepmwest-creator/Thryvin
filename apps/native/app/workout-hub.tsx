@@ -527,6 +527,34 @@ export default function WorkoutHubScreen() {
     showAlert('success', 'Workout Updated', 'Your workout has been modified successfully!');
   };
 
+  // Build workout context for coach (Phase 8)
+  const buildWorkoutContextForCoach = () => {
+    const currentEx = exercises[expandedExercise];
+    const completedCount = completedSets.filter(s => s.exerciseId === currentEx?.id).length;
+    const totalExercises = exercises.length;
+    const completedExercises = activeSession?.completedExercises?.size || 0;
+    const progressPercent = Math.round((completedExercises / totalExercises) * 100);
+    
+    return {
+      workoutId: currentWorkout?.id,
+      workoutTitle: currentWorkout?.title || 'Today\'s Workout',
+      workoutType: currentWorkout?.type || 'strength',
+      currentExercise: currentEx ? {
+        id: currentEx.id,
+        name: currentEx.name,
+        sets: currentEx.sets,
+        reps: currentEx.reps,
+        restTime: currentEx.restTime,
+        userLoggedSets: completedCount,
+        lastEnteredWeight: weight ? parseFloat(weight) : undefined,
+        lastEnteredReps: reps ? parseInt(reps) : undefined,
+      } : undefined,
+      remainingExercisesCount: totalExercises - completedExercises,
+      progressPercent,
+      userIntentHint: 'in_workout' as const,
+    };
+  };
+
   // Safety check: if no workout, show message
   if (!currentWorkout || exercises.length === 0) {
     return (
