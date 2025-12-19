@@ -6,6 +6,7 @@ import OpenAI from 'openai';
 import { z } from 'zod';
 import { getUserLearningContext, getPersonalizedAdjustments } from './ai-learning-service';
 import { getComprehensiveUserContext, formatUserContextForAI, getSuggestedWeight } from './ai-user-context';
+import { generateWeeklyTemplate, getDayFocus, getPromptConstraints, type SplitPlannerInput } from './split-planner';
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -40,18 +41,37 @@ const ExerciseSchema = z.object({
   supersetWith: z.string().optional(),
 });
 
+// Dynamic max exercises based on duration and experience
+function getMaxExercises(duration: number, experience: string): number {
+  if (experience === 'beginner') {
+    return duration <= 30 ? 4 : duration <= 45 ? 6 : 7;
+  } else if (experience === 'advanced') {
+    return duration <= 30 ? 6 : duration <= 45 ? 8 : 10;
+  } else { // intermediate
+    return duration <= 30 ? 5 : duration <= 45 ? 7 : 9;
+  }
+}
+
 const WorkoutSchema = z.object({
   title: z.string().min(1, 'Workout title is required'),
   type: z.string().default('mixed'),
   difficulty: z.string().default('intermediate'),
   duration: z.number().min(15).max(120).default(45),
-  exercises: z.array(ExerciseSchema).min(3, 'At least 3 exercises required').max(20),
+  exercises: z.array(ExerciseSchema).min(3, 'At least 3 exercises required').max(12), // Reduced max from 20 to 12
   overview: z.string().default('A personalized workout'),
   targetMuscles: z.string().default('Full Body'),
   caloriesBurn: z.number().min(50).max(1500).default(300),
 });
 
 export type ValidatedWorkout = z.infer<typeof WorkoutSchema>;
+
+interface WeeklyActivityInput {
+  name: string;
+  dayOfWeek: number;
+  timeWindow: 'morning' | 'afternoon' | 'evening';
+  intensity: 'low' | 'moderate' | 'hard';
+  notes?: string;
+}
 
 interface UserProfile {
   fitnessGoals?: string[];
@@ -63,6 +83,7 @@ interface UserProfile {
   equipment?: string[];
   injuries?: string[];
   userId?: number; // For personalized learning
+  preferredTrainingDays?: number[]; // 0-6 (Sun-Sat)
   // Advanced questionnaire data
   advancedQuestionnaire?: {
     targets?: string;
@@ -71,6 +92,12 @@ interface UserProfile {
     dislikedTraining?: string;
     weakAreas?: string;
     additionalInfo?: string;
+    // Phase 8.5: New weekly schedule fields
+    weeklyActivities?: WeeklyActivityInput[];
+    gymDaysAvailable?: number[];
+    scheduleFlexibility?: boolean;
+    preferredSplit?: string;
+    preferredSplitOther?: string;
   };
 }
 
@@ -135,6 +162,42 @@ export async function generateAIWorkout(
       fullUserContext = await getUserLearningContext(userProfile.userId);
     }
   }
+  
+  // Step 1.6: Generate weekly split plan (Phase 8.5)
+  const frequency = Number(userProfile.trainingDays || 3);
+  const experience = (userProfile.experience || 'intermediate') as 'beginner' | 'intermediate' | 'advanced';
+  const sessionDuration = Number(userProfile.sessionDuration || 45);
+  
+  const splitPlannerInput: SplitPlannerInput = {
+    frequency,
+    experience,
+    goals: userProfile.fitnessGoals || [userProfile.goal || 'general'],
+    equipment: userProfile.equipment || [],
+    injuries: userProfile.injuries?.join(', ') || null,
+    sessionDuration,
+    weeklyActivities: userProfile.advancedQuestionnaire?.weeklyActivities || [],
+    gymDaysAvailable: userProfile.advancedQuestionnaire?.gymDaysAvailable || userProfile.preferredTrainingDays || [],
+    scheduleFlexibility: userProfile.advancedQuestionnaire?.scheduleFlexibility ?? true,
+    preferredSplit: userProfile.advancedQuestionnaire?.preferredSplit,
+    preferredSplitOther: userProfile.advancedQuestionnaire?.preferredSplitOther,
+  };
+  
+  const { focus, constraints: dayConstraints } = getDayFocus(dayOfWeek, weekNumber, splitPlannerInput);
+  
+  // Handle rest days - if they explicitly request a workout, give them a recovery workout
+  if (focus === 'rest' && dayConstraints.exerciseCount.max === 0) {
+    // Override to recovery workout with minimal exercises
+    dayConstraints.focus = 'recovery';
+    dayConstraints.exerciseCount = { min: 3, max: 5 };
+    dayConstraints.warmupCount = 1;
+    dayConstraints.mainCount = { min: 2, max: 3 };
+    dayConstraints.cooldownCount = 1;
+    dayConstraints.notes = 'Recovery/Active Rest day - light mobility and stretching';
+  }
+  
+  const splitConstraints = getPromptConstraints(dayConstraints, experience);
+  
+  console.log(`  📅 Split planner: Day ${dayOfWeek} focus = ${dayConstraints.focus}, exercises ${dayConstraints.exerciseCount.min}-${dayConstraints.exerciseCount.max}`);
   
   // Step 2: Build ENHANCED AI prompt with varied sets, weight suggestions, and full personalization
   const systemMessage = `You are an EXPERT PERSONAL TRAINER (AI PT) who creates HIGHLY PERSONALIZED workout plans.
@@ -285,42 +348,58 @@ ${advancedContext}
 
 4. **PERSONALIZATION** - Use their enjoyed/disliked training to customize
 
-=== CRITICAL: EXERCISE COUNT LIMITS (READ CAREFULLY) ===
+=== CRITICAL: REALISTIC TIME-BASED EXERCISE LIMITS ===
 
-The user's session duration is ${userProfile.sessionDuration || 45} minutes. Use this to determine exercise count:
+Session duration: ${userProfile.sessionDuration || 45} minutes
+Experience level: ${userProfile.experience || 'intermediate'}
 
-**30 minute session:**
-- 1-2 warmup exercises (5 mins)
-- 4-5 main exercises (20 mins)
-- 1-2 cooldown stretches (5 mins)
-- TOTAL: 6-9 exercises maximum
+TIME BUDGET CALCULATION:
+- Warmup: 5-8 minutes (1-2 exercises)
+- Main exercises: (session - warmup - cooldown) / avg_time_per_exercise
+- Cooldown: 3-5 minutes (1-2 stretches)
+- Transition time between exercises: ${userProfile.experience === 'beginner' ? '2 min' : '1 min'} (equipment changes, rest)
 
-**45 minute session:**
-- 2 warmup exercises (5-7 mins)
-- 5-6 main exercises (30 mins)
-- 2 cooldown stretches (5-8 mins)
-- TOTAL: 9-10 exercises maximum
+REALISTIC EXERCISE COUNTS BY EXPERIENCE + DURATION:
 
-**60 minute session:**
-- 2-3 warmup exercises (8-10 mins)
-- 7-9 main exercises (40-45 mins)
-- 2-3 cooldown stretches (8-10 mins)
-- TOTAL: 11-15 exercises acceptable
+**BEGINNER (needs more rest, simpler movements, fewer equipment changes):**
+- 30 min: 3-4 total (1 warmup + 2-3 main + 1 cooldown)
+- 45 min: 4-6 total (1-2 warmup + 3-4 main + 1 cooldown)
+- 60 min: 5-7 total (2 warmup + 4-5 main + 1-2 cooldown)
 
-**75+ minute session:**
-- 3 warmup exercises (10 mins)
-- 9-12 main exercises (50-55 mins)
-- 2-3 cooldown stretches (10 mins)
-- TOTAL: 14-18 exercises acceptable
+**INTERMEDIATE:**
+- 30 min: 4-5 total (1 warmup + 3-4 main + 1 cooldown)
+- 45 min: 5-7 total (1-2 warmup + 4-5 main + 1-2 cooldown)
+- 60 min: 7-9 total (2 warmup + 5-7 main + 2 cooldown)
 
-IMPORTANT: For a ${userProfile.sessionDuration || 45} minute session, the absolute MAXIMUM is ${
-  Number(userProfile.sessionDuration || 45) <= 30 ? '9' :
-  Number(userProfile.sessionDuration || 45) <= 45 ? '10' :
-  Number(userProfile.sessionDuration || 45) <= 60 ? '15' : '18'
-} exercises. Going over this limit will make the workout impossible to complete!
+**ADVANCED (efficient transitions, supersets):**
+- 30 min: 5-6 total
+- 45 min: 6-8 total
+- 60 min: 8-10 total
 
-COOLDOWN MUST ONLY BE STRETCHES - no strength exercises in cooldown!
-Examples of valid cooldown: Standing Quad Stretch, Child's Pose, Seated Forward Bend, Standing Calf Stretch, Hip Flexor Stretch
+FOR THIS ${userProfile.sessionDuration || 45}-MIN ${(userProfile.experience || 'intermediate').toUpperCase()} WORKOUT:
+Maximum exercises: ${(() => {
+  const duration = Number(userProfile.sessionDuration || 45);
+  const exp = userProfile.experience || 'intermediate';
+  if (exp === 'beginner') {
+    return duration <= 30 ? '4' : duration <= 45 ? '6' : '7';
+  } else if (exp === 'advanced') {
+    return duration <= 30 ? '6' : duration <= 45 ? '8' : '10';
+  } else {
+    return duration <= 30 ? '5' : duration <= 45 ? '7' : '9';
+  }
+})()}
+
+BEGINNER CONSTRAINTS (if applicable):
+- Use SIMPLE movements they can master
+- Minimize equipment changes (stick to 2-3 pieces max)
+- Longer rest times (90-120s for compounds)
+- NO complex supersets or giant sets
+- Focus on QUALITY over quantity
+
+COOLDOWN MUST ONLY BE STRETCHES - no strength exercises!
+Examples: Standing Quad Stretch, Child's Pose, Hip Flexor Stretch
+
+${splitConstraints}
 
 ${recentExercises.length > 0 ? `
 === VARIETY REQUIREMENT (CRITICAL) ===
@@ -330,7 +409,7 @@ ${recentExercises.slice(0, 15).join(', ')}
 Pick DIFFERENT exercises to maintain variety!
 ` : ''}
 
-Create a balanced workout respecting these limits.`;
+Create a balanced workout respecting these limits and the DAY FOCUS above.`;
 
   // Step 3: Call AI
   console.log('  🤖 Calling GPT-4o...');
@@ -631,6 +710,38 @@ export async function generateValidatedWorkout(
     
     // Ensure all exercises have unique IDs (never empty string)
     const workout = validation.data;
+    
+    // CRITICAL: Enforce realistic exercise count limits based on experience and duration
+    const maxExercises = getMaxExercises(
+      Number(userProfile.sessionDuration || 45), 
+      userProfile.experience || 'intermediate'
+    );
+    
+    if (workout.exercises.length > maxExercises) {
+      console.log(`⚠️ [VALIDATION] Trimming workout from ${workout.exercises.length} to ${maxExercises} exercises for ${userProfile.experience} ${userProfile.sessionDuration}min`);
+      
+      // Preserve warmup and cooldown, trim main exercises
+      const warmupExercises = workout.exercises.filter(ex => ex.category === 'warmup');
+      const cooldownExercises = workout.exercises.filter(ex => ex.category === 'cooldown');
+      const mainExercises = workout.exercises.filter(ex => ex.category === 'main');
+      
+      // Calculate how many main exercises we can keep
+      const reservedSlots = warmupExercises.length + cooldownExercises.length;
+      const maxMainExercises = Math.max(1, maxExercises - reservedSlots);
+      
+      // Trim main exercises if needed
+      const trimmedMainExercises = mainExercises.slice(0, maxMainExercises);
+      
+      // Rebuild exercises array
+      workout.exercises = [
+        ...warmupExercises,
+        ...trimmedMainExercises,
+        ...cooldownExercises
+      ];
+      
+      console.log(`✅ [VALIDATION] Trimmed to ${workout.exercises.length} exercises (${warmupExercises.length} warmup + ${trimmedMainExercises.length} main + ${cooldownExercises.length} cooldown)`);
+    }
+    
     const usedIds = new Set<string>();
     
     workout.exercises = workout.exercises.map((exercise, index) => {
@@ -671,28 +782,37 @@ export async function generateValidatedWorkout(
 
 /**
  * Fallback workout when AI generation fails
+ * Respects realistic time budgeting based on experience level
  */
 function getFallbackWorkout(userProfile: UserProfile): ValidatedWorkout {
   const duration = Number(userProfile.sessionDuration || 45);
   const isStrength = userProfile.trainingType?.toLowerCase().includes('strength');
   const experience = userProfile.experience || 'intermediate';
   
-  const fallbackExercises = isStrength ? [
-    { name: 'Dumbbell Bench Press', sets: 3, reps: '10', restTime: 90, category: 'warmup' as const },
+  // Calculate max exercises based on experience and duration
+  const maxExercises = getMaxExercises(duration, experience);
+  
+  // Base exercises for strength vs general
+  const strengthExercises = [
+    { name: 'Arm Circles', sets: 2, reps: '30 sec', restTime: 30, category: 'warmup' as const },
     { name: 'Barbell Squat', sets: 4, reps: '8', restTime: 120, category: 'main' as const },
+    { name: 'Dumbbell Bench Press', sets: 3, reps: '10', restTime: 90, category: 'main' as const },
     { name: 'Bent Over Row', sets: 3, reps: '10', restTime: 90, category: 'main' as const },
     { name: 'Dumbbell Shoulder Press', sets: 3, reps: '10', restTime: 90, category: 'main' as const },
-    { name: 'Lat Pulldown', sets: 3, reps: '12', restTime: 60, category: 'main' as const },
     { name: 'Standing Quad Stretch', sets: 1, reps: '30 sec', restTime: 30, category: 'cooldown' as const },
-    { name: 'Child\'s Pose', sets: 1, reps: '60 sec', restTime: 30, category: 'cooldown' as const },
-  ] : [
+  ];
+  
+  const generalExercises = [
     { name: 'Jumping Jacks', sets: 2, reps: '30', restTime: 30, category: 'warmup' as const },
     { name: 'Bodyweight Squat', sets: 3, reps: '15', restTime: 45, category: 'main' as const },
     { name: 'Push-ups', sets: 3, reps: '10', restTime: 45, category: 'main' as const },
     { name: 'Lunges', sets: 3, reps: '12 each', restTime: 45, category: 'main' as const },
-    { name: 'Plank', sets: 3, reps: '30 sec', restTime: 30, category: 'main' as const },
     { name: 'Standing Forward Bend', sets: 1, reps: '60 sec', restTime: 30, category: 'cooldown' as const },
   ];
+  
+  // Select exercises and trim to max based on experience
+  const baseExercises = isStrength ? strengthExercises : generalExercises;
+  const fallbackExercises = baseExercises.slice(0, Math.min(maxExercises, baseExercises.length));
   
   return {
     title: isStrength ? 'Fallback Strength Workout' : 'Fallback Full Body Workout',

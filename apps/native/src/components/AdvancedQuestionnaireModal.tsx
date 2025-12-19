@@ -38,6 +38,14 @@ interface AdvancedQuestionnaireModalProps {
   onComplete: (data: AdvancedQuestionnaireData) => void;
 }
 
+export interface WeeklyActivity {
+  name: string;
+  dayOfWeek: number;
+  timeWindow: 'morning' | 'afternoon' | 'evening';
+  intensity: 'low' | 'moderate' | 'hard';
+  notes?: string;
+}
+
 export interface AdvancedQuestionnaireData {
   targets: string;
   goalDetails: { [goalKey: string]: string };
@@ -46,6 +54,12 @@ export interface AdvancedQuestionnaireData {
   weakAreas: string;
   additionalInfo: string;
   completedAt: string;
+  // Phase 8.5: Weekly schedule fields
+  weeklyActivities?: WeeklyActivity[];
+  gymDaysAvailable?: number[];
+  scheduleFlexibility?: boolean;
+  preferredSplit?: string;
+  preferredSplitOther?: string;
 }
 
 const QUESTIONS = [
@@ -97,6 +111,15 @@ const QUESTIONS = [
     placeholder: 'Any other information that could help us create the perfect workout plan...',
     icon: 'chatbubble-ellipses',
     hint: 'Share anything that might help personalize your experience',
+  },
+  {
+    id: 'weeklySchedule',
+    title: 'Weekly Schedule & Training Style',
+    question: 'Help us plan around your life',
+    placeholder: '',
+    icon: 'calendar',
+    hint: 'We\'ll avoid scheduling conflicts with your other activities',
+    isWeeklySchedule: true,
   },
 ];
 
@@ -247,6 +270,19 @@ export const AdvancedQuestionnaireModal = ({
     weakAreas: '',
     additionalInfo: '',
     completedAt: '',
+    // Phase 8.5: Weekly schedule defaults
+    weeklyActivities: [],
+    gymDaysAvailable: [],
+    scheduleFlexibility: true,
+    preferredSplit: 'coach_choice',
+  });
+  
+  // Weekly schedule state
+  const [newActivity, setNewActivity] = useState<WeeklyActivity>({
+    name: '',
+    dayOfWeek: 1,
+    timeWindow: 'evening',
+    intensity: 'moderate',
   });
   
   // Animation
@@ -310,6 +346,11 @@ export const AdvancedQuestionnaireModal = ({
       // ALL goals must have details
       const goalValues = Object.values(formData.goalDetails);
       return goalValues.length > 0 && goalValues.every(v => v.trim().length > 0);
+    }
+    
+    // Weekly schedule is optional - always considered answered
+    if (currentQuestion.isWeeklySchedule) {
+      return true;
     }
     
     const value = (formData as any)[currentQuestion.id] || '';
@@ -496,6 +537,193 @@ export const AdvancedQuestionnaireModal = ({
       </View>
     );
   };
+
+  // Phase 8.5: Weekly Schedule & Training Style
+  const DAY_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+  const SPLIT_OPTIONS = [
+    { value: 'coach_choice', label: 'Let the coach choose (recommended)' },
+    { value: 'upper_lower_full', label: 'Upper / Lower / Full (3 days)' },
+    { value: 'full_body', label: 'Full Body (2-4 days)' },
+    { value: 'push_pull_legs', label: 'Push / Pull / Legs' },
+    { value: 'bro_split', label: 'Bro Split (1 muscle/day)' },
+    { value: 'strength', label: 'Strength-focused (low reps)' },
+    { value: 'endurance', label: 'Endurance / Conditioning' },
+    { value: 'other', label: 'Other' },
+  ];
+
+  const addWeeklyActivity = () => {
+    if (!newActivity.name.trim()) return;
+    setFormData(prev => ({
+      ...prev,
+      weeklyActivities: [...(prev.weeklyActivities || []), { ...newActivity }],
+    }));
+    setNewActivity({ name: '', dayOfWeek: 1, timeWindow: 'evening', intensity: 'moderate' });
+  };
+
+  const removeWeeklyActivity = (index: number) => {
+    setFormData(prev => ({
+      ...prev,
+      weeklyActivities: (prev.weeklyActivities || []).filter((_, i) => i !== index),
+    }));
+  };
+
+  const toggleGymDay = (day: number) => {
+    setFormData(prev => {
+      const current = prev.gymDaysAvailable || [];
+      const updated = current.includes(day)
+        ? current.filter(d => d !== day)
+        : [...current, day].sort();
+      return { ...prev, gymDaysAvailable: updated };
+    });
+  };
+
+  const renderWeeklySchedule = () => (
+    <View style={styles.weeklyScheduleContainer}>
+      {/* Section 1: Fixed Activities */}
+      <View style={styles.scheduleSection}>
+        <Text style={styles.scheduleSectionTitle}>Fixed Weekly Activities</Text>
+        <Text style={styles.scheduleSectionHint}>
+          Any classes, sports, or commitments that affect your training?
+        </Text>
+        
+        {/* Existing activities */}
+        {(formData.weeklyActivities || []).map((act, idx) => (
+          <View key={idx} style={styles.activityItem}>
+            <View style={styles.activityInfo}>
+              <Text style={styles.activityName}>{act.name}</Text>
+              <Text style={styles.activityDetail}>
+                {DAY_NAMES[act.dayOfWeek]} {act.timeWindow} • {act.intensity}
+              </Text>
+            </View>
+            <TouchableOpacity onPress={() => removeWeeklyActivity(idx)}>
+              <Ionicons name="close-circle" size={22} color={COLORS.danger} />
+            </TouchableOpacity>
+          </View>
+        ))}
+        
+        {/* Add new activity */}
+        <View style={styles.addActivityRow}>
+          <TextInput
+            style={styles.activityInput}
+            placeholder="e.g., Boxing, HIIT class"
+            placeholderTextColor={COLORS.mediumGray}
+            value={newActivity.name}
+            onChangeText={(text) => setNewActivity(prev => ({ ...prev, name: text }))}
+          />
+          <View style={styles.activityOptions}>
+            <TouchableOpacity 
+              style={styles.dayPicker}
+              onPress={() => setNewActivity(prev => ({ 
+                ...prev, 
+                dayOfWeek: (prev.dayOfWeek + 1) % 7 
+              }))}
+            >
+              <Text style={styles.dayPickerText}>{DAY_NAMES[newActivity.dayOfWeek]}</Text>
+            </TouchableOpacity>
+            <TouchableOpacity 
+              style={styles.intensityPicker}
+              onPress={() => {
+                const intensities: ('low' | 'moderate' | 'hard')[] = ['low', 'moderate', 'hard'];
+                const idx = intensities.indexOf(newActivity.intensity);
+                setNewActivity(prev => ({ ...prev, intensity: intensities[(idx + 1) % 3] }));
+              }}
+            >
+              <Text style={[styles.intensityText, { 
+                color: newActivity.intensity === 'hard' ? COLORS.danger : 
+                       newActivity.intensity === 'moderate' ? COLORS.accent : COLORS.success 
+              }]}>
+                {newActivity.intensity}
+              </Text>
+            </TouchableOpacity>
+          </View>
+          <TouchableOpacity style={styles.addActivityBtn} onPress={addWeeklyActivity}>
+            <Ionicons name="add" size={20} color={COLORS.white} />
+          </TouchableOpacity>
+        </View>
+      </View>
+
+      {/* Section 2: Gym Days Available */}
+      <View style={styles.scheduleSection}>
+        <Text style={styles.scheduleSectionTitle}>Which days can you train?</Text>
+        <View style={styles.daysRow}>
+          {DAY_NAMES.map((day, idx) => (
+            <TouchableOpacity
+              key={day}
+              style={[
+                styles.dayChip,
+                (formData.gymDaysAvailable || []).includes(idx) && styles.dayChipSelected
+              ]}
+              onPress={() => toggleGymDay(idx)}
+            >
+              <Text style={[
+                styles.dayChipText,
+                (formData.gymDaysAvailable || []).includes(idx) && styles.dayChipTextSelected
+              ]}>
+                {day}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+        
+        {/* Flexibility toggle */}
+        <TouchableOpacity 
+          style={styles.flexibilityRow}
+          onPress={() => setFormData(prev => ({ 
+            ...prev, 
+            scheduleFlexibility: !prev.scheduleFlexibility 
+          }))}
+        >
+          <Ionicons 
+            name={formData.scheduleFlexibility ? 'checkbox' : 'square-outline'} 
+            size={22} 
+            color={COLORS.accent} 
+          />
+          <Text style={styles.flexibilityText}>My schedule changes week-to-week</Text>
+        </TouchableOpacity>
+      </View>
+
+      {/* Section 3: Preferred Split */}
+      <View style={styles.scheduleSection}>
+        <Text style={styles.scheduleSectionTitle}>Preferred Training Split</Text>
+        <Text style={styles.scheduleSectionHint}>Optional - let us know if you prefer a specific style</Text>
+        
+        <View style={styles.splitOptions}>
+          {SPLIT_OPTIONS.map((option) => (
+            <TouchableOpacity
+              key={option.value}
+              style={[
+                styles.splitOption,
+                formData.preferredSplit === option.value && styles.splitOptionSelected
+              ]}
+              onPress={() => setFormData(prev => ({ ...prev, preferredSplit: option.value }))}
+            >
+              <Ionicons 
+                name={formData.preferredSplit === option.value ? 'radio-button-on' : 'radio-button-off'} 
+                size={18} 
+                color={formData.preferredSplit === option.value ? COLORS.accent : COLORS.mediumGray} 
+              />
+              <Text style={[
+                styles.splitOptionText,
+                formData.preferredSplit === option.value && styles.splitOptionTextSelected
+              ]}>
+                {option.label}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+        
+        {formData.preferredSplit === 'other' && (
+          <TextInput
+            style={styles.otherSplitInput}
+            placeholder="Describe your preferred split..."
+            placeholderTextColor={COLORS.mediumGray}
+            value={formData.preferredSplitOther || ''}
+            onChangeText={(text) => setFormData(prev => ({ ...prev, preferredSplitOther: text }))}
+          />
+        )}
+      </View>
+    </View>
+  );
   
   // Intro screen
   const renderIntro = () => (
@@ -639,6 +867,8 @@ export const AdvancedQuestionnaireModal = ({
         {/* Input Area */}
         {currentQuestion.isGoalDetails ? (
           renderGoalDetails()
+        ) : currentQuestion.isWeeklySchedule ? (
+          renderWeeklySchedule()
         ) : (
           renderTextInput(currentQuestion.id, currentQuestion.placeholder || 'Type your answer...')
         )}
@@ -1138,5 +1368,158 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '700',
     color: COLORS.white,
+  },
+  // Phase 8.5: Weekly Schedule styles
+  weeklyScheduleContainer: {
+    gap: 20,
+  },
+  scheduleSection: {
+    backgroundColor: COLORS.white,
+    borderRadius: 12,
+    padding: 14,
+    gap: 10,
+  },
+  scheduleSectionTitle: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: COLORS.text,
+  },
+  scheduleSectionHint: {
+    fontSize: 12,
+    color: COLORS.mediumGray,
+    marginBottom: 4,
+  },
+  activityItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: COLORS.lightGray,
+    padding: 10,
+    borderRadius: 8,
+  },
+  activityInfo: {
+    flex: 1,
+  },
+  activityName: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: COLORS.text,
+  },
+  activityDetail: {
+    fontSize: 12,
+    color: COLORS.mediumGray,
+  },
+  addActivityRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  activityInput: {
+    flex: 1,
+    backgroundColor: COLORS.lightGray,
+    borderRadius: 8,
+    padding: 10,
+    fontSize: 14,
+    color: COLORS.text,
+  },
+  activityOptions: {
+    flexDirection: 'row',
+    gap: 6,
+  },
+  dayPicker: {
+    backgroundColor: COLORS.lightGray,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    borderRadius: 6,
+  },
+  dayPickerText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: COLORS.accent,
+  },
+  intensityPicker: {
+    backgroundColor: COLORS.lightGray,
+    paddingHorizontal: 8,
+    paddingVertical: 8,
+    borderRadius: 6,
+  },
+  intensityText: {
+    fontSize: 11,
+    fontWeight: '600',
+    textTransform: 'capitalize',
+  },
+  addActivityBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 8,
+    backgroundColor: COLORS.accent,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  daysRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    gap: 4,
+  },
+  dayChip: {
+    flex: 1,
+    alignItems: 'center',
+    paddingVertical: 10,
+    borderRadius: 8,
+    backgroundColor: COLORS.lightGray,
+  },
+  dayChipSelected: {
+    backgroundColor: COLORS.accent,
+  },
+  dayChipText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: COLORS.text,
+  },
+  dayChipTextSelected: {
+    color: COLORS.white,
+  },
+  flexibilityRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginTop: 6,
+  },
+  flexibilityText: {
+    fontSize: 13,
+    color: COLORS.text,
+  },
+  splitOptions: {
+    gap: 6,
+  },
+  splitOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    backgroundColor: COLORS.lightGray,
+    borderRadius: 8,
+  },
+  splitOptionSelected: {
+    backgroundColor: `${COLORS.accent}15`,
+    borderWidth: 1,
+    borderColor: COLORS.accent,
+  },
+  splitOptionText: {
+    fontSize: 13,
+    color: COLORS.text,
+  },
+  splitOptionTextSelected: {
+    color: COLORS.accent,
+    fontWeight: '600',
+  },
+  otherSplitInput: {
+    backgroundColor: COLORS.lightGray,
+    borderRadius: 8,
+    padding: 12,
+    fontSize: 14,
+    color: COLORS.text,
+    marginTop: 8,
   },
 });

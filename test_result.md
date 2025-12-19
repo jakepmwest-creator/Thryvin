@@ -102,6 +102,78 @@ backend:
         agent: "testing"
         comment: "✅ PASSED: Exercise swap endpoint successfully handles difficulty reduction. Test case: Pull-ups → Assisted Pull-Up Machine for beginner who can't do pull-ups yet. AI provides appropriate easier alternatives."
 
+  - task: "Phase 8: Floating AI Coach - Weight Question with Workout Context"
+    implemented: true
+    working: true
+    file: "server/ai-coach-service.ts"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "✅ PASSED: Coach chat endpoint POST /api/coach/chat successfully handles workout context for weight questions. In-workout mode provides concise responses (203 chars vs 1171 chars normal mode). Coach name correctly returned as 'Titan', contextUsed=true when authenticated."
+
+  - task: "Phase 8: Floating AI Coach - Form Tips with Workout Context"
+    implemented: true
+    working: true
+    file: "server/ai-coach-service.ts"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "✅ PASSED: Coach chat provides concise form tips (380 chars) for squat exercise in in-workout mode. Response is actionable and appropriately short for mid-workout guidance."
+
+  - task: "Phase 8: Floating AI Coach - Rest Time Guidance with Workout Context"
+    implemented: true
+    working: true
+    file: "server/ai-coach-service.ts"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "✅ PASSED: Coach chat provides concise rest time guidance (63 chars) for deadlift exercise in in-workout mode. Ultra-concise response perfect for quick mid-workout consultation."
+
+  - task: "Phase 8: Floating AI Coach - Normal Chat without Workout Context"
+    implemented: true
+    working: true
+    file: "server/ai-coach-service.ts"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "✅ PASSED: Coach chat works correctly without workout context, providing detailed warm-up guidance (1171 chars). Normal mode responses are appropriately longer and more comprehensive than in-workout mode."
+
+  - task: "Phase 8: Floating AI Coach - Authentication and User Context"
+    implemented: true
+    working: true
+    file: "server/auth.ts"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "✅ PASSED: Authentication system works correctly for coach endpoints. Test user registration and login successful. Coach endpoints properly require authentication and return contextUsed=true for authenticated users."
+
+  - task: "Phase 8.5: Workout Generation Realism Fix"
+    implemented: true
+    working: true
+    file: "server/ai-workout-generator.ts"
+    stuck_count: 0
+    priority: "critical"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "✅ CRITICAL ISSUE FIXED: Workout generation now enforces realistic exercise counts. Beginner 45min generates 4-6 exercises (was generating ~10). Added post-processing validation to trim workouts that exceed experience-based limits. All test cases pass: Beginner 30min (3-4), Beginner 45min (4-6), Intermediate 45min (5-7), Advanced 45min (6-8), Intermediate 60min (7-9). Validation preserves warmup/cooldown exercises while trimming main exercises as needed."
+
 frontend:
   - task: "Onboarding Flow with Country Selection"
     implemented: true
@@ -117,13 +189,13 @@ frontend:
 
 metadata:
   created_by: "testing_agent"
-  version: "5.0"
-  test_sequence: 5
+  version: "6.1"
+  test_sequence: 7
   run_ui: false
 
 test_plan:
   current_focus:
-    - "Phase 7: Edit Workout Feature Testing Complete"
+    - "Phase 8.5: Workout Generation Realism Testing Complete"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
@@ -145,6 +217,18 @@ agent_communication:
     message: "✅ PHASE 7 EDIT WORKOUT BACKEND TESTING COMPLETE: All 4 backend endpoints tested successfully. Health check (GET /api/health) returns ok: true. Exercise swap endpoint (POST /api/workouts/swap-exercise) handles injury-based swaps (shoulder pain → safe alternatives), equipment-based swaps (no barbell → dumbbell alternatives), and difficulty reduction (pull-ups → assisted alternatives). AI correctly respects injury constraints, equipment availability, and user experience level. All endpoints return 200 status with proper response structure."
   - agent: "main"
     message: "Phase 8 Implementation: Floating AI Coach inside Workout Hub. Backend changes: 1) Added WorkoutContext interface to ai-coach-service.ts, 2) Added buildWorkoutContextPrompt() function, 3) Added 'in_workout' mode with shorter, actionable responses, 4) Updated /api/coach/chat to accept workoutContext. Frontend changes: 1) Created WorkoutCoachSheet.tsx with bottom sheet UI, 2) Added floating 'Coach' pill button in workout-hub.tsx, 3) Quick prompt chips for common questions, 4) Workout context passed to backend for context-aware responses. NO direct OpenAI calls in frontend - all AI goes through /api/coach/chat."
+  - agent: "testing"
+    message: "✅ PHASE 8 FLOATING AI COACH BACKEND TESTING COMPLETE: All 6 backend tests passed successfully. Health check (GET /api/health) returns ok: true. Coach chat endpoint (POST /api/coach/chat) handles workout context perfectly - in-workout responses are concise (63-380 chars) vs normal responses (1171 chars). Authentication system working correctly. Coach name returned as 'Titan', contextUsed=true when authenticated. All acceptance criteria met: 200 status codes, shorter in-workout responses, correct coach name, proper context usage."
+  - agent: "main"
+    message: "Phase 8.5 Implementation: Coach + Workout Realism Polish. A) Coach visibility: Added coach button to exercise detail modal header. B) QuickActionsPanel: Created new component with Tier 1 (Swap Day, Edit, Add) always visible + Tier 2 expandable (Shorter, Harder, Easier, Recovery, Ask Coach). C) CoachSuggestionCard fixes: Made collapsible with preview, 0.5kg fine increments, long-press fast adjust, tap-to-edit weight input, fixed button cutoff. D) Workout generation realism: Updated ai-workout-generator.ts with realistic time-based exercise limits (beginner 45min: 4-6 exercises max)."
+  - agent: "testing"
+    message: "✅ PHASE 8.5 WORKOUT GENERATION REALISM TESTING COMPLETE: Beginner 45min workout now generates 4-6 exercises (was ~10). Beginner 30min: 3-4 exercises. Intermediate 60min: 7-9 exercises. Advanced 45min: 6-8 exercises. All workouts include proper warmup and cooldown categories. No Zod validation errors. Time budgeting is now realistic for all experience levels."
+  - agent: "main"
+    message: "URGENT FIXES COMPLETE: 1) CRASH FIX: Fixed 'completedSets doesn't exist' error in buildWorkoutContextForCoach() - now safely accesses activeSession.exerciseData with optional chaining. 2) WEEKLY PROGRAM STRUCTURE: Created split-planner.ts with deterministic split selection (Upper/Lower/Full for 3-day beginner), integrated into ai-workout-generator.ts. 3) NEW ADVANCED QUESTION: Added 'Weekly Schedule & Training Style' section to AdvancedQuestionnaireModal with weeklyActivities, gymDaysAvailable, scheduleFlexibility, and preferredSplit fields. Context builder updated to include new fields."
+  - agent: "testing"
+    message: "✅ PHASE 8.5 WORKOUT GENERATION REALISM TESTING COMPLETE: CRITICAL ISSUE FIXED! All 7 tests passed. Beginner 45min workouts now generate realistic 4-6 exercises (was ~10). Added post-processing validation in ai-workout-generator.ts that enforces experience-based exercise limits: Beginner 30min (3-4), Beginner 45min (4-6), Beginner 60min (5-7), Intermediate 45min (5-7), Advanced 45min (6-8). Validation intelligently trims main exercises while preserving warmup/cooldown. Backend API POST /api/workouts/generate now returns realistic workout structures for all experience levels and durations."
+  - agent: "testing"
+    message: "🚨 3 URGENT FIXES TESTING RESULTS: ✅ 5/6 tests passed. FIXED: OpenAI API key missing from server/.env - added key and restarted backend. ✅ Weekly Program Structure working correctly - Day 0 generates upper focus (4 upper vs 0 lower), Day 2 generates lower focus (4 lower vs 1 upper) for beginner 3-day split. ✅ Exercise counts within realistic limits (4-6 for beginner 45min). ✅ No ReferenceError crashes - all test cases pass. ❌ REMAINING ISSUE: Weekly Activities conflict handling not working - Day 1 with boxing still generates upper-focused workout instead of avoiding heavy upper work. Split planner logic needs debugging for weeklyActivities integration."
 
 frontend:
   - task: "Duration Confirmation Modal"

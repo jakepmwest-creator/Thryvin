@@ -54,13 +54,14 @@ const COLORS = {
   white: '#FFFFFF',
 };
 
-// Quick prompt chips for common workout questions
+// Quick prompt chips for workout-context coaching (Phase 8.5 - corrected)
 const QUICK_PROMPTS = [
-  { label: 'Weight?', prompt: 'What weight should I use for this exercise?' },
-  { label: 'Make easier', prompt: 'Can you suggest an easier alternative for this exercise?' },
-  { label: 'Swap exercise', prompt: 'Can you swap this exercise for something else?' },
-  { label: 'Form tip', prompt: 'Give me a quick form tip for this exercise' },
-  { label: 'Rest time?', prompt: 'How long should I rest between sets?' },
+  { label: 'Weight?', prompt: 'What weight should I use?' },
+  { label: 'Form tip', prompt: 'Give me a form tip' },
+  { label: 'Rest time?', prompt: 'How long should I rest?' },
+  { label: 'Swap', prompt: 'Swap this exercise' },
+  { label: 'Easier', prompt: 'Make this easier' },
+  { label: 'Reps?', prompt: 'How many reps should I aim for?' },
 ];
 
 interface Message {

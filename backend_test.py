@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
 """
-Backend API Testing Suite for Thryvin Fitness App - Phase 7: Edit Workout Feature
+Backend API Testing Suite for Thryvin Fitness App - Phase 8: Floating AI Coach inside Workout Hub
 Tests the specific scenarios mentioned in the review request:
 1. Health Check Endpoint
-2. Exercise Swap Endpoint (injury-based)
-3. AI Exercise Swap Endpoint (equipment-based)
-4. Make Easier Exercise Swap Test
+2. Coach Chat with Workout Context (Weight Question)
+3. Coach Chat with Workout Context (Form Tip)
+4. Coach Chat with Workout Context (Rest Time)
+5. Coach Chat WITHOUT Workout Context (Should still work)
 """
 
 import requests
@@ -15,8 +16,8 @@ import time
 import re
 from typing import Dict, List, Any, Optional
 
-# Configuration - Use localhost as specified in review request
-BASE_URL = "http://localhost:8001"
+# Configuration - Use production URL as specified in environment
+BASE_URL = "https://thryvin-fitness-1.preview.emergentagent.com"
 API_BASE = f"{BASE_URL}/api"
 
 class ThryvinAPITester:
@@ -27,6 +28,9 @@ class ThryvinAPITester:
             'Accept': 'application/json'
         })
         self.test_results = []
+        self.authenticated = False
+        self.test_user_email = f"test_coach_{int(time.time())}@thryvin.test"
+        self.test_user_password = "testpass123"
         
     def test_health_endpoint(self) -> bool:
         """Test Health Endpoint"""
@@ -47,6 +51,47 @@ class ThryvinAPITester:
         except Exception as e:
             self.log_test("Health Endpoint", False, f"Health endpoint error: {str(e)}")
             return False
+    
+    def authenticate_test_user(self) -> bool:
+        """Create and authenticate a test user for coach testing"""
+        try:
+            # First, try to register a test user
+            register_data = {
+                "name": "Test Coach User",
+                "email": self.test_user_email,
+                "password": self.test_user_password,
+                "sessionDuration": 45,
+                "equipment": ["dumbbells", "barbell", "bodyweight"],
+                "fitnessGoals": ["strength", "muscle_gain"],
+                "trainingSchedule": "flexible",
+                "country": "US",
+                "timezone": "America/New_York"
+            }
+            
+            # Try registration (might fail if user exists, that's ok)
+            register_response = self.session.post(f"{API_BASE}/register", json=register_data)
+            
+            # Now try to login
+            login_data = {
+                "email": self.test_user_email,
+                "password": self.test_user_password
+            }
+            
+            login_response = self.session.post(f"{API_BASE}/login", json=login_data)
+            
+            if login_response.status_code == 200:
+                self.authenticated = True
+                self.log_test("Authentication", True, f"Successfully authenticated test user: {self.test_user_email}")
+                return True
+            else:
+                self.log_test("Authentication", False, 
+                            f"Login failed with status {login_response.status_code}",
+                            {"response": login_response.text})
+                return False
+                
+        except Exception as e:
+            self.log_test("Authentication", False, f"Authentication error: {str(e)}")
+            return False
         
     def log_test(self, test_name: str, success: bool, message: str, details: Dict = None):
         """Log test results"""
@@ -62,189 +107,256 @@ class ThryvinAPITester:
         if details and not success:
             print(f"   Details: {json.dumps(details, indent=2)}")
     
-    def test_exercise_swap_injury_based(self) -> bool:
-        """Test 1: Exercise Swap Endpoint - Injury-based swap"""
+    def test_coach_chat_weight_question(self) -> bool:
+        """Test 2: Coach Chat with Workout Context (Weight Question)"""
         try:
             # Test data as specified in review request
-            swap_data = {
-                "currentExercise": "Barbell Bench Press",
-                "reason": "injury",
-                "additionalNotes": "shoulder pain",
-                "userProfile": {
-                    "injuries": "shoulder",
-                    "equipment": ["dumbbells", "barbell"]
-                }
+            chat_data = {
+                "message": "What weight should I use for this exercise?",
+                "coach": "titan",
+                "workoutContext": {
+                    "workoutId": "workout-123",
+                    "workoutTitle": "Upper Body Day",
+                    "workoutType": "strength",
+                    "currentExercise": {
+                        "name": "Bench Press",
+                        "sets": 4,
+                        "reps": 8,
+                        "userLoggedSets": 1,
+                        "lastEnteredWeight": 60
+                    },
+                    "progressPercent": 25,
+                    "remainingExercisesCount": 6,
+                    "userIntentHint": "in_workout"
+                },
+                "conversationHistory": []
             }
             
-            response = self.session.post(f"{API_BASE}/workouts/swap-exercise", json=swap_data)
+            response = self.session.post(f"{API_BASE}/coach/chat", json=chat_data)
             
             if response.status_code == 200:
                 data = response.json()
                 
                 # Check for expected response structure
-                if 'recommended' in data:
-                    recommended = data['recommended']
-                    
-                    # Verify recommended exercise has required fields
-                    required_fields = ['name', 'sets', 'reps']
-                    missing_fields = [field for field in required_fields if field not in recommended]
-                    
-                    if missing_fields:
-                        self.log_test("Exercise Swap - Injury Based", False, 
-                                    f"Recommended exercise missing fields: {missing_fields}", data)
-                        return False
-                    
-                    # Verify the swap respects injury constraint (should avoid shoulder-aggravating exercises)
-                    exercise_name = recommended['name'].lower()
-                    shoulder_unsafe = any(term in exercise_name for term in ['overhead', 'military press', 'upright row', 'behind neck'])
-                    
-                    if shoulder_unsafe:
-                        self.log_test("Exercise Swap - Injury Based", False, 
-                                    f"Recommended exercise '{recommended['name']}' may aggravate shoulder injury", data)
-                        return False
-                    
-                    self.log_test("Exercise Swap - Injury Based", True, 
-                                f"Successfully swapped to shoulder-safe exercise: {recommended['name']}")
-                    return True
-                else:
-                    self.log_test("Exercise Swap - Injury Based", False, 
-                                "Response missing 'recommended' field", data)
+                required_fields = ['response', 'coach']
+                missing_fields = [field for field in required_fields if field not in data]
+                
+                if missing_fields:
+                    self.log_test("Coach Chat - Weight Question", False, 
+                                f"Response missing fields: {missing_fields}", data)
                     return False
+                
+                # Verify coach name is returned as "Titan"
+                if data.get('coach') != 'Titan':
+                    self.log_test("Coach Chat - Weight Question", False, 
+                                f"Expected coach 'Titan', got '{data.get('coach')}'", data)
+                    return False
+                
+                # Verify response is concise (in-workout mode should be shorter)
+                response_text = data.get('response', '')
+                if len(response_text) > 500:  # Reasonable limit for in-workout responses
+                    self.log_test("Coach Chat - Weight Question", False, 
+                                f"Response too long for in-workout mode: {len(response_text)} chars", 
+                                {"response_length": len(response_text)})
+                    return False
+                
+                # Verify contextUsed is true when authenticated
+                if 'contextUsed' in data and not data['contextUsed']:
+                    self.log_test("Coach Chat - Weight Question", False, 
+                                "contextUsed should be true when authenticated", data)
+                    return False
+                
+                self.log_test("Coach Chat - Weight Question", True, 
+                            f"Coach Titan provided concise weight guidance ({len(response_text)} chars)")
+                return True
             else:
-                self.log_test("Exercise Swap - Injury Based", False, 
-                            f"Swap failed with status {response.status_code}",
+                self.log_test("Coach Chat - Weight Question", False, 
+                            f"Chat failed with status {response.status_code}",
                             {"response": response.text})
                 return False
                 
         except Exception as e:
-            self.log_test("Exercise Swap - Injury Based", False, f"Swap error: {str(e)}")
+            self.log_test("Coach Chat - Weight Question", False, f"Chat error: {str(e)}")
             return False
     
-    def test_ai_exercise_swap_equipment_based(self) -> bool:
-        """Test 2: AI Exercise Swap Endpoint - Equipment-based swap"""
+    def test_coach_chat_form_tip(self) -> bool:
+        """Test 3: Coach Chat with Workout Context (Form Tip)"""
         try:
             # Test data as specified in review request
-            swap_data = {
-                "currentExercise": "Deadlift",
-                "reason": "equipment",
-                "additionalNotes": "no barbell available",
-                "userProfile": {
-                    "equipment": ["dumbbells", "kettlebell"]
+            chat_data = {
+                "message": "Give me a quick form tip",
+                "coach": "titan",
+                "workoutContext": {
+                    "currentExercise": {
+                        "name": "Squat",
+                        "sets": 3,
+                        "reps": 10
+                    },
+                    "userIntentHint": "in_workout"
                 }
             }
             
-            # Note: Based on the server code, the endpoint is /api/workouts/swap-exercise, not /api/ai/swap-exercise
-            response = self.session.post(f"{API_BASE}/workouts/swap-exercise", json=swap_data)
+            response = self.session.post(f"{API_BASE}/coach/chat", json=chat_data)
             
             if response.status_code == 200:
                 data = response.json()
                 
                 # Check for expected response structure
-                if 'recommended' in data:
-                    recommended = data['recommended']
-                    
-                    # Verify recommended exercise has required fields
-                    required_fields = ['name', 'sets', 'reps']
-                    missing_fields = [field for field in required_fields if field not in recommended]
-                    
-                    if missing_fields:
-                        self.log_test("AI Exercise Swap - Equipment Based", False, 
-                                    f"Recommended exercise missing fields: {missing_fields}", data)
-                        return False
-                    
-                    # Verify the swap uses available equipment (should suggest dumbbell or kettlebell alternative)
-                    exercise_name = recommended['name'].lower()
-                    uses_available_equipment = any(equip in exercise_name for equip in ['dumbbell', 'kettlebell', 'bodyweight'])
-                    avoids_barbell = 'barbell' not in exercise_name
-                    
-                    if not avoids_barbell:
-                        self.log_test("AI Exercise Swap - Equipment Based", False, 
-                                    f"Recommended exercise '{recommended['name']}' still requires barbell", data)
-                        return False
-                    
-                    self.log_test("AI Exercise Swap - Equipment Based", True, 
-                                f"Successfully swapped to available equipment exercise: {recommended['name']}")
-                    return True
-                else:
-                    self.log_test("AI Exercise Swap - Equipment Based", False, 
-                                "Response missing 'recommended' field", data)
+                required_fields = ['response', 'coach']
+                missing_fields = [field for field in required_fields if field not in data]
+                
+                if missing_fields:
+                    self.log_test("Coach Chat - Form Tip", False, 
+                                f"Response missing fields: {missing_fields}", data)
                     return False
+                
+                # Verify coach name is returned as "Titan"
+                if data.get('coach') != 'Titan':
+                    self.log_test("Coach Chat - Form Tip", False, 
+                                f"Expected coach 'Titan', got '{data.get('coach')}'", data)
+                    return False
+                
+                # Verify response is short and actionable (1-3 bullet points max due to in_workout mode)
+                response_text = data.get('response', '')
+                bullet_count = response_text.count('•') + response_text.count('-') + response_text.count('*')
+                
+                if len(response_text) > 400:  # Should be concise for in-workout
+                    self.log_test("Coach Chat - Form Tip", False, 
+                                f"Form tip too long for in-workout mode: {len(response_text)} chars", 
+                                {"response_length": len(response_text)})
+                    return False
+                
+                self.log_test("Coach Chat - Form Tip", True, 
+                            f"Coach provided concise squat form tips ({len(response_text)} chars)")
+                return True
             else:
-                self.log_test("AI Exercise Swap - Equipment Based", False, 
-                            f"AI swap failed with status {response.status_code}",
+                self.log_test("Coach Chat - Form Tip", False, 
+                            f"Chat failed with status {response.status_code}",
                             {"response": response.text})
                 return False
                 
         except Exception as e:
-            self.log_test("AI Exercise Swap - Equipment Based", False, f"AI swap error: {str(e)}")
+            self.log_test("Coach Chat - Form Tip", False, f"Chat error: {str(e)}")
             return False
     
-    def test_make_easier_exercise_swap(self) -> bool:
-        """Test 3: Make Easier Exercise Swap Test"""
+    def test_coach_chat_rest_time(self) -> bool:
+        """Test 4: Coach Chat with Workout Context (Rest Time)"""
         try:
             # Test data as specified in review request
-            swap_data = {
-                "currentExercise": "Pull-ups",
-                "reason": "too_hard",
-                "additionalNotes": "can't do pull-ups yet",
-                "userProfile": {
-                    "experience": "beginner"
+            chat_data = {
+                "message": "How long should I rest between sets?",
+                "coach": "titan",
+                "workoutContext": {
+                    "currentExercise": {
+                        "name": "Deadlift",
+                        "sets": 5,
+                        "reps": 5,
+                        "restTime": 180
+                    },
+                    "userIntentHint": "in_workout"
                 }
             }
             
-            response = self.session.post(f"{API_BASE}/workouts/swap-exercise", json=swap_data)
+            response = self.session.post(f"{API_BASE}/coach/chat", json=chat_data)
             
             if response.status_code == 200:
                 data = response.json()
                 
                 # Check for expected response structure
-                if 'recommended' in data:
-                    recommended = data['recommended']
-                    
-                    # Verify recommended exercise has required fields
-                    required_fields = ['name', 'sets', 'reps']
-                    missing_fields = [field for field in required_fields if field not in recommended]
-                    
-                    if missing_fields:
-                        self.log_test("Make Easier Exercise Swap", False, 
-                                    f"Recommended exercise missing fields: {missing_fields}", data)
-                        return False
-                    
-                    # Verify the swap provides an easier alternative
-                    exercise_name = recommended['name'].lower()
-                    easier_alternatives = ['lat pulldown', 'assisted pull-up', 'band pull-apart', 'inverted row', 'negative pull-up']
-                    is_easier = any(alt in exercise_name for alt in easier_alternatives)
-                    
-                    # Also check that it's not the same difficult exercise
-                    is_not_pullup = 'pull-up' not in exercise_name or 'assisted' in exercise_name or 'negative' in exercise_name
-                    
-                    self.log_test("Make Easier Exercise Swap", True, 
-                                f"Successfully swapped to easier exercise: {recommended['name']}")
-                    return True
-                else:
-                    self.log_test("Make Easier Exercise Swap", False, 
-                                "Response missing 'recommended' field", data)
+                required_fields = ['response', 'coach']
+                missing_fields = [field for field in required_fields if field not in data]
+                
+                if missing_fields:
+                    self.log_test("Coach Chat - Rest Time", False, 
+                                f"Response missing fields: {missing_fields}", data)
                     return False
+                
+                # Verify coach name is returned as "Titan"
+                if data.get('coach') != 'Titan':
+                    self.log_test("Coach Chat - Rest Time", False, 
+                                f"Expected coach 'Titan', got '{data.get('coach')}'", data)
+                    return False
+                
+                # Verify response is concise rest time guidance
+                response_text = data.get('response', '')
+                if len(response_text) > 300:  # Should be concise for in-workout
+                    self.log_test("Coach Chat - Rest Time", False, 
+                                f"Rest time guidance too long for in-workout mode: {len(response_text)} chars", 
+                                {"response_length": len(response_text)})
+                    return False
+                
+                self.log_test("Coach Chat - Rest Time", True, 
+                            f"Coach provided concise rest time guidance ({len(response_text)} chars)")
+                return True
             else:
-                self.log_test("Make Easier Exercise Swap", False, 
-                            f"Make easier swap failed with status {response.status_code}",
+                self.log_test("Coach Chat - Rest Time", False, 
+                            f"Chat failed with status {response.status_code}",
                             {"response": response.text})
                 return False
             
         except Exception as e:
-            self.log_test("Make Easier Exercise Swap", False, f"Make easier error: {str(e)}")
+            self.log_test("Coach Chat - Rest Time", False, f"Rest time error: {str(e)}")
             return False
     
-    # Removed old test methods - focusing on Phase 7 Edit Workout feature
+    def test_coach_chat_without_workout_context(self) -> bool:
+        """Test 5: Coach Chat WITHOUT Workout Context (Should still work)"""
+        try:
+            # Test data as specified in review request
+            chat_data = {
+                "message": "What's a good warm-up routine?",
+                "coach": "titan"
+            }
+            
+            response = self.session.post(f"{API_BASE}/coach/chat", json=chat_data)
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                # Check for expected response structure
+                required_fields = ['response', 'coach']
+                missing_fields = [field for field in required_fields if field not in data]
+                
+                if missing_fields:
+                    self.log_test("Coach Chat - Without Context", False, 
+                                f"Response missing fields: {missing_fields}", data)
+                    return False
+                
+                # Verify coach name is returned as "Titan"
+                if data.get('coach') != 'Titan':
+                    self.log_test("Coach Chat - Without Context", False, 
+                                f"Expected coach 'Titan', got '{data.get('coach')}'", data)
+                    return False
+                
+                # Verify response is longer and more detailed than in-workout mode
+                response_text = data.get('response', '')
+                if len(response_text) < 100:  # Should be more detailed without workout context
+                    self.log_test("Coach Chat - Without Context", False, 
+                                f"Response too short for normal mode: {len(response_text)} chars", 
+                                {"response_length": len(response_text)})
+                    return False
+                
+                self.log_test("Coach Chat - Without Context", True, 
+                            f"Coach provided detailed warm-up guidance ({len(response_text)} chars)")
+                return True
+            else:
+                self.log_test("Coach Chat - Without Context", False, 
+                            f"Chat failed with status {response.status_code}",
+                            {"response": response.text})
+                return False
+            
+        except Exception as e:
+            self.log_test("Coach Chat - Without Context", False, f"Chat error: {str(e)}")
+            return False
     
     def run_all_tests(self):
         """Run all Thryvin API tests as specified in review request"""
-        print("🏋️ Starting Thryvin Fitness App Backend Testing - Phase 7: Edit Workout Feature")
+        print("🏋️ Starting Thryvin Fitness App Backend Testing - Phase 8: Floating AI Coach inside Workout Hub")
         print("Testing scenarios from review request:")
         print("1. Health Check Endpoint")
-        print("2. Exercise Swap Endpoint (injury-based)")
-        print("3. AI Exercise Swap Endpoint (equipment-based)")
-        print("4. Make Easier Exercise Swap Test")
+        print("2. Coach Chat with Workout Context (Weight Question)")
+        print("3. Coach Chat with Workout Context (Form Tip)")
+        print("4. Coach Chat with Workout Context (Rest Time)")
+        print("5. Coach Chat WITHOUT Workout Context (Should still work)")
         print("=" * 60)
         
         print(f"🔗 Backend URL: {BASE_URL}")
@@ -254,20 +366,32 @@ class ThryvinAPITester:
         print("\n💚 Test 1: Health Check Endpoint...")
         health_success = self.test_health_endpoint()
         
-        # Test 2: Exercise Swap - Injury Based
-        print("\n🩹 Test 2: Exercise Swap Endpoint (injury-based)...")
-        injury_swap_success = self.test_exercise_swap_injury_based()
+        # Authentication for coach tests
+        print("\n🔐 Authenticating test user for coach tests...")
+        auth_success = self.authenticate_test_user()
         
-        # Test 3: AI Exercise Swap - Equipment Based
-        print("\n🏋️ Test 3: AI Exercise Swap Endpoint (equipment-based)...")
-        equipment_swap_success = self.test_ai_exercise_swap_equipment_based()
+        if not auth_success:
+            print("❌ Authentication failed - skipping coach tests")
+            return False
         
-        # Test 4: Make Easier Exercise Swap
-        print("\n📉 Test 4: Make Easier Exercise Swap Test...")
-        easier_swap_success = self.test_make_easier_exercise_swap()
+        # Test 2: Coach Chat - Weight Question
+        print("\n🏋️ Test 2: Coach Chat with Workout Context (Weight Question)...")
+        weight_chat_success = self.test_coach_chat_weight_question()
+        
+        # Test 3: Coach Chat - Form Tip
+        print("\n🎯 Test 3: Coach Chat with Workout Context (Form Tip)...")
+        form_chat_success = self.test_coach_chat_form_tip()
+        
+        # Test 4: Coach Chat - Rest Time
+        print("\n⏱️ Test 4: Coach Chat with Workout Context (Rest Time)...")
+        rest_chat_success = self.test_coach_chat_rest_time()
+        
+        # Test 5: Coach Chat - Without Context
+        print("\n💬 Test 5: Coach Chat WITHOUT Workout Context...")
+        normal_chat_success = self.test_coach_chat_without_workout_context()
         
         print("\n" + "=" * 60)
-        print("🏁 Phase 7 Edit Workout Feature Test Results:")
+        print("🏁 Phase 8 Floating AI Coach Test Results:")
         
         passed_tests = sum(1 for result in self.test_results if result['success'])
         total_tests = len(self.test_results)
@@ -275,7 +399,7 @@ class ThryvinAPITester:
         print(f"✅ {passed_tests}/{total_tests} tests passed")
         
         if passed_tests == total_tests:
-            print("🎉 All Phase 7 Edit Workout backend tests passed!")
+            print("🎉 All Phase 8 Floating AI Coach backend tests passed!")
             return True
         else:
             print(f"⚠️ {total_tests - passed_tests} tests had issues")

@@ -1,13 +1,10 @@
 /**
  * CoachSuggestionCard - AI-powered exercise weight suggestions
  * 
- * Displays personalized weight progression recommendations based on user history.
- * Features:
- * - Use: Accept the AI suggestion directly
- * - Adjust: Inline weight adjustment with ±2.5kg/±5kg buttons
- * - Why: Explanation modal for the suggestion
- * 
- * Design: Soft rounded card with purple→pink gradient, subtle "alive" animation
+ * Phase 8.5 Updates:
+ * - COLLAPSIBLE: Default collapsed with 1-line preview, tap to expand
+ * - FINE INCREMENTS: 0.5kg steps, long-press for fast adjust, tap number to edit
+ * - FIXED LAYOUT: No more cut-off buttons, proper safe-area handling
  */
 
 import React, { useState, useEffect, useRef } from 'react';
@@ -16,11 +13,14 @@ import {
   Text,
   StyleSheet,
   TouchableOpacity,
+  TouchableWithoutFeedback,
   Modal,
   ActivityIndicator,
   Dimensions,
   Animated,
   Easing,
+  TextInput,
+  Platform,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
@@ -42,6 +42,7 @@ const COLORS = {
   mediumGray: '#8E8E93',
   success: '#34C759',
   warning: '#FF9500',
+  white: '#FFFFFF',
 };
 
 interface Exercise {
@@ -74,22 +75,28 @@ interface Props {
 export function CoachSuggestionCard({ exercise, onUseSuggestion, onAdjustSuggestion, visible = true }: Props) {
   const [suggestion, setSuggestion] = useState<CoachSuggestion | null>(null);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [showWhyModal, setShowWhyModal] = useState(false);
   const [showAdjustMode, setShowAdjustMode] = useState(false);
   const [adjustedWeight, setAdjustedWeight] = useState(0);
   const [dismissed, setDismissed] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(false);
+  const [isEditingWeight, setIsEditingWeight] = useState(false);
+  const [weightInputValue, setWeightInputValue] = useState('');
   
-  // Animation values for subtle "alive" effect
+  // Long press timer for fast adjust
+  const longPressTimer = useRef<NodeJS.Timeout | null>(null);
+  const fastAdjustInterval = useRef<NodeJS.Timeout | null>(null);
+  
+  // Animation for expand/collapse
+  const expandAnim = useRef(new Animated.Value(0)).current;
   const pulseAnim = useRef(new Animated.Value(1)).current;
-  const shimmerAnim = useRef(new Animated.Value(0)).current;
 
   // Subtle pulse animation
   useEffect(() => {
     const pulse = Animated.loop(
       Animated.sequence([
         Animated.timing(pulseAnim, {
-          toValue: 1.008,
+          toValue: 1.005,
           duration: 2000,
           easing: Easing.inOut(Easing.ease),
           useNativeDriver: true,
@@ -102,24 +109,19 @@ export function CoachSuggestionCard({ exercise, onUseSuggestion, onAdjustSuggest
         }),
       ])
     );
-    
-    const shimmer = Animated.loop(
-      Animated.timing(shimmerAnim, {
-        toValue: 1,
-        duration: 3000,
-        easing: Easing.linear,
-        useNativeDriver: true,
-      })
-    );
-    
     pulse.start();
-    shimmer.start();
-    
-    return () => {
-      pulse.stop();
-      shimmer.stop();
-    };
+    return () => pulse.stop();
   }, []);
+
+  // Expand/collapse animation
+  useEffect(() => {
+    Animated.timing(expandAnim, {
+      toValue: isExpanded ? 1 : 0,
+      duration: 250,
+      easing: Easing.out(Easing.cubic),
+      useNativeDriver: false,
+    }).start();
+  }, [isExpanded]);
 
   useEffect(() => {
     if (visible && !suggestion && !dismissed) {
@@ -130,12 +132,12 @@ export function CoachSuggestionCard({ exercise, onUseSuggestion, onAdjustSuggest
   useEffect(() => {
     if (suggestion) {
       setAdjustedWeight(suggestion.weight);
+      setWeightInputValue(String(suggestion.weight));
     }
   }, [suggestion]);
 
   const fetchSuggestion = async () => {
     setLoading(true);
-    setError(null);
     
     try {
       const authToken = await SecureStore.getItemAsync('auth_token');
@@ -176,7 +178,7 @@ export function CoachSuggestionCard({ exercise, onUseSuggestion, onAdjustSuggest
     const baseReps = typeof exercise.reps === 'number' ? exercise.reps : parseInt(exercise.reps) || 10;
     
     return {
-      weight: baseWeight > 0 ? Math.round((baseWeight + 2.5) * 2) / 2 : 0, // Round to nearest 2.5
+      weight: baseWeight > 0 ? Math.round((baseWeight + 2.5) * 2) / 2 : 0,
       reps: baseReps,
       sets: exercise.sets || 3,
       reason: baseWeight > 0 
@@ -194,8 +196,37 @@ export function CoachSuggestionCard({ exercise, onUseSuggestion, onAdjustSuggest
     }
   };
 
+  // Fine increment adjustment (0.5kg)
   const handleAdjustWeight = (delta: number) => {
-    setAdjustedWeight(prev => Math.max(0, prev + delta));
+    setAdjustedWeight(prev => {
+      const newVal = Math.max(0, Math.round((prev + delta) * 2) / 2); // Round to nearest 0.5
+      setWeightInputValue(String(newVal));
+      return newVal;
+    });
+  };
+
+  // Long press handlers for fast adjust
+  const startFastAdjust = (delta: number) => {
+    longPressTimer.current = setTimeout(() => {
+      fastAdjustInterval.current = setInterval(() => {
+        handleAdjustWeight(delta * 2); // Faster increment during hold
+      }, 100);
+    }, 400);
+  };
+
+  const stopFastAdjust = () => {
+    if (longPressTimer.current) clearTimeout(longPressTimer.current);
+    if (fastAdjustInterval.current) clearInterval(fastAdjustInterval.current);
+  };
+
+  const handleWeightInputSubmit = () => {
+    const parsed = parseFloat(weightInputValue);
+    if (!isNaN(parsed) && parsed >= 0) {
+      setAdjustedWeight(Math.round(parsed * 2) / 2); // Round to nearest 0.5
+    } else {
+      setWeightInputValue(String(adjustedWeight));
+    }
+    setIsEditingWeight(false);
   };
 
   const handleConfirmAdjustment = async () => {
@@ -219,17 +250,16 @@ export function CoachSuggestionCard({ exercise, onUseSuggestion, onAdjustSuggest
           },
           body: JSON.stringify({
             exerciseName: exercise.name,
-            setNumber: 0, // Pre-workout adjustment
+            setNumber: 0,
             weight: adjustedWeight,
             reps: suggestion.reps,
-            note: `User adjusted AI suggestion from ${suggestion.weight}kg to ${adjustedWeight}kg (override)`,
+            note: `User adjusted AI suggestion from ${suggestion.weight}kg to ${adjustedWeight}kg`,
             difficulty: adjustedWeight < suggestion.weight ? 'hard' : 'easy',
           }),
         });
-        console.log(`📝 Logged user override: ${exercise.name} - ${suggestion.weight}kg → ${adjustedWeight}kg`);
       }
     } catch (e) {
-      console.log('Could not log adjustment, continuing anyway');
+      console.log('Could not log adjustment');
     }
     
     onAdjustSuggestion(adjusted);
@@ -244,7 +274,7 @@ export function CoachSuggestionCard({ exercise, onUseSuggestion, onAdjustSuggest
       <View style={styles.container}>
         <View style={styles.loadingCard}>
           <ActivityIndicator size="small" color={COLORS.primary} />
-          <Text style={styles.loadingText}>Getting coach suggestion...</Text>
+          <Text style={styles.loadingText}>Getting suggestion...</Text>
         </View>
       </View>
     );
@@ -258,201 +288,207 @@ export function CoachSuggestionCard({ exercise, onUseSuggestion, onAdjustSuggest
     low: COLORS.mediumGray,
   }[suggestion.confidence];
 
-  // Calculate shimmer position
-  const shimmerTranslate = shimmerAnim.interpolate({
+  // Collapsed header preview
+  const previewText = suggestion.weight > 0 
+    ? `Use ${suggestion.weight}kg for ${suggestion.reps} reps`
+    : 'Tap for weight suggestion';
+
+  // Animated height for expand
+  const expandedHeight = expandAnim.interpolate({
     inputRange: [0, 1],
-    outputRange: [-SCREEN_WIDTH, SCREEN_WIDTH],
+    outputRange: [0, 280],
   });
 
   return (
     <View style={styles.container}>
       <Animated.View style={[styles.cardWrapper, { transform: [{ scale: pulseAnim }] }]}>
         <LinearGradient
-          colors={[COLORS.gradientStart + '18', COLORS.gradientEnd + '12']}
+          colors={[COLORS.gradientStart + '15', COLORS.gradientEnd + '10']}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
           style={styles.card}
         >
-          {/* Shimmer overlay */}
-          <Animated.View 
-            style={[
-              styles.shimmerOverlay, 
-              { transform: [{ translateX: shimmerTranslate }] }
-            ]} 
-            pointerEvents="none"
+          {/* Collapsed Header (always visible) */}
+          <TouchableOpacity 
+            style={styles.collapsedHeader}
+            onPress={() => setIsExpanded(!isExpanded)}
+            activeOpacity={0.7}
           >
-            <LinearGradient
-              colors={['transparent', 'rgba(255,255,255,0.15)', 'transparent']}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 0 }}
-              style={styles.shimmerGradient}
-            />
-          </Animated.View>
-
-          {/* Header */}
-          <View style={styles.header}>
             <View style={styles.headerLeft}>
-              <Ionicons name="sparkles" size={18} color={COLORS.primary} />
+              <Ionicons name="sparkles" size={16} color={COLORS.primary} />
               <Text style={styles.headerTitle}>Coach Suggestion</Text>
             </View>
-            <TouchableOpacity onPress={() => setDismissed(true)} style={styles.dismissButton}>
-              <Ionicons name="close" size={18} color={COLORS.mediumGray} />
-            </TouchableOpacity>
-          </View>
+            <View style={styles.headerRight}>
+              <Text style={styles.previewText} numberOfLines={1}>{previewText}</Text>
+              <Ionicons 
+                name={isExpanded ? "chevron-up" : "chevron-down"} 
+                size={18} 
+                color={COLORS.mediumGray} 
+              />
+            </View>
+          </TouchableOpacity>
 
-          {/* Main Message */}
-          <View style={styles.messageContainer}>
-            <Text style={styles.messageText}>
-              {suggestion.weight > 0 
-                ? `Based on last week, try +${Math.round((suggestion.weight - (exercise.suggestedWeight || 0)) * 10) / 10}kg today`
-                : 'Focus on form with a comfortable weight'}
-            </Text>
-          </View>
-
-          {/* Suggestion Display or Adjust Mode */}
-          {!showAdjustMode ? (
-            <>
-              {/* Weight/Reps Display */}
-              <View style={styles.suggestionContent}>
+          {/* Expanded Content */}
+          <Animated.View style={[styles.expandedContent, { height: expandedHeight, opacity: expandAnim }]}>
+            {!showAdjustMode ? (
+              <View style={styles.suggestionBody}>
+                {/* Weight Display */}
                 {suggestion.weight > 0 && (
-                  <View style={styles.mainSuggestion}>
-                    <Text style={styles.suggestionLabel}>Suggested Weight</Text>
-                    <Text style={styles.suggestionWeight}>{suggestion.weight} kg</Text>
+                  <View style={styles.weightDisplay}>
+                    <Text style={styles.weightLabel}>Suggested Weight</Text>
+                    <Text style={styles.weightValue}>{suggestion.weight} kg</Text>
+                    <Text style={styles.repsInfo}>{suggestion.reps} reps × {suggestion.sets} sets</Text>
                   </View>
                 )}
-                <View style={styles.secondarySuggestions}>
-                  <View style={styles.suggestionItem}>
-                    <Ionicons name="repeat-outline" size={14} color={COLORS.mediumGray} />
-                    <Text style={styles.suggestionValue}>{suggestion.reps} reps</Text>
+
+                {/* Confidence */}
+                <View style={styles.confidenceRow}>
+                  <View style={[styles.confidenceBadge, { backgroundColor: confidenceColor + '20' }]}>
+                    <View style={[styles.confidenceDot, { backgroundColor: confidenceColor }]} />
+                    <Text style={[styles.confidenceText, { color: confidenceColor }]}>
+                      {suggestion.confidence} confidence
+                    </Text>
                   </View>
-                  <View style={styles.suggestionItem}>
-                    <Ionicons name="layers-outline" size={14} color={COLORS.mediumGray} />
-                    <Text style={styles.suggestionValue}>{suggestion.sets} sets</Text>
+                </View>
+
+                {/* Action Buttons - Fixed layout */}
+                <View style={styles.actionRow}>
+                  <TouchableOpacity style={styles.useButton} onPress={handleUseSuggestion}>
+                    <LinearGradient
+                      colors={[COLORS.gradientStart, COLORS.gradientEnd]}
+                      start={{ x: 0, y: 0 }}
+                      end={{ x: 1, y: 0 }}
+                      style={styles.useButtonGradient}
+                    >
+                      <Ionicons name="checkmark" size={16} color={COLORS.white} />
+                      <Text style={styles.useButtonText}>Use</Text>
+                    </LinearGradient>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity 
+                    style={styles.secondaryButton} 
+                    onPress={() => setShowAdjustMode(true)}
+                  >
+                    <Ionicons name="options-outline" size={16} color={COLORS.primary} />
+                    <Text style={styles.secondaryButtonText}>Adjust</Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity 
+                    style={styles.secondaryButton} 
+                    onPress={() => setShowWhyModal(true)}
+                  >
+                    <Ionicons name="help-circle-outline" size={16} color={COLORS.primary} />
+                    <Text style={styles.secondaryButtonText}>Why?</Text>
+                  </TouchableOpacity>
+                </View>
+
+                {/* Dismiss */}
+                <TouchableOpacity 
+                  style={styles.dismissRow}
+                  onPress={() => setDismissed(true)}
+                >
+                  <Text style={styles.dismissText}>Not now</Text>
+                </TouchableOpacity>
+              </View>
+            ) : (
+              /* Adjust Mode with fine increments */
+              <View style={styles.adjustContainer}>
+                <Text style={styles.adjustTitle}>Adjust Weight</Text>
+                
+                {/* Weight adjuster with 0.5kg increments */}
+                <View style={styles.weightAdjuster}>
+                  {/* Minus buttons */}
+                  <View style={styles.adjustButtonGroup}>
+                    <TouchableOpacity 
+                      style={styles.adjustBtn}
+                      onPress={() => handleAdjustWeight(-5)}
+                      onPressIn={() => startFastAdjust(-5)}
+                      onPressOut={stopFastAdjust}
+                    >
+                      <Text style={styles.adjustBtnText}>-5</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity 
+                      style={styles.adjustBtn}
+                      onPress={() => handleAdjustWeight(-0.5)}
+                      onPressIn={() => startFastAdjust(-0.5)}
+                      onPressOut={stopFastAdjust}
+                    >
+                      <Text style={styles.adjustBtnText}>-0.5</Text>
+                    </TouchableOpacity>
+                  </View>
+                  
+                  {/* Tappable weight display */}
+                  <TouchableOpacity 
+                    style={styles.weightEditContainer}
+                    onPress={() => setIsEditingWeight(true)}
+                  >
+                    {isEditingWeight ? (
+                      <TextInput
+                        style={styles.weightInput}
+                        value={weightInputValue}
+                        onChangeText={setWeightInputValue}
+                        onBlur={handleWeightInputSubmit}
+                        onSubmitEditing={handleWeightInputSubmit}
+                        keyboardType="decimal-pad"
+                        autoFocus
+                        selectTextOnFocus
+                      />
+                    ) : (
+                      <Text style={styles.adjustWeightValue}>{adjustedWeight}</Text>
+                    )}
+                    <Text style={styles.adjustWeightUnit}>kg</Text>
+                  </TouchableOpacity>
+                  
+                  {/* Plus buttons */}
+                  <View style={styles.adjustButtonGroup}>
+                    <TouchableOpacity 
+                      style={styles.adjustBtn}
+                      onPress={() => handleAdjustWeight(0.5)}
+                      onPressIn={() => startFastAdjust(0.5)}
+                      onPressOut={stopFastAdjust}
+                    >
+                      <Text style={styles.adjustBtnText}>+0.5</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity 
+                      style={styles.adjustBtn}
+                      onPress={() => handleAdjustWeight(5)}
+                      onPressIn={() => startFastAdjust(5)}
+                      onPressOut={stopFastAdjust}
+                    >
+                      <Text style={styles.adjustBtnText}>+5</Text>
+                    </TouchableOpacity>
                   </View>
                 </View>
-              </View>
 
-              {/* Confidence Indicator */}
-              <View style={styles.confidenceRow}>
-                <View style={[styles.confidenceBadge, { backgroundColor: confidenceColor + '20' }]}>
-                  <View style={[styles.confidenceDot, { backgroundColor: confidenceColor }]} />
-                  <Text style={[styles.confidenceText, { color: confidenceColor }]}>
-                    {suggestion.confidence} confidence
-                  </Text>
-                </View>
-              </View>
+                <Text style={styles.adjustHint}>Tap number to type • Hold buttons for fast adjust</Text>
 
-              {/* Action Buttons */}
-              <View style={styles.actions}>
-                <TouchableOpacity style={styles.actionButton} onPress={handleUseSuggestion}>
-                  <LinearGradient
-                    colors={[COLORS.gradientStart, COLORS.gradientEnd]}
-                    start={{ x: 0, y: 0 }}
-                    end={{ x: 1, y: 0 }}
-                    style={styles.actionGradient}
-                  >
-                    <Ionicons name="checkmark" size={18} color="#FFF" />
-                    <Text style={styles.actionTextPrimary}>Use</Text>
-                  </LinearGradient>
-                </TouchableOpacity>
-
-                <TouchableOpacity 
-                  style={styles.actionButtonSecondary} 
-                  onPress={() => setShowAdjustMode(true)}
-                >
-                  <Ionicons name="options-outline" size={18} color={COLORS.primary} />
-                  <Text style={styles.actionTextSecondary}>Adjust</Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity 
-                  style={styles.actionButtonSecondary} 
-                  onPress={() => setShowWhyModal(true)}
-                >
-                  <Ionicons name="help-circle-outline" size={18} color={COLORS.primary} />
-                  <Text style={styles.actionTextSecondary}>Why?</Text>
-                </TouchableOpacity>
-              </View>
-            </>
-          ) : (
-            /* Inline Adjust Mode */
-            <View style={styles.adjustContainer}>
-              <Text style={styles.adjustTitle}>Adjust Weight</Text>
-              
-              {/* Weight Display with +/- Buttons */}
-              <View style={styles.weightAdjuster}>
-                <View style={styles.adjustButtonGroup}>
+                {/* Confirm/Cancel */}
+                <View style={styles.adjustActions}>
                   <TouchableOpacity 
-                    style={styles.adjustButton}
-                    onPress={() => handleAdjustWeight(-5)}
+                    style={styles.cancelBtn}
+                    onPress={() => {
+                      setShowAdjustMode(false);
+                      setAdjustedWeight(suggestion.weight);
+                      setWeightInputValue(String(suggestion.weight));
+                    }}
                   >
-                    <Text style={styles.adjustButtonText}>-5</Text>
+                    <Text style={styles.cancelBtnText}>Cancel</Text>
                   </TouchableOpacity>
-                  <TouchableOpacity 
-                    style={styles.adjustButton}
-                    onPress={() => handleAdjustWeight(-2.5)}
-                  >
-                    <Text style={styles.adjustButtonText}>-2.5</Text>
-                  </TouchableOpacity>
-                </View>
-                
-                <View style={styles.weightDisplay}>
-                  <Text style={styles.weightValue}>{adjustedWeight}</Text>
-                  <Text style={styles.weightUnit}>kg</Text>
-                </View>
-                
-                <View style={styles.adjustButtonGroup}>
-                  <TouchableOpacity 
-                    style={styles.adjustButton}
-                    onPress={() => handleAdjustWeight(2.5)}
-                  >
-                    <Text style={styles.adjustButtonText}>+2.5</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity 
-                    style={styles.adjustButton}
-                    onPress={() => handleAdjustWeight(5)}
-                  >
-                    <Text style={styles.adjustButtonText}>+5</Text>
+                  
+                  <TouchableOpacity style={styles.confirmBtn} onPress={handleConfirmAdjustment}>
+                    <LinearGradient
+                      colors={[COLORS.gradientStart, COLORS.gradientEnd]}
+                      start={{ x: 0, y: 0 }}
+                      end={{ x: 1, y: 0 }}
+                      style={styles.confirmBtnGradient}
+                    >
+                      <Text style={styles.confirmBtnText}>Use {adjustedWeight}kg</Text>
+                    </LinearGradient>
                   </TouchableOpacity>
                 </View>
               </View>
-
-              {/* Feedback Note */}
-              {adjustedWeight !== suggestion.weight && (
-                <Text style={styles.adjustNote}>
-                  {adjustedWeight < suggestion.weight 
-                    ? "Taking it easier today? That's smart recovery!" 
-                    : "Feeling strong? Let's push it! 💪"}
-                </Text>
-              )}
-
-              {/* Confirm/Cancel */}
-              <View style={styles.adjustActions}>
-                <TouchableOpacity 
-                  style={styles.adjustCancelButton}
-                  onPress={() => {
-                    setShowAdjustMode(false);
-                    setAdjustedWeight(suggestion.weight);
-                  }}
-                >
-                  <Text style={styles.adjustCancelText}>Cancel</Text>
-                </TouchableOpacity>
-                
-                <TouchableOpacity 
-                  style={styles.adjustConfirmButton}
-                  onPress={handleConfirmAdjustment}
-                >
-                  <LinearGradient
-                    colors={[COLORS.gradientStart, COLORS.gradientEnd]}
-                    start={{ x: 0, y: 0 }}
-                    end={{ x: 1, y: 0 }}
-                    style={styles.adjustConfirmGradient}
-                  >
-                    <Text style={styles.adjustConfirmText}>Use {adjustedWeight}kg</Text>
-                  </LinearGradient>
-                </TouchableOpacity>
-              </View>
-            </View>
-          )}
+            )}
+          </Animated.View>
         </LinearGradient>
       </Animated.View>
 
@@ -463,27 +499,31 @@ export function CoachSuggestionCard({ exercise, onUseSuggestion, onAdjustSuggest
         animationType="fade"
         onRequestClose={() => setShowWhyModal(false)}
       >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <View style={styles.modalHeader}>
-              <Ionicons name="sparkles" size={24} color={COLORS.primary} />
-              <Text style={styles.modalTitle}>Why This Suggestion?</Text>
-            </View>
-            
-            <Text style={styles.modalText}>{suggestion.reason}</Text>
-            
-            <View style={styles.modalInfo}>
-              <Ionicons name="information-circle-outline" size={16} color={COLORS.mediumGray} />
-              <Text style={styles.modalInfoText}>
-                This suggestion is based on {suggestion.basedOn}. The more you train, the smarter these recommendations become.
-              </Text>
-            </View>
+        <TouchableWithoutFeedback onPress={() => setShowWhyModal(false)}>
+          <View style={styles.modalOverlay}>
+            <TouchableWithoutFeedback>
+              <View style={styles.modalContent}>
+                <View style={styles.modalHeader}>
+                  <Ionicons name="sparkles" size={22} color={COLORS.primary} />
+                  <Text style={styles.modalTitle}>Why This Suggestion?</Text>
+                </View>
+                
+                <Text style={styles.modalText}>{suggestion.reason}</Text>
+                
+                <View style={styles.modalInfo}>
+                  <Ionicons name="information-circle-outline" size={16} color={COLORS.mediumGray} />
+                  <Text style={styles.modalInfoText}>
+                    Based on {suggestion.basedOn}. Train more to improve accuracy!
+                  </Text>
+                </View>
 
-            <TouchableOpacity style={styles.modalButton} onPress={() => setShowWhyModal(false)}>
-              <Text style={styles.modalButtonText}>Got It</Text>
-            </TouchableOpacity>
+                <TouchableOpacity style={styles.modalBtn} onPress={() => setShowWhyModal(false)}>
+                  <Text style={styles.modalBtnText}>Got It</Text>
+                </TouchableOpacity>
+              </View>
+            </TouchableWithoutFeedback>
           </View>
-        </View>
+        </TouchableWithoutFeedback>
       </Modal>
     </View>
   );
@@ -492,16 +532,17 @@ export function CoachSuggestionCard({ exercise, onUseSuggestion, onAdjustSuggest
 const styles = StyleSheet.create({
   container: {
     marginBottom: 12,
+    paddingHorizontal: 4,
   },
   cardWrapper: {
-    borderRadius: 16,
+    borderRadius: 14,
     overflow: 'hidden',
   },
   loadingCard: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    padding: 16,
+    padding: 14,
     backgroundColor: COLORS.cardBg,
     borderRadius: 12,
     gap: 8,
@@ -511,30 +552,18 @@ const styles = StyleSheet.create({
     color: COLORS.mediumGray,
   },
   card: {
-    borderRadius: 16,
-    padding: 16,
+    borderRadius: 14,
     borderWidth: 1,
-    borderColor: COLORS.primary + '30',
+    borderColor: COLORS.primary + '25',
     overflow: 'hidden',
   },
-  shimmerOverlay: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    zIndex: 1,
-  },
-  shimmerGradient: {
-    width: 100,
-    height: '100%',
-  },
-  header: {
+  // Collapsed header
+  collapsedHeader: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 12,
-    zIndex: 2,
+    justifyContent: 'space-between',
+    paddingHorizontal: 14,
+    paddingVertical: 12,
   },
   headerLeft: {
     flexDirection: 'row',
@@ -542,268 +571,281 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   headerTitle: {
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '700',
     color: COLORS.primary,
   },
-  dismissButton: {
-    padding: 4,
-  },
-  messageContainer: {
-    marginBottom: 14,
-    zIndex: 2,
-  },
-  messageText: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: COLORS.text,
-    lineHeight: 22,
-  },
-  suggestionContent: {
-    marginBottom: 12,
-    zIndex: 2,
-  },
-  mainSuggestion: {
+  headerRight: {
+    flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 14,
-    backgroundColor: '#FFFFFF',
-    borderRadius: 12,
-    marginBottom: 8,
+    gap: 8,
+    flex: 1,
+    justifyContent: 'flex-end',
   },
-  suggestionLabel: {
-    fontSize: 11,
+  previewText: {
+    fontSize: 12,
+    color: COLORS.mediumGray,
+    maxWidth: 150,
+  },
+  // Expanded content
+  expandedContent: {
+    overflow: 'hidden',
+    paddingHorizontal: 14,
+  },
+  suggestionBody: {
+    paddingTop: 4,
+  },
+  weightDisplay: {
+    alignItems: 'center',
+    paddingVertical: 12,
+    backgroundColor: COLORS.white,
+    borderRadius: 10,
+    marginBottom: 10,
+  },
+  weightLabel: {
+    fontSize: 10,
     color: COLORS.mediumGray,
     textTransform: 'uppercase',
     letterSpacing: 0.5,
-    marginBottom: 4,
   },
-  suggestionWeight: {
-    fontSize: 28,
+  weightValue: {
+    fontSize: 26,
     fontWeight: '800',
     color: COLORS.text,
   },
-  secondarySuggestions: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    gap: 20,
-  },
-  suggestionItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-  },
-  suggestionValue: {
-    fontSize: 13,
-    fontWeight: '600',
+  repsInfo: {
+    fontSize: 12,
     color: COLORS.mediumGray,
+    marginTop: 2,
   },
   confidenceRow: {
-    marginBottom: 14,
-    zIndex: 2,
+    marginBottom: 12,
   },
   confidenceBadge: {
     flexDirection: 'row',
     alignItems: 'center',
     alignSelf: 'flex-start',
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 12,
-    gap: 6,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 10,
+    gap: 5,
   },
   confidenceDot: {
-    width: 6,
-    height: 6,
+    width: 5,
+    height: 5,
     borderRadius: 3,
   },
   confidenceText: {
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: '600',
     textTransform: 'capitalize',
   },
-  actions: {
+  // Action buttons - FIXED layout
+  actionRow: {
     flexDirection: 'row',
     gap: 8,
-    zIndex: 2,
+    marginBottom: 8,
   },
-  actionButton: {
+  useButton: {
     flex: 1.2,
-    borderRadius: 10,
+    borderRadius: 8,
     overflow: 'hidden',
   },
-  actionGradient: {
+  useButtonGradient: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 12,
-    gap: 6,
+    paddingVertical: 10,
+    gap: 5,
   },
-  actionTextPrimary: {
-    fontSize: 14,
+  useButtonText: {
+    fontSize: 13,
     fontWeight: '700',
-    color: '#FFFFFF',
+    color: COLORS.white,
   },
-  actionButtonSecondary: {
+  secondaryButton: {
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 12,
-    backgroundColor: '#FFFFFF',
-    borderRadius: 10,
+    paddingVertical: 10,
+    backgroundColor: COLORS.white,
+    borderRadius: 8,
     borderWidth: 1,
-    borderColor: COLORS.primary + '40',
-    gap: 4,
+    borderColor: COLORS.primary + '30',
+    gap: 3,
   },
-  actionTextSecondary: {
-    fontSize: 13,
+  secondaryButtonText: {
+    fontSize: 12,
     fontWeight: '600',
     color: COLORS.primary,
   },
-  // Inline Adjust Mode Styles
+  dismissRow: {
+    alignItems: 'center',
+    paddingVertical: 6,
+  },
+  dismissText: {
+    fontSize: 12,
+    color: COLORS.mediumGray,
+  },
+  // Adjust mode
   adjustContainer: {
-    zIndex: 2,
+    paddingTop: 4,
   },
   adjustTitle: {
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '600',
     color: COLORS.text,
     textAlign: 'center',
-    marginBottom: 16,
+    marginBottom: 12,
   },
   weightAdjuster: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 12,
+    marginBottom: 6,
   },
   adjustButtonGroup: {
     flexDirection: 'row',
-    gap: 6,
+    gap: 4,
   },
-  adjustButton: {
-    width: 48,
-    height: 40,
-    backgroundColor: '#FFFFFF',
-    borderRadius: 10,
+  adjustBtn: {
+    width: 42,
+    height: 36,
+    backgroundColor: COLORS.white,
+    borderRadius: 8,
     borderWidth: 1,
-    borderColor: COLORS.primary + '30',
+    borderColor: COLORS.primary + '25',
     alignItems: 'center',
     justifyContent: 'center',
   },
-  adjustButtonText: {
-    fontSize: 14,
+  adjustBtnText: {
+    fontSize: 12,
     fontWeight: '700',
     color: COLORS.primary,
   },
-  weightDisplay: {
+  weightEditContainer: {
     flexDirection: 'row',
     alignItems: 'baseline',
-    gap: 4,
+    gap: 3,
+    backgroundColor: COLORS.white,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: COLORS.lightGray,
   },
-  weightValue: {
-    fontSize: 36,
+  weightInput: {
+    fontSize: 28,
+    fontWeight: '800',
+    color: COLORS.text,
+    minWidth: 60,
+    textAlign: 'center',
+    padding: 0,
+  },
+  adjustWeightValue: {
+    fontSize: 28,
     fontWeight: '800',
     color: COLORS.text,
   },
-  weightUnit: {
-    fontSize: 16,
+  adjustWeightUnit: {
+    fontSize: 14,
     fontWeight: '600',
     color: COLORS.mediumGray,
   },
-  adjustNote: {
-    fontSize: 12,
+  adjustHint: {
+    fontSize: 10,
     color: COLORS.mediumGray,
     textAlign: 'center',
-    marginBottom: 14,
-    fontStyle: 'italic',
+    marginBottom: 12,
   },
   adjustActions: {
     flexDirection: 'row',
-    gap: 10,
+    gap: 8,
   },
-  adjustCancelButton: {
+  cancelBtn: {
     flex: 1,
-    paddingVertical: 12,
-    borderRadius: 10,
+    paddingVertical: 10,
+    borderRadius: 8,
     borderWidth: 1,
     borderColor: COLORS.lightGray,
     alignItems: 'center',
   },
-  adjustCancelText: {
-    fontSize: 14,
+  cancelBtnText: {
+    fontSize: 13,
     fontWeight: '600',
     color: COLORS.mediumGray,
   },
-  adjustConfirmButton: {
+  confirmBtn: {
     flex: 1.5,
-    borderRadius: 10,
+    borderRadius: 8,
     overflow: 'hidden',
   },
-  adjustConfirmGradient: {
-    paddingVertical: 12,
+  confirmBtnGradient: {
+    paddingVertical: 10,
     alignItems: 'center',
   },
-  adjustConfirmText: {
-    fontSize: 14,
+  confirmBtnText: {
+    fontSize: 13,
     fontWeight: '700',
-    color: '#FFFFFF',
+    color: COLORS.white,
   },
-  // Modal styles
+  // Modal
   modalOverlay: {
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.5)',
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 20,
+    padding: 24,
   },
   modalContent: {
-    width: SCREEN_WIDTH - 40,
-    backgroundColor: '#FFFFFF',
-    borderRadius: 20,
-    padding: 24,
+    width: SCREEN_WIDTH - 48,
+    backgroundColor: COLORS.white,
+    borderRadius: 18,
+    padding: 20,
   },
   modalHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
-    marginBottom: 16,
+    gap: 8,
+    marginBottom: 14,
   },
   modalTitle: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: '700',
     color: COLORS.text,
   },
   modalText: {
-    fontSize: 15,
-    lineHeight: 22,
+    fontSize: 14,
+    lineHeight: 20,
     color: COLORS.text,
-    marginBottom: 16,
+    marginBottom: 14,
   },
   modalInfo: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    gap: 8,
-    padding: 12,
+    gap: 6,
+    padding: 10,
     backgroundColor: COLORS.cardBg,
-    borderRadius: 12,
-    marginBottom: 20,
+    borderRadius: 10,
+    marginBottom: 16,
   },
   modalInfoText: {
     flex: 1,
-    fontSize: 12,
+    fontSize: 11,
     color: COLORS.mediumGray,
-    lineHeight: 18,
+    lineHeight: 16,
   },
-  modalButton: {
+  modalBtn: {
     backgroundColor: COLORS.primary,
-    paddingVertical: 14,
-    borderRadius: 12,
+    paddingVertical: 12,
+    borderRadius: 10,
     alignItems: 'center',
   },
-  modalButtonText: {
-    fontSize: 16,
+  modalBtnText: {
+    fontSize: 14,
     fontWeight: '700',
-    color: '#FFFFFF',
+    color: COLORS.white,
   },
 });
 

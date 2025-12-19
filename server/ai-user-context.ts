@@ -37,6 +37,18 @@ export interface ComprehensiveUserProfile {
     dislikedTraining?: string;  // What they don't enjoy
     weakAreas?: string;  // Areas to focus on
     additionalInfo?: string;  // Any other info
+    // Phase 8.5: Weekly schedule & training style fields
+    weeklyActivities?: Array<{
+      name: string;
+      dayOfWeek: number;
+      timeWindow: 'morning' | 'afternoon' | 'evening';
+      intensity: 'low' | 'moderate' | 'hard';
+      notes?: string;
+    }>;
+    gymDaysAvailable?: number[];  // 0-6 (Sun-Sat)
+    scheduleFlexibility?: boolean;
+    preferredSplit?: string;
+    preferredSplitOther?: string;
   };
   
   // Training schedule preferences
@@ -447,6 +459,29 @@ ${profile.fitnessGoals?.length ? `All Goals: ${profile.fitnessGoals.join(', ')}`
     
     if (aq.additionalInfo) {
       advSection += `\nℹ️ Additional Info: ${aq.additionalInfo}`;
+    }
+    
+    // Phase 8.5: Weekly schedule & training style
+    if (aq.weeklyActivities && aq.weeklyActivities.length > 0) {
+      const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+      advSection += `\n\n📅 Weekly Activities (respect these in scheduling):`;
+      aq.weeklyActivities.forEach(act => {
+        advSection += `\n  - ${act.name}: ${dayNames[act.dayOfWeek]} ${act.timeWindow} (${act.intensity} intensity)`;
+      });
+      advSection += `\n⚠️ Do NOT schedule heavy training that conflicts with hard activities on same day!`;
+    }
+    
+    if (aq.gymDaysAvailable && aq.gymDaysAvailable.length > 0) {
+      const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+      const availableDayNames = aq.gymDaysAvailable.map(d => dayNames[d]).join(', ');
+      advSection += `\n🏋️ Gym Available: ${availableDayNames}`;
+    }
+    
+    if (aq.preferredSplit && aq.preferredSplit !== 'coach_choice') {
+      advSection += `\n🎯 Preferred Split: ${aq.preferredSplit}`;
+      if (aq.preferredSplitOther) {
+        advSection += ` (${aq.preferredSplitOther})`;
+      }
     }
     
     sections.push(advSection);

@@ -26,6 +26,7 @@ import ConfettiCannon from 'react-native-confetti-cannon';
 import { CoachSuggestionCard } from '../src/components/CoachSuggestionCard';
 import { EditWorkoutModal } from '../src/components/EditWorkoutModal';
 import { WorkoutCoachSheet } from '../src/components/WorkoutCoachSheet';
+import { QuickActionsPanel } from '../src/components/QuickActionsPanel';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
@@ -528,12 +529,38 @@ export default function WorkoutHubScreen() {
   };
 
   // Build workout context for coach (Phase 8)
+  // CRASH FIX: Safely access session data with optional chaining + defaults
   const buildWorkoutContextForCoach = () => {
-    const currentEx = exercises[expandedExercise];
-    const completedCount = completedSets.filter(s => s.exerciseId === currentEx?.id).length;
-    const totalExercises = exercises.length;
-    const completedExercises = activeSession?.completedExercises?.size || 0;
-    const progressPercent = Math.round((completedExercises / totalExercises) * 100);
+    const currentEx = expandedExercise !== null ? exercises[expandedExercise] : null;
+    const totalExercises = exercises?.length || 0;
+    
+    // Safely get completed exercises count from session
+    const completedExercisesCount = activeSession?.completedExercises?.size || 0;
+    const progressPercent = totalExercises > 0 
+      ? Math.round((completedExercisesCount / totalExercises) * 100) 
+      : 0;
+    
+    // Safely get logged sets for current exercise from session exerciseData
+    let userLoggedSets = 0;
+    let lastWeight: number | undefined;
+    let lastReps: number | undefined;
+    
+    if (currentEx && activeSession?.exerciseData && expandedExercise !== null) {
+      const exerciseData = activeSession.exerciseData.get(expandedExercise);
+      const completedSetsForExercise = exerciseData?.completedSets || [];
+      userLoggedSets = completedSetsForExercise.length;
+      
+      // Get last logged weight/reps if available
+      if (completedSetsForExercise.length > 0) {
+        const lastSet = completedSetsForExercise[completedSetsForExercise.length - 1];
+        lastWeight = lastSet?.weight;
+        lastReps = lastSet?.reps;
+      }
+    }
+    
+    // Use input fields if no logged data, with safe parsing
+    const currentWeight = lastWeight ?? (weight ? parseFloat(weight) : undefined);
+    const currentReps = lastReps ?? (reps ? parseInt(reps, 10) : undefined);
     
     return {
       workoutId: currentWorkout?.id,
@@ -545,11 +572,11 @@ export default function WorkoutHubScreen() {
         sets: currentEx.sets,
         reps: currentEx.reps,
         restTime: currentEx.restTime,
-        userLoggedSets: completedCount,
-        lastEnteredWeight: weight ? parseFloat(weight) : undefined,
-        lastEnteredReps: reps ? parseInt(reps) : undefined,
+        userLoggedSets,
+        lastEnteredWeight: currentWeight,
+        lastEnteredReps: currentReps,
       } : undefined,
-      remainingExercisesCount: totalExercises - completedExercises,
+      remainingExercisesCount: Math.max(0, totalExercises - completedExercisesCount),
       progressPercent,
       userIntentHint: 'in_workout' as const,
     };
@@ -632,6 +659,18 @@ export default function WorkoutHubScreen() {
           {completedCount} of {totalCount} exercises • {Math.round(progressPercentage)}%
         </Text>
       </View>
+
+      {/* Quick Actions Panel (Phase 8.5) */}
+      <QuickActionsPanel
+        onSwapDay={() => showAlert('info', 'Swap Day', 'Swap Day feature coming soon!')}
+        onEditWorkout={handleEditWorkout}
+        onAddWorkout={() => showAlert('info', 'Add Workout', 'Add Workout feature coming soon!')}
+        onShorter={() => showAlert('info', 'Shorter', 'Shorter workout option coming soon!')}
+        onHarder={() => showAlert('info', 'Harder', 'Harder workout option coming soon!')}
+        onEasier={() => showAlert('info', 'Easier', 'Easier workout option coming soon!')}
+        onOpenCoach={() => setShowCoachSheet(true)}
+        onRecoveryDay={() => showAlert('info', 'Recovery Day', 'Recovery day option coming soon!')}
+      />
 
       {/* Tabs */}
       <View style={styles.tabsContainer}>
@@ -723,7 +762,13 @@ export default function WorkoutHubScreen() {
                           <Ionicons name="chevron-back" size={28} color={COLORS.text} />
                         </TouchableOpacity>
                         <Text style={styles.modalTitle}>{exercise.name}</Text>
-                        <View style={styles.modalBackButton} />
+                        {/* Coach button in exercise detail (Phase 8.5) */}
+                        <TouchableOpacity
+                          style={styles.exerciseCoachButton}
+                          onPress={() => setShowCoachSheet(true)}
+                        >
+                          <Ionicons name="chatbubble-ellipses" size={20} color={COLORS.primary} />
+                        </TouchableOpacity>
                       </View>
 
                       <ScrollView style={styles.modalContent} showsVerticalScrollIndicator={false}>
@@ -2010,5 +2055,14 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '700',
     color: COLORS.white,
+  },
+  // Exercise detail coach button (Phase 8.5)
+  exerciseCoachButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    backgroundColor: COLORS.primary + '15',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 });
