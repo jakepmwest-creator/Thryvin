@@ -57,6 +57,10 @@ export default function WorkoutHubScreen() {
   const [distanceUnit, setDistanceUnit] = useState<'mi' | 'km'>('mi');
   const [holdTime, setHoldTime] = useState(''); // For yoga - hold duration in seconds
   
+  // Edit Workout Modal state
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editableWorkout, setEditableWorkout] = useState<any>(null);
+  
   // Finish stats for celebration popup
   const [finishStats, setFinishStats] = useState({
     completedExercises: 0,
