@@ -63,6 +63,7 @@ export function WorkoutDetailsModal({
   const [currentWorkoutIndex, setCurrentWorkoutIndex] = useState(0);
   const [expandedExerciseIndex, setExpandedExerciseIndex] = useState<number | null>(null);
   const [editModalVisible, setEditModalVisible] = useState(false);
+  const [externalActivityModalVisible, setExternalActivityModalVisible] = useState(false);
   const [alertConfig, setAlertConfig] = useState<{
     visible: boolean;
     type: 'success' | 'error' | 'warning' | 'info';
