@@ -195,12 +195,14 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Advanced Questionnaire Modal - P0 Bug Fixes Testing Complete"
+    - "Phase 9: Proactive Coach Interaction System Implementation Complete"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
 
 agent_communication:
+  - agent: "main"
+    message: "PHASE 9 IMPLEMENTATION COMPLETE: Created proactive coach insight system. Backend: new coach-insights.ts service generates contextual insights based on user streak, weekly progress, day patterns, time of day. API endpoints: GET /api/coach/insights (batch) and GET /api/coach/insight (single rotated). Frontend: CoachInsightBubble.tsx component displays insights with animated bubble UI, rotation on tap/re-entry, action buttons (start_workout, swap_day, ask_coach, etc.), and daily insight limit (10/day). Integrated into Home screen after welcome banner. Insights feel alive and contextual rather than static notifications."
   - agent: "main"
     message: "FORK JOB: Fixed 3 P0 bugs in AdvancedQuestionnaireModal.tsx: 1) Voice recording crash - replaced broken inline TouchableOpacity with working VoiceRecorderButton component for 'Other Split' input. 2) Black box UI - removed problematic LinearGradient, added proper backgroundColor (COLORS.lightGray) to activitiesCard. 3) Voice button style - removed duplicate style definitions that were overriding the original small circular button style. All voice buttons should now use the consistent corner-positioned style."
   - agent: "testing"
