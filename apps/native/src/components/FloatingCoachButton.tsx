@@ -38,7 +38,7 @@ const BUTTON_SIZE = 60;
 const EDGE_PADDING = 20;
 
 // Use backend API instead of direct OpenAI calls
-const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL || 'https://thryvin-fitness-1.preview.emergentagent.com';
+const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL || 'https://ui-voice-fix.preview.emergentagent.com';
 
 // Quick action chips for common requests
 const QUICK_ACTIONS = [

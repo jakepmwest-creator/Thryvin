@@ -90,7 +90,7 @@ This will help identify exactly what's failing.
 
 If the tunnel keeps failing, you can try using the preview URL directly:
 ```
-EXPO_PUBLIC_API_BASE_URL=https://thryvin-fitness-1.preview.emergentagent.com
+EXPO_PUBLIC_API_BASE_URL=https://ui-voice-fix.preview.emergentagent.com
 ```
 
 However, this might not work for mobile apps as it's designed for web preview.

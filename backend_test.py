@@ -17,7 +17,7 @@ import re
 from typing import Dict, List, Any, Optional
 
 # Configuration - Use production URL as specified in environment
-BASE_URL = "https://thryvin-fitness-1.preview.emergentagent.com"
+BASE_URL = "https://ui-voice-fix.preview.emergentagent.com"
 API_BASE = f"{BASE_URL}/api"
 
 class ThryvinAPITester:
