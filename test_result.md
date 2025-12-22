@@ -292,3 +292,15 @@ frontend:
       - working: true
         agent: "testing"
         comment: "✅ CODE ANALYSIS PASSED: New milestone badges properly implemented. 'i1_first_workout' (First Steps) and 'i1_first_coach_chat' (Making Friends) badges correctly defined in BADGE_DEFINITIONS (lines 180-181). Coach conversation tracking implemented with trackCoachConversation() function (lines 683-727) and properly called in AICoachWidget handleSend() (line 131). Badge progress tracking and unlocking logic is complete."
+
+  - task: "Advanced Questionnaire Modal - P0 Bug Fixes"
+    implemented: true
+    working: "NA"
+    file: "apps/native/src/components/AdvancedQuestionnaireModal.tsx"
+    stuck_count: 0
+    priority: "critical"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "FORK JOB: Fixed 3 P0 bugs in AdvancedQuestionnaireModal.tsx: 1) Voice recording crash - replaced broken inline TouchableOpacity with working VoiceRecorderButton component for 'Other Split' input. 2) Black box UI - removed problematic LinearGradient, added proper backgroundColor (COLORS.lightGray) to activitiesCard. 3) Voice button style - removed duplicate style definitions that were overriding the original small circular button style. All voice buttons should now use the consistent corner-positioned style."
