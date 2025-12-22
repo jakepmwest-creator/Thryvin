@@ -306,9 +306,9 @@ function generateRuleBasedInsights(ctx: InsightContext): CoachInsight[] {
   
   // Time-of-day insights
   if (ctx.timeOfDay === 'morning') {
-    insights.push({
+    allInsights.push({
       id: 'morning-energy',
-      message: `Morning workouts boost energy all day. Ready to start strong?`,
+      message: getPersonalityMessage(`Morning workouts boost energy all day. Ready to start strong?`, ctx.coachPersonality, 'tip'),
       action: 'start_workout',
       actionLabel: 'Let\'s go',
       category: 'tip',
@@ -317,9 +317,9 @@ function generateRuleBasedInsights(ctx: InsightContext): CoachInsight[] {
       expiresAt,
     });
   } else if (ctx.timeOfDay === 'evening' && ctx.daysSinceLastWorkout >= 1) {
-    insights.push({
+    allInsights.push({
       id: 'evening-unwind',
-      message: `End the day strong with a workout. It's a great way to de-stress.`,
+      message: getPersonalityMessage(`End the day strong with a workout. It's a great way to de-stress.`, ctx.coachPersonality, 'tip'),
       action: 'start_workout',
       actionLabel: 'Start workout',
       category: 'tip',
@@ -331,9 +331,9 @@ function generateRuleBasedInsights(ctx: InsightContext): CoachInsight[] {
   
   // New user motivation
   if (ctx.totalWorkouts < 5) {
-    insights.push({
+    allInsights.push({
       id: 'new-user-motivation',
-      message: `Every expert was once a beginner. Let's build that habit together!`,
+      message: getPersonalityMessage(`Every expert was once a beginner. Let's build that habit together!`, ctx.coachPersonality, 'motivation'),
       action: 'start_workout',
       actionLabel: 'Start workout',
       category: 'motivation',
@@ -345,9 +345,9 @@ function generateRuleBasedInsights(ctx: InsightContext): CoachInsight[] {
   
   // Consistency celebration
   if (ctx.totalWorkouts >= 10 && ctx.totalWorkouts % 10 === 0) {
-    insights.push({
+    allInsights.push({
       id: `milestone-${ctx.totalWorkouts}`,
-      message: `🎉 ${ctx.totalWorkouts} workouts logged! Your consistency is inspiring.`,
+      message: getPersonalityMessage(`🎉 ${ctx.totalWorkouts} workouts logged! Your consistency is inspiring.`, ctx.coachPersonality, 'progress'),
       action: 'view_stats',
       actionLabel: 'View progress',
       category: 'progress',
@@ -359,9 +359,9 @@ function generateRuleBasedInsights(ctx: InsightContext): CoachInsight[] {
   
   // Rest day suggestion (if they've been pushing hard)
   if (ctx.currentStreak >= 5 && ctx.dayOfWeek === 0) { // Sunday
-    insights.push({
+    allInsights.push({
       id: 'rest-day-sunday',
-      message: `5+ days straight — your muscles grow during rest. Today might be a good recovery day.`,
+      message: getPersonalityMessage(`5+ days straight — your muscles grow during rest. Today might be a good recovery day.`, ctx.coachPersonality, 'recovery'),
       action: 'rest_day',
       actionLabel: 'Rest today',
       category: 'recovery',
@@ -371,10 +371,30 @@ function generateRuleBasedInsights(ctx: InsightContext): CoachInsight[] {
     });
   }
   
+  // Phase 9.5: Add mental health / wellness insight (max once per week)
+  // Only add if not recently shown
+  const canShowWellness = !ctx.recentInsightHistory.find(h => 
+    (h.category === 'mental_health' || h.category === 'wellness') &&
+    new Date(h.shownAt) > new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
+  );
+  
+  if (canShowWellness && ctx.currentStreak >= 3) {
+    allInsights.push({
+      id: 'wellness-check',
+      message: getPersonalityMessage(`Remember, rest is part of the process. How are you feeling today?`, ctx.coachPersonality, 'wellness'),
+      action: 'ask_coach',
+      actionLabel: 'Chat',
+      category: 'wellness',
+      priority: 5,
+      generatedAt: now.toISOString(),
+      expiresAt,
+    });
+  }
+  
   // Default motivational insights
   const motivationalInsights: Omit<CoachInsight, 'id' | 'generatedAt' | 'expiresAt'>[] = [
     {
-      message: `Ready to make today count? Your future self will thank you.`,
+      message: getPersonalityMessage(`Ready to make today count? Your future self will thank you.`, ctx.coachPersonality, 'motivation'),
       action: 'start_workout',
       actionLabel: 'Start workout',
       category: 'motivation',
