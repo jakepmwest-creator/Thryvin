@@ -195,7 +195,7 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Advanced Questionnaire Modal - P0 Bug Fixes"
+    - "Advanced Questionnaire Modal - P0 Bug Fixes Testing Complete"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
