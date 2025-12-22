@@ -1,5 +1,5 @@
 // Simple test script for coach insights functionality
-const { getCoachInsights, getSingleInsight } = require('./server/coach-insights.ts');
+import { getCoachInsights, getSingleInsight } from './server/coach-insights.ts';
 
 async function testCoachInsights() {
   console.log('🧠 Testing Coach Insights System...');
