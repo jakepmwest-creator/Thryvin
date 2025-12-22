@@ -152,6 +152,18 @@ async function buildInsightContext(userId: number): Promise<InsightContext> {
   const targetPerWeek = userData.trainingDaysPerWeek || 3;
   const weeklyProgress = Math.min(thisWeekWorkouts / targetPerWeek, 1);
   
+  // Phase 9.5: Map coaching style to personality
+  const personalityMap: Record<string, CoachPersonality> = {
+    'direct-challenging': 'aggressive',
+    'strict-structured': 'disciplined',
+    'encouraging-positive': 'friendly',
+    'calm-patient': 'calm',
+    'supportive': 'friendly',
+    'direct': 'aggressive',
+    'analytical': 'disciplined',
+  };
+  const coachPersonality = personalityMap[userData.coachingStyle || ''] || 'friendly';
+  
   return {
     userId,
     currentStreak: streak,
@@ -164,15 +176,52 @@ async function buildInsightContext(userId: number): Promise<InsightContext> {
     timeOfDay,
     fitnessLevel: userData.fitnessLevel || 'beginner',
     coachingStyle: userData.coachingStyle || 'balanced',
+    coachPersonality, // Phase 9.5
     recentPRs: await getRecentPRs(userId),
     strugglingDays: await getStrugglingDays(userId),
     userName: userData.name || 'there',
+    recentInsightHistory: [], // Would be loaded from storage in production
   };
 }
 
+// Phase 9.5: Get personality-adapted message variant
+function getPersonalityMessage(
+  baseMessage: string,
+  personality: CoachPersonality,
+  category: InsightCategory
+): string {
+  const style = PERSONALITY_STYLES[personality];
+  
+  // Simple personality adaptations
+  switch (personality) {
+    case 'aggressive':
+      // Make messages more direct and challenging
+      return baseMessage
+        .replace('You could', 'Time to')
+        .replace('might be', 'is')
+        .replace('Want to', "Let's")
+        .replace('?', '!');
+    
+    case 'disciplined':
+      // Make messages more structured
+      return baseMessage.replace('💪', '').replace('🔥', '').trim();
+    
+    case 'calm':
+      // Make messages more reassuring
+      return baseMessage
+        .replace('!', '.')
+        .replace("don't break it", 'keep the flow');
+    
+    case 'friendly':
+    default:
+      return baseMessage;
+  }
+}
+
 // Generate rule-based insights (fast, no AI)
+// Phase 9.5: Now includes personality-aware messages and anti-spam filtering
 function generateRuleBasedInsights(ctx: InsightContext): CoachInsight[] {
-  const insights: CoachInsight[] = [];
+  const allInsights: CoachInsight[] = [];
   const now = new Date();
   const expiresAt = new Date(now.getTime() + 4 * 60 * 60 * 1000).toISOString(); // 4 hours
   
