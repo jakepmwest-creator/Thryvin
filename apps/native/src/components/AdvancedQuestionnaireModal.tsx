@@ -722,7 +722,7 @@ export const AdvancedQuestionnaireModal = ({
               </Text>
             </View>
           )}
-        </LinearGradient>
+        </View>
       </View>
 
       {/* Section 2: Preferred Split */}
@@ -1447,7 +1447,12 @@ const styles = StyleSheet.create({
   activitiesCard: {
     borderRadius: 16,
     overflow: 'hidden',
-    backgroundColor: COLORS.white,
+    backgroundColor: COLORS.lightGray,
+    borderWidth: 1,
+    borderColor: `${COLORS.accent}20`,
+  },
+  activitiesCardInner: {
+    padding: 16,
   },
   activitiesCardGradient: {
     padding: 16,
