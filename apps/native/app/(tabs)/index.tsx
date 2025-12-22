@@ -30,6 +30,7 @@ const { width: SCREEN_WIDTH } = Dimensions.get('window');
 import { COLORS, CARD_SHADOW } from '../../src/constants/colors';
 import { OnboardingTour } from '../../src/components/OnboardingTour';
 import { useTour } from '../../src/hooks/useTour';
+import { CoachInsightBubble, InsightAction, CoachInsight } from '../../src/components/CoachInsightBubble';
 
 // Activity cards with vibrant gradients
 const ACTIVITY_CARDS = [
