@@ -419,6 +419,66 @@ export function WorkoutDetailsModal({
                   </LinearGradient>
                 </TouchableOpacity>
               </View>
+            ) : currentWorkout?.type === 'external_activity' ? (
+              /* External Activity Content (Boxing, Classes, etc.) */
+              <View style={styles.externalActivityContent}>
+                <View style={styles.externalActivityIcon}>
+                  <Ionicons name="fitness" size={48} color={COLORS.gradientStart} />
+                </View>
+                <Text style={styles.externalActivityTitle}>{currentWorkout?.activityName || currentWorkout?.title}</Text>
+                <Text style={styles.externalActivitySubtitle}>
+                  {currentWorkout?.activityIntensity === 'hard' ? '🔥 Hard' : currentWorkout?.activityIntensity === 'moderate' ? '💪 Moderate' : '🌱 Light'} intensity
+                </Text>
+                
+                <View style={styles.externalActivityInfo}>
+                  <Text style={styles.externalActivityDescription}>
+                    {currentWorkout?.overview || `This is your scheduled ${currentWorkout?.activityName || 'activity'} day. When you're done, tap the button below to log how it went.`}
+                  </Text>
+                </View>
+                
+                {currentWorkout?.completed && currentWorkout?.externalActivityLog && (
+                  <View style={styles.externalActivitySummary}>
+                    <Text style={styles.externalActivitySummaryTitle}>Activity Summary</Text>
+                    <View style={styles.externalActivitySummaryRow}>
+                      <View style={styles.externalActivityStat}>
+                        <Text style={styles.externalActivityStatValue}>{currentWorkout.externalActivityLog.duration}</Text>
+                        <Text style={styles.externalActivityStatLabel}>minutes</Text>
+                      </View>
+                      <View style={styles.externalActivityStat}>
+                        <Text style={styles.externalActivityStatValue}>{currentWorkout.caloriesBurn || '-'}</Text>
+                        <Text style={styles.externalActivityStatLabel}>cal</Text>
+                      </View>
+                      <View style={styles.externalActivityStat}>
+                        <Text style={styles.externalActivityStatValue}>
+                          {['😫', '😐', '🙂', '😊', '🔥'][currentWorkout.externalActivityLog.enjoyment - 1] || '🙂'}
+                        </Text>
+                        <Text style={styles.externalActivityStatLabel}>enjoyment</Text>
+                      </View>
+                    </View>
+                    {currentWorkout.externalActivityLog.overview && (
+                      <Text style={styles.externalActivityNote}>{currentWorkout.externalActivityLog.overview}</Text>
+                    )}
+                  </View>
+                )}
+                
+                <TouchableOpacity 
+                  style={styles.restDayCoachButton}
+                  onPress={() => {
+                    onClose();
+                    openChat(`I'm about to do ${currentWorkout?.activityName || 'my activity'}. Any tips or things I should focus on?`);
+                  }}
+                >
+                  <LinearGradient
+                    colors={[COLORS.gradientStart, COLORS.gradientEnd]}
+                    style={styles.restDayCoachGradient}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 1 }}
+                  >
+                    <Ionicons name="chatbubble-ellipses" size={20} color="#FFFFFF" />
+                    <Text style={styles.restDayCoachText}>Ask Coach for tips</Text>
+                  </LinearGradient>
+                </TouchableOpacity>
+              </View>
             ) : (
               <>
                 {currentWorkout?.completed ? (
