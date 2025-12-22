@@ -241,6 +241,49 @@ export function WorkoutDetailsModal({
     onStartWorkout();
   };
   
+  // Handle external activity completion
+  const handleExternalActivityComplete = async (log: ExternalActivityLog) => {
+    try {
+      // Mark the external activity as completed
+      const completedWorkout = {
+        ...currentWorkout,
+        completed: true,
+        completedAt: log.completedAt,
+        duration: log.duration,
+        intensity: log.intensity,
+        enjoyment: log.enjoyment,
+        overview: log.overview,
+        externalActivityLog: log,
+        // Estimate calories based on intensity and duration
+        caloriesBurn: Math.round(log.duration * (log.intensity === 'hard' ? 10 : log.intensity === 'moderate' ? 7 : 4)),
+      };
+      
+      await updateWorkoutInWeek(currentWorkoutIndex, completedWorkout);
+      setExternalActivityModalVisible(false);
+      
+      // Show success message
+      setAlertConfig({
+        visible: true,
+        type: 'success',
+        title: 'Activity Logged! 💪',
+        message: `Great job completing ${log.activityName}! ${log.duration} minutes of ${log.intensity} intensity training logged.`,
+        buttons: [{ text: 'Done', onPress: () => {
+          setAlertConfig(prev => ({ ...prev, visible: false }));
+          onClose();
+        }}]
+      });
+    } catch (error) {
+      console.error('Error logging external activity:', error);
+      setAlertConfig({
+        visible: true,
+        type: 'error',
+        title: 'Error',
+        message: 'Failed to log activity. Please try again.',
+        buttons: [{ text: 'OK', onPress: () => setAlertConfig(prev => ({ ...prev, visible: false })) }]
+      });
+    }
+  };
+  
   const warmupExercises = currentWorkout?.exercises?.filter((e: any) => e.category === 'warmup') || [];
   const mainExercises = currentWorkout?.exercises?.filter((e: any) => e.category === 'main') || [];
   const cooldownExercises = currentWorkout?.exercises?.filter((e: any) => e.category === 'cooldown') || [];
