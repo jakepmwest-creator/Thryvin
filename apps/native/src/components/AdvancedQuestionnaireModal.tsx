@@ -1677,20 +1677,11 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.lightGray,
     borderRadius: 12,
     padding: 12,
+    paddingRight: 56,
     fontSize: 14,
     color: COLORS.text,
     minHeight: 60,
     textAlignVertical: 'top',
-  },
-  voiceButton: {
-    borderRadius: 12,
-    overflow: 'hidden',
-  },
-  voiceButtonGradient: {
-    width: 44,
-    height: 44,
-    alignItems: 'center',
-    justifyContent: 'center',
   },
   recordingHint: {
     fontSize: 12,
