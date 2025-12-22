@@ -201,6 +201,8 @@ test_plan:
   test_priority: "high_first"
 
 agent_communication:
+  - agent: "main"
+    message: "FORK JOB: Fixed 3 P0 bugs in AdvancedQuestionnaireModal.tsx: 1) Voice recording crash - replaced broken inline TouchableOpacity with working VoiceRecorderButton component for 'Other Split' input. 2) Black box UI - removed problematic LinearGradient, added proper backgroundColor (COLORS.lightGray) to activitiesCard. 3) Voice button style - removed duplicate style definitions that were overriding the original small circular button style. All voice buttons should now use the consistent corner-positioned style."
   - agent: "testing"
     message: "✅ ALL BACKEND TESTS PASSED: Comprehensive testing completed as per review request. Health endpoint (GET /api/health) returns ok: true. User registration with full onboarding data working correctly with trainingSchedule='depends', specificDates, country='US', timezone='America/New_York'. Workout generation for multiple days (0-6) produces 8-15 exercises per workout. Advanced questionnaire integration working - AI respects user focus requests like 'Make today a back day'. All endpoints return 200 status. Backend is fully functional and ready for production."
   - agent: "main"
