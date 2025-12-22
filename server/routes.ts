@@ -3082,6 +3082,64 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Phase 9: Proactive Coach Insights endpoint
+  // Returns personalized insights that rotate throughout the day
+  app.get("/api/coach/insights", async (req, res) => {
+    try {
+      const { getCoachInsights } = await import('./coach-insights');
+      
+      // Get user ID from auth
+      const DEMO_MODE = process.env.DEMO_MODE === 'true';
+      let userId: number | undefined;
+      if (req.isAuthenticated() && req.user?.id) {
+        userId = req.user.id;
+      } else if (DEMO_MODE) {
+        userId = 1; // Demo user
+      } else {
+        return res.status(401).json({ error: "Authentication required" });
+      }
+      
+      const count = parseInt(req.query.count as string) || 10;
+      const includeAI = req.query.ai === 'true';
+      const coachName = req.query.coachName as string || 'Coach';
+      
+      const insights = await getCoachInsights(userId, { count, includeAI, coachName });
+      
+      res.json({ insights });
+    } catch (error: any) {
+      console.error("Coach insights error:", error);
+      res.status(500).json({ error: "Failed to generate insights" });
+    }
+  });
+
+  // Get single rotated insight
+  app.get("/api/coach/insight", async (req, res) => {
+    try {
+      const { getSingleInsight } = await import('./coach-insights');
+      
+      // Get user ID from auth
+      const DEMO_MODE = process.env.DEMO_MODE === 'true';
+      let userId: number | undefined;
+      if (req.isAuthenticated() && req.user?.id) {
+        userId = req.user.id;
+      } else if (DEMO_MODE) {
+        userId = 1;
+      } else {
+        return res.status(401).json({ error: "Authentication required" });
+      }
+      
+      const rotationIndex = parseInt(req.query.index as string) || 0;
+      const coachName = req.query.coachName as string || 'Coach';
+      
+      const insight = await getSingleInsight(userId, rotationIndex, coachName);
+      
+      res.json({ insight });
+    } catch (error: any) {
+      console.error("Coach insight error:", error);
+      res.status(500).json({ error: "Failed to generate insight" });
+    }
+  });
+
   // Rick and Morty style coach image generation endpoint
   app.post("/api/generate-rick-morty-coach/:coachId", async (req, res) => {
     try {
