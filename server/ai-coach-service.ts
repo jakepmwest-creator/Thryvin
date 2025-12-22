@@ -255,7 +255,6 @@ export async function getUnifiedCoachResponse(request: CoachChatRequest): Promis
 8. Be encouraging but efficient - they're mid-workout!
 9. Never give medical advice - redirect to professionals if needed
 10. Never mention you're an AI model`;
-10. Never mention you're an AI model`;
     } else {
       systemPrompt += `\n\n=== CRITICAL RULES ===
 1. You are STRICTLY a fitness, health, and nutrition coach
@@ -294,7 +293,7 @@ export async function getUnifiedCoachResponse(request: CoachChatRequest): Promis
     
     return {
       response: aiResponse,
-      coach: personality.name,
+      coach: coachCharacter.name,
       contextUsed,
     };
     
