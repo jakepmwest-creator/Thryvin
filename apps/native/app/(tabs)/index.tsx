@@ -544,35 +544,12 @@ export default function HomeScreen() {
           />
         }
       >
-        {/* Welcome Banner */}
-        <LinearGradient
-          colors={[COLORS.gradientStart, COLORS.gradientEnd]}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          style={styles.welcomeBanner}
-        >
-          <View style={styles.bannerContent}>
-            <View>
-              <Text style={styles.welcomeText}>Welcome back,</Text>
-              <Text style={styles.userName}>{user?.name || 'Champion'}! 💪</Text>
-            </View>
-            <View style={styles.streakChips}>
-              <View style={styles.streakChip}>
-                <Ionicons name="flame" size={14} color={COLORS.white} />
-                <Text style={styles.streakText}>{displayStats.currentStreak} day streak</Text>
-              </View>
-              <View style={styles.streakChip}>
-                <Ionicons name="checkmark-circle" size={14} color={COLORS.white} />
-                <Text style={styles.streakText}>{displayStats.totalWorkouts} workouts</Text>
-              </View>
-            </View>
-          </View>
-        </LinearGradient>
-
-        {/* Phase 9: Proactive Coach Insight Bubble */}
-        <CoachInsightBubble 
-          onAction={handleInsightAction}
-          style={{ marginTop: 16 }}
+        {/* Welcome Banner with Integrated Coach Insight */}
+        <WelcomeBannerWithInsight
+          userName={user?.name || 'Champion'}
+          currentStreak={displayStats.currentStreak}
+          totalWorkouts={displayStats.totalWorkouts}
+          onInsightTap={handleInsightAction}
         />
 
         {/* Progress Rings */}
