@@ -1151,6 +1151,7 @@ const styles = StyleSheet.create({
   },
   activityScrollContainer: {
     paddingRight: 16,
+    paddingBottom: 8,
   },
   // Activity cards - compact size with proper padding
   activityCard: {
@@ -1161,8 +1162,8 @@ const styles = StyleSheet.create({
   },
   activityGradient: {
     padding: 14,
-    paddingBottom: 16,
-    minHeight: 90,
+    paddingBottom: 18,
+    minHeight: 100,
     justifyContent: 'flex-start',
     alignItems: 'flex-start',
   },
