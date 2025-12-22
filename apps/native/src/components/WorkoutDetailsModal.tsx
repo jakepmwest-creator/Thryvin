@@ -523,27 +523,47 @@ export function WorkoutDetailsModal({
         {/* Only show footer buttons for non-rest days that are NOT completed */}
         {!currentWorkout?.isRestDay && !currentWorkout?.completed && (
         <View style={styles.footer}>
-          <TouchableOpacity style={styles.editButton} onPress={() => setEditModalVisible(true)}>
-            <View style={styles.editButtonContent}>
-              <Ionicons name="create-outline" size={20} color={COLORS.primary} />
-              <Text style={styles.editButtonText}>Edit</Text>
-            </View>
-          </TouchableOpacity>
-          
-          <TouchableOpacity 
-            style={styles.startButton} 
-            onPress={handleStartWorkoutPress}
-          >
-            <LinearGradient
-              colors={[COLORS.gradientStart, COLORS.gradientEnd]}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 0 }}
-              style={styles.startButtonGradient}
+          {/* For external activities, show different flow */}
+          {currentWorkout?.type === 'external_activity' ? (
+            <TouchableOpacity 
+              style={[styles.startButton, { flex: 1 }]} 
+              onPress={handleStartWorkoutPress}
             >
-              <Ionicons name="play" size={24} color="#FFFFFF" />
-              <Text style={styles.startButtonText}>Start Workout</Text>
-            </LinearGradient>
-          </TouchableOpacity>
+              <LinearGradient
+                colors={[COLORS.gradientStart, COLORS.gradientEnd]}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0 }}
+                style={styles.startButtonGradient}
+              >
+                <Ionicons name="checkmark-circle" size={24} color="#FFFFFF" />
+                <Text style={styles.startButtonText}>Did you complete it?</Text>
+              </LinearGradient>
+            </TouchableOpacity>
+          ) : (
+            <>
+              <TouchableOpacity style={styles.editButton} onPress={() => setEditModalVisible(true)}>
+                <View style={styles.editButtonContent}>
+                  <Ionicons name="create-outline" size={20} color={COLORS.primary} />
+                  <Text style={styles.editButtonText}>Edit</Text>
+                </View>
+              </TouchableOpacity>
+              
+              <TouchableOpacity 
+                style={styles.startButton} 
+                onPress={handleStartWorkoutPress}
+              >
+                <LinearGradient
+                  colors={[COLORS.gradientStart, COLORS.gradientEnd]}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 0 }}
+                  style={styles.startButtonGradient}
+                >
+                  <Ionicons name="play" size={24} color="#FFFFFF" />
+                  <Text style={styles.startButtonText}>Start Workout</Text>
+                </LinearGradient>
+              </TouchableOpacity>
+            </>
+          )}
         </View>
         )}
       </View>
@@ -556,6 +576,15 @@ export function WorkoutDetailsModal({
           await updateWorkoutInWeek(currentWorkoutIndex, updated);
           setEditModalVisible(false);
         }}
+      />
+      
+      {/* External Activity Modal */}
+      <ExternalActivityModal
+        visible={externalActivityModalVisible}
+        onClose={() => setExternalActivityModalVisible(false)}
+        onComplete={handleExternalActivityComplete}
+        activityName={currentWorkout?.activityName || currentWorkout?.title || 'Activity'}
+        activityIntensity={currentWorkout?.activityIntensity || 'moderate'}
       />
       
       <CustomAlert
