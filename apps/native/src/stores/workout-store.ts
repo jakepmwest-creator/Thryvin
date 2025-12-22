@@ -484,8 +484,9 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
               console.log(`😴 [3-WEEK] Day ${i + 1}/21 (${dateStr}): REST - not in selected dates`);
             }
           } else {
-            // For other modes - use the pattern
-            isRestDay = restDayPattern.includes(dayOfWeek);
+            // For other modes - use the pattern (convert actualDayOfWeek to 0=Mon index for pattern)
+            const patternIndex = actualDayOfWeek === 0 ? 6 : actualDayOfWeek - 1;
+            isRestDay = restDayPattern.includes(patternIndex);
           }
           
           if (isRestDay) {
