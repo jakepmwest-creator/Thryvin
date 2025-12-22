@@ -18,6 +18,7 @@ import { useWorkoutStore } from '../stores/workout-store';
 import { EditWorkoutModal } from './EditWorkoutModal';
 import { CustomAlert } from './CustomAlert';
 import { useCoachStore } from '../stores/coach-store';
+import { ExternalActivityModal, ExternalActivityLog } from './ExternalActivityModal';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
