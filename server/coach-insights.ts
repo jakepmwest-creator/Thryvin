@@ -401,21 +401,21 @@ function generateRuleBasedInsights(ctx: InsightContext): CoachInsight[] {
       priority: 4,
     },
     {
-      message: `Consistency beats perfection. Even a short workout is a win.`,
+      message: getPersonalityMessage(`Consistency beats perfection. Even a short workout is a win.`, ctx.coachPersonality, 'motivation'),
       action: 'start_workout',
       actionLabel: 'Quick session',
       category: 'motivation',
       priority: 4,
     },
     {
-      message: `Got questions about your program? I'm here to help.`,
+      message: getPersonalityMessage(`Got questions about your program? I'm here to help.`, ctx.coachPersonality, 'tip'),
       action: 'ask_coach',
       actionLabel: 'Ask me',
       category: 'tip',
       priority: 3,
     },
     {
-      message: `Want to tweak today's workout? We can adjust intensity or exercises.`,
+      message: getPersonalityMessage(`Want to tweak today's workout? We can adjust intensity or exercises.`, ctx.coachPersonality, 'suggestion'),
       action: 'edit_workout',
       actionLabel: 'Customize',
       category: 'suggestion',
@@ -425,7 +425,7 @@ function generateRuleBasedInsights(ctx: InsightContext): CoachInsight[] {
   
   // Add some motivational insights with unique IDs
   motivationalInsights.forEach((insight, idx) => {
-    insights.push({
+    allInsights.push({
       ...insight,
       id: `motivation-${idx}`,
       generatedAt: now.toISOString(),
@@ -433,7 +433,17 @@ function generateRuleBasedInsights(ctx: InsightContext): CoachInsight[] {
     });
   });
   
-  return insights;
+  // Phase 9.5: Filter insights using anti-spam rules
+  const filteredInsights = allInsights.filter(insight => 
+    shouldShowInsight(insight.id, insight.category, ctx.recentInsightHistory)
+  );
+  
+  // If all insights filtered out, return at least some motivational ones
+  if (filteredInsights.length === 0) {
+    return allInsights.filter(i => i.category === 'motivation').slice(0, 3);
+  }
+  
+  return filteredInsights;
 }
 
 // Generate AI-powered personalized insight (for special occasions)
