@@ -175,6 +175,30 @@ backend:
         comment: "✅ CRITICAL ISSUE FIXED: Workout generation now enforces realistic exercise counts. Beginner 45min generates 4-6 exercises (was generating ~10). Added post-processing validation to trim workouts that exceed experience-based limits. All test cases pass: Beginner 30min (3-4), Beginner 45min (4-6), Intermediate 45min (5-7), Advanced 45min (6-8), Intermediate 60min (7-9). Validation preserves warmup/cooldown exercises while trimming main exercises as needed."
 
 frontend:
+  - task: "Phase 9: Proactive Coach Interaction System - Backend API"
+    implemented: true
+    working: true
+    file: "server/coach-insights.ts"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "✅ BACKEND TESTING PASSED: Coach insights system working correctly. getCoachInsights() generates rule-based insights with proper structure (id, message, action, actionLabel, category, priority). getSingleInsight() returns rotated insights. Error handling works gracefully - returns default insight when database unavailable. Tested insight categories: motivation, streak, progress, schedule, recovery. Action types working: start_workout, swap_day, ask_coach, edit_workout, view_stats, rest_day. Priority system (1-10) functioning. API endpoints exist in routes.ts (GET /api/coach/insights, GET /api/coach/insight) with proper authentication."
+
+  - task: "Phase 9: Proactive Coach Interaction System - Frontend Integration"
+    implemented: true
+    working: "NA"
+    file: "apps/native/src/components/CoachInsightBubble.tsx"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: "NA"
+        agent: "testing"
+        comment: "NOT TESTED: React Native frontend testing not performed due to system limitations. Code analysis shows CoachInsightBubble component properly integrated in Home screen (apps/native/app/(tabs)/index.tsx lines 573-576). Component includes: animated bubble UI, insight rotation, action buttons, daily limits (10/day), proper API integration with EXPO_PUBLIC_API_BASE_URL. Action handlers route to correct destinations (start_workout → workout-hub, ask_coach → openChat, etc.). Component structure matches backend insight format."
+
   - task: "Onboarding Flow with Country Selection"
     implemented: true
     working: "NA"
