@@ -340,3 +340,50 @@ frontend:
       - working: true
         agent: "testing"
         comment: "✅ CODE ANALYSIS PASSED: All 3 P0 bug fixes verified through code review. 1) Voice Recording Crash Fix: VoiceRecorderButton component properly implemented (lines 129-257) with error handling, state management, and used correctly in 'Other Split' section (lines 788-790). 2) Black Box UI Fix: activitiesCard has proper backgroundColor: COLORS.lightGray (line 450) and activitiesCardInner styling (line 455) - no problematic LinearGradient found. 3) Voice Button Style Fix: Consistent small circular voice button style (40x40px, borderRadius: 20) used throughout with proper positioning (lines 1265-1284). All voice buttons use VoiceRecorderButton component ensuring consistency. React Native app configured correctly with API base URL: https://ui-voice-fix.preview.emergentagent.com. Note: UI testing not performed due to React Native mobile-first architecture - code analysis confirms fixes are properly implemented."
+  - task: "Phase 9/9.5: Weekly Activities Recurrence Bug Fix"
+    implemented: true
+    working: true
+    file: "apps/native/src/stores/workout-store.ts"
+    stuck_count: 0
+    priority: "critical"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "✅ CODE ANALYSIS PASSED: Weekly activities recurrence bug fix correctly implemented. Fixed dayOfWeek calculation in workout generation logic (lines 476-477, 520-540). Now uses JavaScript's native date.getDay() (0=Sunday, 6=Saturday) instead of array index. This ensures Boxing scheduled for Wednesday appears on correct days. The fix properly handles day-of-week conversion for backend API calls and maintains consistency across the 21-day workout generation cycle."
+
+  - task: "Phase 9/9.5: Welcome Banner with Integrated Insight"
+    implemented: true
+    working: true
+    file: "apps/native/src/components/WelcomeBannerWithInsight.tsx"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "✅ CODE ANALYSIS PASSED: Welcome banner with integrated coach insight properly implemented. Component combines welcome banner with coach insight at bottom (lines 256-270). Features: insight rotation on tap (lines 194-210), contextual messages for completed workouts (lines 86-97), daily insight limits (MAX_INSIGHTS_PER_DAY=10), proper API integration with /api/coach/insights endpoint (lines 127-148). Removed action buttons - now just tappable text. Animation with fadeAnim for smooth transitions. Fallback to default insights if API fails."
+
+  - task: "Phase 9/9.5: External Activity Modal"
+    implemented: true
+    working: true
+    file: "apps/native/src/components/ExternalActivityModal.tsx"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "✅ CODE ANALYSIS PASSED: External Activity Modal comprehensively implemented. Features: Duration selection with presets (15/30/45/60/90 min) and custom input (lines 147-177), Intensity picker (Light/Moderate/Hard) with visual indicators (lines 179-209), Enjoyment rating (1-5 with emojis) (lines 211-234), Optional fields for overview, hardest part, easiest part (lines 251-291), 'Talk to Coach' integration (lines 294-297). Modal properly handles completion callback with structured ExternalActivityLog interface. UI follows app design system with gradients and proper styling."
+
+  - task: "Phase 9/9.5: WorkoutDetailsModal Updates for External Activities"
+    implemented: true
+    working: true
+    file: "apps/native/src/components/WorkoutDetailsModal.tsx"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "✅ CODE ANALYSIS PASSED: WorkoutDetailsModal properly updated for external activities. Features: Detects external activities (line 183-186), Shows 'Did you complete it?' button instead of 'Start Workout' (lines 587-601), Displays external activity content with icon, name, and intensity (lines 422-481), Shows activity summary after completion with duration, calories, enjoyment (lines 439-462), No 'Edit' button for external activities (conditional rendering lines 584-628). Proper integration with ExternalActivityModal for logging flow."
