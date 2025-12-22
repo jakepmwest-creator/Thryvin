@@ -219,7 +219,10 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Phase 9: Proactive Coach Interaction System - Complete with External Activity Logging"
+    - "Phase 9/9.5: Weekly Activities Recurrence Bug Fix"
+    - "Phase 9/9.5: Welcome Banner with Integrated Insight"
+    - "Phase 9/9.5: External Activity Modal"
+    - "Phase 9/9.5: WorkoutDetailsModal Updates for External Activities"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
