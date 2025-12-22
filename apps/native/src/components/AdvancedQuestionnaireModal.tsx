@@ -22,12 +22,14 @@ import { Audio } from 'expo-av';
 const COLORS = {
   accent: '#A22BF6',
   accentSecondary: '#FF4EC7',
+  secondary: '#FF4EC7', // Alias for accentSecondary
   white: '#ffffff',
   text: '#222222',
   lightGray: '#F8F9FA',
   mediumGray: '#8E8E93',
   success: '#34C759',
   danger: '#FF3B30',
+  cardBg: '#FFFFFF',
 };
 
 const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL || 'https://ui-voice-fix.preview.emergentagent.com';
@@ -600,12 +602,7 @@ export const AdvancedQuestionnaireModal = ({
     <View style={styles.weeklyScheduleContainer}>
       {/* Section 1: Fixed Activities - Beautiful Day Grid */}
       <View style={styles.activitiesCard}>
-        <LinearGradient
-          colors={[`${COLORS.accent}15`, `${COLORS.secondary}10`]}
-          style={styles.activitiesCardGradient}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-        >
+        <View style={styles.activitiesCardInner}>
           <View style={styles.activitiesHeader}>
             <Ionicons name="calendar" size={22} color={COLORS.accent} />
             <Text style={styles.activitiesTitle}>Your Weekly Commitments</Text>
@@ -776,7 +773,7 @@ export const AdvancedQuestionnaireModal = ({
           ))}
         </View>
         
-        {/* Other split - with voice button */}
+        {/* Other split - with voice button using VoiceRecorderButton component */}
         {formData.preferredSplit === 'other' && (
           <View style={styles.otherSplitContainer}>
             <View style={styles.otherSplitInputRow}>
@@ -788,32 +785,10 @@ export const AdvancedQuestionnaireModal = ({
                 onChangeText={(text) => setFormData(prev => ({ ...prev, preferredSplitOther: text }))}
                 multiline
               />
-              <TouchableOpacity 
-                style={styles.voiceButton}
-                onPress={() => {
-                  // Use existing voice recording functionality
-                  if (isRecording) {
-                    stopRecording();
-                  } else {
-                    startRecording();
-                  }
-                }}
-              >
-                <LinearGradient
-                  colors={isRecording ? ['#FF6B6B', '#FF8E8E'] : [COLORS.accent, COLORS.secondary]}
-                  style={styles.voiceButtonGradient}
-                >
-                  <Ionicons 
-                    name={isRecording ? 'stop' : 'mic'} 
-                    size={20} 
-                    color={COLORS.white} 
-                  />
-                </LinearGradient>
-              </TouchableOpacity>
+              <VoiceRecorderButton 
+                onTranscription={(text) => setFormData(prev => ({ ...prev, preferredSplitOther: text }))}
+              />
             </View>
-            {isRecording && (
-              <Text style={styles.recordingHint}>🎤 Listening... tap to stop</Text>
-            )}
           </View>
         )}
       </View>
