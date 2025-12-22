@@ -10,6 +10,14 @@
 
 import OpenAI from 'openai';
 import { buildAiContext } from './ai-user-context';
+import { 
+  buildUserCoachSummary, 
+  buildCoachPrompt, 
+  PERSONALITY_STYLES, 
+  CONTEXT_MODE_RULES,
+  type CoachPersonality,
+  type ContextMode as CoachContextMode 
+} from './coach-memory';
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
