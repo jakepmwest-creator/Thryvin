@@ -179,6 +179,12 @@ export function WorkoutDetailsModal({
   
   // Handle start workout button
   const handleStartWorkoutPress = () => {
+    // Check if this is an external activity (like Boxing)
+    if (currentWorkout?.type === 'external_activity') {
+      setExternalActivityModalVisible(true);
+      return;
+    }
+    
     if (isPast && !currentWorkout?.completed) {
       // Show friendly message for past workouts
       setAlertConfig({
