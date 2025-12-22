@@ -533,7 +533,7 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
                   },
                   body: JSON.stringify({
                     userProfile,
-                    dayOfWeek: workoutDayCounter % 7,
+                    dayOfWeek: actualDayOfWeek, // Use actual day of week (0=Sun, 1=Mon, etc.)
                     weekNumber,
                     recentExercises, // Pass recent exercises to avoid repetition
                   }),
