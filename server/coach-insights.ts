@@ -1,10 +1,17 @@
 // Phase 9: Proactive Coach Insight Generator
+// Phase 9.5: Enhanced with anti-spam, repetition control, and personality awareness
 // Generates contextual, personalized insights that rotate throughout the day
 
 import { db } from './db';
 import { users, userWorkouts } from '@shared/schema';
 import { eq, desc, and, gte } from 'drizzle-orm';
 import { getComprehensiveUserContext } from './ai-user-context';
+import { 
+  shouldShowInsight, 
+  PERSONALITY_STYLES, 
+  type CoachPersonality,
+  type InsightHistory 
+} from './coach-memory';
 import OpenAI from 'openai';
 
 const openai = new OpenAI({
@@ -14,12 +21,15 @@ const openai = new OpenAI({
 // Insight types with their associated actions
 export type InsightAction = 'start_workout' | 'swap_day' | 'ask_coach' | 'edit_workout' | 'view_stats' | 'rest_day' | 'none';
 
+// Phase 9.5: Extended categories including mental health
+export type InsightCategory = 'motivation' | 'progress' | 'schedule' | 'tip' | 'streak' | 'recovery' | 'suggestion' | 'mental_health' | 'wellness';
+
 export interface CoachInsight {
   id: string;
   message: string;
   action: InsightAction;
   actionLabel: string;
-  category: 'motivation' | 'progress' | 'schedule' | 'tip' | 'streak' | 'recovery' | 'suggestion';
+  category: InsightCategory;
   priority: number; // 1-10, higher = more important
   generatedAt: string;
   expiresAt: string; // Insights are valid for a limited time
@@ -38,9 +48,11 @@ interface InsightContext {
   timeOfDay: 'morning' | 'afternoon' | 'evening' | 'night';
   fitnessLevel: string;
   coachingStyle: string;
+  coachPersonality: CoachPersonality; // Phase 9.5
   recentPRs: string[];
   strugglingDays: number[]; // Days of week where user often skips
   userName: string;
+  recentInsightHistory: InsightHistory[]; // Phase 9.5: For anti-spam
 }
 
 // Get day of week patterns (days user often skips)
