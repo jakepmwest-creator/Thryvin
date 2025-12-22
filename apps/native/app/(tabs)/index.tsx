@@ -474,12 +474,11 @@ export default function HomeScreen() {
         break;
       case 'profile':
         // Show "Coming Soon" for Social feature
-        showAlert({
-          type: 'info',
-          title: '👥 Social Coming Soon!',
-          message: 'We\'re building something awesome! Social features like followers, sharing achievements, and connecting with workout buddies will be available in a future update.\n\nStay tuned!',
-          buttons: [{ text: 'Got it!', onPress: hideAlert }]
-        });
+        Alert.alert(
+          '👥 Social Coming Soon!',
+          'We\'re building something awesome! Social features like followers, sharing achievements, and connecting with workout buddies will be available in a future update.\n\nStay tuned!',
+          [{ text: 'Got it!' }]
+        );
         break;
     }
   };
