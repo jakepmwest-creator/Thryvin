@@ -195,7 +195,7 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Phase 8.5: Workout Generation Realism Testing Complete"
+    - "Advanced Questionnaire Modal - P0 Bug Fixes"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
