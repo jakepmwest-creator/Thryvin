@@ -569,6 +569,12 @@ export default function HomeScreen() {
           </View>
         </LinearGradient>
 
+        {/* Phase 9: Proactive Coach Insight Bubble */}
+        <CoachInsightBubble 
+          onAction={handleInsightAction}
+          style={{ marginTop: 16 }}
+        />
+
         {/* Progress Rings */}
         <View style={styles.progressSection}>
           <View style={styles.progressHeader}>
