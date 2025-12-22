@@ -76,6 +76,9 @@ export interface WorkoutContext {
   userIntentHint?: 'in_workout' | 'planning' | 'review';
 }
 
+// Phase 9.5: Context modes for adaptive responses
+export type ContextMode = 'in_workout' | 'post_workout' | 'home' | 'chat';
+
 export interface CoachChatRequest {
   message: string;
   coach?: string;
@@ -83,6 +86,7 @@ export interface CoachChatRequest {
   coachingStyle?: string;
   conversationHistory?: Array<{ role: string; content: string }>;
   workoutContext?: WorkoutContext;
+  contextMode?: ContextMode; // Phase 9.5: Explicit context mode
 }
 
 export interface CoachChatResponse {
