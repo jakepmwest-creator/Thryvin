@@ -803,6 +803,90 @@ const styles = StyleSheet.create({
     fontWeight: '600', 
     color: '#FFFFFF' 
   },
+  // External Activity Styles
+  externalActivityContent: { 
+    flex: 1, 
+    alignItems: 'center', 
+    justifyContent: 'center', 
+    paddingHorizontal: 32, 
+    paddingTop: 40 
+  },
+  externalActivityIcon: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: `${COLORS.gradientStart}15`,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  externalActivityTitle: { 
+    fontSize: 28, 
+    fontWeight: '700', 
+    color: COLORS.text, 
+    marginTop: 20, 
+    marginBottom: 8 
+  },
+  externalActivitySubtitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: COLORS.mediumGray,
+    marginBottom: 24,
+  },
+  externalActivityInfo: {
+    width: '100%',
+    backgroundColor: COLORS.lightGray,
+    padding: 20,
+    borderRadius: 16,
+    marginBottom: 20,
+  },
+  externalActivityDescription: { 
+    fontSize: 15, 
+    color: COLORS.text, 
+    textAlign: 'center', 
+    lineHeight: 22 
+  },
+  externalActivitySummary: {
+    width: '100%',
+    backgroundColor: `${COLORS.gradientStart}10`,
+    padding: 20,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: `${COLORS.gradientStart}20`,
+    marginBottom: 20,
+  },
+  externalActivitySummaryTitle: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: COLORS.gradientStart,
+    textAlign: 'center',
+    marginBottom: 16,
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+  },
+  externalActivitySummaryRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+  },
+  externalActivityStat: {
+    alignItems: 'center',
+  },
+  externalActivityStatValue: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: COLORS.text,
+  },
+  externalActivityStatLabel: {
+    fontSize: 12,
+    color: COLORS.mediumGray,
+    marginTop: 4,
+  },
+  externalActivityNote: {
+    fontSize: 14,
+    color: COLORS.mediumGray,
+    textAlign: 'center',
+    marginTop: 16,
+    fontStyle: 'italic',
+  },
   content: { flex: 1 },
   scrollView: { flex: 1 },
   section: { paddingHorizontal: 20, marginTop: 24 },
