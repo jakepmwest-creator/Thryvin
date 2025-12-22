@@ -148,13 +148,15 @@ function buildWorkoutContextPrompt(workoutContext: WorkoutContext): string {
 /**
  * Get coach response with full user context
  * This is the ONLY function that should be called for coach interactions
+ * 
+ * Phase 9.5: Now includes personality system and context modes
  */
 export async function getUnifiedCoachResponse(request: CoachChatRequest): Promise<CoachChatResponse> {
-  const { message, coach = 'default', userId, coachingStyle, conversationHistory = [], workoutContext } = request;
+  const { message, coach = 'default', userId, coachingStyle, conversationHistory = [], workoutContext, contextMode } = request;
   
   try {
-    // Get coach personality
-    const personality = COACH_PERSONALITIES[coach.toLowerCase()] || COACH_PERSONALITIES['default'];
+    // Get coach character personality (Kai, Titan, Lumi, etc.)
+    const coachCharacter = COACH_PERSONALITIES[coach.toLowerCase()] || COACH_PERSONALITIES['default'];
     
     // Check if message is fitness-related
     const lowerMessage = message.toLowerCase();
@@ -163,22 +165,32 @@ export async function getUnifiedCoachResponse(request: CoachChatRequest): Promis
     if (!isFitnessRelated && lowerMessage.length > 15) {
       return {
         response: `I appreciate you reaching out! However, as your fitness coach, I'm specifically trained to help with health, fitness, nutrition, and workout-related questions. 💪\n\nI can help you with:\n• Workout advice and scheduling\n• Exercise form and technique\n• Nutrition and meal planning\n• Recovery and injury prevention\n• Fitness goals and motivation\n\nWhat fitness topic can I help you with?`,
-        coach: personality.name,
+        coach: coachCharacter.name,
         contextUsed: false,
       };
     }
     
+    // Phase 9.5: Determine context mode
+    const isInWorkout = workoutContext?.userIntentHint === 'in_workout' || workoutContext?.currentExercise;
+    const effectiveMode: CoachContextMode = contextMode || (isInWorkout ? 'in_workout' : 'chat');
+    
     // Build comprehensive user context if userId is provided
     let userContext = '';
     let contextUsed = false;
+    let userCoachSummary = null;
     
     if (userId) {
       try {
+        // Phase 9.5: Build user coach summary for personality-aware prompts
+        userCoachSummary = await buildUserCoachSummary(userId);
+        
+        // Also get the full context for detailed information
         const { formatted } = await buildAiContext(userId);
         userContext = formatted;
         contextUsed = true;
+        
         if (process.env.NODE_ENV !== 'production') {
-          console.log(`🧠 [COACH] Loaded full context for user ${userId}`);
+          console.log(`🧠 [COACH] Loaded context for user ${userId} (${userCoachSummary.coachPersonality} personality, ${effectiveMode} mode)`);
         }
       } catch (error) {
         if (process.env.NODE_ENV !== 'production') {
@@ -187,27 +199,51 @@ export async function getUnifiedCoachResponse(request: CoachChatRequest): Promis
       }
     }
     
-    // Build system prompt with user context
-    let systemPrompt = personality.systemPrompt;
+    // Phase 9.5: Build system prompt with personality and context mode
+    let systemPrompt = coachCharacter.systemPrompt;
     
-    if (userContext) {
-      systemPrompt += `\n\n${userContext}`;
-    }
-    
-    if (coachingStyle) {
-      systemPrompt += `\n\nCoaching style preference: ${coachingStyle}`;
+    if (userCoachSummary) {
+      // Use the new personality-aware prompt builder
+      systemPrompt = buildCoachPrompt(userCoachSummary, effectiveMode, coachCharacter.systemPrompt);
+    } else {
+      // Fallback: Add basic user context and mode rules
+      if (userContext) {
+        systemPrompt += `\n\n${userContext}`;
+      }
+      
+      if (coachingStyle) {
+        // Map old coachingStyle to new personality
+        const personalityMap: Record<string, string> = {
+          'direct-challenging': 'aggressive',
+          'strict-structured': 'disciplined',
+          'encouraging-positive': 'friendly',
+          'calm-patient': 'calm',
+          'supportive': 'friendly',
+          'direct': 'aggressive',
+          'analytical': 'disciplined',
+        };
+        const mappedPersonality = personalityMap[coachingStyle] || 'friendly';
+        const personalityStyle = PERSONALITY_STYLES[mappedPersonality as CoachPersonality];
+        if (personalityStyle) {
+          systemPrompt += `\n\n${personalityStyle.promptDirective}`;
+        }
+      }
+      
+      // Add context mode rules
+      const modeRules = CONTEXT_MODE_RULES[effectiveMode];
+      if (modeRules) {
+        systemPrompt += `\n\n${modeRules.promptDirective}`;
+      }
     }
     
     // Add workout context if provided (Phase 8: In-Workout Coach)
-    const isInWorkout = workoutContext?.userIntentHint === 'in_workout' || workoutContext?.currentExercise;
-    
     if (workoutContext) {
       systemPrompt += buildWorkoutContextPrompt(workoutContext);
     }
     
-    // Add strict fitness-only instruction with mode-specific behavior
-    if (isInWorkout) {
-      // IN-WORKOUT MODE: Shorter, more actionable responses
+    // Add strict fitness-only instruction
+    if (effectiveMode === 'in_workout') {
+      // IN-WORKOUT MODE: Additional safety rules
       systemPrompt += `\n\n=== CRITICAL RULES (IN-WORKOUT MODE) ===
 1. You are STRICTLY a fitness coach helping during an active workout
 2. Keep responses SHORT and ACTIONABLE (1-3 bullet points max)
@@ -218,6 +254,7 @@ export async function getUnifiedCoachResponse(request: CoachChatRequest): Promis
 7. Don't ask clarifying questions unless absolutely necessary
 8. Be encouraging but efficient - they're mid-workout!
 9. Never give medical advice - redirect to professionals if needed
+10. Never mention you're an AI model`;
 10. Never mention you're an AI model`;
     } else {
       systemPrompt += `\n\n=== CRITICAL RULES ===
