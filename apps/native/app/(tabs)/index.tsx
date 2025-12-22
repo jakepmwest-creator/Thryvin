@@ -483,6 +483,35 @@ export default function HomeScreen() {
     }
   };
 
+  // Phase 9: Handle proactive coach insight actions
+  const handleInsightAction = useCallback((action: InsightAction, insight: CoachInsight) => {
+    console.log('🎯 Insight action:', action, insight.id);
+    
+    switch (action) {
+      case 'start_workout':
+        router.push('/workout-hub');
+        break;
+      case 'swap_day':
+        // Open coach chat with swap request
+        openChat("I'd like to swap today's workout to another day.");
+        break;
+      case 'ask_coach':
+        openChat();
+        break;
+      case 'edit_workout':
+        // Navigate to workout hub with edit intent
+        router.push('/workout-hub');
+        break;
+      case 'view_stats':
+        router.push('/(tabs)/stats');
+        break;
+      case 'rest_day':
+        // Confirm rest day
+        openChat("I think I should take a rest day today. What do you think?");
+        break;
+    }
+  }, [openChat]);
+
   const currentQuote = AI_QUOTES[0]; // Use first quote to avoid impure function
 
   return (
