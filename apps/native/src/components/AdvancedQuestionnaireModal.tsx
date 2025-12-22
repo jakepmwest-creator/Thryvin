@@ -1668,9 +1668,7 @@ const styles = StyleSheet.create({
     marginTop: 12,
   },
   otherSplitInputRow: {
-    flexDirection: 'row',
-    gap: 10,
-    alignItems: 'flex-start',
+    position: 'relative',
   },
   otherSplitInput: {
     flex: 1,
