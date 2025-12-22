@@ -227,9 +227,9 @@ function generateRuleBasedInsights(ctx: InsightContext): CoachInsight[] {
   
   // Streak insights
   if (ctx.currentStreak >= 7) {
-    insights.push({
+    allInsights.push({
       id: `streak-${ctx.currentStreak}`,
-      message: `🔥 ${ctx.currentStreak} day streak! You're on fire — don't break it now.`,
+      message: getPersonalityMessage(`🔥 ${ctx.currentStreak} day streak! You're on fire — don't break it now.`, ctx.coachPersonality, 'streak'),
       action: 'start_workout',
       actionLabel: 'Keep it going',
       category: 'streak',
@@ -238,9 +238,9 @@ function generateRuleBasedInsights(ctx: InsightContext): CoachInsight[] {
       expiresAt,
     });
   } else if (ctx.currentStreak >= 3) {
-    insights.push({
+    allInsights.push({
       id: `streak-${ctx.currentStreak}`,
-      message: `${ctx.currentStreak} days strong! One more session keeps the momentum.`,
+      message: getPersonalityMessage(`${ctx.currentStreak} days strong! One more session keeps the momentum.`, ctx.coachPersonality, 'streak'),
       action: 'start_workout',
       actionLabel: 'Start workout',
       category: 'streak',
@@ -252,9 +252,9 @@ function generateRuleBasedInsights(ctx: InsightContext): CoachInsight[] {
   
   // Recovery insights
   if (ctx.daysSinceLastWorkout >= 3 && ctx.totalWorkouts > 0) {
-    insights.push({
+    allInsights.push({
       id: 'recovery-return',
-      message: `Been a few days — ready to get back at it? A light session might feel good.`,
+      message: getPersonalityMessage(`Been a few days — ready to get back at it? A light session might feel good.`, ctx.coachPersonality, 'recovery'),
       action: 'start_workout',
       actionLabel: 'Easy session',
       category: 'recovery',
@@ -266,9 +266,9 @@ function generateRuleBasedInsights(ctx: InsightContext): CoachInsight[] {
   
   // Weekly progress insights
   if (ctx.weeklyProgress >= 0.8) {
-    insights.push({
+    allInsights.push({
       id: 'weekly-almost-done',
-      message: `Almost done for the week! One more session and you've hit your target. 💪`,
+      message: getPersonalityMessage(`Almost done for the week! One more session and you've hit your target. 💪`, ctx.coachPersonality, 'progress'),
       action: 'start_workout',
       actionLabel: 'Finish strong',
       category: 'progress',
@@ -277,9 +277,9 @@ function generateRuleBasedInsights(ctx: InsightContext): CoachInsight[] {
       expiresAt,
     });
   } else if (ctx.weeklyProgress < 0.3 && ctx.dayOfWeek >= 3) {
-    insights.push({
+    allInsights.push({
       id: 'weekly-catch-up',
-      message: `Week's halfway done — let's get a session in to stay on track.`,
+      message: getPersonalityMessage(`Week's halfway done — let's get a session in to stay on track.`, ctx.coachPersonality, 'schedule'),
       action: 'start_workout',
       actionLabel: 'Start now',
       category: 'schedule',
@@ -292,9 +292,9 @@ function generateRuleBasedInsights(ctx: InsightContext): CoachInsight[] {
   // Struggling day insights
   if (ctx.strugglingDays.includes(ctx.dayOfWeek)) {
     const dayNames = ['Sundays', 'Mondays', 'Tuesdays', 'Wednesdays', 'Thursdays', 'Fridays', 'Saturdays'];
-    insights.push({
+    allInsights.push({
       id: `struggling-${ctx.dayOfWeek}`,
-      message: `${dayNames[ctx.dayOfWeek]} are usually tough for you. Want to swap today's workout?`,
+      message: getPersonalityMessage(`${dayNames[ctx.dayOfWeek]} are usually tough for you. Want to swap today's workout?`, ctx.coachPersonality, 'schedule'),
       action: 'swap_day',
       actionLabel: 'Swap day',
       category: 'schedule',
