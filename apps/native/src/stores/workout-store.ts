@@ -473,7 +473,7 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
         for (let i = 0; i < 21; i++) {
           const date = allDates[i];
           const dateStr = date.toISOString().split('T')[0]; // YYYY-MM-DD format
-          const dayOfWeek = i % 7; // 0=Monday, 6=Sunday
+          const actualDayOfWeek = date.getDay(); // JavaScript: 0=Sunday, 1=Monday, ..., 6=Saturday
           
           // Determine if this is a rest day
           let isRestDay = false;
