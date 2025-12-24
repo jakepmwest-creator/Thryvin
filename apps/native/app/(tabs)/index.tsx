@@ -494,55 +494,6 @@ export default function HomeScreen() {
     }
   };
 
-  // Phase 9: Handle proactive coach insight actions
-  const handleInsightAction = useCallback((action: InsightAction, insight: CoachInsight) => {
-    console.log('🎯 Insight action:', action, insight.id);
-    
-    switch (action) {
-      case 'start_workout':
-        router.push('/workout-hub');
-        break;
-      case 'swap_day':
-        // Open coach chat with swap request
-        openChat("I'd like to swap today's workout to another day.");
-        break;
-      case 'ask_coach':
-        openChat();
-        break;
-      case 'edit_workout':
-        // Navigate to workout hub with edit intent
-        router.push('/workout-hub');
-        break;
-      case 'view_stats':
-        router.push('/(tabs)/stats');
-        break;
-      case 'rest_day':
-        // Confirm rest day
-        openChat("I think I should take a rest day today. What do you think?");
-        break;
-    }
-  }, [openChat]);
-
-  // Phase 10: Handle mental check-in actions
-  const handleMentalCheckInAction = useCallback((action: string) => {
-    console.log('💚 Mental check-in action:', action);
-    
-    if (action === 'chat' || action === 'ease_back' || action === 'reset_plan' || action === 'lighter_sessions') {
-      respondToCheckIn('acted');
-      
-      // Navigate based on action
-      if (action === 'chat') {
-        openChat("I've been away for a bit. What would you recommend to get back on track?");
-      } else if (action === 'ease_back' || action === 'lighter_sessions') {
-        router.push('/workout-hub');
-      } else if (action === 'reset_plan') {
-        setShowAdvancedQuestionnaire(true);
-      }
-    } else if (action === 'disable') {
-      respondToCheckIn('disable');
-    }
-  }, [openChat, respondToCheckIn]);
-
   // Phase 11.5: Handle home nudge resolution
   const handleHomeNudgeResolve = useCallback(async (nudgeId: number, resolution: 'accepted' | 'rejected' | 'dismissed', payload?: any) => {
     try {
