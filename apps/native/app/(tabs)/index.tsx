@@ -541,26 +541,15 @@ export default function HomeScreen() {
           />
         }
       >
-        {/* Welcome Banner with Integrated Coach Insight */}
+        {/* Welcome Banner - conversational only, NO navigation */}
         <WelcomeBannerWithInsight
           userName={user?.name || 'Champion'}
           currentStreak={displayStats.currentStreak}
           totalWorkouts={displayStats.totalWorkouts}
-          onInsightTap={handleInsightAction}
         />
 
-        {/* Phase 10: Mental Check-in (only shows if eligible and not stacked with insight) */}
-        {mentalCheckIn && (
-          <MentalCheckInCard
-            checkIn={mentalCheckIn}
-            onAction={handleMentalCheckInAction}
-            onDismiss={dismissCheckIn}
-            onSnooze={snoozeCheckIn}
-          />
-        )}
-
-        {/* Phase 11.5: Coach Nudge Card (only shows if no mental check-in active - max 1 per day) */}
-        {!mentalCheckIn && homeNudge && (
+        {/* Phase 11.5: Coach Nudge Card (max 1 per day) */}
+        {homeNudge && (
           <CoachNudgeCard
             nudge={homeNudge}
             context="home"
