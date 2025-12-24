@@ -325,16 +325,44 @@ Respond ONLY with valid JSON:
   
   // Build context from advanced questionnaire - AI uses ALL of this
   let advancedContext = '';
+  let weakAreasContext = '';
   if (userProfile.advancedQuestionnaire) {
     const aq = userProfile.advancedQuestionnaire;
+    
+    // Handle weak areas specially - they should NOT dominate every session
+    if (aq.weakAreas) {
+      weakAreasContext = `
+=== WEAK AREAS HANDLING (IMPORTANT - READ CAREFULLY) ===
+User's weak areas: ${aq.weakAreas}
+
+⚠️ CRITICAL: Weak areas should INCREASE WEEKLY VOLUME, NOT dominate every session!
+
+CORRECT approach for weak areas:
+- For a 3-day/week program: At MOST 1 session should have weak area as PRIMARY focus
+- Other sessions: Add 1-2 ACCESSORY exercises for weak areas (not main lifts)
+- NEVER make weak area the primary focus on consecutive training days
+- Balance overall split: chest/back/legs/shoulders/arms must all get adequate work
+
+WRONG approach (DO NOT DO THIS):
+❌ Making every workout "Back & Biceps" just because user said back is weak
+❌ Ignoring chest/legs/shoulders to focus only on weak areas
+❌ Adding 5+ exercises for weak areas in every session
+
+For today (Day ${dayOfWeek + 1}):
+- If this is the DESIGNATED weak-area focus day → include 2-3 extra weak area exercises
+- If this is NOT the focus day → add at most 1-2 accessory exercises for weak areas
+- ALWAYS maintain proper split balance for the PRIMARY focus of today
+`;
+    }
+    
     advancedContext = `
 === USER'S DETAILED PREFERENCES (READ ALL OF THIS) ===
 ${aq.targets ? `🎯 TARGETS/EVENTS: ${aq.targets}` : ''}
 ${aq.goalDetails ? `📋 GOAL DETAILS: ${JSON.stringify(aq.goalDetails)}` : ''}
 ${aq.enjoyedTraining ? `💚 ENJOYS (include MORE): ${aq.enjoyedTraining}` : ''}
 ${aq.dislikedTraining ? `⚠️ DISLIKES (include less but don't eliminate): ${aq.dislikedTraining}` : ''}
-${aq.weakAreas ? `💪 WEAK AREAS (focus on these): ${aq.weakAreas}` : ''}
 ${aq.additionalInfo ? `📝 ADDITIONAL REQUESTS: ${aq.additionalInfo}` : ''}
+${weakAreasContext}
 `;
     console.log('  📚 Loaded advanced questionnaire for AI context');
   }
