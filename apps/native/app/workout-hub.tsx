@@ -77,6 +77,9 @@ export default function WorkoutHubScreen() {
   const [showEditModal, setShowEditModal] = useState(false);
   const [editableWorkout, setEditableWorkout] = useState<any>(null);
   
+  // Remove mode state (for tap-to-remove exercises)
+  const [removeMode, setRemoveMode] = useState(false);
+  
   // Workout Coach Sheet state (Phase 8)
   const [showCoachSheet, setShowCoachSheet] = useState(false);
   
