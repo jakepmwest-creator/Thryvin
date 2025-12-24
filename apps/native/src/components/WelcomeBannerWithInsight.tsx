@@ -1,5 +1,6 @@
-// Phase 9: Welcome Banner with Integrated Coach Insight
-// Combines the welcome banner with a subtle coach insight at the bottom
+// Phase 9: Welcome Banner with Coach Chat Preview
+// NO NAVIGATION - conversational only
+// Tap rotates to next coach message
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
@@ -46,13 +47,22 @@ interface WelcomeBannerWithInsightProps {
 }
 
 const STORAGE_KEY = 'coach_insights_rotation';
-const MAX_INSIGHTS_PER_DAY = 10;
+const MAX_INSIGHTS_PER_DAY = 15;
 
-// Default insights if API fails or loading
-const DEFAULT_INSIGHTS: CoachInsight[] = [
-  { id: 'default-1', message: "Ready when you are. Let's make today count!", action: 'start_workout', actionLabel: 'Start', category: 'motivation', priority: 5 },
-  { id: 'default-2', message: "Every expert was once a beginner. Keep going!", action: 'none', actionLabel: '', category: 'motivation', priority: 4 },
-  { id: 'default-3', message: "Consistency beats perfection. Small steps add up.", action: 'none', actionLabel: '', category: 'tip', priority: 4 },
+// Conversational coach messages - NO actions, just chat preview
+const COACH_MESSAGES: string[] = [
+  "Ready when you are. Let's make today count!",
+  "Every rep brings you closer to your goals.",
+  "Consistency beats perfection. Small steps add up.",
+  "Your body is capable of more than you think.",
+  "Rest is part of the process. Don't skip it.",
+  "Progress isn't always visible, but it's happening.",
+  "Show up for yourself today.",
+  "The best workout is the one you actually do.",
+  "Trust the process. Results will follow.",
+  "You're stronger than yesterday.",
+  "Focus on form, the gains will follow.",
+  "One workout at a time. That's all it takes.",
 ];
 
 export const WelcomeBannerWithInsight: React.FC<WelcomeBannerWithInsightProps> = ({
@@ -61,15 +71,14 @@ export const WelcomeBannerWithInsight: React.FC<WelcomeBannerWithInsightProps> =
   totalWorkouts,
   onInsightTap,
 }) => {
-  const [insights, setInsights] = useState<CoachInsight[]>(DEFAULT_INSIGHTS);
-  const [currentIndex, setCurrentIndex] = useState(0);
+  const [currentMessageIndex, setCurrentMessageIndex] = useState(0);
   const [shownToday, setShownToday] = useState(0);
   
   const { coachName, openChat } = useCoachStore();
   const { user } = useAuthStore();
   const completedWorkouts = useWorkoutStore(state => state.completedWorkouts);
   
-  // Animation for insight text
+  // Animation for message text
   const fadeAnim = useRef(new Animated.Value(1)).current;
   
   // Check if user just completed a workout today
@@ -82,70 +91,25 @@ export const WelcomeBannerWithInsight: React.FC<WelcomeBannerWithInsightProps> =
     return workoutDate === today;
   }, [completedWorkouts]);
   
-  // Generate contextual insight based on current state
-  const getContextualInsight = useCallback((): CoachInsight | null => {
+  // Generate contextual message based on current state
+  const getContextualMessage = useCallback((): string | null => {
     // If just completed a workout today
     if (justCompletedToday()) {
-      return {
-        id: 'completed-today',
-        message: "You smashed it today! Rest up and recover well. 💪",
-        action: 'view_stats',
-        actionLabel: 'View',
-        category: 'progress',
-        priority: 10,
-      };
+      return "You smashed it today! Rest up and recover well. 💪";
     }
     
     // If on a great streak
     if (currentStreak >= 7) {
-      return {
-        id: 'streak-high',
-        message: `${currentStreak} day streak! You're unstoppable right now.`,
-        action: 'none',
-        actionLabel: '',
-        category: 'streak',
-        priority: 9,
-      };
+      return `${currentStreak} day streak! You're unstoppable right now.`;
     }
     
     // If building momentum
     if (currentStreak >= 3) {
-      return {
-        id: 'streak-building',
-        message: `${currentStreak} days strong. Keep the momentum going!`,
-        action: 'none',
-        actionLabel: '',
-        category: 'streak',
-        priority: 8,
-      };
+      return `${currentStreak} days strong. Keep the momentum going!`;
     }
     
     return null;
   }, [justCompletedToday, currentStreak]);
-  
-  // Fetch insights from API
-  const fetchInsights = useCallback(async () => {
-    if (!user?.id) return;
-    
-    try {
-      const response = await fetch(
-        `${API_BASE_URL}/api/coach/insights?count=10&coachName=${encodeURIComponent(coachName)}`,
-        {
-          headers: { 'Bypass-Tunnel-Reminder': 'true' },
-          credentials: 'include',
-        }
-      );
-      
-      if (response.ok) {
-        const data = await response.json();
-        if (data.insights && data.insights.length > 0) {
-          setInsights(data.insights);
-        }
-      }
-    } catch (error) {
-      console.log('Could not fetch insights, using defaults');
-    }
-  }, [user?.id, coachName]);
   
   // Load rotation state
   const loadRotationState = useCallback(async () => {
@@ -156,13 +120,15 @@ export const WelcomeBannerWithInsight: React.FC<WelcomeBannerWithInsightProps> =
         const today = new Date().toDateString();
         
         if (state.date === today) {
-          setCurrentIndex(state.index || 0);
+          setCurrentMessageIndex(state.index || 0);
           setShownToday(state.shownToday || 0);
         } else {
           // New day, reset
+          const randomStart = Math.floor(Math.random() * COACH_MESSAGES.length);
+          setCurrentMessageIndex(randomStart);
           await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify({
             date: today,
-            index: 0,
+            index: randomStart,
             shownToday: 0,
           }));
         }
@@ -188,14 +154,13 @@ export const WelcomeBannerWithInsight: React.FC<WelcomeBannerWithInsightProps> =
   // Initial load
   useEffect(() => {
     loadRotationState();
-    fetchInsights();
-  }, [loadRotationState, fetchInsights]);
+  }, [loadRotationState]);
   
-  // Rotate to next insight
-  const rotateInsight = useCallback(() => {
-    if (insights.length === 0 || shownToday >= MAX_INSIGHTS_PER_DAY) return;
+  // Rotate to next message on tap - NO NAVIGATION
+  const handleBannerTap = useCallback(() => {
+    if (shownToday >= MAX_INSIGHTS_PER_DAY) return;
     
-    const newIndex = (currentIndex + 1) % insights.length;
+    const newIndex = (currentMessageIndex + 1) % COACH_MESSAGES.length;
     const newShownToday = shownToday + 1;
     
     // Animate fade out then in
@@ -204,27 +169,13 @@ export const WelcomeBannerWithInsight: React.FC<WelcomeBannerWithInsightProps> =
       Animated.timing(fadeAnim, { toValue: 1, duration: 250, useNativeDriver: true }),
     ]).start();
     
-    setCurrentIndex(newIndex);
+    setCurrentMessageIndex(newIndex);
     setShownToday(newShownToday);
     saveRotationState(newIndex, newShownToday);
-  }, [currentIndex, insights.length, shownToday, saveRotationState, fadeAnim]);
+  }, [currentMessageIndex, shownToday, saveRotationState, fadeAnim]);
   
-  // Handle tap on insight
-  const handleInsightTap = useCallback(() => {
-    const insight = getContextualInsight() || insights[currentIndex];
-    if (!insight) return;
-    
-    // If there's an action and handler
-    if (insight.action !== 'none' && onInsightTap) {
-      onInsightTap(insight.action, insight);
-    }
-    
-    // Always rotate on tap
-    rotateInsight();
-  }, [currentIndex, insights, getContextualInsight, onInsightTap, rotateInsight]);
-  
-  // Get current insight to display
-  const currentInsight = getContextualInsight() || insights[currentIndex] || DEFAULT_INSIGHTS[0];
+  // Get current message to display
+  const currentMessage = getContextualMessage() || COACH_MESSAGES[currentMessageIndex] || COACH_MESSAGES[0];
   
   return (
     <LinearGradient
@@ -254,18 +205,19 @@ export const WelcomeBannerWithInsight: React.FC<WelcomeBannerWithInsightProps> =
       {/* Divider line */}
       <View style={styles.divider} />
       
-      {/* Coach insight section - subtle and tappable */}
+      {/* Coach message section - TAP TO ROTATE, NO NAVIGATION */}
       <TouchableOpacity 
-        style={styles.insightSection} 
-        onPress={handleInsightTap}
+        style={styles.messageSection} 
+        onPress={handleBannerTap}
         activeOpacity={0.7}
       >
-        <Animated.View style={[styles.insightContent, { opacity: fadeAnim }]}>
-          <Ionicons name="sparkles" size={14} color="rgba(255,255,255,0.8)" style={styles.insightIcon} />
-          <Text style={styles.insightText} numberOfLines={2}>
-            {currentInsight.message}
+        <Animated.View style={[styles.messageContent, { opacity: fadeAnim }]}>
+          <Ionicons name="sparkles" size={14} color="rgba(255,255,255,0.8)" style={styles.messageIcon} />
+          <Text style={styles.messageText} numberOfLines={2}>
+            {currentMessage}
           </Text>
-          <Ionicons name="chevron-forward" size={14} color="rgba(255,255,255,0.5)" />
+          {/* Small tap indicator instead of arrow */}
+          <Text style={styles.tapHint}>tap</Text>
         </Animated.View>
       </TouchableOpacity>
     </LinearGradient>
@@ -319,23 +271,30 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255, 255, 255, 0.15)',
     marginHorizontal: 16,
   },
-  insightSection: {
+  messageSection: {
     paddingHorizontal: 16,
     paddingVertical: 12,
   },
-  insightContent: {
+  messageContent: {
     flexDirection: 'row',
     alignItems: 'center',
   },
-  insightIcon: {
+  messageIcon: {
     marginRight: 8,
   },
-  insightText: {
+  messageText: {
     flex: 1,
     fontSize: 13,
     color: 'rgba(255, 255, 255, 0.9)',
     fontWeight: '500',
     lineHeight: 18,
+  },
+  tapHint: {
+    fontSize: 10,
+    color: 'rgba(255, 255, 255, 0.4)',
+    fontWeight: '500',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
 });
 
