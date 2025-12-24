@@ -31,8 +31,7 @@ const { width: SCREEN_WIDTH } = Dimensions.get('window');
 import { COLORS, CARD_SHADOW } from '../../src/constants/colors';
 import { OnboardingTour } from '../../src/components/OnboardingTour';
 import { useTour } from '../../src/hooks/useTour';
-import { WelcomeBannerWithInsight, InsightAction, CoachInsight } from '../../src/components/WelcomeBannerWithInsight';
-import { MentalCheckInCard, useMentalCheckIn } from '../../src/components/MentalCheckInCard';
+import { WelcomeBannerWithInsight } from '../../src/components/WelcomeBannerWithInsight';
 import { CoachNudgeCard } from '../../src/components/CoachNudgeCard';
 import { useCoachNudges } from '../../src/hooks/useCoachNudges';
 
