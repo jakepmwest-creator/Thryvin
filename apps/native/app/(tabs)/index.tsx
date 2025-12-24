@@ -363,9 +363,6 @@ export default function HomeScreen() {
     console.log('📱 [HOME] App starting...');
     console.log('📱 [HOME] EXPO_PUBLIC_API_BASE_URL:', process.env.EXPO_PUBLIC_API_BASE_URL);
     loadAllData();
-    
-    // Phase 10: Fetch mental check-in eligibility
-    fetchMentalCheckIn();
   }, []);
   
   // Compute completed count for dependency tracking
