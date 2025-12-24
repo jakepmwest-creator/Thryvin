@@ -123,15 +123,6 @@ export default function HomeScreen() {
   const { user } = useAuthStore();
   const { openChat } = useCoachStore();
   
-  // Phase 10: Mental health check-in
-  const { 
-    checkIn: mentalCheckIn, 
-    fetchCheckIn: fetchMentalCheckIn,
-    respondToCheckIn,
-    snoozeCheckIn,
-    dismissCheckIn,
-  } = useMentalCheckIn();
-  
   // Phase 11.5: Coach Nudge System for home screen (only weekly/high-level nudges)
   const {
     topNudge: homeNudge,
