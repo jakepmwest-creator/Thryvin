@@ -87,7 +87,7 @@ app.use((req, res, next) => {
 
   // Serve on port 8001 for Kubernetes ingress routing
   // Kubernetes routes /api requests to port 8001
-  const port = 8001;
+  const port = process.env.PORT ? parseInt(process.env.PORT) : 8001;
   server.listen(
     {
       port,

@@ -4,7 +4,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { notificationService } from '../services/notificationService';
 import { useWorkoutStore } from './workout-store';
 
-const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL || 'https://ui-voice-fix.preview.emergentagent.com';
+const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL || 'https://coach-evolution-1.preview.emergentagent.com';
 
 // Storage helpers - Use AsyncStorage for large data (user profiles can be >2KB)
 // Only use SecureStore for small secrets (email, password, tokens)

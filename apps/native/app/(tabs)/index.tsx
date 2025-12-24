@@ -32,6 +32,9 @@ import { COLORS, CARD_SHADOW } from '../../src/constants/colors';
 import { OnboardingTour } from '../../src/components/OnboardingTour';
 import { useTour } from '../../src/hooks/useTour';
 import { WelcomeBannerWithInsight, InsightAction, CoachInsight } from '../../src/components/WelcomeBannerWithInsight';
+import { MentalCheckInCard, useMentalCheckIn } from '../../src/components/MentalCheckInCard';
+import { CoachNudgeCard } from '../../src/components/CoachNudgeCard';
+import { useCoachNudges } from '../../src/hooks/useCoachNudges';
 
 // Activity cards with vibrant gradients
 const ACTIVITY_CARDS = [
@@ -120,6 +123,24 @@ export default function HomeScreen() {
 
   const { user } = useAuthStore();
   const { openChat } = useCoachStore();
+  
+  // Phase 10: Mental health check-in
+  const { 
+    checkIn: mentalCheckIn, 
+    fetchCheckIn: fetchMentalCheckIn,
+    respondToCheckIn,
+    snoozeCheckIn,
+    dismissCheckIn,
+  } = useMentalCheckIn();
+  
+  // Phase 11.5: Coach Nudge System for home screen (only weekly/high-level nudges)
+  const {
+    topNudge: homeNudge,
+    personality: nudgePersonality,
+    resolveNudge: resolveHomeNudge,
+    hasNudges: hasHomeNudge,
+  } = useCoachNudges({ location: 'home', autoFetch: true });
+  
   const {
     showTour,
     currentStep,
@@ -352,6 +373,9 @@ export default function HomeScreen() {
     console.log('📱 [HOME] App starting...');
     console.log('📱 [HOME] EXPO_PUBLIC_API_BASE_URL:', process.env.EXPO_PUBLIC_API_BASE_URL);
     loadAllData();
+    
+    // Phase 10: Fetch mental check-in eligibility
+    fetchMentalCheckIn();
   }, []);
   
   // Compute completed count for dependency tracking
@@ -512,6 +536,41 @@ export default function HomeScreen() {
     }
   }, [openChat]);
 
+  // Phase 10: Handle mental check-in actions
+  const handleMentalCheckInAction = useCallback((action: string) => {
+    console.log('💚 Mental check-in action:', action);
+    
+    if (action === 'chat' || action === 'ease_back' || action === 'reset_plan' || action === 'lighter_sessions') {
+      respondToCheckIn('acted');
+      
+      // Navigate based on action
+      if (action === 'chat') {
+        openChat("I've been away for a bit. What would you recommend to get back on track?");
+      } else if (action === 'ease_back' || action === 'lighter_sessions') {
+        router.push('/workout-hub');
+      } else if (action === 'reset_plan') {
+        setShowAdvancedQuestionnaire(true);
+      }
+    } else if (action === 'disable') {
+      respondToCheckIn('disable');
+    }
+  }, [openChat, respondToCheckIn]);
+
+  // Phase 11.5: Handle home nudge resolution
+  const handleHomeNudgeResolve = useCallback(async (nudgeId: number, resolution: 'accepted' | 'rejected' | 'dismissed', payload?: any) => {
+    try {
+      await resolveHomeNudge(nudgeId, resolution, payload);
+      console.log(`📣 [HOME-NUDGE] Resolved: ${resolution}`);
+      
+      // Handle specific actions
+      if (resolution === 'accepted' && payload?.action === 'schedule_adjust') {
+        setShowAdvancedQuestionnaire(true);
+      }
+    } catch (error) {
+      console.error('Failed to resolve home nudge:', error);
+    }
+  }, [resolveHomeNudge]);
+
   const currentQuote = AI_QUOTES[0]; // Use first quote to avoid impure function
 
   return (
@@ -551,6 +610,28 @@ export default function HomeScreen() {
           totalWorkouts={displayStats.totalWorkouts}
           onInsightTap={handleInsightAction}
         />
+
+        {/* Phase 10: Mental Check-in (only shows if eligible and not stacked with insight) */}
+        {mentalCheckIn && (
+          <MentalCheckInCard
+            checkIn={mentalCheckIn}
+            onAction={handleMentalCheckInAction}
+            onDismiss={dismissCheckIn}
+            onSnooze={snoozeCheckIn}
+          />
+        )}
+
+        {/* Phase 11.5: Coach Nudge Card (only shows if no mental check-in active - max 1 per day) */}
+        {!mentalCheckIn && homeNudge && (
+          <CoachNudgeCard
+            nudge={homeNudge}
+            context="home"
+            personality={nudgePersonality}
+            onResolve={handleHomeNudgeResolve}
+            onAskCoach={(message) => openChat(message)}
+            compact={false}
+          />
+        )}
 
         {/* Progress Rings */}
         <View style={styles.progressSection}>

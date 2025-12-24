@@ -174,6 +174,18 @@ backend:
         agent: "testing"
         comment: "✅ CRITICAL ISSUE FIXED: Workout generation now enforces realistic exercise counts. Beginner 45min generates 4-6 exercises (was generating ~10). Added post-processing validation to trim workouts that exceed experience-based limits. All test cases pass: Beginner 30min (3-4), Beginner 45min (4-6), Intermediate 45min (5-7), Advanced 45min (6-8), Intermediate 60min (7-9). Validation preserves warmup/cooldown exercises while trimming main exercises as needed."
 
+  - task: "Phase 9.5: Coach Behaviour Rules + Personality + Memory - Backend API"
+    implemented: true
+    working: true
+    file: "server/coach-memory.ts, server/ai-coach-service.ts, server/coach-insights.ts"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "✅ PHASE 9.5 BACKEND TESTING COMPLETE: All 6 tests passed successfully. 1) Health endpoint (GET /api/health) returns ok: true. 2) Coach insights endpoint (GET /api/coach/insights) returns proper insight structure with id, message, action, actionLabel, category, priority fields. Retrieved 6 insights with valid actions (start_workout, ask_coach, edit_workout) and categories (motivation, tip, suggestion). 3) Coach chat with contextMode parameter working - in_workout mode provides concise responses (146-182 chars). 4) Personality system functional - aggressive vs friendly coaching styles produce different response lengths and tones (394 vs 548 chars). 5) Context modes working: chat mode (1240+ chars detailed), home mode (380 chars functional), post_workout mode (383 chars appropriate). Coach memory system, personality adaptation, and anti-spam filtering all operational. API endpoints properly secured with authentication."
+
 frontend:
   - task: "Phase 9: Proactive Coach Interaction System - Backend API"
     implemented: true
@@ -219,17 +231,16 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Phase 9/9.5: Weekly Activities Recurrence Bug Fix"
-    - "Phase 9/9.5: Welcome Banner with Integrated Insight"
-    - "Phase 9/9.5: External Activity Modal"
-    - "Phase 9/9.5: WorkoutDetailsModal Updates for External Activities"
+    - "Phase 10: Mental Health Check-ins - COMPLETE"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
 
 agent_communication:
   - agent: "main"
-    message: "PHASE 9.5 COMPLETE - Multiple features implemented: 1) Fixed weekly activities recurrence bug - dayOfWeek calculation was incorrect (Mon=0 vs Sun=0), now uses JavaScript's getDay() properly. 2) Redesigned CoachInsightBubble as WelcomeBannerWithInsight - insight now integrated INTO the welcome banner (extended), removed action button, just tappable text. 3) Created ExternalActivityModal for logging Boxing/Classes - shows 'Did you complete it?' button instead of 'Start Workout', opens AI-assisted logging flow with duration/intensity/enjoyment tracking. 4) Updated WorkoutDetailsModal with external activity display and handling."
+    message: "PHASE 10 COMPLETE: Implemented Mental Health Check-ins with all safety rails. Created mental-checkin.ts service with: rule-based triggers (7+ days inactivity, 3 missed sessions, performance drop, user burnout keywords), frequency limits (max 1/week, never during workout, auto-reduced if dismissed twice), personality-specific messages for all 4 coach styles. Added API endpoints: GET /api/coach/mental-checkin, POST /respond, PATCH /preferences. Created MentalCheckInCard.tsx component with dismiss/snooze/disable options. Integrated burnout keyword detection in coach chat. All messages verified to be non-clinical, fitness-focused, and respectful."
+  - agent: "main"
+    message: "PHASE 9.5 COMPLETE: Implemented Coach Behaviour Rules, Personality System, and Memory. 1) Created coach-memory.ts with: UserCoachSummary interface (stores goals, experience, personality, schedule, injuries, lifts, adherence patterns), PERSONALITY_STYLES (aggressive/disciplined/friendly/calm) with prompt directives, CONTEXT_MODE_RULES (in_workout/post_workout/home/chat) with response length rules, buildCoachPrompt() function. 2) Updated ai-coach-service.ts to use personality-aware prompts with contextMode parameter. 3) Updated coach-insights.ts with: personality-adapted messages via getPersonalityMessage(), anti-spam filtering via shouldShowInsight() (7-day repeat rule, 1x/week mental health rule), extended InsightCategory with wellness/mental_health. All coach interactions now respect user's coaching style preference and adapt tone/assertiveness/wording accordingly."
   - agent: "main"
     message: "PHASE 9 IMPLEMENTATION COMPLETE: Created proactive coach insight system. Backend: new coach-insights.ts service generates contextual insights based on user streak, weekly progress, day patterns, time of day. API endpoints: GET /api/coach/insights (batch) and GET /api/coach/insight (single rotated). Frontend: CoachInsightBubble.tsx component displays insights with animated bubble UI, rotation on tap/re-entry, action buttons (start_workout, swap_day, ask_coach, etc.), and daily insight limit (10/day). Integrated into Home screen after welcome banner. Insights feel alive and contextual rather than static notifications."
   - agent: "main"
@@ -266,7 +277,9 @@ agent_communication:
   - agent: "testing"
     message: "✅ ADVANCED QUESTIONNAIRE MODAL P0 BUG FIXES VERIFIED: Comprehensive code analysis completed for all 3 critical fixes. 1) Voice Recording Crash Fix: VoiceRecorderButton component properly implemented with full error handling, state management (isRecording, isProcessing), and Audio.Recording integration. Used correctly in 'Other Split' section (lines 788-790). 2) Black Box UI Fix: activitiesCard styling corrected with backgroundColor: COLORS.lightGray (#F8F9FA) and proper card structure - no problematic LinearGradient found. 3) Voice Button Style Consistency: All voice buttons use consistent 40x40px circular design with proper corner positioning. VoiceRecorderButton component ensures uniform styling across all instances. React Native app properly configured with correct API base URL. All fixes are production-ready."
   - agent: "testing"
-    message: "✅ PHASE 9/9.5 COMPREHENSIVE CODE ANALYSIS COMPLETE: All 4 major features verified through detailed code review. 1) Weekly Activities Recurrence Bug Fix: dayOfWeek calculation corrected in workout-store.ts using JavaScript's date.getDay() instead of array index - ensures Boxing appears on correct days. 2) Welcome Banner with Integrated Insight: WelcomeBannerWithInsight.tsx properly combines banner with coach insight at bottom, includes tap rotation, contextual messages, daily limits, API integration. 3) External Activity Modal: ExternalActivityModal.tsx fully implemented with duration presets, intensity picker, enjoyment rating, optional fields, coach integration. 4) WorkoutDetailsModal Updates: Properly handles external activities with 'Did you complete it?' flow, activity summaries, no edit button for external activities. Backend API endpoints confirmed healthy at https://ui-voice-fix.preview.emergentagent.com/api/coach/insights (requires auth). All implementations match requirements and follow app design patterns."
+    message: "✅ PHASE 9/9.5 COMPREHENSIVE CODE ANALYSIS COMPLETE: All 4 major features verified through detailed code review. 1) Weekly Activities Recurrence Bug Fix: dayOfWeek calculation corrected in workout-store.ts using JavaScript's date.getDay() instead of array index - ensures Boxing appears on correct days. 2) Welcome Banner with Integrated Insight: WelcomeBannerWithInsight.tsx properly combines banner with coach insight at bottom, includes tap rotation, contextual messages, daily limits, API integration. 3) External Activity Modal: ExternalActivityModal.tsx fully implemented with duration presets, intensity picker, enjoyment rating, optional fields, coach integration. 4) WorkoutDetailsModal Updates: Properly handles external activities with 'Did you complete it?' flow, activity summaries, no edit button for external activities. Backend API endpoints confirmed healthy at https://coach-evolution-1.preview.emergentagent.com/api/coach/insights (requires auth). All implementations match requirements and follow app design patterns."
+  - agent: "testing"
+    message: "✅ PHASE 9.5 BACKEND TESTING COMPLETE: All 6 backend tests passed successfully for Coach Behaviour Rules + Personality + Memory system. 1) Health endpoint operational. 2) Coach insights endpoint (GET /api/coach/insights) returns proper structure with 6 insights containing valid actions and categories. 3) Coach chat with contextMode parameter working - in_workout mode provides concise responses (146-182 chars). 4) Personality system functional - different coaching styles (aggressive vs friendly) produce different response tones and lengths. 5) Context modes operational: chat mode (detailed 1240+ chars), home mode (functional 380 chars), post_workout mode (appropriate 383 chars). Coach memory system with UserCoachSummary interface, PERSONALITY_STYLES (aggressive/disciplined/friendly/calm), CONTEXT_MODE_RULES, and anti-spam filtering all working correctly. API endpoints properly secured with authentication. Backend implementation is production-ready."
 
 frontend:
   - task: "Duration Confirmation Modal"
@@ -342,7 +355,7 @@ frontend:
         comment: "FORK JOB: Fixed 3 P0 bugs in AdvancedQuestionnaireModal.tsx: 1) Voice recording crash - replaced broken inline TouchableOpacity with working VoiceRecorderButton component for 'Other Split' input. 2) Black box UI - removed problematic LinearGradient, added proper backgroundColor (COLORS.lightGray) to activitiesCard. 3) Voice button style - removed duplicate style definitions that were overriding the original small circular button style. All voice buttons should now use the consistent corner-positioned style."
       - working: true
         agent: "testing"
-        comment: "✅ CODE ANALYSIS PASSED: All 3 P0 bug fixes verified through code review. 1) Voice Recording Crash Fix: VoiceRecorderButton component properly implemented (lines 129-257) with error handling, state management, and used correctly in 'Other Split' section (lines 788-790). 2) Black Box UI Fix: activitiesCard has proper backgroundColor: COLORS.lightGray (line 450) and activitiesCardInner styling (line 455) - no problematic LinearGradient found. 3) Voice Button Style Fix: Consistent small circular voice button style (40x40px, borderRadius: 20) used throughout with proper positioning (lines 1265-1284). All voice buttons use VoiceRecorderButton component ensuring consistency. React Native app configured correctly with API base URL: https://ui-voice-fix.preview.emergentagent.com. Note: UI testing not performed due to React Native mobile-first architecture - code analysis confirms fixes are properly implemented."
+        comment: "✅ CODE ANALYSIS PASSED: All 3 P0 bug fixes verified through code review. 1) Voice Recording Crash Fix: VoiceRecorderButton component properly implemented (lines 129-257) with error handling, state management, and used correctly in 'Other Split' section (lines 788-790). 2) Black Box UI Fix: activitiesCard has proper backgroundColor: COLORS.lightGray (line 450) and activitiesCardInner styling (line 455) - no problematic LinearGradient found. 3) Voice Button Style Fix: Consistent small circular voice button style (40x40px, borderRadius: 20) used throughout with proper positioning (lines 1265-1284). All voice buttons use VoiceRecorderButton component ensuring consistency. React Native app configured correctly with API base URL: https://coach-evolution-1.preview.emergentagent.com. Note: UI testing not performed due to React Native mobile-first architecture - code analysis confirms fixes are properly implemented."
   - task: "Phase 9/9.5: Weekly Activities Recurrence Bug Fix"
     implemented: true
     working: true
@@ -390,3 +403,68 @@ frontend:
       - working: true
         agent: "testing"
         comment: "✅ CODE ANALYSIS PASSED: WorkoutDetailsModal properly updated for external activities. Features: Detects external activities (line 183-186), Shows 'Did you complete it?' button instead of 'Start Workout' (lines 587-601), Displays external activity content with icon, name, and intensity (lines 422-481), Shows activity summary after completion with duration, calories, enjoyment (lines 439-462), No 'Edit' button for external activities (conditional rendering lines 584-628). Proper integration with ExternalActivityModal for logging flow."
+
+  - task: "Phase 11: Adaptive Learning Loop - Backend API"
+    implemented: true
+    working: true
+    file: "server/learning-engine.ts, server/routes.ts"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "main"
+        comment: "Phase 11 backend implementation complete. Created learning-engine.ts with: logLearningEvent(), updateUserTendencies(), getUserTendencies(), createNudge(), getActiveNudges(), resolveNudge(), generateNudgesForUser(). Created 3 DB tables (ai_learning_events, user_tendencies, coach_nudges). Added API routes: POST /api/learning/event, GET /api/learning/tendencies, POST /api/learning/tendencies/refresh, GET /api/coach/nudges, POST /api/coach/nudges/:id/seen, POST /api/coach/nudges/:id/resolve, POST /api/coach/nudges/generate. Updated ai-coach-service.ts to use tendencies for adaptive responses. Manual curl tests passed: tendencies update on events, nudges generate with soft phrasing for users with recent declines."
+      - working: true
+        agent: "testing"
+        comment: "✅ PHASE 11 ADAPTIVE LEARNING LOOP BACKEND TESTING COMPLETE: All 9 tests passed successfully. 1) Health endpoint operational. 2) User registration & login working correctly. 3) Learning Events API (POST /api/learning/event) successfully logs all event types: suggestion_rejected, suggestion_accepted, weight_adjusted, user_feedback. Events properly recorded with contextMode and payload data. 4) User Tendencies API (GET /api/learning/tendencies) returns valid tendencies with all required fields: progressionPace, prefersConfirmation, confidenceWithLoad, movementConfidence, swapFrequency, adherencePattern, preferredRepStyle, recoveryNeed, recentDeclines. All numeric values properly bounded (0-1). 5) Coach Nudges Generation (POST /api/coach/nudges/generate) working with exercise context (name, previousWeight, suggestedWeight, movementPattern). 6) Get Active Nudges (GET /api/coach/nudges) returns proper nudge structure for all locations (workout_hub, exercise_detail, home) with id, nudgeType, message, actions, priority fields. 7) Resolve Nudges (POST /api/coach/nudges/:nudgeId/resolve) successfully resolves nudges with 'accepted' resolution and logs learning events. 8) Tendencies Refresh (POST /api/learning/tendencies/refresh) returns updated tendencies with all required fields. 9) Coach Chat Integration adapts responses based on user tendencies for weight progression advice. All API endpoints properly secured with authentication. Backend learning system fully operational and ready for production."
+
+  - task: "Phase 11: Adaptive Learning Loop - Frontend Components"
+    implemented: true
+    working: "NA"
+    file: "apps/native/src/components/CoachNudgeCard.tsx, apps/native/src/hooks/useCoachNudges.ts"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Created CoachNudgeCard.tsx component with: animated entry/exit, dismissible UI, action buttons (accept/decline/ask_coach/adjust), nudge type icons and colors, compact mode support. Created useCoachNudges.ts hook with: fetchNudges, generateNudges, resolveNudge functions. Created useLearningEvents hook for logging learning signals. Frontend components need integration into workout-hub.tsx and exercise detail modal."
+
+agent_communication:
+  - agent: "main"
+    message: "PHASE 11 BACKEND COMPLETE: Implemented Adaptive Learning Loop backend. Key features: 1) learning-engine.ts with soft numeric tendencies (0-1 confidence), decay for older events, pattern recognition (>=3 occurrences), decline tracking. 2) Coach nudge system with inline cards, actions (accept/decline/ask_coach/adjust), automatic expiry, location filtering. 3) Updated ai-coach-service.ts with tendencies-aware prompts that adapt phrasing based on user confidence and decline history. All API endpoints tested via curl. Tables created: ai_learning_events, user_tendencies, coach_nudges. NON-NEGOTIABLE principles enforced: no permanent blacklists, learning is reversible, declines mean 'not ready yet' not 'never'."
+  - agent: "testing"
+    message: "✅ PHASE 11 ADAPTIVE LEARNING LOOP BACKEND TESTING COMPLETE: All 9 comprehensive tests passed successfully. Tested all key scenarios from review request: 1) User Registration & Login working correctly with session management. 2) Learning Events API (POST /api/learning/event) successfully logs all event types (suggestion_rejected, suggestion_accepted, weight_adjusted, user_feedback) with proper contextMode and payload data. 3) User Tendencies API (GET /api/learning/tendencies) returns valid tendencies structure with all required fields and proper numeric bounds (0-1). Tendencies update correctly after learning events. 4) Coach Nudges Generation (POST /api/coach/nudges/generate) creates appropriate nudges with exercise context (name, previousWeight, suggestedWeight, movementPattern). 5) Get Active Nudges (GET /api/coach/nudges) returns proper nudge structure for all locations with correct filtering. 6) Resolve Nudges (POST /api/coach/nudges/:nudgeId/resolve) successfully resolves nudges and logs learning events. 7) Tendencies Refresh (POST /api/learning/tendencies/refresh) manually updates tendencies. 8) Coach Chat Integration adapts responses based on user tendencies - messages show soft language for users with recent declines, contextual weight progression advice. All API endpoints properly secured with authentication. Backend adaptive learning system fully operational and ready for production. Expected Behavior verified: tendencies are numeric (0-1) and change gradually, nudge messages adapt to user confidence, no permanent blacklists, accept events reverse decline effects."
+
+  - task: "Phase 11.5: Coach Nudge UI & Interaction Layer"
+    implemented: true
+    working: "needs_testing"
+    file: "apps/native/src/components/CoachNudgeCard.tsx, apps/native/src/hooks/useCoachNudges.ts, apps/native/app/workout-hub.tsx, apps/native/app/(tabs)/index.tsx"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "needs_testing"
+        agent: "main"
+        comment: "Phase 11.5 UI implementation complete. CoachNudgeCard component features: personality-aware message transformation (aggressive/disciplined/friendly/calm), auto-hide after 10 seconds, shimmer animation, gradient accent bars, dismiss tracking (no more nudges today after dismiss), session tracking (max 1 per session), 7-day same-type cooldown. Integrated into workout-hub.tsx (above exercise list) and index.tsx (after mental check-in, only if no check-in active). Hook updated with eligibility checks. Backend confirmed working - tendencies adapt based on events, coach phrasing is soft for users with recent declines."
+
+agent_communication:
+  - agent: "main"
+    message: "PHASE 11.5 FRONTEND COMPLETE: Implemented Coach Nudge UI per requirements. Key features: 1) CoachNudgeCard with personality-aware text transforms, 2) Auto-hide after 10s if ignored, 3) Max 1 nudge per session enforced client-side, 4) Dismiss = no more nudges today, 5) 7-day same-type cooldown. Integrated into workout-hub (PRIMARY) above exercise list and home screen (after mental check-in). No popups/modals - inline cards only. Testing needed for: accept/decline/dismiss actions, personality tone matching, auto-hide behavior, session limits."
+
+  - task: "Phase 11.5: Coach Nudge UI Integration Testing"
+    implemented: true
+    working: "partial"
+    file: "apps/native/src/components/CoachNudgeCard.tsx, apps/native/app/workout-hub.tsx, apps/native/app/(tabs)/index.tsx"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "partial"
+        agent: "main"
+        comment: "Phase 11.5 implementation complete. Backend API endpoints fully working (tested via curl). Frontend components created and integrated. Frontend web preview has intermittent connectivity issues (external tunnel returning 520/408 errors). API endpoints confirmed working: /api/coach/nudges, /api/coach/nudges/generate, /api/coach/nudges/:id/resolve, /api/learning/tendencies. Implementation includes: CoachNudgeCard with personality-aware transforms, auto-hide after 10s, session/day limits, integrated into workout-hub.tsx and index.tsx. Needs user testing on device via Expo."
+
+agent_communication:
+  - agent: "main"
+    message: "PHASE 11.5 STATUS: Backend API 100% functional, Frontend components complete and integrated, but external web preview has connectivity issues (tunnel 520/408 errors). Key deliverables: 1) CoachNudgeCard.tsx with personality transforms (aggressive/disciplined/friendly/calm), auto-hide, shimmer animation, gradient styling. 2) useCoachNudges.ts hook with session tracking, eligibility checks, 7-day cooldown. 3) Integration in workout-hub.tsx (above exercise list) and index.tsx (after mental check-in). 4) All acceptance criteria implemented: no modals/popups, max 1 nudge per session, dismiss hides for day, actions work. RECOMMENDATION: Test on Expo Go on device to verify full functionality."

@@ -29,19 +29,20 @@ export const PERSONALITY_STYLES: Record<CoachPersonality, {
   promptDirective: string;
 }> = {
   aggressive: {
-    description: 'Direct, challenging, no fluff',
-    tone: 'bold and intense',
-    wording: 'Use short, punchy sentences. Challenge them. No sugar-coating.',
-    assertiveness: 'Very high - push them hard, question their commitment if needed',
-    emotionalTone: 'Intense, fired up, competitive',
-    promptDirective: `PERSONALITY: AGGRESSIVE
-- Be DIRECT and CHALLENGING. No fluff, no soft language.
-- Push them hard. "You can do better" is acceptable.
-- Use action words: CRUSH IT, DOMINATE, ATTACK, DESTROY.
-- Call out excuses. If they're slacking, say so.
-- Celebrate wins intensely. "THAT'S WHAT I'M TALKING ABOUT!"
-- Keep it short and punchy. Max 2-3 sentences per point.
-- Never be mean-spirited, but always be demanding.`,
+    description: 'Firm, competitive, blunt',
+    tone: 'direct and no-nonsense',
+    wording: 'Short, blunt sentences. No fluff. Get to the point.',
+    assertiveness: 'High - challenge them, expect results',
+    emotionalTone: 'Competitive, focused, driven',
+    promptDirective: `PERSONALITY: FIRM & COMPETITIVE
+- Be direct and blunt. No fluff, no hand-holding.
+- Challenge them when appropriate. "You've done harder. Get after it."
+- Keep it short. Say what needs to be said, nothing more.
+- If they're making excuses, call it out respectfully but firmly.
+- Acknowledge effort, but always push for more. "Good. Now do better."
+- Be competitive: "You beat last week. Keep that momentum."
+- Never condescending or hype-y. Just straightforward and honest.
+- Respect their intelligence. Speak to them like an equal who needs a push.`,
   },
   disciplined: {
     description: 'Strict, form-focused, accountable',
@@ -50,7 +51,7 @@ export const PERSONALITY_STYLES: Record<CoachPersonality, {
     assertiveness: 'High - hold them accountable, expect follow-through',
     emotionalTone: 'Composed, serious, methodical',
     promptDirective: `PERSONALITY: DISCIPLINED
-- Be STRICT and STRUCTURED. Focus on form, technique, and consistency.
+- Be strict and structured. Focus on form, technique, and consistency.
 - Hold them accountable. Track their adherence, call out missed sessions.
 - Use precise language: "Execute 3 sets of 8 reps at 70% 1RM"
 - Emphasize progressive overload and proper periodization.
@@ -105,39 +106,37 @@ export const CONTEXT_MODE_RULES: Record<ContextMode, {
     responseLength: '1-3 bullet points or 1-2 sentences max',
     style: 'Short, directive, actionable',
     promptDirective: `CONTEXT: IN-WORKOUT (Active Session)
-- User is MID-WORKOUT. They need QUICK, ACTIONABLE guidance.
-- Response MUST be 1-3 bullet points or 1-2 sentences MAX.
+CRITICAL: User is MID-WORKOUT. Maximum response: 50 words or 3 bullet points.
+- Keep response under 50 words. User needs quick guidance, not essays.
 - Be directive: "Do X" not "You could try X"
-- Focus on immediate action: form cues, weight suggestions, motivation.
-- Don't ask questions - give answers.
-- Every second counts. Be efficient.`,
+- Format as bullet points when giving multiple tips.
+- No introductions, no sign-offs, just the answer.
+- Example good response: "• Keep chest up • Drive through heels • Aim for 3-4 RIR"`,
   },
   post_workout: {
     responseLength: '2-4 sentences',
     style: 'Brief reflection + next step',
     promptDirective: `CONTEXT: POST-WORKOUT (Just Finished)
-- User just completed a workout. They're tired but accomplished.
-- Response should be 2-4 sentences.
-- Acknowledge their effort, highlight one positive thing.
-- Give ONE forward-looking suggestion (recovery, nutrition, next workout).
-- End on an encouraging note.`,
+CRITICAL: User just finished. Maximum response: 3-4 sentences (under 80 words).
+- Acknowledge effort briefly (1 sentence).
+- Give ONE forward-looking tip (recovery/nutrition/next session).
+- Keep it concise. They're tired.`,
   },
   home: {
     responseLength: '1 sentence (one-liner)',
     style: 'Proactive insight',
     promptDirective: `CONTEXT: HOME SCREEN (Browsing)
-- User is on home screen, not actively training.
-- Response MUST be a single one-liner insight.
-- Be proactive: offer a tip, observation, or gentle nudge.
-- Make them feel seen and supported.
-- Examples: "Your consistency this week is 🔥", "Ready to crush legs today?"`,
+CRITICAL: Maximum response: 1 sentence (under 20 words).
+- Single one-liner insight or tip.
+- No explanations, no follow-ups.
+- Example: "Your consistency this week has been solid. Keep it up."`,
   },
   chat: {
     responseLength: '1-3 paragraphs',
     style: 'Normal conversation',
     promptDirective: `CONTEXT: CHAT (Conversation)
 - User is having a conversation with you.
-- Normal response length (1-3 paragraphs).
+- Normal response length (1-3 paragraphs, under 200 words).
 - Be personable and helpful.
 - Answer questions fully but don't ramble.
 - Ask clarifying questions if needed.`,
@@ -188,6 +187,16 @@ export interface UserCoachSummary {
   // Anti-spam tracking
   recentInsightIds: string[];
   lastMentalHealthInsight: string | null;
+  
+  // Phase 10: Mental Health Check-in Preferences
+  mentalCheckInPreferences: {
+    enabled: boolean;                    // User can disable entirely
+    snoozedUntil: string | null;         // Snooze until this date
+    dismissCount: number;                // How many times dismissed
+    reducedFrequency: boolean;           // Auto-reduced if dismissed twice
+    lastCheckInDate: string | null;      // For weekly limit enforcement
+    lastCheckInDismissed: boolean;       // Was last one dismissed?
+  };
   
   // Timestamps
   lastUpdated: string;
@@ -266,6 +275,16 @@ export async function buildUserCoachSummary(userId: number): Promise<UserCoachSu
     // Anti-spam tracking
     recentInsightIds: [],
     lastMentalHealthInsight: null,
+    
+    // Phase 10: Mental Health Check-in Preferences (defaults)
+    mentalCheckInPreferences: {
+      enabled: true,
+      snoozedUntil: null,
+      dismissCount: 0,
+      reducedFrequency: false,
+      lastCheckInDate: null,
+      lastCheckInDismissed: false,
+    },
     
     // Timestamps
     lastUpdated: new Date().toISOString(),

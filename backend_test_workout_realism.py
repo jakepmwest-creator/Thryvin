@@ -23,7 +23,7 @@ import time
 from typing import Dict, List, Any, Optional
 
 # Configuration - Use production URL as specified in environment
-BASE_URL = "https://ui-voice-fix.preview.emergentagent.com"
+BASE_URL = "https://coach-evolution-1.preview.emergentagent.com"
 API_BASE = f"{BASE_URL}/api"
 
 class WorkoutRealismTester:

@@ -59,8 +59,10 @@ const FITNESS_KEYWORDS = [
   'nutrition', 'diet', 'protein', 'calories', 'carbs', 'food', 'meal', 'supplement',
   'health', 'injury', 'pain', 'stretch', 'rest', 'recovery', 'sleep', 'stress',
   'goal', 'progress', 'beginner', 'advanced', 'intermediate', 'tone', 'fat', 'gain',
-  'swap', 'switch', 'change', 'modify', 'adjust', 'help', 'tips', 'advice',
-  'hi', 'hello', 'hey', 'thanks', 'thank', 'how', 'what', 'should',
+  'swap', 'switch', 'change', 'modify', 'adjust', 'help', 'tips', 'advice', 'tip',
+  'hi', 'hello', 'hey', 'thanks', 'thank', 'how', 'what', 'should', 'quick',
+  'squat', 'deadlift', 'bench', 'press', 'curl', 'row', 'pull', 'push', 'lunge',
+  'form', 'technique', 'posture', 'breathing', 'warm', 'cool', 'finish', 'done',
 ];
 
 export interface WorkoutContext {
@@ -146,6 +148,73 @@ function buildWorkoutContextPrompt(workoutContext: WorkoutContext): string {
 }
 
 /**
+ * Phase 11: Build tendencies-aware prompt additions
+ * This adjusts the coach's phrasing, pacing, and suggestion style based on learned behavior
+ */
+function buildTendenciesPrompt(tendencies: any): string {
+  const parts: string[] = [];
+  
+  parts.push('\n=== USER BEHAVIOR PATTERNS (ADAPT YOUR APPROACH) ===');
+  
+  // Progression pace adaptation
+  if (tendencies.progressionPace === 'slow') {
+    parts.push('• This user progresses cautiously. Use smaller increments and always ask before suggesting increases.');
+    parts.push('• Phrase weight suggestions as questions: "Want to try X?" not "Let\'s increase to X"');
+  } else if (tendencies.progressionPace === 'fast') {
+    parts.push('• This user is confident with progression. You can be more direct with weight suggestions.');
+  }
+  
+  // Confirmation preference
+  if (tendencies.prefersConfirmation > 0.6) {
+    parts.push('• This user prefers being asked before changes. Always phrase progressions as questions.');
+    parts.push('• Example: "Ready to try 45kg today, or stick with 42.5kg?" NOT "Let\'s go to 45kg"');
+  } else if (tendencies.prefersConfirmation < 0.4) {
+    parts.push('• This user is confident with your suggestions. Be more direct.');
+  }
+  
+  // Recovery need
+  if (tendencies.recoveryNeed > 0.7) {
+    parts.push('• User may need more recovery. Be mindful of fatigue signals.');
+    parts.push('• Phrase: "How are you feeling today?" before pushing intensity.');
+  }
+  
+  // Handle recent declines (CRITICAL for readiness handling)
+  if (tendencies.recentDeclines && tendencies.recentDeclines.length > 0) {
+    const recentDeclines = tendencies.recentDeclines.filter((d: any) => d.count >= 2);
+    if (recentDeclines.length > 0) {
+      parts.push('\n--- READINESS CONTEXT (IMPORTANT) ---');
+      parts.push('This user has recently declined some suggestions. Handle gently:');
+      
+      for (const decline of recentDeclines) {
+        if (decline.topic === 'weight_increase') {
+          parts.push(`• Weight increases declined ${decline.count}x. Ask gently: "Last time we held at X. Want to try a small increase today, or hold again? No rush.""`);
+          parts.push('• NEVER say "You always reject this" - instead say "We\'ll try when you\'re ready"');
+        }
+      }
+    }
+  }
+  
+  // Movement pattern confidence
+  if (tendencies.movementConfidence) {
+    const lowConfidence = Object.entries(tendencies.movementConfidence)
+      .filter(([_, v]) => (v as number) < 0.4)
+      .map(([k]) => k);
+    
+    if (lowConfidence.length > 0) {
+      parts.push(`• Lower confidence with: ${lowConfidence.join(', ')} movements. Suggest smaller progressions for these.`);
+    }
+  }
+  
+  // Critical reminder
+  parts.push('\n--- CRITICAL COACHING RULES ---');
+  parts.push('• NEVER permanently reject exercises - "not ready yet" is different from "never"');
+  parts.push('• Learning is reversible - if user accepts later, become more confident again');
+  parts.push('• User agency first - suggest and ask, never force or guilt');
+  
+  return parts.join('\n');
+}
+
+/**
  * Get coach response with full user context
  * This is the ONLY function that should be called for coach interactions
  * 
@@ -160,9 +229,20 @@ export async function getUnifiedCoachResponse(request: CoachChatRequest): Promis
     
     // Check if message is fitness-related
     const lowerMessage = message.toLowerCase();
-    const isFitnessRelated = FITNESS_KEYWORDS.some(keyword => lowerMessage.includes(keyword));
+    const matchedKeywords = FITNESS_KEYWORDS.filter(keyword => lowerMessage.includes(keyword));
+    const isFitnessRelated = matchedKeywords.length > 0;
     
-    if (!isFitnessRelated && lowerMessage.length > 15) {
+    console.log(`🔍 [COACH] Keyword check: "${message.substring(0,50)}..." matched: [${matchedKeywords.join(', ')}], isFitness: ${isFitnessRelated}`);
+    
+    // Phase 10: Check for burnout keywords (always allow these through)
+    const { checkBurnoutKeywords } = await import('./mental-checkin');
+    const isBurnoutRelated = checkBurnoutKeywords(message);
+    
+    if (isBurnoutRelated) {
+      console.log(`💚 [COACH] Burnout keywords detected - allowing message through`);
+    }
+    
+    if (!isFitnessRelated && !isBurnoutRelated && lowerMessage.length > 15) {
       return {
         response: `I appreciate you reaching out! However, as your fitness coach, I'm specifically trained to help with health, fitness, nutrition, and workout-related questions. 💪\n\nI can help you with:\n• Workout advice and scheduling\n• Exercise form and technique\n• Nutrition and meal planning\n• Recovery and injury prevention\n• Fitness goals and motivation\n\nWhat fitness topic can I help you with?`,
         coach: coachCharacter.name,
@@ -178,11 +258,20 @@ export async function getUnifiedCoachResponse(request: CoachChatRequest): Promis
     let userContext = '';
     let contextUsed = false;
     let userCoachSummary = null;
+    let userTendencies = null;
     
     if (userId) {
       try {
         // Phase 9.5: Build user coach summary for personality-aware prompts
         userCoachSummary = await buildUserCoachSummary(userId);
+        
+        // Phase 11: Get user tendencies for adaptive responses
+        try {
+          const { getUserTendencies } = await import('./learning-engine');
+          userTendencies = await getUserTendencies(userId);
+        } catch (e) {
+          // Non-critical - tendencies are optional
+        }
         
         // Also get the full context for detailed information
         const { formatted } = await buildAiContext(userId);
@@ -190,7 +279,7 @@ export async function getUnifiedCoachResponse(request: CoachChatRequest): Promis
         contextUsed = true;
         
         if (process.env.NODE_ENV !== 'production') {
-          console.log(`🧠 [COACH] Loaded context for user ${userId} (${userCoachSummary.coachPersonality} personality, ${effectiveMode} mode)`);
+          console.log(`🧠 [COACH] Loaded context for user ${userId} (${userCoachSummary.coachPersonality} personality, ${effectiveMode} mode, tendencies: ${userTendencies ? 'loaded' : 'none'})`);
         }
       } catch (error) {
         if (process.env.NODE_ENV !== 'production') {
@@ -241,6 +330,11 @@ export async function getUnifiedCoachResponse(request: CoachChatRequest): Promis
       systemPrompt += buildWorkoutContextPrompt(workoutContext);
     }
     
+    // Phase 11: Add tendencies-aware coaching directives
+    if (userTendencies) {
+      systemPrompt += buildTendenciesPrompt(userTendencies);
+    }
+    
     // Add strict fitness-only instruction
     if (effectiveMode === 'in_workout') {
       // IN-WORKOUT MODE: Additional safety rules
@@ -280,11 +374,21 @@ export async function getUnifiedCoachResponse(request: CoachChatRequest): Promis
     // Add current message
     messages.push({ role: 'user', content: message });
     
+    // Phase 9.5: Adjust max_tokens based on context mode to enforce length limits
+    let maxTokens = 400; // default for chat
+    if (effectiveMode === 'in_workout') {
+      maxTokens = 100; // Very short - 1-3 bullets
+    } else if (effectiveMode === 'home') {
+      maxTokens = 60; // One-liner
+    } else if (effectiveMode === 'post_workout') {
+      maxTokens = 150; // 2-4 sentences
+    }
+    
     // Call OpenAI
     const response = await openai.chat.completions.create({
       model: 'gpt-4o',
       messages,
-      max_tokens: 400,
+      max_tokens: maxTokens,
       temperature: 0.7,
     });
     

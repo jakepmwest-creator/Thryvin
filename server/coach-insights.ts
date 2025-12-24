@@ -190,21 +190,26 @@ function getPersonalityMessage(
   personality: CoachPersonality,
   category: InsightCategory
 ): string {
-  const style = PERSONALITY_STYLES[personality];
-  
-  // Simple personality adaptations
+  // Simple personality adaptations - subtle wording changes
   switch (personality) {
     case 'aggressive':
-      // Make messages more direct and challenging
+      // Make messages more direct and blunt (not hype-y)
       return baseMessage
         .replace('You could', 'Time to')
         .replace('might be', 'is')
         .replace('Want to', "Let's")
-        .replace('?', '!');
+        .replace('Ready to', 'Time to')
+        .replace('How about', 'Do')
+        .replace('?', '.');  // Statements, not questions
     
     case 'disciplined':
-      // Make messages more structured
-      return baseMessage.replace('💪', '').replace('🔥', '').trim();
+      // Make messages more structured, remove casual emojis
+      return baseMessage
+        .replace('💪', '')
+        .replace('🔥', '')
+        .replace('🎉', '')
+        .replace('!', '.')
+        .trim();
     
     case 'calm':
       // Make messages more reassuring

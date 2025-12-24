@@ -3,7 +3,7 @@
 ## Problem
 The mobile app was getting **404 errors** when trying to reach the backend at:
 ```
-https://ui-voice-fix.preview.emergentagent.com/api/*
+https://coach-evolution-1.preview.emergentagent.com/api/*
 ```
 
 This preview URL routes to the Emergent marketing page, NOT the backend API.

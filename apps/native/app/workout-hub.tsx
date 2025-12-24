@@ -27,10 +27,13 @@ import { CoachSuggestionCard } from '../src/components/CoachSuggestionCard';
 import { EditWorkoutModal } from '../src/components/EditWorkoutModal';
 import { WorkoutCoachSheet } from '../src/components/WorkoutCoachSheet';
 import { QuickActionsPanel } from '../src/components/QuickActionsPanel';
+import { CoachNudgeCard } from '../src/components/CoachNudgeCard';
+import { useCoachNudges, useLearningEvents } from '../src/hooks/useCoachNudges';
+import { useAuthStore } from '../src/stores/auth-store';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
-const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL || 'https://ui-voice-fix.preview.emergentagent.com';
+const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL || 'https://coach-evolution-1.preview.emergentagent.com';
 
 type TabType = 'warmup' | 'workout' | 'recovery';
 
@@ -43,6 +46,17 @@ const TABS: { id: TabType; label: string }[] = [
 export default function WorkoutHubScreen() {
   const router = useRouter();
   const { currentWorkout, activeSession, startWorkoutSession, completeSet, finishWorkoutSession, setCurrentWorkout, weekWorkouts } = useWorkoutStore();
+  const { user } = useAuthStore();
+  
+  // Phase 11.5: Coach Nudge System
+  const { 
+    topNudge, 
+    personality, 
+    resolveNudge, 
+    generateNudges,
+    hasNudges 
+  } = useCoachNudges({ location: 'workout_hub', autoFetch: true });
+  const { logWorkoutCompleted, logSuggestionAccepted, logSuggestionRejected } = useLearningEvents();
   
   const [activeTab, setActiveTab] = useState<TabType>('warmup');
   const [expandedExercise, setExpandedExercise] = useState<number | null>(null);
@@ -528,6 +542,24 @@ export default function WorkoutHubScreen() {
     showAlert('success', 'Workout Updated', 'Your workout has been modified successfully!');
   };
 
+  // Phase 11.5: Handle coach nudge resolution
+  const handleNudgeResolve = async (nudgeId: number, resolution: 'accepted' | 'rejected' | 'dismissed', payload?: any) => {
+    try {
+      await resolveNudge(nudgeId, resolution, payload);
+      
+      // Log learning event based on resolution
+      if (resolution === 'accepted') {
+        logSuggestionAccepted('nudge', { nudgeId, ...payload });
+      } else if (resolution === 'rejected') {
+        logSuggestionRejected('nudge', { nudgeId, ...payload });
+      }
+      
+      console.log(`📣 [NUDGE] Resolved: ${resolution}`);
+    } catch (error) {
+      console.error('Failed to resolve nudge:', error);
+    }
+  };
+
   // Build workout context for coach (Phase 8)
   // CRASH FIX: Safely access session data with optional chaining + defaults
   const buildWorkoutContextForCoach = () => {
@@ -701,6 +733,21 @@ export default function WorkoutHubScreen() {
 
       {/* Exercise List */}
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+        {/* Phase 11.5: Coach Nudge Card - inline above exercise list */}
+        {topNudge && (
+          <CoachNudgeCard
+            nudge={topNudge}
+            context="workout_hub"
+            personality={personality}
+            onResolve={handleNudgeResolve}
+            onAskCoach={(message) => {
+              setShowCoachSheet(true);
+              // The coach sheet will receive the message via context
+            }}
+            compact={false}
+          />
+        )}
+        
         <View style={styles.exercisesGrid}>
           {currentExercises.map((exercise, index) => {
             const isExpanded = expandedExercise === index;

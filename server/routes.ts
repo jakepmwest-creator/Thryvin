@@ -1879,7 +1879,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Requires authentication OR demo mode enabled
   app.post("/api/coach/chat", async (req, res) => {
     try {
-      const { message, coach, coachingStyle, conversationHistory, workoutContext } = req.body;
+      const { message, coach, coachingStyle, conversationHistory, workoutContext, contextMode } = req.body;
       
       // SECURITY: Require authenticated user
       // Demo mode: Use fixed demo profile (userId: -1) when DEMO_MODE=true
@@ -1911,7 +1911,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           exercise: workoutContext.currentExercise?.name,
           progress: workoutContext.progressPercent,
         } : null;
-        console.log('🤖 [COACH] Chat request:', { coach, userId, messageLength: message?.length, workoutContext: contextInfo });
+        console.log('🤖 [COACH] Chat request:', { coach, userId, messageLength: message?.length, contextMode, workoutContext: contextInfo });
       }
       
       // Use unified coach service (includes full context builder)
@@ -1922,6 +1922,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         coachingStyle,
         conversationHistory,
         workoutContext, // Phase 8: Pass workout context for in-workout coaching
+        contextMode, // Phase 9.5: Pass context mode for adaptive responses
       });
       
       // Save chat for AI learning (non-blocking) - skip for demo user
@@ -3137,6 +3138,292 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error: any) {
       console.error("Coach insight error:", error);
       res.status(500).json({ error: "Failed to generate insight" });
+    }
+  });
+
+  // ==========================================================================
+  // Phase 10: Mental Health Check-in Endpoints
+  // ==========================================================================
+  
+  // Get mental check-in if eligible
+  app.get("/api/coach/mental-checkin", async (req, res) => {
+    try {
+      const { getMentalCheckIn } = await import('./mental-checkin');
+      const { buildUserCoachSummary } = await import('./coach-memory');
+      
+      const DEMO_MODE = process.env.DEMO_MODE === 'true';
+      let userId: number | undefined;
+      if (req.isAuthenticated() && req.user?.id) {
+        userId = req.user.id;
+      } else if (DEMO_MODE) {
+        userId = 1;
+      } else {
+        return res.status(401).json({ error: "Authentication required" });
+      }
+      
+      const contextMode = req.query.contextMode as string || 'home';
+      
+      // Build user summary (includes preferences)
+      const summary = await buildUserCoachSummary(userId);
+      
+      // Get check-in if eligible
+      const checkIn = await getMentalCheckIn(userId, summary, contextMode);
+      
+      res.json({ 
+        checkIn,
+        eligible: !!checkIn,
+        preferences: summary.mentalCheckInPreferences,
+      });
+    } catch (error: any) {
+      console.error("Mental check-in error:", error);
+      res.status(500).json({ error: "Failed to check eligibility" });
+    }
+  });
+  
+  // Respond to a mental check-in (dismiss, snooze, act)
+  app.post("/api/coach/mental-checkin/respond", async (req, res) => {
+    try {
+      const { processCheckInResponse, reEnableCheckIns } = await import('./mental-checkin');
+      const { buildUserCoachSummary } = await import('./coach-memory');
+      
+      const DEMO_MODE = process.env.DEMO_MODE === 'true';
+      let userId: number | undefined;
+      if (req.isAuthenticated() && req.user?.id) {
+        userId = req.user.id;
+      } else if (DEMO_MODE) {
+        userId = 1;
+      } else {
+        return res.status(401).json({ error: "Authentication required" });
+      }
+      
+      const { action, checkInId } = req.body;
+      
+      if (!action) {
+        return res.status(400).json({ error: "Action required" });
+      }
+      
+      // Valid actions: dismiss, snooze_3_days, snooze_1_week, disable, acted
+      const validActions = ['dismiss', 'snooze_3_days', 'snooze_1_week', 'disable', 'acted'];
+      if (!validActions.includes(action)) {
+        return res.status(400).json({ error: "Invalid action" });
+      }
+      
+      // Build current summary
+      const summary = await buildUserCoachSummary(userId);
+      
+      // Process the response
+      const updatedSummary = processCheckInResponse(summary, { action });
+      
+      // In a real implementation, we'd persist this to the database
+      // For now, we return the updated preferences
+      console.log(`💚 [MENTAL-CHECKIN] User ${userId} responded with: ${action}`);
+      
+      res.json({ 
+        success: true,
+        action,
+        preferences: updatedSummary.mentalCheckInPreferences,
+      });
+    } catch (error: any) {
+      console.error("Mental check-in respond error:", error);
+      res.status(500).json({ error: "Failed to process response" });
+    }
+  });
+  
+  // Update mental check-in preferences
+  app.patch("/api/coach/mental-checkin/preferences", async (req, res) => {
+    try {
+      const { reEnableCheckIns } = await import('./mental-checkin');
+      const { buildUserCoachSummary } = await import('./coach-memory');
+      
+      const DEMO_MODE = process.env.DEMO_MODE === 'true';
+      let userId: number | undefined;
+      if (req.isAuthenticated() && req.user?.id) {
+        userId = req.user.id;
+      } else if (DEMO_MODE) {
+        userId = 1;
+      } else {
+        return res.status(401).json({ error: "Authentication required" });
+      }
+      
+      const { enabled } = req.body;
+      
+      // Build current summary
+      const summary = await buildUserCoachSummary(userId);
+      
+      let updatedSummary = summary;
+      
+      if (enabled === true) {
+        // Re-enable check-ins
+        updatedSummary = reEnableCheckIns(summary);
+      } else if (enabled === false) {
+        // Disable check-ins
+        updatedSummary = {
+          ...summary,
+          mentalCheckInPreferences: {
+            ...summary.mentalCheckInPreferences,
+            enabled: false,
+          },
+        };
+      }
+      
+      // In a real implementation, we'd persist this to the database
+      console.log(`💚 [MENTAL-CHECKIN] User ${userId} updated preferences: enabled=${enabled}`);
+      
+      res.json({ 
+        success: true,
+        preferences: updatedSummary.mentalCheckInPreferences,
+      });
+    } catch (error: any) {
+      console.error("Mental check-in preferences error:", error);
+      res.status(500).json({ error: "Failed to update preferences" });
+    }
+  });
+
+  // ==========================================================================
+  // PHASE 11: ADAPTIVE LEARNING LOOP ROUTES
+  // ==========================================================================
+
+  // Log a learning event (from frontend interactions)
+  app.post("/api/learning/event", async (req, res) => {
+    if (!req.isAuthenticated()) {
+      return res.sendStatus(401);
+    }
+
+    try {
+      const { eventType, contextMode, topic, payload } = req.body;
+      const userId = req.user!.id;
+
+      const { logLearningEvent } = await import('./learning-engine');
+      await logLearningEvent(userId, eventType, contextMode, topic, payload || {});
+
+      res.json({ success: true });
+    } catch (error: any) {
+      console.error("Error logging learning event:", error);
+      res.status(500).json({ error: "Failed to log learning event" });
+    }
+  });
+
+  // Get user tendencies
+  app.get("/api/learning/tendencies", async (req, res) => {
+    if (!req.isAuthenticated()) {
+      return res.sendStatus(401);
+    }
+
+    try {
+      const userId = req.user!.id;
+      const { getUserTendencies, DEFAULT_TENDENCIES } = await import('./learning-engine');
+      
+      const tendencies = await getUserTendencies(userId);
+      res.json(tendencies || DEFAULT_TENDENCIES);
+    } catch (error: any) {
+      console.error("Error fetching tendencies:", error);
+      res.status(500).json({ error: "Failed to fetch tendencies" });
+    }
+  });
+
+  // Force update tendencies (usually automatic, but can be triggered)
+  app.post("/api/learning/tendencies/refresh", async (req, res) => {
+    if (!req.isAuthenticated()) {
+      return res.sendStatus(401);
+    }
+
+    try {
+      const userId = req.user!.id;
+      const { updateUserTendencies } = await import('./learning-engine');
+      
+      const tendencies = await updateUserTendencies(userId);
+      res.json(tendencies);
+    } catch (error: any) {
+      console.error("Error updating tendencies:", error);
+      res.status(500).json({ error: "Failed to update tendencies" });
+    }
+  });
+
+  // Get active nudges for a location
+  app.get("/api/coach/nudges", async (req, res) => {
+    if (!req.isAuthenticated()) {
+      return res.sendStatus(401);
+    }
+
+    try {
+      const userId = req.user!.id;
+      const location = (req.query.location as string) || 'home';
+      
+      const { getActiveNudges } = await import('./learning-engine');
+      const nudges = await getActiveNudges(userId, location as any);
+      
+      res.json({ nudges });
+    } catch (error: any) {
+      console.error("Error fetching nudges:", error);
+      res.status(500).json({ error: "Failed to fetch nudges" });
+    }
+  });
+
+  // Mark nudge as seen
+  app.post("/api/coach/nudges/:nudgeId/seen", async (req, res) => {
+    if (!req.isAuthenticated()) {
+      return res.sendStatus(401);
+    }
+
+    try {
+      const nudgeId = parseInt(req.params.nudgeId);
+      const { markNudgeSeen } = await import('./learning-engine');
+      
+      await markNudgeSeen(nudgeId);
+      res.json({ success: true });
+    } catch (error: any) {
+      console.error("Error marking nudge seen:", error);
+      res.status(500).json({ error: "Failed to mark nudge seen" });
+    }
+  });
+
+  // Resolve nudge (accept, reject, dismiss)
+  app.post("/api/coach/nudges/:nudgeId/resolve", async (req, res) => {
+    if (!req.isAuthenticated()) {
+      return res.sendStatus(401);
+    }
+
+    try {
+      const nudgeId = parseInt(req.params.nudgeId);
+      const { resolution } = req.body;
+      const userId = req.user!.id;
+
+      if (!['accepted', 'rejected', 'dismissed'].includes(resolution)) {
+        return res.status(400).json({ error: "Invalid resolution" });
+      }
+
+      const { resolveNudge } = await import('./learning-engine');
+      await resolveNudge(nudgeId, resolution, userId);
+      
+      res.json({ success: true });
+    } catch (error: any) {
+      console.error("Error resolving nudge:", error);
+      res.status(500).json({ error: "Failed to resolve nudge" });
+    }
+  });
+
+  // Generate nudges for workout/exercise start
+  app.post("/api/coach/nudges/generate", async (req, res) => {
+    if (!req.isAuthenticated()) {
+      return res.sendStatus(401);
+    }
+
+    try {
+      const userId = req.user!.id;
+      const { context, exerciseInfo } = req.body;
+
+      const { generateNudgesForUser, getActiveNudges } = await import('./learning-engine');
+      await generateNudgesForUser(userId, context, exerciseInfo);
+      
+      // Return the generated nudges
+      const location = context === 'workout_start' ? 'workout_hub' : 
+                       context === 'exercise_start' ? 'exercise_detail' : 'home';
+      const nudges = await getActiveNudges(userId, location as any);
+      
+      res.json({ nudges });
+    } catch (error: any) {
+      console.error("Error generating nudges:", error);
+      res.status(500).json({ error: "Failed to generate nudges" });
     }
   });
 

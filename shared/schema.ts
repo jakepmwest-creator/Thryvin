@@ -402,6 +402,87 @@ export const aiLearningContextRelations = relations(aiLearningContext, ({ one })
   }),
 }));
 
+// Phase 11: AI Learning Events - captures all learning signals
+export const aiLearningEvents = pgTable("ai_learning_events", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  eventType: text("event_type").notNull(), // suggestion_shown, suggestion_accepted, suggestion_rejected, weight_adjusted, etc.
+  contextMode: text("context_mode"), // in_workout, post_workout, home, chat
+  topic: text("topic"), // weight, form, swap, progression, etc.
+  payload: jsonb("payload"), // JSON with event-specific data
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (table) => ({
+  userIdIdx: index("ai_learning_events_user_id_idx").on(table.userId),
+  eventTypeIdx: index("ai_learning_events_event_type_idx").on(table.eventType),
+  createdAtIdx: index("ai_learning_events_created_at_idx").on(table.createdAt),
+}));
+
+export const aiLearningEventsRelations = relations(aiLearningEvents, ({ one }) => ({
+  user: one(users, {
+    fields: [aiLearningEvents.userId],
+    references: [users.id],
+  }),
+}));
+
+// Phase 11: User Tendencies - soft, confidence-based learning state
+export const userTendencies = pgTable("user_tendencies", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id, { onDelete: "cascade" }).unique(),
+  // Progression tendencies (0-1 confidence)
+  progressionPace: text("progression_pace").default("moderate"), // slow, moderate, fast
+  prefersConfirmation: text("prefers_confirmation").default("0.5"), // 0-1 confidence
+  confidenceWithLoad: text("confidence_with_load").default("0.5"), // 0-1 overall
+  // Movement pattern confidences (JSON: { squat: 0.5, hinge: 0.5, push: 0.5, pull: 0.5, carry: 0.5 })
+  movementConfidence: jsonb("movement_confidence"),
+  // Behaviour patterns
+  swapFrequency: text("swap_frequency").default("0.5"), // 0-1 (how often they swap)
+  adherencePattern: jsonb("adherence_pattern"), // { weekdayBias, weekendDrop, consistencyScore }
+  // Preference signals
+  preferredRepStyle: jsonb("preferred_rep_style"), // { strength: 0.5, hypertrophy: 0.5, endurance: 0.5 }
+  recoveryNeed: text("recovery_need").default("0.5"), // 0-1
+  // Recent decline tracking for readiness questions
+  recentDeclines: jsonb("recent_declines"), // [{ topic, count, lastDeclined }]
+  // Timestamps
+  lastUpdated: timestamp("last_updated").defaultNow().notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (table) => ({
+  userIdIdx: index("user_tendencies_user_id_idx").on(table.userId),
+}));
+
+export const userTendenciesRelations = relations(userTendencies, ({ one }) => ({
+  user: one(users, {
+    fields: [userTendencies.userId],
+    references: [users.id],
+  }),
+}));
+
+// Phase 11: Coach Nudges - queue for inline coach questions/suggestions
+export const coachNudges = pgTable("coach_nudges", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  nudgeType: text("nudge_type").notNull(), // readiness_check, progression_offer, schedule_adjust, recovery_adjust, technique_focus
+  priority: integer("priority").default(5), // 1-10, higher = more important
+  message: text("message").notNull(),
+  actions: jsonb("actions"), // [{ label, action, payload }]
+  context: jsonb("context"), // Additional context (exercise, weight, etc.)
+  expiresAt: timestamp("expires_at"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  seenAt: timestamp("seen_at"),
+  resolvedAt: timestamp("resolved_at"),
+  resolution: text("resolution"), // accepted, rejected, dismissed
+}, (table) => ({
+  userIdIdx: index("coach_nudges_user_id_idx").on(table.userId),
+  nudgeTypeIdx: index("coach_nudges_nudge_type_idx").on(table.nudgeType),
+  expiresAtIdx: index("coach_nudges_expires_at_idx").on(table.expiresAt),
+}));
+
+export const coachNudgesRelations = relations(coachNudges, ({ one }) => ({
+  user: one(users, {
+    fields: [coachNudges.userId],
+    references: [users.id],
+  }),
+}));
+
 // Define user workouts relations (moved here to avoid forward reference)
 export const userWorkoutsRelations = relations(userWorkouts, ({ one, many }) => ({
   user: one(users, {
@@ -469,6 +550,23 @@ export const insertAiLearningContextSchema = createInsertSchema(aiLearningContex
   id: true,
   createdAt: true,
   lastUpdated: true,
+});
+
+// Phase 11: Insert schemas
+export const insertAiLearningEventSchema = createInsertSchema(aiLearningEvents).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertUserTendenciesSchema = createInsertSchema(userTendencies).omit({
+  id: true,
+  createdAt: true,
+  lastUpdated: true,
+});
+
+export const insertCoachNudgeSchema = createInsertSchema(coachNudges).omit({
+  id: true,
+  createdAt: true,
 });
 
 // Type exports

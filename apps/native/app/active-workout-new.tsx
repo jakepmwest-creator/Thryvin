@@ -16,7 +16,7 @@ import { ExerciseVideoPlayer } from '../src/components/ExerciseVideoPlayer';
 import { CustomAlert } from '../src/components/CustomAlert';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
-const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL || 'https://ui-voice-fix.preview.emergentagent.com';
+const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL || 'https://coach-evolution-1.preview.emergentagent.com';
 
 const COLORS = {
   accent: '#a259ff',
