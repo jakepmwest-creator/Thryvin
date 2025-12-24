@@ -48,7 +48,7 @@ const QUICK_ACTIONS = [
   { icon: 'refresh', label: 'New workout', prompt: 'Generate a new workout for today' },
 ];
 
-export function FloatingCoachButton() {
+export function FloatingCoachButton({ contextMode = 'home' }: { contextMode?: 'in_workout' | 'home' | 'chat' }) {
   const { swapWorkoutDays, forceRegenerateWeek, weekWorkouts, resetProgram } = useWorkoutStore();
   const { chatVisible, initialMessage, openChat, closeChat, coachName, loadCoachSettings } = useCoachStore();
   
