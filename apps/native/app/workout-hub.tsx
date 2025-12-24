@@ -1651,6 +1651,20 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 4,
   },
+  exerciseBoxRemoveMode: {
+    borderWidth: 2,
+    borderColor: '#FF3B30',
+    borderStyle: 'dashed',
+    opacity: 0.9,
+  },
+  removeIndicator: {
+    position: 'absolute',
+    top: -8,
+    right: -8,
+    backgroundColor: COLORS.white,
+    borderRadius: 12,
+    zIndex: 10,
+  },
   exerciseBoxContent: {
     flexDirection: 'row',
     alignItems: 'center',
