@@ -733,16 +733,12 @@ export default function WorkoutHubScreen() {
         </Text>
       </View>
 
-      {/* Quick Actions Panel (Phase 8.5) */}
-      <QuickActionsPanel
-        onSwapDay={() => showAlert('info', 'Swap Day', 'Swap Day feature coming soon!')}
+      {/* Simplified Action Bar: Edit / Add / Remove */}
+      <WorkoutActionBar
         onEditWorkout={handleEditWorkout}
-        onAddWorkout={() => showAlert('info', 'Add Workout', 'Add Workout feature coming soon!')}
-        onShorter={() => showAlert('info', 'Shorter', 'Shorter workout option coming soon!')}
-        onHarder={() => showAlert('info', 'Harder', 'Harder workout option coming soon!')}
-        onEasier={() => showAlert('info', 'Easier', 'Easier workout option coming soon!')}
-        onOpenCoach={() => setShowCoachSheet(true)}
-        onRecoveryDay={() => showAlert('info', 'Recovery Day', 'Recovery day option coming soon!')}
+        onAddExercise={handleAddExercise}
+        removeMode={removeMode}
+        onToggleRemoveMode={() => setRemoveMode(!removeMode)}
       />
 
       {/* Tabs */}
