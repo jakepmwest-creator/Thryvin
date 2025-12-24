@@ -563,6 +563,44 @@ export default function WorkoutHubScreen() {
     }
   };
 
+  // Handle adding exercise to workout
+  const handleAddExercise = (exercise: any) => {
+    if (!currentWorkout) return;
+    
+    const newExercise = {
+      name: exercise.name,
+      sets: 3,
+      reps: '8-12',
+      muscleGroup: exercise.muscle || exercise.targetMuscle || 'Various',
+      equipment: exercise.equipment || 'Bodyweight',
+      notes: '',
+    };
+    
+    const updatedWorkout = {
+      ...currentWorkout,
+      exercises: [...(currentWorkout.exercises || []), newExercise],
+    };
+    
+    setCurrentWorkout(updatedWorkout);
+    showAlert('success', 'Exercise Added', `${exercise.name} has been added to your workout`);
+  };
+
+  // Handle removing exercise from workout
+  const handleRemoveExercise = (exerciseIndex: number) => {
+    if (!currentWorkout || !removeMode) return;
+    
+    const exerciseToRemove = exercises[exerciseIndex];
+    const updatedExercises = exercises.filter((_, idx) => idx !== exerciseIndex);
+    
+    const updatedWorkout = {
+      ...currentWorkout,
+      exercises: updatedExercises,
+    };
+    
+    setCurrentWorkout(updatedWorkout);
+    showAlert('info', 'Exercise Removed', `${exerciseToRemove?.name || 'Exercise'} has been removed`);
+  };
+
   // Build workout context for coach (Phase 8)
   // CRASH FIX: Safely access session data with optional chaining + defaults
   const buildWorkoutContextForCoach = () => {
