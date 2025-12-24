@@ -150,6 +150,7 @@ export function FloatingCoachButton({ contextMode = 'home' }: { contextMode?: 'i
         body: JSON.stringify({
           message: userMessage,
           coach: coachName || 'default',
+          contextMode: contextMode, // Pass context mode for behavior adaptation
           // Note: Backend derives userId from session, not from body (security)
           conversationHistory: messages.slice(-6).map(m => ({
             role: m.role === 'assistant' ? 'coach' : 'user',
