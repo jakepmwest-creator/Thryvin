@@ -2080,6 +2080,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
       
+      // Log weekly activities (external training like Football, Boxing, etc.)
+      if (questionnaire.weeklyActivities && questionnaire.weeklyActivities.length > 0) {
+        console.log(`📅 User has ${questionnaire.weeklyActivities.length} weekly activities:`);
+        questionnaire.weeklyActivities.forEach((activity: any) => {
+          const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+          console.log(`   - ${activity.name} on ${dayNames[activity.dayOfWeek]} (${activity.intensity} intensity)`);
+        });
+        
+        // Store as learning context
+        const activitySummary = questionnaire.weeklyActivities
+          .map((a: any) => {
+            const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+            return `${a.name} on ${dayNames[a.dayOfWeek]}`;
+          })
+          .join(', ');
+        
+        await db.insert(aiLearningContext).values({
+          userId,
+          category: 'schedule',
+          insight: `User has external activities: ${activitySummary}. DO NOT schedule heavy gym workouts on these days.`,
+          confidence: 'high',
+          dataPoints: questionnaire.weeklyActivities.length,
+        });
+      }
+      
       console.log(`✅ Saved advanced questionnaire for user ${userId}`);
       res.json({ success: true });
     } catch (error: any) {
