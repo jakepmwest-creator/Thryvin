@@ -799,16 +799,31 @@ export default function WorkoutHubScreen() {
               <View key={index} style={styles.exerciseContainer}>
                 {/* Exercise Box */}
                 <TouchableOpacity
-                  style={styles.exerciseBox}
-                  onPress={() => handleExercisePress(index)}
+                  style={[
+                    styles.exerciseBox,
+                    removeMode && styles.exerciseBoxRemoveMode
+                  ]}
+                  onPress={() => {
+                    if (removeMode) {
+                      handleRemoveExercise(actualIndex);
+                    } else {
+                      handleExercisePress(index);
+                    }
+                  }}
                   activeOpacity={0.8}
                 >
                   <View style={styles.exerciseBoxContent}>
-                    <View style={styles.exerciseNumber}>
+                    {/* Remove mode indicator */}
+                    {removeMode && (
+                      <View style={styles.removeIndicator}>
+                        <Ionicons name="remove-circle" size={22} color="#FF3B30" />
+                      </View>
+                    )}
+                    <View style={[styles.exerciseNumber, removeMode && { opacity: 0.5 }]}>
                       <Text style={styles.exerciseNumberText}>{index + 1}</Text>
                     </View>
                     <View style={styles.exerciseInfo}>
-                      <Text style={styles.exerciseName}>{exercise.name}</Text>
+                      <Text style={[styles.exerciseName, removeMode && { color: '#FF3B30' }]}>{exercise.name}</Text>
                       <Text style={styles.exerciseMeta}>
                         {(() => {
                           const exType = getExerciseType(exercise);
@@ -822,7 +837,7 @@ export default function WorkoutHubScreen() {
                         })()}
                       </Text>
                     </View>
-                    {completedSets.length >= (exercise.sets || 1) && (
+                    {!removeMode && completedSets.length >= (exercise.sets || 1) && (
                       <Ionicons name="checkmark-circle" size={24} color={COLORS.success} />
                     )}
                   </View>
