@@ -6,7 +6,7 @@ import OpenAI from 'openai';
 import { z } from 'zod';
 import { getUserLearningContext, getPersonalizedAdjustments } from './ai-learning-service';
 import { getComprehensiveUserContext, formatUserContextForAI, getSuggestedWeight } from './ai-user-context';
-import { generateWeeklyTemplate, getDayFocus, getPromptConstraints, type SplitPlannerInput } from './split-planner';
+import { generateWeeklyTemplate, getPromptConstraints, type SplitPlannerInput } from './split-planner';
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
