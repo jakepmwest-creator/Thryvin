@@ -228,40 +228,98 @@ export function FloatingCoachButton({ contextMode = 'home' }: { contextMode?: 'i
        lower.includes('bike') || lower.includes('swim')) && 
       (lower.includes('workout') || lower.includes('session') || lower.includes('training') || 
        lower.includes('5k') || lower.includes('run') || lower.includes('jog') || lower.includes('cardio') || 
-       lower.includes('something light') || lower.includes('rest day'))
+       lower.includes('something light') || lower.includes('rest day') ||
+       lower.includes('arms') || lower.includes('chest') || lower.includes('back') || 
+       lower.includes('legs') || lower.includes('shoulders') || lower.includes('upper') || 
+       lower.includes('lower') || lower.includes('push') || lower.includes('pull'))
     );
     
     if (isAddWorkoutIntent) {
+      // COMPREHENSIVE workout type detection - CHECK SPECIFIC TYPES FIRST before defaulting
+      // Priority order: specific body parts > general types > cardio (last resort)
+      const bodyPartTypes = [
+        'arms', 'arm', 'biceps', 'bicep', 'triceps', 'tricep',
+        'chest', 'pecs', 'pec',
+        'back', 'lats', 'lat',
+        'legs', 'leg', 'quads', 'quad', 'hamstrings', 'hamstring', 'glutes', 'glute',
+        'shoulders', 'shoulder', 'delts', 'delt',
+        'core', 'abs', 'ab',
+        'upper', 'upper body',
+        'lower', 'lower body',
+        'push', 'push day',
+        'pull', 'pull day',
+        'full body', 'full-body',
+      ];
       
-      const workoutTypes = ['yoga', 'cardio', 'strength', 'hiit', 'flexibility', 'core'];
-      let detectedType = 'cardio'; // default
+      const generalTypes = ['strength', 'yoga', 'hiit', 'flexibility'];
+      const cardioKeywords = ['run', 'jog', '5k', '10k', 'bike', 'cycle', 'swim', 'rowing', 'elliptical', 'treadmill', 'cardio'];
+      
+      let detectedType: string | null = null;
       let duration = 30; // default
       
-      // Detect cardio activities
-      const cardioKeywords = ['run', 'jog', '5k', '10k', 'bike', 'cycle', 'swim', 'rowing', 'elliptical', 'treadmill'];
-      let isCardio = false;
-      for (const keyword of cardioKeywords) {
-        if (lower.includes(keyword)) {
-          detectedType = 'cardio';
-          isCardio = true;
-          // For runs, estimate duration based on distance
-          if (lower.includes('5k')) {
-            duration = 25; // ~25 min for 5K
-          } else if (lower.includes('10k')) {
-            duration = 50; // ~50 min for 10K
+      // 1. First check for specific body part types (most specific)
+      for (const type of bodyPartTypes) {
+        if (lower.includes(type)) {
+          // Map variations to standard names
+          if (type.includes('arm') || type.includes('bicep') || type.includes('tricep')) {
+            detectedType = 'arms';
+          } else if (type.includes('chest') || type.includes('pec')) {
+            detectedType = 'chest';
+          } else if (type.includes('back') || type.includes('lat')) {
+            detectedType = 'back';
+          } else if (type.includes('leg') || type.includes('quad') || type.includes('hamstring') || type.includes('glute')) {
+            detectedType = 'legs';
+          } else if (type.includes('shoulder') || type.includes('delt')) {
+            detectedType = 'shoulders';
+          } else if (type.includes('core') || type.includes('ab')) {
+            detectedType = 'core';
+          } else if (type === 'upper' || type === 'upper body') {
+            detectedType = 'upper';
+          } else if (type === 'lower' || type === 'lower body') {
+            detectedType = 'lower';
+          } else if (type.includes('push')) {
+            detectedType = 'push';
+          } else if (type.includes('pull')) {
+            detectedType = 'pull';
+          } else if (type.includes('full')) {
+            detectedType = 'full body';
           }
-          break;
+          if (detectedType) break;
         }
       }
       
-      // Detect workout type from message
-      if (!isCardio) {
-        for (const type of workoutTypes) {
+      // 2. Check for general workout types if no body part found
+      if (!detectedType) {
+        for (const type of generalTypes) {
           if (lower.includes(type)) {
             detectedType = type;
             break;
           }
         }
+      }
+      
+      // 3. Check for cardio keywords only if nothing else matched
+      if (!detectedType) {
+        for (const keyword of cardioKeywords) {
+          if (lower.includes(keyword)) {
+            detectedType = 'cardio';
+            // For runs, estimate duration based on distance
+            if (lower.includes('5k')) {
+              duration = 25;
+            } else if (lower.includes('10k')) {
+              duration = 50;
+            }
+            break;
+          }
+        }
+      }
+      
+      // 4. FAIL CLOSED: If still no type detected, ASK FOR CLARIFICATION instead of defaulting
+      if (!detectedType) {
+        return {
+          handled: true,
+          response: "What type of workout would you like to add? 🤔\n\nOptions:\n• Arms, Chest, Back, Legs, Shoulders\n• Upper Body, Lower Body, Push, Pull\n• Cardio, HIIT, Yoga, Core\n\nJust tell me the type!",
+        };
       }
       
       // Detect duration
