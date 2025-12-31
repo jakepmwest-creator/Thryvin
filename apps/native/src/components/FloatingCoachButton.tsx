@@ -43,13 +43,13 @@ const EDGE_PADDING = 20;
 // Use backend API instead of direct OpenAI calls
 const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL || 'https://coach-action-fix.preview.emergentagent.com';
 
-// Quick action chips for common requests
-const QUICK_ACTIONS = [
-  { icon: 'swap-horizontal', label: 'Swap days', prompt: 'I need to swap my workout days' },
-  { icon: 'time', label: 'Shorter', prompt: 'Make my workout shorter today' },
-  { icon: 'flame', label: 'Harder', prompt: 'I want a more intense workout' },
-  { icon: 'refresh', label: 'New workout', prompt: 'Generate a new workout for today' },
-];
+// Message type that can include inline suggestions
+interface ChatMessage {
+  role: 'user' | 'assistant';
+  text: string;
+  showSuggestions?: boolean;
+  suggestionType?: 'workout_type' | 'general';
+}
 
 export function FloatingCoachButton({ contextMode = 'home' }: { contextMode?: 'in_workout' | 'home' | 'chat' }) {
   const { swapWorkoutDays, forceRegenerateWeek, weekWorkouts, resetProgram } = useWorkoutStore();
