@@ -179,7 +179,7 @@ export function FloatingCoachButton({ contextMode = 'home' }: { contextMode?: 'i
   };
 
   // Detect workout intents and handle locally
-  const detectWorkoutIntent = (message: string): { handled: boolean; response?: string; action?: { type: string; params?: any } } => {
+  const detectWorkoutIntent = (message: string): { handled: boolean; response?: string; action?: PendingActionDetails; showSuggestions?: boolean; suggestionType?: 'workout_type' | 'general' } => {
     const lower = message.toLowerCase();
     
     // ===========================================================================
