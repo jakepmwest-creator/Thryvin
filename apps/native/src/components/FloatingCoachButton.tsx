@@ -55,13 +55,15 @@ export function FloatingCoachButton({ contextMode = 'home' }: { contextMode?: 'i
   const { swapWorkoutDays, forceRegenerateWeek, weekWorkouts, resetProgram } = useWorkoutStore();
   const { chatVisible, initialMessage, openChat, closeChat, coachName, loadCoachSettings } = useCoachStore();
   
-  const [messages, setMessages] = useState([
+  const [messages, setMessages] = useState<ChatMessage[]>([
     { role: 'assistant', text: "Hey! I'm your AI coach. 💪 I can help with workouts, swap your training days, adjust intensity, or answer fitness questions!" },
   ]);
   const [inputText, setInputText] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
-  const [pendingAction, setPendingAction] = useState<{ type: string; params?: any } | null>(null);
+  const [pendingAction, setPendingAction] = useState<PendingActionDetails | null>(null);
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [showQuickActionsDrawer, setShowQuickActionsDrawer] = useState(true);
   
   // Load coach settings on mount
   useEffect(() => {
