@@ -177,6 +177,86 @@ export function FloatingCoachButton({ contextMode = 'home' }: { contextMode?: 'i
   const detectWorkoutIntent = (message: string): { handled: boolean; response?: string; action?: { type: string; params?: any } } => {
     const lower = message.toLowerCase();
     
+    // ===========================================================================
+    // CRITICAL: Check for user REJECTION/CORRECTION first
+    // If user says "not cardio" or "no, arms", invalidate pendingAction and re-detect
+    // ===========================================================================
+    const rejectionPatterns = [
+      /^no[,.]?\s*/i,
+      /^not\s+/i,
+      /^that's\s+not/i,
+      /^thats\s+not/i,
+      /^wrong/i,
+      /^i\s+(said|meant|want)/i,
+      /^actually/i,
+    ];
+    
+    const isRejection = rejectionPatterns.some(pattern => pattern.test(message.trim()));
+    
+    if (isRejection && pendingAction) {
+      console.log('⚠️ [COACH] User rejection detected, invalidating pendingAction');
+      
+      // Try to detect what they actually want
+      const bodyPartTypes = [
+        'arms', 'arm', 'biceps', 'bicep', 'triceps', 'tricep',
+        'chest', 'pecs', 'pec',
+        'back', 'lats', 'lat',
+        'legs', 'leg', 'quads', 'quad', 'hamstrings', 'hamstring', 'glutes', 'glute',
+        'shoulders', 'shoulder', 'delts', 'delt',
+        'core', 'abs', 'ab',
+        'upper', 'lower', 'push', 'pull',
+      ];
+      
+      let correctedType: string | null = null;
+      for (const type of bodyPartTypes) {
+        if (lower.includes(type)) {
+          // Map to standard name
+          if (type.includes('arm') || type.includes('bicep') || type.includes('tricep')) {
+            correctedType = 'arms';
+          } else if (type.includes('chest') || type.includes('pec')) {
+            correctedType = 'chest';
+          } else if (type.includes('back') || type.includes('lat')) {
+            correctedType = 'back';
+          } else if (type.includes('leg') || type.includes('quad') || type.includes('hamstring') || type.includes('glute')) {
+            correctedType = 'legs';
+          } else if (type.includes('shoulder') || type.includes('delt')) {
+            correctedType = 'shoulders';
+          } else if (type.includes('core') || type.includes('ab')) {
+            correctedType = 'core';
+          } else if (type === 'upper' || type === 'lower' || type === 'push' || type === 'pull') {
+            correctedType = type;
+          }
+          break;
+        }
+      }
+      
+      if (correctedType) {
+        // User corrected with a specific type
+        const dayName = pendingAction.params?.date 
+          ? new Date(pendingAction.params.date).toLocaleDateString('en-US', { weekday: 'long' })
+          : 'today';
+        
+        return {
+          handled: true,
+          response: `Got it! I'll make it ${correctedType.toUpperCase()} instead. 💪\n\nAdding a ${correctedType} session for ${dayName}.\n\nPress the button to confirm!`,
+          action: { 
+            type: pendingAction.type, // Keep same action type
+            params: { 
+              ...pendingAction.params,
+              workoutType: correctedType // Update the workout type
+            } 
+          }
+        };
+      } else {
+        // Rejection without clear alternative - ask what they want
+        setPendingAction(null); // Clear pending action
+        return {
+          handled: true,
+          response: "I understand, that's not what you wanted. 🤔\n\nWhat type of workout would you like instead?\n\n• Arms, Chest, Back, Legs, Shoulders\n• Upper Body, Lower Body, Push, Pull\n• Cardio, HIIT, Yoga, Core",
+        };
+      }
+    }
+    
     // ADD WORKOUT intent (rest day → active day, or extra workout, or run/5K)
     // LOG UNEXPECTED WORKOUT intent - Initial request
     if ((lower.includes('unexpected workout') || lower.includes('did a workout') || lower.includes('forgot to log')) && 
