@@ -20,6 +20,9 @@ import { VoiceInputButton } from './VoiceInputButton';
 import { useWorkoutStore } from '../stores/workout-store';
 import { useCoachStore } from '../stores/coach-store';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { ActionConfirmationModal, PendingActionDetails } from './ActionConfirmationModal';
+import { QuickActionsDrawer, QuickActionItem, ALL_QUICK_ACTIONS } from './QuickActionsDrawer';
+import { InlineSuggestedActions, WORKOUT_TYPE_SUGGESTIONS, GENERAL_SUGGESTIONS, SuggestedAction } from './InlineSuggestedActions';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
