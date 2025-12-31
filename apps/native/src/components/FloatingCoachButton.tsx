@@ -1374,26 +1374,4 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: COLORS.white,
   },
-  quickActionsContainer: {
-    backgroundColor: COLORS.white,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    borderTopWidth: 1,
-    borderTopColor: COLORS.lightGray,
-  },
-  quickAction: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: COLORS.lightGray,
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderRadius: 20,
-    marginRight: 10,
-    gap: 6,
-  },
-  quickActionText: {
-    fontSize: 13,
-    fontWeight: '500',
-    color: COLORS.text,
-  },
 });
