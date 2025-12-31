@@ -904,9 +904,69 @@ export function FloatingCoachButton({ contextMode = 'home' }: { contextMode?: 'i
     setIsLoading(false);
   };
 
-  // Handle quick action
-  const handleQuickAction = (action: typeof QUICK_ACTIONS[0]) => {
+  // Handle quick action from drawer
+  const handleQuickActionFromDrawer = (action: QuickActionItem) => {
     setInputText(action.prompt);
+    // Auto-send after selecting quick action
+    setTimeout(() => {
+      if (action.prompt) {
+        setMessages(prev => [...prev, { role: 'user', text: action.prompt }]);
+        setIsLoading(true);
+        
+        const intentResult = detectWorkoutIntent(action.prompt);
+        if (intentResult.handled && intentResult.response) {
+          setMessages(prev => [...prev, { 
+            role: 'assistant', 
+            text: intentResult.response!,
+            showSuggestions: intentResult.showSuggestions,
+            suggestionType: intentResult.suggestionType,
+          }]);
+          if (intentResult.action) {
+            setPendingAction(intentResult.action);
+          }
+        }
+        setIsLoading(false);
+        setInputText('');
+      }
+    }, 100);
+  };
+
+  // Handle inline suggestion selection
+  const handleInlineSuggestion = (suggestion: SuggestedAction) => {
+    setMessages(prev => [...prev, { role: 'user', text: suggestion.prompt }]);
+    setIsLoading(true);
+    
+    const intentResult = detectWorkoutIntent(suggestion.prompt);
+    if (intentResult.handled && intentResult.response) {
+      setMessages(prev => [...prev, { 
+        role: 'assistant', 
+        text: intentResult.response!,
+        showSuggestions: intentResult.showSuggestions,
+        suggestionType: intentResult.suggestionType,
+      }]);
+      if (intentResult.action) {
+        setPendingAction(intentResult.action);
+      }
+    }
+    setIsLoading(false);
+  };
+
+  // Handle confirmation modal confirm
+  const handleConfirmAction = async () => {
+    setShowConfirmModal(false);
+    if (pendingAction) {
+      await executeAction(pendingAction);
+    }
+  };
+
+  // Handle confirmation modal cancel
+  const handleCancelAction = () => {
+    setShowConfirmModal(false);
+    setPendingAction(null);
+    setMessages(prev => [...prev, { 
+      role: 'assistant', 
+      text: "No problem! Action cancelled. 👍\n\nWhat else can I help you with?" 
+    }]);
   };
 
   // Handle voice transcription
