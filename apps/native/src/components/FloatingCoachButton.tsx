@@ -399,11 +399,13 @@ export function FloatingCoachButton({ contextMode = 'home' }: { contextMode?: 'i
         }
       }
       
-      // 4. FAIL CLOSED: If still no type detected, ASK FOR CLARIFICATION instead of defaulting
+      // 4. FAIL CLOSED: If still no type detected, ASK FOR CLARIFICATION with quick action buttons
       if (!detectedType) {
         return {
           handled: true,
-          response: "What type of workout would you like to add? 🤔\n\nOptions:\n• Arms, Chest, Back, Legs, Shoulders\n• Upper Body, Lower Body, Push, Pull\n• Cardio, HIIT, Yoga, Core\n\nJust tell me the type!",
+          response: "What type of workout would you like to add? 🤔\n\nTap one of the options below:",
+          showSuggestions: true,
+          suggestionType: 'workout_type',
         };
       }
       
