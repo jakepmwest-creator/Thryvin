@@ -1159,6 +1159,14 @@ export function FloatingCoachButton({ contextMode = 'home' }: { contextMode?: 'i
           </View>
         </KeyboardAvoidingView>
       </Modal>
+
+      {/* Action Confirmation Modal */}
+      <ActionConfirmationModal
+        visible={showConfirmModal}
+        action={pendingAction}
+        onConfirm={handleConfirmAction}
+        onCancel={handleCancelAction}
+      />
     </>
   );
 }
