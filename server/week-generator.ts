@@ -108,8 +108,8 @@ export async function generateWeekWorkouts(userId: number, userProfile: UserProf
         // index 6 (Sun) = dayOfWeek 0
         const actualDayOfWeek = index === 6 ? 0 : index + 1;
         
-        // Generate AI workout with correct day of week
-        const workout = await generateAIWorkout(userProfile, actualDayOfWeek);
+        // Generate AI workout with correct day of week and week number for variety
+        const workout = await generateAIWorkout(userProfile, actualDayOfWeek, weekNumber);
         
         // Store in DB
         await db
