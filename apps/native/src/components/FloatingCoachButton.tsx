@@ -1052,27 +1052,37 @@ export function FloatingCoachButton({ contextMode = 'home' }: { contextMode?: 'i
               contentContainerStyle={styles.messagesContent}
             >
               {messages.map((msg, i) => (
-                <View
-                  key={i}
-                  style={[
-                    styles.messageBubble,
-                    msg.role === 'user' ? styles.userBubble : styles.assistantBubble,
-                  ]}
-                >
-                  {msg.role === 'assistant' && (
-                    <View style={styles.assistantIcon}>
-                      <Ionicons name="sparkles" size={14} color={COLORS.accent} />
-                    </View>
-                  )}
-                  <Text
+                <React.Fragment key={i}>
+                  <View
                     style={[
-                      styles.messageText,
-                      msg.role === 'user' ? styles.userText : styles.assistantText,
+                      styles.messageBubble,
+                      msg.role === 'user' ? styles.userBubble : styles.assistantBubble,
                     ]}
                   >
-                    {msg.text}
-                  </Text>
-                </View>
+                    {msg.role === 'assistant' && (
+                      <View style={styles.assistantIcon}>
+                        <Ionicons name="sparkles" size={14} color={COLORS.accent} />
+                      </View>
+                    )}
+                    <Text
+                      style={[
+                        styles.messageText,
+                        msg.role === 'user' ? styles.userText : styles.assistantText,
+                      ]}
+                    >
+                      {msg.text}
+                    </Text>
+                  </View>
+                  
+                  {/* Show inline suggestions when confidence is low */}
+                  {msg.showSuggestions && msg.role === 'assistant' && (
+                    <InlineSuggestedActions
+                      suggestions={msg.suggestionType === 'workout_type' ? WORKOUT_TYPE_SUGGESTIONS : GENERAL_SUGGESTIONS}
+                      onSelect={handleInlineSuggestion}
+                      title="Quick options:"
+                    />
+                  )}
+                </React.Fragment>
               ))}
               {isLoading && (
                 <View style={styles.loadingBubble}>
@@ -1081,11 +1091,11 @@ export function FloatingCoachButton({ contextMode = 'home' }: { contextMode?: 'i
                 </View>
               )}
               
-              {/* Action confirmation button */}
+              {/* Action confirmation button - now opens modal */}
               {pendingAction && !isLoading && (
                 <TouchableOpacity 
                   style={styles.confirmActionButton}
-                  onPress={() => executeAction(pendingAction)}
+                  onPress={() => setShowConfirmModal(true)}
                 >
                   <LinearGradient
                     colors={[COLORS.accent, COLORS.accentSecondary]}
@@ -1096,7 +1106,7 @@ export function FloatingCoachButton({ contextMode = 'home' }: { contextMode?: 'i
                     <Ionicons name="checkmark-circle" size={18} color={COLORS.white} />
                     <Text style={styles.confirmActionText}>
                       {pendingAction.type === 'swap' && 'Confirm Swap'}
-                      {pendingAction.type === 'add_workout' && `Add ${pendingAction.params?.workoutType} Session`}
+                      {pendingAction.type === 'add_workout' && `Add ${pendingAction.params?.workoutType?.toUpperCase()} Session`}
                       {pendingAction.type === 'log_workout' && 'Log This Workout'}
                       {pendingAction.type === 'unlock_workout' && 'Unlock Workout'}
                       {pendingAction.type === 'remove_workout' && 'Remove Workout'}
@@ -1108,23 +1118,11 @@ export function FloatingCoachButton({ contextMode = 'home' }: { contextMode?: 'i
               )}
             </ScrollView>
             
-            {/* Quick Actions */}
-            {messages.length <= 2 && !isLoading && (
-              <View style={styles.quickActionsContainer}>
-                <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-                  {QUICK_ACTIONS.map((action, index) => (
-                    <TouchableOpacity
-                      key={index}
-                      style={styles.quickAction}
-                      onPress={() => handleQuickAction(action)}
-                    >
-                      <Ionicons name={action.icon as any} size={16} color={COLORS.accent} />
-                      <Text style={styles.quickActionText}>{action.label}</Text>
-                    </TouchableOpacity>
-                  ))}
-                </ScrollView>
-              </View>
-            )}
+            {/* Swipe-Up Quick Actions Drawer */}
+            <QuickActionsDrawer
+              onSelectAction={handleQuickActionFromDrawer}
+              visible={showQuickActionsDrawer && !isLoading}
+            />
 
             <View style={styles.inputContainer}>
               <View style={styles.inputWrapper}>
