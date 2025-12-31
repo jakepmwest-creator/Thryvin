@@ -1,12 +1,13 @@
 /**
  * Split Planner - Weekly Workout Structure Planning
  * 
- * Phase 8.5: Stop random full-body every day
- * 
- * Inputs: frequency, experience, goals, equipment, injuries, preferences,
- *         weekly activities, gym availability, preferred split
- * 
- * Output: Weekly template with dayFocus array, constraints, time budget
+ * CORE RULES (HUMAN PT LOGIC):
+ * 1. Training days = ACTUAL gym training sessions, NOT active recovery
+ * 2. All major muscle groups (Chest, Back, Legs, Shoulders, Arms) must be trained weekly
+ * 3. Active recovery ONLY on rest days or explicit deload requests
+ * 4. Weak areas increase volume, NOT dominance
+ * 5. Weekly variety - split order should rotate
+ * 6. Smart split selection based on frequency/experience/goals
  */
 
 // Types for split planning
@@ -19,28 +20,31 @@ export interface WeeklyActivity {
 }
 
 export interface SplitPlannerInput {
-  frequency: number; // days per week (1-7)
+  frequency: number; // days per week (1-7) - THIS IS GYM TRAINING DAYS
   experience: 'beginner' | 'intermediate' | 'advanced';
   goals: string[]; // muscle_gain, fat_loss, strength, etc.
   equipment: string[];
   injuries?: string | null;
   sessionDuration: number; // minutes
-  weeklyActivities?: WeeklyActivity[];
+  weeklyActivities?: WeeklyActivity[]; // External activities (sports, etc.)
   gymDaysAvailable?: number[]; // 0-6 (Sun-Sat)
   scheduleFlexibility?: boolean;
   preferredSplit?: string;
   preferredSplitOther?: string;
+  weekNumber?: number; // For weekly variety rotation
 }
 
 export interface DayPlan {
   dayIndex: number; // 0-6
-  focus: 'upper' | 'lower' | 'full' | 'push' | 'pull' | 'legs' | 'rest' | 'cardio' | 'recovery';
+  focus: 'upper' | 'lower' | 'full' | 'push' | 'pull' | 'legs' | 'chest' | 'back' | 'shoulders' | 'arms' | 'rest' | 'external_activity';
   exerciseCount: { min: number; max: number };
   warmupCount: number;
   mainCount: { min: number; max: number };
   cooldownCount: number;
-  avoidPatterns?: string[]; // e.g., ['heavy_hinge'] if hard class same day
+  avoidPatterns?: string[];
   notes?: string;
+  isGymTraining: boolean; // TRUE = real gym workout, FALSE = rest/external
+  musclesFocused: string[]; // Primary muscles this session targets
 }
 
 export interface WeeklyTemplate {
@@ -57,46 +61,164 @@ export interface WeeklyTemplate {
     cooldownMinutes: number;
     transitionTimePerExercise: number;
   };
+  muscleGroupCoverage: string[]; // Confirms all major groups are hit
 }
 
-// Default split templates based on frequency and experience
-const SPLIT_TEMPLATES: Record<string, (input: SplitPlannerInput) => string[]> = {
-  // 2 days
-  '2_beginner': () => ['full', 'full'],
-  '2_intermediate': () => ['upper', 'lower'],
-  '2_advanced': () => ['push_pull', 'legs'],
+// =============================================================================
+// SPLIT TEMPLATES - VALIDATED BY FREQUENCY + EXPERIENCE
+// =============================================================================
+
+// Each split defines: [focus, primary muscles targeted]
+interface SplitDay {
+  focus: string;
+  muscles: string[];
+}
+
+// CRITICAL: These are REAL training splits, NO active recovery inside them
+const VALIDATED_SPLITS: Record<number, Record<string, SplitDay[]>> = {
+  // 2 DAYS/WEEK
+  2: {
+    beginner: [
+      { focus: 'full', muscles: ['chest', 'back', 'legs', 'shoulders', 'arms'] },
+      { focus: 'full', muscles: ['chest', 'back', 'legs', 'shoulders', 'arms'] },
+    ],
+    intermediate: [
+      { focus: 'upper', muscles: ['chest', 'back', 'shoulders', 'arms'] },
+      { focus: 'lower', muscles: ['legs', 'glutes', 'calves'] },
+    ],
+    advanced: [
+      { focus: 'upper', muscles: ['chest', 'back', 'shoulders', 'arms'] },
+      { focus: 'lower', muscles: ['legs', 'glutes', 'calves'] },
+    ],
+  },
   
-  // 3 days
-  '3_beginner': () => ['upper', 'lower', 'full'],
-  '3_intermediate': () => ['push', 'pull', 'legs'],
-  '3_advanced': () => ['push', 'pull', 'legs'],
+  // 3 DAYS/WEEK
+  3: {
+    beginner: [
+      { focus: 'upper', muscles: ['chest', 'back', 'shoulders', 'arms'] },
+      { focus: 'lower', muscles: ['legs', 'glutes', 'calves'] },
+      { focus: 'full', muscles: ['chest', 'back', 'legs', 'shoulders'] },
+    ],
+    intermediate: [
+      { focus: 'push', muscles: ['chest', 'shoulders', 'triceps'] },
+      { focus: 'pull', muscles: ['back', 'biceps', 'rear_delts'] },
+      { focus: 'legs', muscles: ['quads', 'hamstrings', 'glutes', 'calves'] },
+    ],
+    advanced: [
+      { focus: 'push', muscles: ['chest', 'shoulders', 'triceps'] },
+      { focus: 'pull', muscles: ['back', 'biceps', 'rear_delts'] },
+      { focus: 'legs', muscles: ['quads', 'hamstrings', 'glutes', 'calves'] },
+    ],
+  },
   
-  // 4 days
-  '4_beginner': () => ['upper', 'lower', 'upper', 'lower'],
-  '4_intermediate': () => ['upper', 'lower', 'push', 'pull'],
-  '4_advanced': () => ['push', 'pull', 'legs', 'upper'],
+  // 4 DAYS/WEEK
+  4: {
+    beginner: [
+      { focus: 'upper', muscles: ['chest', 'back', 'shoulders', 'arms'] },
+      { focus: 'lower', muscles: ['legs', 'glutes', 'calves'] },
+      { focus: 'upper', muscles: ['chest', 'back', 'shoulders', 'arms'] },
+      { focus: 'lower', muscles: ['legs', 'glutes', 'calves'] },
+    ],
+    intermediate: [
+      { focus: 'upper', muscles: ['chest', 'back', 'shoulders', 'arms'] },
+      { focus: 'lower', muscles: ['legs', 'glutes', 'calves'] },
+      { focus: 'push', muscles: ['chest', 'shoulders', 'triceps'] },
+      { focus: 'pull', muscles: ['back', 'biceps', 'rear_delts'] },
+    ],
+    advanced: [
+      { focus: 'push', muscles: ['chest', 'shoulders', 'triceps'] },
+      { focus: 'pull', muscles: ['back', 'biceps', 'rear_delts'] },
+      { focus: 'legs', muscles: ['quads', 'hamstrings', 'glutes', 'calves'] },
+      { focus: 'upper', muscles: ['chest', 'back', 'shoulders', 'arms'] },
+    ],
+  },
   
-  // 5 days
-  '5_beginner': () => ['upper', 'lower', 'full', 'upper', 'lower'],
-  '5_intermediate': () => ['push', 'pull', 'legs', 'upper', 'lower'],
-  '5_advanced': () => ['chest', 'back', 'shoulders', 'legs', 'arms'],
+  // 5 DAYS/WEEK - NO ACTIVE RECOVERY, ALL REAL TRAINING
+  5: {
+    beginner: [
+      { focus: 'upper', muscles: ['chest', 'back', 'shoulders'] },
+      { focus: 'lower', muscles: ['quads', 'hamstrings', 'glutes'] },
+      { focus: 'push', muscles: ['chest', 'shoulders', 'triceps'] },
+      { focus: 'pull', muscles: ['back', 'biceps'] },
+      { focus: 'legs', muscles: ['quads', 'hamstrings', 'calves'] },
+    ],
+    intermediate: [
+      { focus: 'push', muscles: ['chest', 'shoulders', 'triceps'] },
+      { focus: 'pull', muscles: ['back', 'biceps', 'rear_delts'] },
+      { focus: 'legs', muscles: ['quads', 'hamstrings', 'glutes', 'calves'] },
+      { focus: 'upper', muscles: ['chest', 'back', 'shoulders'] },
+      { focus: 'lower', muscles: ['legs', 'glutes', 'calves'] },
+    ],
+    advanced: [
+      { focus: 'chest', muscles: ['chest', 'triceps'] },
+      { focus: 'back', muscles: ['back', 'biceps'] },
+      { focus: 'shoulders', muscles: ['shoulders', 'traps'] },
+      { focus: 'legs', muscles: ['quads', 'hamstrings', 'glutes', 'calves'] },
+      { focus: 'arms', muscles: ['biceps', 'triceps', 'forearms'] },
+    ],
+  },
   
-  // 6 days
-  '6_intermediate': () => ['push', 'pull', 'legs', 'push', 'pull', 'legs'],
-  '6_advanced': () => ['chest', 'back', 'shoulders', 'legs', 'arms', 'full'],
+  // 6 DAYS/WEEK
+  6: {
+    beginner: [
+      { focus: 'push', muscles: ['chest', 'shoulders', 'triceps'] },
+      { focus: 'pull', muscles: ['back', 'biceps'] },
+      { focus: 'legs', muscles: ['quads', 'hamstrings', 'glutes'] },
+      { focus: 'push', muscles: ['chest', 'shoulders', 'triceps'] },
+      { focus: 'pull', muscles: ['back', 'biceps'] },
+      { focus: 'legs', muscles: ['quads', 'hamstrings', 'calves'] },
+    ],
+    intermediate: [
+      { focus: 'push', muscles: ['chest', 'shoulders', 'triceps'] },
+      { focus: 'pull', muscles: ['back', 'biceps'] },
+      { focus: 'legs', muscles: ['quads', 'hamstrings', 'glutes'] },
+      { focus: 'push', muscles: ['chest', 'shoulders', 'triceps'] },
+      { focus: 'pull', muscles: ['back', 'biceps'] },
+      { focus: 'legs', muscles: ['quads', 'hamstrings', 'calves'] },
+    ],
+    advanced: [
+      { focus: 'chest', muscles: ['chest', 'triceps'] },
+      { focus: 'back', muscles: ['back', 'biceps'] },
+      { focus: 'shoulders', muscles: ['shoulders', 'traps'] },
+      { focus: 'legs', muscles: ['quads', 'hamstrings', 'glutes'] },
+      { focus: 'arms', muscles: ['biceps', 'triceps', 'forearms'] },
+      { focus: 'full', muscles: ['chest', 'back', 'legs', 'shoulders'] },
+    ],
+  },
 };
 
-// Preferred split mapping
-const PREFERRED_SPLIT_MAP: Record<string, string[]> = {
-  'upper_lower_full': ['upper', 'lower', 'full'],
-  'full_body': ['full', 'full', 'full', 'full'],
-  'push_pull_legs': ['push', 'pull', 'legs'],
-  'bro_split': ['chest', 'back', 'shoulders', 'legs', 'arms'],
-  'strength': ['squat', 'bench', 'deadlift', 'overhead'],
-  'endurance': ['cardio_strength', 'hiit', 'cardio_strength'],
+// Preferred split mapping (user choice)
+const PREFERRED_SPLIT_TEMPLATES: Record<string, SplitDay[]> = {
+  'upper_lower': [
+    { focus: 'upper', muscles: ['chest', 'back', 'shoulders', 'arms'] },
+    { focus: 'lower', muscles: ['legs', 'glutes', 'calves'] },
+  ],
+  'upper_lower_full': [
+    { focus: 'upper', muscles: ['chest', 'back', 'shoulders', 'arms'] },
+    { focus: 'lower', muscles: ['legs', 'glutes', 'calves'] },
+    { focus: 'full', muscles: ['chest', 'back', 'legs', 'shoulders'] },
+  ],
+  'full_body': [
+    { focus: 'full', muscles: ['chest', 'back', 'legs', 'shoulders', 'arms'] },
+  ],
+  'push_pull_legs': [
+    { focus: 'push', muscles: ['chest', 'shoulders', 'triceps'] },
+    { focus: 'pull', muscles: ['back', 'biceps', 'rear_delts'] },
+    { focus: 'legs', muscles: ['quads', 'hamstrings', 'glutes', 'calves'] },
+  ],
+  'bro_split': [
+    { focus: 'chest', muscles: ['chest', 'triceps'] },
+    { focus: 'back', muscles: ['back', 'biceps'] },
+    { focus: 'shoulders', muscles: ['shoulders', 'traps'] },
+    { focus: 'legs', muscles: ['quads', 'hamstrings', 'glutes', 'calves'] },
+    { focus: 'arms', muscles: ['biceps', 'triceps', 'forearms'] },
+  ],
 };
 
-// Exercise count rules by experience and duration
+// =============================================================================
+// EXERCISE COUNT RULES
+// =============================================================================
+
 function getExerciseCounts(experience: string, duration: number): { min: number; max: number; warmup: number; cooldown: number } {
   const durationKey = duration <= 30 ? 'short' : duration <= 45 ? 'medium' : 'long';
   
@@ -121,40 +243,62 @@ function getExerciseCounts(experience: string, duration: number): { min: number;
   return counts[experience]?.[durationKey] || counts.intermediate.medium;
 }
 
-// Check if a day has conflicting hard activities
-function getDayConflicts(dayIndex: number, activities: WeeklyActivity[]): string[] {
-  const conflicts: string[] = [];
+// =============================================================================
+// CONFLICT DETECTION
+// =============================================================================
+
+function getDayConflicts(dayIndex: number, activities: WeeklyActivity[]): { hasHardActivity: boolean; activityName: string | null; conflicts: string[] } {
+  const dayActivities = activities.filter(a => a.dayOfWeek === dayIndex);
+  const hardActivity = dayActivities.find(a => a.intensity === 'hard');
   
-  const dayActivities = activities.filter(a => a.dayOfWeek === dayIndex && a.intensity === 'hard');
-  
-  for (const activity of dayActivities) {
-    const actName = activity.name.toLowerCase();
-    
-    // If hard lower-body activity (running, cycling, football, etc.), avoid heavy legs
-    if (['running', 'cycling', 'football', 'soccer', 'basketball', 'hiit'].some(s => actName.includes(s))) {
-      conflicts.push('heavy_legs', 'heavy_hinge');
-    }
-    
-    // If hard upper-body activity (boxing, climbing, swimming), avoid heavy upper
-    if (['boxing', 'climbing', 'swimming', 'martial arts', 'mma'].some(s => actName.includes(s))) {
-      conflicts.push('heavy_push', 'heavy_pull', 'heavy_upper');
-    }
-    
-    // If any hard activity in evening, prefer morning gym or skip
-    if (activity.timeWindow === 'evening') {
-      conflicts.push('evening_session');
-    }
+  if (!hardActivity) {
+    return { hasHardActivity: false, activityName: null, conflicts: [] };
   }
   
-  return [...new Set(conflicts)];
+  const conflicts: string[] = [];
+  const actName = hardActivity.name.toLowerCase();
+  
+  // Lower-body intensive activities
+  if (['running', 'cycling', 'football', 'soccer', 'basketball', 'hiit', 'sprinting'].some(s => actName.includes(s))) {
+    conflicts.push('avoid_heavy_legs');
+  }
+  
+  // Upper-body intensive activities
+  if (['boxing', 'climbing', 'swimming', 'martial arts', 'mma', 'tennis'].some(s => actName.includes(s))) {
+    conflicts.push('avoid_heavy_upper');
+  }
+  
+  return { 
+    hasHardActivity: true, 
+    activityName: hardActivity.name,
+    conflicts 
+  };
 }
 
+// =============================================================================
+// WEEKLY VARIETY - Rotate split order based on week number
+// =============================================================================
+
+function rotateSplitForVariety(split: SplitDay[], weekNumber: number): SplitDay[] {
+  if (split.length <= 2 || weekNumber <= 1) return split;
+  
+  // Rotate by weekNumber - 1 positions for variety
+  const rotation = (weekNumber - 1) % split.length;
+  return [...split.slice(rotation), ...split.slice(0, rotation)];
+}
+
+// =============================================================================
+// MAIN FUNCTION: Generate Weekly Template
+// =============================================================================
+
 /**
- * Main function: Generate a weekly workout template
+ * Generate a weekly workout template
  * 
- * KEY LOGIC: If user has fixed activities (boxing, classes, etc.), those COUNT
- * towards their weekly training days. So if they want 4 days/week and have boxing
- * on Monday, we only generate 3 gym workouts.
+ * CRITICAL RULES:
+ * 1. frequency = NUMBER OF GYM TRAINING SESSIONS (not including recovery)
+ * 2. External activities (football, etc.) do NOT reduce gym sessions
+ * 3. External activity days get NO gym workout OR light recovery only
+ * 4. All 5 major muscle groups must be covered weekly
  */
 export function generateWeeklyTemplate(input: SplitPlannerInput): WeeklyTemplate {
   const {
@@ -166,107 +310,156 @@ export function generateWeeklyTemplate(input: SplitPlannerInput): WeeklyTemplate
     gymDaysAvailable = [1, 2, 3, 4, 5, 6, 0], // Default: all days
     scheduleFlexibility = true,
     preferredSplit,
+    weekNumber = 1,
   } = input;
   
-  // Count hard/moderate activities as training days
-  const activityDays = weeklyActivities
-    .filter(a => a.intensity === 'hard' || a.intensity === 'moderate')
-    .map(a => a.dayOfWeek);
+  console.log(`\n📊 [SPLIT PLANNER] Planning ${frequency} gym training days for ${experience} user`);
   
-  // Effective gym days needed = total training days - activity days
-  const gymDaysNeeded = Math.max(1, frequency - activityDays.length);
+  // ==========================================================================
+  // STEP 1: Get the split template
+  // ==========================================================================
   
-  console.log(`  📊 Split planner: ${frequency} days/week requested, ${activityDays.length} activity days, ${gymDaysNeeded} gym days needed`);
+  let splitDays: SplitDay[];
+  let splitName: string;
   
-  // Determine split pattern for GYM days only
-  let splitPattern: string[];
-  
-  if (preferredSplit && preferredSplit !== 'coach_choice' && PREFERRED_SPLIT_MAP[preferredSplit]) {
-    // User has a preferred split
-    splitPattern = PREFERRED_SPLIT_MAP[preferredSplit].slice(0, gymDaysNeeded);
-    // Pad if needed
-    while (splitPattern.length < gymDaysNeeded) {
-      splitPattern.push(splitPattern[splitPattern.length - 1] || 'full');
+  // Check if user has preferred split
+  if (preferredSplit && preferredSplit !== 'coach_choice' && PREFERRED_SPLIT_TEMPLATES[preferredSplit]) {
+    const template = PREFERRED_SPLIT_TEMPLATES[preferredSplit];
+    splitDays = [];
+    splitName = preferredSplit;
+    
+    // Expand template to match frequency
+    while (splitDays.length < frequency) {
+      splitDays.push(...template);
     }
+    splitDays = splitDays.slice(0, frequency);
   } else {
-    // Use default template based on gym days needed + experience
-    const templateKey = `${gymDaysNeeded}_${experience}`;
-    const templateFn = SPLIT_TEMPLATES[templateKey] || SPLIT_TEMPLATES[`${Math.min(gymDaysNeeded, 5)}_intermediate`];
-    splitPattern = templateFn ? templateFn({ ...input, frequency: gymDaysNeeded }) : ['full'];
+    // Use validated split based on frequency + experience
+    const freqSplits = VALIDATED_SPLITS[Math.min(frequency, 6)] || VALIDATED_SPLITS[3];
+    splitDays = [...(freqSplits[experience] || freqSplits.intermediate)];
+    splitName = `${frequency}day_${experience}`;
+    
+    // If frequency doesn't match template, expand/trim
+    if (frequency > splitDays.length) {
+      // Repeat from beginning
+      const original = [...splitDays];
+      while (splitDays.length < frequency) {
+        splitDays.push(original[splitDays.length % original.length]);
+      }
+    } else {
+      splitDays = splitDays.slice(0, frequency);
+    }
   }
   
-  // Get exercise counts
-  const counts = getExerciseCounts(experience, sessionDuration);
+  // Apply weekly variety rotation
+  splitDays = rotateSplitForVariety(splitDays, weekNumber);
   
-  // Determine which days to schedule workouts
-  // First, filter out days with hard activities if schedule is not flexible
-  const baseAvailableDays = scheduleFlexibility ? [0, 1, 2, 3, 4, 5, 6] : gymDaysAvailable;
+  console.log(`  📋 Split: ${splitName}`);
+  console.log(`  📅 Training days: ${splitDays.map(d => d.focus).join(' → ')}`);
   
-  // Filter out days with hard conflicting activities
-  const availableDays = baseAvailableDays.filter(day => {
-    const conflicts = getDayConflicts(day, weeklyActivities);
-    // Skip days with any hard activity (they should rest or do recovery)
-    const hasHardConflict = conflicts.some(c => 
-      c.includes('heavy_') || c === 'evening_session'
-    );
-    return !hasHardConflict;
+  // ==========================================================================
+  // STEP 2: Identify days with external activities
+  // ==========================================================================
+  
+  const externalActivityDays: Map<number, WeeklyActivity> = new Map();
+  weeklyActivities.forEach(activity => {
+    if (activity.intensity === 'hard' || activity.intensity === 'moderate') {
+      externalActivityDays.set(activity.dayOfWeek, activity);
+      console.log(`  ⚽ External activity: ${activity.name} on day ${activity.dayOfWeek}`);
+    }
   });
   
-  // If all days filtered out, fall back to original
-  const finalAvailableDays = availableDays.length > 0 ? availableDays : baseAvailableDays;
-  const scheduledDays: number[] = [];
+  // ==========================================================================
+  // STEP 3: Determine available gym days (excluding hard external activity days)
+  // ==========================================================================
   
-  // Distribute workout days evenly across available days
-  if (frequency <= finalAvailableDays.length) {
-    const step = Math.floor(finalAvailableDays.length / frequency);
+  const allDays = [0, 1, 2, 3, 4, 5, 6];
+  const availableGymDays = allDays.filter(day => {
+    const activity = externalActivityDays.get(day);
+    // Skip days with hard external activities
+    if (activity && activity.intensity === 'hard') {
+      return false;
+    }
+    return gymDaysAvailable.includes(day);
+  });
+  
+  console.log(`  🏋️ Available gym days: ${availableGymDays.join(', ')}`);
+  
+  // ==========================================================================
+  // STEP 4: Schedule gym workouts on available days
+  // ==========================================================================
+  
+  const scheduledWorkouts: { dayIndex: number; split: SplitDay }[] = [];
+  
+  // Distribute workouts evenly across available days
+  if (availableGymDays.length >= frequency) {
+    // We have enough days - spread them out
+    const step = availableGymDays.length / frequency;
     for (let i = 0; i < frequency; i++) {
-      const dayIndex = finalAvailableDays[Math.min(i * step, finalAvailableDays.length - 1)];
-      scheduledDays.push(dayIndex);
+      const dayIdx = Math.floor(i * step);
+      scheduledWorkouts.push({
+        dayIndex: availableGymDays[dayIdx],
+        split: splitDays[i],
+      });
     }
   } else {
-    // More workouts than available days - just use all available
-    scheduledDays.push(...finalAvailableDays.slice(0, frequency));
+    // Not enough available days - use what we have
+    // This should be rare but handles edge cases
+    for (let i = 0; i < Math.min(frequency, availableGymDays.length); i++) {
+      scheduledWorkouts.push({
+        dayIndex: availableGymDays[i],
+        split: splitDays[i],
+      });
+    }
+    console.log(`  ⚠️ Warning: Only ${availableGymDays.length} days available for ${frequency} workouts`);
   }
   
-  // Build day plans
+  // Sort by day index for consistent ordering
+  scheduledWorkouts.sort((a, b) => a.dayIndex - b.dayIndex);
+  
+  // ==========================================================================
+  // STEP 5: Build complete day plans for all 7 days
+  // ==========================================================================
+  
+  const counts = getExerciseCounts(experience, sessionDuration);
   const days: DayPlan[] = [];
-  let patternIndex = 0;
+  const allMusclesCovered: Set<string> = new Set();
   
   for (let dayIndex = 0; dayIndex < 7; dayIndex++) {
-    const activity = weeklyActivities.find(a => a.dayOfWeek === dayIndex);
-    const hasActivity = !!activity && (activity.intensity === 'hard' || activity.intensity === 'moderate');
+    const scheduledWorkout = scheduledWorkouts.find(w => w.dayIndex === dayIndex);
+    const externalActivity = externalActivityDays.get(dayIndex);
     
-    if (hasActivity) {
-      // User has a scheduled activity - this IS their training for this day
-      // Don't generate a gym workout, but mark it as their activity
+    if (scheduledWorkout) {
+      // This is a GYM TRAINING day
+      const split = scheduledWorkout.split;
+      split.muscles.forEach(m => allMusclesCovered.add(m));
+      
       days.push({
         dayIndex,
-        focus: 'cardio', // Treat external activities as cardio/conditioning
-        exerciseCount: { min: 0, max: 0 }, // No gym exercises needed
+        focus: split.focus as any,
+        exerciseCount: { min: counts.min, max: counts.max },
+        warmupCount: counts.warmup,
+        mainCount: { min: counts.min - counts.warmup - counts.cooldown, max: counts.max - counts.warmup - counts.cooldown },
+        cooldownCount: counts.cooldown,
+        isGymTraining: true,
+        musclesFocused: split.muscles,
+        notes: `Gym: ${split.focus.toUpperCase()} - Target: ${split.muscles.join(', ')}`,
+      });
+    } else if (externalActivity) {
+      // This is an EXTERNAL ACTIVITY day (no gym workout)
+      days.push({
+        dayIndex,
+        focus: 'external_activity',
+        exerciseCount: { min: 0, max: 0 },
         warmupCount: 0,
         mainCount: { min: 0, max: 0 },
         cooldownCount: 0,
-        notes: `📅 ${activity.name} (${activity.intensity} intensity) - counts as training`,
-        avoidPatterns: ['gym_workout'], // Signal that this is an external activity day
+        isGymTraining: false,
+        musclesFocused: [],
+        notes: `⚽ ${externalActivity.name} (${externalActivity.intensity})`,
       });
-    } else if (scheduledDays.includes(dayIndex)) {
-      const focus = splitPattern[patternIndex % splitPattern.length] as DayPlan['focus'];
-      
-      days.push({
-        dayIndex,
-        focus,
-        exerciseCount: { min: counts.min, max: counts.max },
-        warmupCount: counts.warmup,
-        mainCount: { 
-          min: counts.min - counts.warmup - counts.cooldown, 
-          max: counts.max - counts.warmup - counts.cooldown 
-        },
-        cooldownCount: counts.cooldown,
-      });
-      
-      patternIndex++;
     } else {
-      // Regular rest day
+      // This is a REST day
       days.push({
         dayIndex,
         focus: 'rest',
@@ -274,20 +467,51 @@ export function generateWeeklyTemplate(input: SplitPlannerInput): WeeklyTemplate
         warmupCount: 0,
         mainCount: { min: 0, max: 0 },
         cooldownCount: 0,
+        isGymTraining: false,
+        musclesFocused: [],
+        notes: 'Rest day - recovery',
       });
     }
   }
   
-  // Time budget
+  // ==========================================================================
+  // STEP 6: Verify muscle group coverage
+  // ==========================================================================
+  
+  const majorMuscleGroups = ['chest', 'back', 'legs', 'shoulders', 'arms'];
+  const muscleGroupCoverage = majorMuscleGroups.filter(muscle => {
+    // Check if this muscle group or related muscles are covered
+    const related: Record<string, string[]> = {
+      chest: ['chest', 'push'],
+      back: ['back', 'pull', 'lats'],
+      legs: ['legs', 'quads', 'hamstrings', 'glutes', 'calves', 'lower'],
+      shoulders: ['shoulders', 'delts', 'push'],
+      arms: ['arms', 'biceps', 'triceps', 'forearms'],
+    };
+    return related[muscle]?.some(m => allMusclesCovered.has(m));
+  });
+  
+  if (muscleGroupCoverage.length < majorMuscleGroups.length) {
+    const missing = majorMuscleGroups.filter(m => !muscleGroupCoverage.includes(m));
+    console.log(`  ⚠️ Warning: Missing muscle groups: ${missing.join(', ')}`);
+  } else {
+    console.log(`  ✅ All major muscle groups covered: ${muscleGroupCoverage.join(', ')}`);
+  }
+  
+  // ==========================================================================
+  // STEP 7: Calculate time budget
+  // ==========================================================================
+  
+  const warmupMinutes = experience === 'beginner' ? 8 : 5;
+  const cooldownMinutes = 5;
   const transitionTime = experience === 'beginner' ? 2 : 1;
-  const warmupMinutes = experience === 'beginner' ? 8 : 6;
-  const cooldownMinutes = experience === 'beginner' ? 5 : 4;
   const mainWorkMinutes = sessionDuration - warmupMinutes - cooldownMinutes;
   
+  const gymTrainingDays = days.filter(d => d.isGymTraining).length;
+  console.log(`  📊 Result: ${gymTrainingDays} gym training sessions scheduled\n`);
+  
   return {
-    splitName: preferredSplit && preferredSplit !== 'coach_choice' 
-      ? preferredSplit 
-      : `auto_${frequency}day_${experience}`,
+    splitName,
     days,
     constraints: {
       maxConsecutiveHeavyDays: experience === 'beginner' ? 2 : 3,
@@ -300,76 +524,40 @@ export function generateWeeklyTemplate(input: SplitPlannerInput): WeeklyTemplate
       cooldownMinutes,
       transitionTimePerExercise: transitionTime,
     },
+    muscleGroupCoverage,
   };
 }
 
+// =============================================================================
+// HELPER EXPORTS
+// =============================================================================
+
 /**
- * Get day focus for a specific day of the week
+ * Get the focus for a specific day from a template
  */
-export function getDayFocus(
-  dayOfWeek: number, 
-  weekNumber: number,
-  input: SplitPlannerInput
-): { focus: string; constraints: DayPlan } {
-  const template = generateWeeklyTemplate(input);
-  const dayPlan = template.days[dayOfWeek];
-  
-  return {
-    focus: dayPlan.focus,
-    constraints: dayPlan,
-  };
+export function getDayFocus(template: WeeklyTemplate, dayOfWeek: number): string {
+  const day = template.days.find(d => d.dayIndex === dayOfWeek);
+  return day?.focus || 'rest';
 }
 
 /**
- * Generate prompt constraints for AI workout generation
+ * Get prompt constraints for AI workout generation
  */
-export function getPromptConstraints(dayPlan: DayPlan, experience: string): string {
-  const focusDescriptions: Record<string, string> = {
-    upper: 'UPPER BODY focus: chest, back, shoulders, arms. Minimal or no leg exercises.',
-    lower: 'LOWER BODY focus: quads, hamstrings, glutes, calves. Core allowed. Minimal upper body.',
-    full: 'FULL BODY: balanced mix of upper and lower. Do NOT repeat same pattern as other days.',
-    push: 'PUSH focus: chest, shoulders, triceps. Compound pressing movements.',
-    pull: 'PULL focus: back, biceps, rear delts. Rows and pulldowns.',
-    legs: 'LEGS focus: squats, hinges, lunges, leg press. Core allowed.',
-    chest: 'CHEST focus: bench variations, flyes, dips.',
-    back: 'BACK focus: rows, pulldowns, deadlifts.',
-    shoulders: 'SHOULDERS focus: overhead press, lateral raises, face pulls.',
-    arms: 'ARMS focus: bicep curls, tricep extensions, forearm work.',
-    cardio: 'CARDIO/CONDITIONING focus: keep it light, recovery-oriented.',
-    recovery: 'RECOVERY day: mobility, stretching, light activity only.',
-    rest: 'REST day: no workout scheduled.',
-  };
-  
-  const focusDesc = focusDescriptions[dayPlan.focus] || focusDescriptions.full;
-  
-  let constraints = `
-=== DAY FOCUS: ${dayPlan.focus.toUpperCase()} ===
-${focusDesc}
-
-EXERCISE COUNT REQUIREMENTS:
-- Total exercises: ${dayPlan.exerciseCount.min}-${dayPlan.exerciseCount.max} (STRICT)
-- Warmup: ${dayPlan.warmupCount} exercise(s)
-- Main work: ${dayPlan.mainCount.min}-${dayPlan.mainCount.max} exercises
-- Cooldown: ${dayPlan.cooldownCount} stretch(es)
-
-VARIATION RULES:
-- Do NOT use the exact same exercise count every session
-- Keep within the ${dayPlan.exerciseCount.min}-${dayPlan.exerciseCount.max} range
-`;
-  
-  if (dayPlan.avoidPatterns && dayPlan.avoidPatterns.length > 0) {
-    constraints += `
-⚠️ CONFLICT ADJUSTMENTS:
-- Avoid: ${dayPlan.avoidPatterns.join(', ')}
-- Reason: User has conflicting activities on this day
-`;
+export function getPromptConstraints(template: WeeklyTemplate, dayOfWeek: number): string {
+  const day = template.days.find(d => d.dayIndex === dayOfWeek);
+  if (!day || !day.isGymTraining) {
+    return 'REST DAY - No workout generation needed';
   }
   
-  return constraints;
+  return `
+FOCUS: ${day.focus.toUpperCase()}
+TARGET MUSCLES: ${day.musclesFocused.join(', ')}
+EXERCISE COUNT: ${day.exerciseCount.min}-${day.exerciseCount.max} exercises total
+WARMUP: ${day.warmupCount} exercise(s)
+MAIN WORK: ${day.mainCount.min}-${day.mainCount.max} exercises
+COOLDOWN: ${day.cooldownCount} exercise(s)
+${day.notes || ''}
+`.trim();
 }
 
-export default {
-  generateWeeklyTemplate,
-  getDayFocus,
-  getPromptConstraints,
-};
+export default generateWeeklyTemplate;
