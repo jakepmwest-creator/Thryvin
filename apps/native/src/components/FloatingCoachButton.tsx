@@ -656,7 +656,7 @@ export function FloatingCoachButton({ contextMode = 'home' }: { contextMode?: 'i
   };
   
   // Execute pending action
-  const executeAction = async (action: { type: string; params?: any }) => {
+  const executeAction = async (action: PendingActionDetails) => {
     try {
       switch (action.type) {
         case 'log_workout':
