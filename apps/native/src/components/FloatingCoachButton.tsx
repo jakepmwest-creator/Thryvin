@@ -253,11 +253,13 @@ export function FloatingCoachButton({ contextMode = 'home' }: { contextMode?: 'i
           }
         };
       } else {
-        // Rejection without clear alternative - ask what they want
+        // Rejection without clear alternative - ask what they want with suggestions
         setPendingAction(null); // Clear pending action
         return {
           handled: true,
-          response: "I understand, that's not what you wanted. 🤔\n\nWhat type of workout would you like instead?\n\n• Arms, Chest, Back, Legs, Shoulders\n• Upper Body, Lower Body, Push, Pull\n• Cardio, HIIT, Yoga, Core",
+          response: "I understand, that's not what you wanted. 🤔\n\nTap what you'd like instead:",
+          showSuggestions: true,
+          suggestionType: 'workout_type',
         };
       }
     }
