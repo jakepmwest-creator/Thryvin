@@ -33,7 +33,7 @@ import { useAuthStore } from '../src/stores/auth-store';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
-const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL || 'https://coach-evolution-1.preview.emergentagent.com';
+const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL || 'https://coach-action-fix.preview.emergentagent.com';
 
 type TabType = 'warmup' | 'workout' | 'recovery';
 
