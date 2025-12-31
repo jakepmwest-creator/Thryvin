@@ -33,6 +33,7 @@ export interface PendingActionDetails {
   type: string;
   params?: {
     workoutType?: string;
+    type?: string; // For log_workout action
     date?: Date | string;
     duration?: number;
     dayIndex?: number;
