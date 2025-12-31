@@ -878,9 +878,17 @@ export function FloatingCoachButton({ contextMode = 'home' }: { contextMode?: 'i
     
     if (intentResult.handled) {
       if (intentResult.response === 'executing_action' && pendingAction) {
-        await executeAction(pendingAction);
+        // Show confirmation modal instead of executing directly
+        setShowConfirmModal(true);
+        setIsLoading(false);
       } else if (intentResult.response) {
-        setMessages(prev => [...prev, { role: 'assistant', text: intentResult.response! }]);
+        // Add message with potential suggestions
+        setMessages(prev => [...prev, { 
+          role: 'assistant', 
+          text: intentResult.response!,
+          showSuggestions: intentResult.showSuggestions,
+          suggestionType: intentResult.suggestionType,
+        }]);
         if (intentResult.action) {
           setPendingAction(intentResult.action);
         }
