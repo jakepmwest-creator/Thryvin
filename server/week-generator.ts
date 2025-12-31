@@ -14,8 +14,8 @@ interface UserProfile {
   injuries?: string[];
 }
 
-export async function generateWeekWorkouts(userId: number, userProfile: UserProfile) {
-  console.log('🗓️ [WEEK-GEN] Starting week generation for user:', userId);
+export async function generateWeekWorkouts(userId: number, userProfile: UserProfile, weekNumber: number = 1) {
+  console.log('🗓️ [WEEK-GEN] Starting week generation for user:', userId, '(Week', weekNumber, ')');
   console.log('📋 [WEEK-GEN] User profile:', JSON.stringify(userProfile, null, 2));
   
   try {
