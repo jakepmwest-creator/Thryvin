@@ -163,7 +163,7 @@ export async function generateAIWorkout(
     }
   }
   
-  // Step 1.6: Generate weekly split plan (Phase 8.5)
+  // Step 1.6: Generate weekly split plan (Phase 8.5 - IMPROVED)
   const frequency = Number(userProfile.trainingDays || 3);
   const experience = (userProfile.experience || 'intermediate') as 'beginner' | 'intermediate' | 'advanced';
   const sessionDuration = Number(userProfile.sessionDuration || 45);
@@ -180,43 +180,58 @@ export async function generateAIWorkout(
     scheduleFlexibility: userProfile.advancedQuestionnaire?.scheduleFlexibility ?? true,
     preferredSplit: userProfile.advancedQuestionnaire?.preferredSplit,
     preferredSplitOther: userProfile.advancedQuestionnaire?.preferredSplitOther,
+    weekNumber, // For weekly variety rotation
   };
   
-  const { focus, constraints: dayConstraints } = getDayFocus(dayOfWeek, weekNumber, splitPlannerInput);
+  // Generate full weekly template
+  const weeklyTemplate = generateWeeklyTemplate(splitPlannerInput);
+  const dayPlan = weeklyTemplate.days.find(d => d.dayIndex === dayOfWeek);
   
-  // Check if this is an ACTIVITY day (user has boxing, classes, etc.)
-  const isActivityDay = dayConstraints.avoidPatterns?.includes('gym_workout');
-  if (isActivityDay) {
-    // Return special response indicating this is an activity day
-    console.log(`  📅 Day ${dayOfWeek} is an activity day: ${dayConstraints.notes}`);
-    return {
-      title: dayConstraints.notes?.replace('📅 ', '').split(' (')[0] || 'Scheduled Activity',
-      type: 'external_activity',
-      difficulty: 'moderate',
-      duration: 60,
-      exercises: [],
-      overview: dayConstraints.notes || 'You have a scheduled activity today',
-      targetMuscles: 'Various',
-      caloriesBurn: 400,
-      isActivityDay: true,
-      activityName: dayConstraints.notes?.replace('📅 ', '').split(' (')[0],
-    } as any;
+  if (!dayPlan) {
+    throw new Error(`No plan found for day ${dayOfWeek}`);
   }
   
-  // Handle rest days - if they explicitly request a workout, give them a recovery workout
-  if (focus === 'rest' && dayConstraints.exerciseCount.max === 0) {
-    // Override to recovery workout with minimal exercises
-    dayConstraints.focus = 'recovery';
-    dayConstraints.exerciseCount = { min: 3, max: 5 };
-    dayConstraints.warmupCount = 1;
-    dayConstraints.mainCount = { min: 2, max: 3 };
-    dayConstraints.cooldownCount = 1;
-    dayConstraints.notes = 'Recovery/Active Rest day - light mobility and stretching';
+  // Check if this is NOT a gym training day
+  if (!dayPlan.isGymTraining) {
+    if (dayPlan.focus === 'external_activity') {
+      // Return special response for external activity day
+      console.log(`  ⚽ Day ${dayOfWeek} is an external activity day: ${dayPlan.notes}`);
+      return {
+        title: dayPlan.notes?.replace('⚽ ', '').split(' (')[0] || 'Scheduled Activity',
+        type: 'external_activity',
+        difficulty: 'moderate',
+        duration: 60,
+        exercises: [],
+        overview: dayPlan.notes || 'You have a scheduled activity today',
+        targetMuscles: 'Various',
+        caloriesBurn: 400,
+        isActivityDay: true,
+        activityName: dayPlan.notes?.replace('⚽ ', '').split(' (')[0],
+      } as any;
+    } else {
+      // REST day - return null or minimal workout
+      console.log(`  💤 Day ${dayOfWeek} is a rest day`);
+      return {
+        title: 'Rest Day',
+        type: 'rest',
+        difficulty: 'easy',
+        duration: 0,
+        exercises: [],
+        overview: 'Rest and recovery - no workout today',
+        targetMuscles: 'None',
+        caloriesBurn: 0,
+        isRestDay: true,
+      } as any;
+    }
   }
   
-  const splitConstraints = getPromptConstraints(dayConstraints, experience);
+  // This IS a gym training day - generate full workout
+  const focus = dayPlan.focus;
+  const splitConstraints = getPromptConstraints(weeklyTemplate, dayOfWeek);
   
-  console.log(`  📅 Split planner: Day ${dayOfWeek} focus = ${dayConstraints.focus}, exercises ${dayConstraints.exerciseCount.min}-${dayConstraints.exerciseCount.max}`);
+  console.log(`  🏋️ Day ${dayOfWeek} - GYM TRAINING: ${focus.toUpperCase()}`);
+  console.log(`  📋 Targets: ${dayPlan.musclesFocused.join(', ')}`);
+  console.log(`  📊 Exercises: ${dayPlan.exerciseCount.min}-${dayPlan.exerciseCount.max}`);
   
   // Step 2: Build ENHANCED AI prompt with varied sets, weight suggestions, and full personalization
   const systemMessage = `You are an EXPERT PERSONAL TRAINER (AI PT) who creates HIGHLY PERSONALIZED workout plans.
