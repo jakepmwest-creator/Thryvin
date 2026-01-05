@@ -472,6 +472,7 @@ export default function LoginScreen() {
               </View>
             </Animated.View>
           </View>
+          </ScrollView>
         </KeyboardAvoidingView>
       </SafeAreaView>
 
