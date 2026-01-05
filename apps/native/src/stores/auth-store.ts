@@ -290,6 +290,12 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
       set({ user: newUser, isLoading: false });
 
+      // Store JWT access token for Bearer auth
+      if (data.accessToken) {
+        await storeToken(data.accessToken);
+        console.log('✅ Access token stored');
+      }
+
       // Save user data securely for persistence
       await setStorageItem('auth_user', JSON.stringify(newUser));
       await setStorageItem('user_email', userData.email);
