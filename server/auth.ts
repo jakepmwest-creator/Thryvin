@@ -9,6 +9,7 @@ import { User as SelectUser } from "@shared/schema";
 import connectPg from "connect-pg-simple";
 import { pool } from "./db";
 import { ApiRequest } from "./api-middleware";
+import { generateAccessToken, authenticateToken, AuthenticatedRequest } from "./jwt-auth";
 
 declare global {
   namespace Express {
