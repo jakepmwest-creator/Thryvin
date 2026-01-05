@@ -96,34 +96,26 @@ async function executeAddSession(
 ): Promise<{ ok: boolean; message: string; workoutId?: number }> {
   try {
     const targetDate = getTargetDate(action);
+    const dayName = targetDate.toLocaleDateString('en-US', { weekday: 'long' });
     const category = WORKOUT_TYPE_CATEGORIES[action.workoutType] || action.workoutType;
     
-    console.log(`[CoachAction] ADD_SESSION: ${action.workoutType} (${action.durationMinutes}min) for user ${userId} on ${targetDate.toISOString()}`);
+    console.log(`[CoachAction] ADD_SESSION: ${action.workoutType} (${action.durationMinutes}min) for user ${userId} on ${dayName}`);
     
-    // Build user context
-    const userContext = {
-      fitnessLevel: user.fitnessLevel || 'intermediate',
-      equipment: user.equipmentAccess ? (typeof user.equipmentAccess === 'string' ? JSON.parse(user.equipmentAccess) : user.equipmentAccess) : ['bodyweight'],
-      injuries: user.injuries ? (typeof user.injuries === 'string' ? JSON.parse(user.injuries) : user.injuries) : [],
-    };
-    
-    // Generate the workout
-    const workout = await generateAIWorkout(
+    // Create a workout day entry directly
+    const workoutDay = await storage.createWorkoutDay({
       userId,
-      {
-        type: category,
-        duration: action.durationMinutes,
-        focus: action.workoutType,
-        intensity: action.intensity || 'medium',
-        dayIndex: targetDate.getDay(),
-      },
-      userContext
-    );
+      dayName: dayName.toLowerCase(),
+      dayIndex: targetDate.getDay(),
+      workoutType: action.workoutType,
+      duration: action.durationMinutes,
+      isCompleted: false,
+      status: 'scheduled',
+    });
     
     return {
       ok: true,
-      message: `Added ${action.durationMinutes}-minute ${action.workoutType.replace('_', ' ')} workout for ${targetDate.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })}`,
-      workoutId: workout?.id,
+      message: `Added ${action.durationMinutes}-minute ${action.workoutType.replace('_', ' ')} workout for ${dayName}`,
+      workoutId: workoutDay.id,
     };
   } catch (error: any) {
     console.error('[CoachAction] ADD_SESSION failed:', error);
