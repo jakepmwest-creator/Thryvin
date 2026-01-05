@@ -7,6 +7,9 @@
  * - API base URL (runtime value)
  * - /api/health result
  * - /api/version result
+ * - /api/auth/me result
+ * - Token present (yes/no)
+ * - Last ensure() result
  * - Last 5 API errors
  */
 
@@ -23,6 +26,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { COLORS } from '../constants/colors';
+import * as api from '../services/api-client';
 
 const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL || 'https://coach-action-fix.preview.emergentagent.com';
 
