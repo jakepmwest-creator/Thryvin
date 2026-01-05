@@ -38,7 +38,9 @@ import {
   type MilestoneLike,
   type InsertMilestoneLike,
   type MilestoneComment,
-  type InsertMilestoneComment
+  type InsertMilestoneComment,
+  type WorkoutDay,
+  type InsertWorkoutDay
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, gte, and, desc, count, sql, not, isNull, or } from "drizzle-orm";
@@ -47,7 +49,8 @@ import {
   achievements, userAchievements, quests, userQuests, progressSnapshots,
   nutritionProfiles, mealPlans, loggedMeals,
   posts, comments, postLikes, userFollows,
-  milestones, milestoneLikes, milestoneComments
+  milestones, milestoneLikes, milestoneComments,
+  workoutDays
 } from "@shared/schema";
 import { add, startOfWeek, startOfMonth, subWeeks, subMonths } from "date-fns";
 
