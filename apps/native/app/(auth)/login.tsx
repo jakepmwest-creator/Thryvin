@@ -281,18 +281,24 @@ export default function LoginScreen() {
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
           style={styles.keyboardView}
         >
-          <View style={styles.contentContainer}>
-            {/* Elevated Card Container */}
-            <Animated.View 
-              style={[
-                styles.cardContainer,
-                {
-                  opacity: fadeAnim,
-                  transform: [{ translateY: slideAnim }]
-                }
-              ]}
-            >
-              <View style={styles.card}>
+          <ScrollView 
+            style={styles.scrollView}
+            contentContainerStyle={styles.scrollContent}
+            showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled"
+          >
+            <View style={styles.contentContainer}>
+              {/* Elevated Card Container */}
+              <Animated.View 
+                style={[
+                  styles.cardContainer,
+                  {
+                    opacity: fadeAnim,
+                    transform: [{ translateY: slideAnim }]
+                  }
+                ]}
+              >
+                <View style={styles.card}>
                 {/* Logo in Card */}
                 <View style={styles.cardLogoContainer}>
                   <Image 
