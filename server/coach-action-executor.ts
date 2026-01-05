@@ -289,15 +289,37 @@ async function executeSkipDay(
 ): Promise<{ ok: boolean; message: string }> {
   try {
     const targetDate = getTargetDate(action);
-    const dayName = targetDate.toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase();
+    const dateStr = targetDate.toISOString().split('T')[0];
+    const dayName = targetDate.toLocaleDateString('en-US', { weekday: 'long' });
     
     console.log(`[CoachAction] SKIP_DAY: ${dayName} for user ${userId}`);
     
     const workouts = await storage.getWorkoutDays(userId);
-    const workout = workouts.find(w => w.dayName?.toLowerCase() === dayName);
+    const workout = workouts.find(w => w.date === dateStr);
     
     if (workout) {
-      await storage.updateWorkoutDay(workout.id, { isSkipped: true, skipReason: action.reason });
+      // Update payload to mark as skipped
+      const payload = (workout.payloadJson as any) || {};
+      payload.isSkipped = true;
+      payload.skipReason = action.reason;
+      await storage.updateWorkoutDay(workout.id, { 
+        status: 'ready',
+        payloadJson: payload,
+      });
+    } else {
+      // Create a skipped day entry
+      await storage.createWorkoutDay({
+        userId,
+        date: dateStr,
+        status: 'ready',
+        payloadJson: {
+          dayName: dayName.toLowerCase(),
+          dayIndex: targetDate.getDay(),
+          workoutType: 'rest',
+          isSkipped: true,
+          skipReason: action.reason,
+        },
+      });
     }
     
     return {
