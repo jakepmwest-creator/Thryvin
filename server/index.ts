@@ -4,6 +4,8 @@ import cors from "cors";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 import { setupApiMiddleware, setupApiErrorHandlers, recentApiErrors, ApiRequest } from "./api-middleware";
+import { setupPlanRoutes } from "./plan-service";
+import { setupCoachActionRoutes } from "./coach-action-executor";
 
 const app = express();
 
