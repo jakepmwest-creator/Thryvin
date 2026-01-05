@@ -5,6 +5,11 @@
  * - Validates action schema
  * - Applies changes to plan in DB
  * - Calls workout generator for ADD/REPLACE actions
+ * 
+ * HARD RULES:
+ * - NEVER default to cardio when user requests strength workout
+ * - Validate action matches user intent BEFORE execution
+ * - Block mismatched actions with clear error
  */
 
 import { Express, Response } from 'express';
@@ -22,6 +27,7 @@ import {
   RegenerateSessionAction,
   WorkoutType,
 } from './coach-actions';
+import { validateCoachActionIntent } from './workout-validation';
 
 // Map workout types to categories for the generator
 const WORKOUT_TYPE_CATEGORIES: Record<WorkoutType, string> = {
