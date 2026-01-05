@@ -108,14 +108,14 @@ async function executeAddSession(
     };
     
     // Generate the workout
-    const workout = await generateDayWorkout(
+    const workout = await generateAIWorkout(
       userId,
-      targetDate.toISOString().split('T')[0],
       {
         type: category,
         duration: action.durationMinutes,
         focus: action.workoutType,
         intensity: action.intensity || 'medium',
+        dayIndex: targetDate.getDay(),
       },
       userContext
     );
