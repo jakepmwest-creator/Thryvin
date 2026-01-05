@@ -25,6 +25,40 @@ app.use(
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
+
+// Setup API middleware (requestId, JSON enforcement, logging)
+setupApiMiddleware(app);
+
+// PRIORITY 1: /api/version endpoint
+app.get('/api/version', (req: Request, res: Response) => {
+  const requestId = (req as ApiRequest).requestId || 'unknown';
+  res.json({
+    ok: true,
+    commit: GIT_COMMIT,
+    env: process.env.NODE_ENV || 'development',
+    serverTime: new Date().toISOString(),
+    baseUrl: `${req.protocol}://${req.get('host')}`,
+    requestId,
+  });
+});
+
+// PRIORITY 2: /api/diagnostics endpoint for mobile app
+app.get('/api/diagnostics', (req: Request, res: Response) => {
+  const requestId = (req as ApiRequest).requestId || 'unknown';
+  res.json({
+    ok: true,
+    requestId,
+    serverTime: new Date().toISOString(),
+    recentErrors: recentApiErrors.slice(0, 5),
+    endpoints: {
+      health: '/api/health',
+      version: '/api/version',
+      register: '/api/auth/register',
+      login: '/api/auth/login',
+    },
+  });
+});
+
 // TEMP trace: see every v1 workout hit
 app.use("/api/v1/workouts", (req, _res, next) => {
   console.log("XXX TRACE v1 ->", req.method, req.originalUrl);
