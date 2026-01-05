@@ -310,11 +310,7 @@ export function setupAuth(app: Express) {
     res.json(req.user);
   });
 
-  // Add GET /api/auth/me endpoint as specified
-  app.get("/api/auth/me", (req, res) => {
-    if (!req.isAuthenticated()) return res.sendStatus(401);
-    res.status(200).json({ user: req.user });
-  });
+  // Add GET /api/auth/me endpoint - REMOVED: using JWT version below instead
 
   // Add auth-prefixed routes for mobile compatibility
   app.post("/api/auth/register", async (req, res, next) => {
