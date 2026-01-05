@@ -464,7 +464,9 @@ export function setupAuth(app: Express) {
           // Remove password from response for security
           const { password, ...safeUser } = user;
           const requestId = (req as ApiRequest).requestId || 'unknown';
-          res.status(201).json({ ok: true, user: safeUser, requestId });
+          // Generate JWT access token for mobile
+          const accessToken = generateAccessToken(user);
+          res.status(201).json({ ok: true, user: safeUser, accessToken, requestId });
         });
       });
     } catch (error) {
@@ -493,10 +495,22 @@ export function setupAuth(app: Express) {
           if (saveErr) return next(saveErr);
           // Remove password from response for security
           const { password, ...safeUser } = user;
-          return res.status(200).json({ ok: true, user: safeUser, requestId });
+          // Generate JWT access token for mobile
+          const accessToken = generateAccessToken(user);
+          return res.status(200).json({ ok: true, user: safeUser, accessToken, requestId });
         });
       });
     })(req, res, next);
+  });
+
+  // A2: GET /api/auth/me - Verify token and return user
+  app.get("/api/auth/me", authenticateToken, (req: AuthenticatedRequest, res) => {
+    const requestId = (req as ApiRequest).requestId || 'unknown';
+    if (!req.user) {
+      return res.status(401).json({ ok: false, error: "Not authenticated", code: "AUTH_REQUIRED", requestId });
+    }
+    const { password, ...safeUser } = req.user;
+    res.json({ ok: true, user: safeUser, requestId });
   });
 
   app.post("/api/auth/logout", (req, res, next) => {
