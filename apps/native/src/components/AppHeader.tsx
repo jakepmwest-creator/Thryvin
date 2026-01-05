@@ -129,10 +129,32 @@ export function AppHeader({ mode = 'fitness' }: AppHeaderProps) {
   const [showSocialModal, setShowSocialModal] = useState(false);
   const accentColor = mode === 'fitness' ? COLORS.fitnessAccent : COLORS.nutritionAccent;
 
+  // PRIORITY 2: 7-tap counter for diagnostics screen access
+  const tapCountRef = useRef(0);
+  const tapTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  const handleLogoTap = () => {
+    tapCountRef.current += 1;
+    
+    // Reset counter after 3 seconds of no taps
+    if (tapTimerRef.current) {
+      clearTimeout(tapTimerRef.current);
+    }
+    tapTimerRef.current = setTimeout(() => {
+      tapCountRef.current = 0;
+    }, 3000);
+    
+    // Navigate to diagnostics after 7 taps
+    if (tapCountRef.current >= 7) {
+      tapCountRef.current = 0;
+      router.push('/diagnostics');
+    }
+  };
+
   return (
     <View style={styles.container}>
-      {/* Logo and PRO badge */}
-      <View style={styles.leftSection}>
+      {/* Logo and PRO badge - 7 taps opens diagnostics */}
+      <TouchableOpacity style={styles.leftSection} onPress={handleLogoTap} activeOpacity={0.9}>
         <Image
           source={require('../../assets/images/thryvin-logo-final.png')}
           style={styles.logo}
@@ -141,7 +163,7 @@ export function AppHeader({ mode = 'fitness' }: AppHeaderProps) {
         <View style={[styles.proBadge, { backgroundColor: accentColor }]}>
           <Text style={styles.proText}>PRO</Text>
         </View>
-      </View>
+      </TouchableOpacity>
 
       {/* Right buttons */}
       <View style={styles.rightSection}>
