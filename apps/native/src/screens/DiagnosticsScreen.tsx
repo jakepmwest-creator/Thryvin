@@ -277,9 +277,9 @@ export function DiagnosticsScreen() {
               />
             )}
 
-            {/* Recent Errors */}
+            {/* Server-Side Errors */}
             <View style={styles.card}>
-              <Text style={styles.cardTitle}>Last 5 API Errors</Text>
+              <Text style={styles.cardTitle}>Server-Side Errors (Last 5)</Text>
               {diagnostics?.data?.recentErrors?.length > 0 ? (
                 diagnostics.data.recentErrors.slice(0, 5).map((err: any, i: number) => (
                   <View key={i} style={styles.errorItem}>
@@ -295,7 +295,28 @@ export function DiagnosticsScreen() {
                   </View>
                 ))
               ) : (
-                <Text style={styles.noErrors}>✅ No recent errors</Text>
+                <Text style={styles.noErrors}>✅ No server-side errors</Text>
+              )}
+            </View>
+            
+            {/* Client-Side Errors */}
+            <View style={styles.card}>
+              <Text style={styles.cardTitle}>Client-Side Errors (Last 5)</Text>
+              {clientErrors.length > 0 ? (
+                clientErrors.map((err, i) => (
+                  <View key={i} style={styles.errorItem}>
+                    <View style={styles.errorHeader}>
+                      <Text style={styles.errorPath}>{err.endpoint}</Text>
+                      <StatusBadge status={err.status} />
+                    </View>
+                    <Text style={styles.errorBody} numberOfLines={2}>
+                      {err.body}
+                    </Text>
+                    <Text style={styles.errorTime}>{err.timestamp}</Text>
+                  </View>
+                ))
+              ) : (
+                <Text style={styles.noErrors}>✅ No client-side errors</Text>
               )}
             </View>
 
