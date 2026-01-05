@@ -76,11 +76,9 @@ export const AddSessionActionSchema = z.object({
   workoutType: WorkoutTypeSchema,
   durationMinutes: z.number().min(10).max(180),
   intensity: z.enum(['low', 'medium', 'high']).optional(),
-  ...BaseActionFields,
-}).refine(
-  data => data.targetDate || data.dayOfWeek,
-  { message: 'Either targetDate or dayOfWeek must be provided' }
-);
+  confidence: z.number().min(0).max(1).optional(),
+  userRequestedType: z.string().optional(),
+});
 
 // REPLACE_SESSION action - replace existing session with different type
 export const ReplaceSessionActionSchema = z.object({
@@ -90,11 +88,9 @@ export const ReplaceSessionActionSchema = z.object({
   newWorkoutType: WorkoutTypeSchema,
   durationMinutes: z.number().min(10).max(180),
   intensity: z.enum(['low', 'medium', 'high']).optional(),
-  ...BaseActionFields,
-}).refine(
-  data => data.targetDate || data.dayOfWeek,
-  { message: 'Either targetDate or dayOfWeek must be provided' }
-);
+  confidence: z.number().min(0).max(1).optional(),
+  userRequestedType: z.string().optional(),
+});
 
 // SWAP_DAY action - swap workouts between two days
 export const SwapDayActionSchema = z.object({
@@ -103,11 +99,9 @@ export const SwapDayActionSchema = z.object({
   fromDay: DayOfWeekSchema.optional(),
   toDate: z.string().optional(),
   toDay: DayOfWeekSchema.optional(),
-  ...BaseActionFields,
-}).refine(
-  data => (data.fromDate || data.fromDay) && (data.toDate || data.toDay),
-  { message: 'Both from and to days/dates must be provided' }
-);
+  confidence: z.number().min(0).max(1).optional(),
+  userRequestedType: z.string().optional(),
+});
 
 // MOVE_SESSION action - move a session to a different day
 export const MoveSessionActionSchema = z.object({
@@ -116,11 +110,9 @@ export const MoveSessionActionSchema = z.object({
   fromDay: DayOfWeekSchema.optional(),
   toDate: z.string().optional(),
   toDay: DayOfWeekSchema.optional(),
-  ...BaseActionFields,
-}).refine(
-  data => (data.fromDate || data.fromDay) && (data.toDate || data.toDay),
-  { message: 'Both from and to days/dates must be provided' }
-);
+  confidence: z.number().min(0).max(1).optional(),
+  userRequestedType: z.string().optional(),
+});
 
 // SKIP_DAY action - mark a day as skipped/rest
 export const SkipDayActionSchema = z.object({
@@ -128,23 +120,19 @@ export const SkipDayActionSchema = z.object({
   targetDate: z.string().optional(),
   dayOfWeek: DayOfWeekSchema.optional(),
   reason: z.string().optional(),
-  ...BaseActionFields,
-}).refine(
-  data => data.targetDate || data.dayOfWeek,
-  { message: 'Either targetDate or dayOfWeek must be provided' }
-);
+  confidence: z.number().min(0).max(1).optional(),
+  userRequestedType: z.string().optional(),
+});
 
 // REGENERATE_SESSION action - regenerate a specific day's workout
 export const RegenerateSessionActionSchema = z.object({
   type: z.literal('REGENERATE_SESSION'),
   targetDate: z.string().optional(),
   dayOfWeek: DayOfWeekSchema.optional(),
-  workoutType: WorkoutTypeSchema.optional(), // If provided, generate this type
-  ...BaseActionFields,
-}).refine(
-  data => data.targetDate || data.dayOfWeek,
-  { message: 'Either targetDate or dayOfWeek must be provided' }
-);
+  workoutType: WorkoutTypeSchema.optional(),
+  confidence: z.number().min(0).max(1).optional(),
+  userRequestedType: z.string().optional(),
+});
 
 // Union of all action types
 export const CoachActionSchema = z.discriminatedUnion('type', [
