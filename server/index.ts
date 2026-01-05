@@ -103,6 +103,12 @@ app.use((req, res, next) => {
 });
 
 (async () => {
+  // Setup plan routes (PART B)
+  setupPlanRoutes(app);
+  
+  // Setup coach action routes (PART C)
+  setupCoachActionRoutes(app);
+  
   const server = await registerRoutes(app);
 
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
