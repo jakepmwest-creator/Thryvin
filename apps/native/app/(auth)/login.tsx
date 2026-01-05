@@ -588,10 +588,16 @@ const styles = StyleSheet.create({
   keyboardView: {
     flex: 1,
   },
-  contentContainer: {
+  scrollView: {
     flex: 1,
+  },
+  scrollContent: {
+    flexGrow: 1,
     justifyContent: 'center',
+  },
+  contentContainer: {
     paddingHorizontal: 20,
+    paddingVertical: 20,
   },
   cardContainer: {
     borderRadius: 28,
