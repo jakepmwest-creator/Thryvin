@@ -96,19 +96,27 @@ async function executeAddSession(
   try {
     const targetDate = getTargetDate(action);
     const dayName = targetDate.toLocaleDateString('en-US', { weekday: 'long' });
-    const category = WORKOUT_TYPE_CATEGORIES[action.workoutType] || action.workoutType;
+    const dateStr = targetDate.toISOString().split('T')[0]; // YYYY-MM-DD format
     
-    console.log(`[CoachAction] ADD_SESSION: ${action.workoutType} (${action.durationMinutes}min) for user ${userId} on ${dayName}`);
+    console.log(`[CoachAction] ADD_SESSION: ${action.workoutType} (${action.durationMinutes}min) for user ${userId} on ${dayName} (${dateStr})`);
     
-    // Create a workout day entry directly
-    const workoutDay = await storage.createWorkoutDay({
-      userId,
+    // Build workout payload
+    const payloadJson = {
       dayName: dayName.toLowerCase(),
       dayIndex: targetDate.getDay(),
       workoutType: action.workoutType,
       duration: action.durationMinutes,
-      isCompleted: false,
-      status: 'scheduled',
+      intensity: action.intensity || 'medium',
+      exercises: [], // Exercises can be generated separately
+      createdBy: 'coach_action',
+    };
+    
+    // Create a workout day entry
+    const workoutDay = await storage.createWorkoutDay({
+      userId,
+      date: dateStr,
+      status: 'ready',
+      payloadJson,
     });
     
     return {
