@@ -590,6 +590,38 @@ export class DatabaseStorage implements IStorage {
     return streak;
   }
   
+  // Workout Day methods (for plan management)
+  async getWorkoutDays(userId: number): Promise<WorkoutDay[]> {
+    return await db
+      .select()
+      .from(workoutDays)
+      .where(eq(workoutDays.userId, userId))
+      .orderBy(workoutDays.dayIndex);
+  }
+  
+  async createWorkoutDay(workoutDay: InsertWorkoutDay): Promise<WorkoutDay> {
+    const result = await db
+      .insert(workoutDays)
+      .values(workoutDay)
+      .returning();
+    return result[0];
+  }
+  
+  async updateWorkoutDay(id: number, updates: Partial<WorkoutDay>): Promise<WorkoutDay | undefined> {
+    const result = await db
+      .update(workoutDays)
+      .set(updates)
+      .where(eq(workoutDays.id, id))
+      .returning();
+    return result[0];
+  }
+  
+  async deleteWorkoutDay(id: number): Promise<void> {
+    await db
+      .delete(workoutDays)
+      .where(eq(workoutDays.id, id));
+  }
+  
   // Progress methods
   async getUserProgressSnapshots(userId: number, period: string): Promise<ProgressSnapshot[]> {
     let dateFilter;
