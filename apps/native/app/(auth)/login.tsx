@@ -460,6 +460,9 @@ export default function LoginScreen() {
                     <Text style={styles.startJourneyText}>Start Your Journey</Text>
                   </LinearGradient>
                 </TouchableOpacity>
+
+                {/* DEV-only Quick Test Login */}
+                <QuickTestLogin />
               </View>
             </Animated.View>
           </View>
