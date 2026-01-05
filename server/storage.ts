@@ -596,7 +596,7 @@ export class DatabaseStorage implements IStorage {
       .select()
       .from(workoutDays)
       .where(eq(workoutDays.userId, userId))
-      .orderBy(workoutDays.dayIndex);
+      .orderBy(workoutDays.date);
   }
   
   async createWorkoutDay(workoutDay: InsertWorkoutDay): Promise<WorkoutDay> {
