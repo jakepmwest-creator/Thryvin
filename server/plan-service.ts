@@ -323,6 +323,8 @@ export function setupPlanRoutes(app: Express) {
       workoutsCount: result.workoutsCount,
       lastGeneratedAt: result.lastGeneratedAt,
       generated: result.generated,
+      usedFallback: result.usedFallback || false,
+      validationWarnings: result.validationWarnings || [],
       requestId,
     });
   });
