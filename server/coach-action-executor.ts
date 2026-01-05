@@ -22,7 +22,6 @@ import {
   RegenerateSessionAction,
   WorkoutType,
 } from './coach-actions';
-import { generateAIWorkout } from './ai-workout-generator';
 
 // Map workout types to categories for the generator
 const WORKOUT_TYPE_CATEGORIES: Record<WorkoutType, string> = {
