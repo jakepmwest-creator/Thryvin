@@ -1,16 +1,14 @@
 #!/usr/bin/env python3
 """
-Backend API Testing Suite for Thryvin AI Fitness App - Fast Tester Login System
-Tests the specific scenarios mentioned in the review request:
-1. QA Login - Beginner Profile (POST /api/qa/login-as)
-2. QA Login - Intermediate Profile (POST /api/qa/login-as)
-3. QA Login - Injury Profile (POST /api/qa/login-as)
-4. QA Reset User (POST /api/qa/reset-user)
-5. QA Regenerate Plan (POST /api/qa/regenerate-plan)
-6. Invalid Profile Handling (POST /api/qa/login-as)
-7. Use Access Token (GET /api/auth/me)
+Backend API Testing Suite for Thryvin AI Fitness App - Workout Validation & Coach Action Tests
+Tests the CRITICAL workout validation and coach action fixes:
+1. Plan Ensure Validation (POST /api/workouts/plan/ensure)
+2. Coach Action Mismatch Blocking (POST /api/coach/actions/execute) - CRITICAL
+3. Valid Coach Action (POST /api/coach/actions/execute)
+4. Back Workout Mismatch Test (POST /api/coach/actions/execute)
+5. Explicit Cardio Request (POST /api/coach/actions/execute)
 
-Focus: Fast Tester Login system for QA testing
+Focus: Workout validation and coach action mismatch blocking
 """
 
 import requests
@@ -24,7 +22,7 @@ from typing import Dict, List, Any, Optional
 BASE_URL = "https://testauth.preview.emergentagent.com"
 API_BASE = f"{BASE_URL}/api"
 
-class ThryvinQALoginTester:
+class ThryvinWorkoutValidationTester:
     def __init__(self):
         self.session = requests.Session()
         self.session.headers.update({
@@ -318,6 +316,253 @@ class ThryvinQALoginTester:
         except Exception as e:
             self.log_test("Use Access Token", False, f"Access token test error: {str(e)}")
             return False
+
+    def test_plan_ensure_validation(self) -> bool:
+        """Test Plan Ensure Validation - CRITICAL"""
+        try:
+            # Use the beginner access token
+            if 'beginner' not in self.access_tokens:
+                self.log_test("Plan Ensure Validation", False, "No beginner access token available for testing")
+                return False
+            
+            access_token = self.access_tokens['beginner']
+            headers = {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+                'Authorization': f'Bearer {access_token}'
+            }
+            
+            response = requests.post(f"{API_BASE}/workouts/plan/ensure", headers=headers)
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                # Check required fields
+                if not data.get('ok'):
+                    self.log_test("Plan Ensure Validation", False, f"Response ok=false: {data.get('error', 'Unknown error')}", data)
+                    return False
+                
+                # Verify workoutsCount >= 3 (beginner has 3 training days)
+                workouts_count = data.get('workoutsCount')
+                if not isinstance(workouts_count, int) or workouts_count < 3:
+                    self.log_test("Plan Ensure Validation", False, f"Expected workoutsCount >= 3 for beginner, got {workouts_count}", data)
+                    return False
+                
+                # Verify usedFallback is boolean
+                used_fallback = data.get('usedFallback')
+                if not isinstance(used_fallback, bool):
+                    self.log_test("Plan Ensure Validation", False, f"Expected usedFallback to be boolean, got {type(used_fallback)}", data)
+                    return False
+                
+                # Verify validationWarnings is array
+                validation_warnings = data.get('validationWarnings')
+                if not isinstance(validation_warnings, list):
+                    self.log_test("Plan Ensure Validation", False, f"Expected validationWarnings to be array, got {type(validation_warnings)}", data)
+                    return False
+                
+                self.log_test("Plan Ensure Validation", True, f"Plan validation successful: {workouts_count} workouts, fallback={used_fallback}, warnings={len(validation_warnings)}")
+                return True
+            else:
+                self.log_test("Plan Ensure Validation", False, f"Plan ensure failed with status {response.status_code}", {"response": response.text})
+                return False
+                
+        except Exception as e:
+            self.log_test("Plan Ensure Validation", False, f"Plan ensure error: {str(e)}")
+            return False
+
+    def test_coach_action_mismatch_blocking(self) -> bool:
+        """Test Coach Action Mismatch Blocking - CRITICAL"""
+        try:
+            # Use the intermediate access token for this test
+            if 'intermediate' not in self.access_tokens:
+                self.log_test("Coach Action Mismatch Blocking", False, "No intermediate access token available for testing")
+                return False
+            
+            access_token = self.access_tokens['intermediate']
+            headers = {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+                'Authorization': f'Bearer {access_token}'
+            }
+            
+            # Test mismatch: cardio workout when user requested chest workout
+            action_data = {
+                "action": {
+                    "type": "ADD_SESSION",
+                    "workoutType": "cardio",
+                    "durationMinutes": 45,
+                    "dayOfWeek": "wednesday",
+                    "userRequestedType": "chest workout"
+                }
+            }
+            
+            response = requests.post(f"{API_BASE}/coach/actions/execute", headers=headers, json=action_data)
+            
+            # This MUST be blocked with 400 error
+            if response.status_code == 400:
+                data = response.json()
+                
+                # Check for ACTION_MISMATCH or CARDIO_DEFAULT_BLOCKED error code
+                error_code = data.get('code') or data.get('error', {}).get('code', '')
+                if error_code in ['ACTION_MISMATCH', 'CARDIO_DEFAULT_BLOCKED']:
+                    self.log_test("Coach Action Mismatch Blocking", True, f"Correctly blocked cardio/chest mismatch with code: {error_code}")
+                    return True
+                else:
+                    self.log_test("Coach Action Mismatch Blocking", False, f"Expected ACTION_MISMATCH or CARDIO_DEFAULT_BLOCKED, got code: {error_code}", data)
+                    return False
+            else:
+                self.log_test("Coach Action Mismatch Blocking", False, f"Expected 400 error for mismatch, got status {response.status_code} - MISMATCH NOT BLOCKED!", {"response": response.text})
+                return False
+                
+        except Exception as e:
+            self.log_test("Coach Action Mismatch Blocking", False, f"Coach action mismatch test error: {str(e)}")
+            return False
+
+    def test_valid_coach_action(self) -> bool:
+        """Test Valid Coach Action"""
+        try:
+            # Use the intermediate access token
+            if 'intermediate' not in self.access_tokens:
+                self.log_test("Valid Coach Action", False, "No intermediate access token available for testing")
+                return False
+            
+            access_token = self.access_tokens['intermediate']
+            headers = {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+                'Authorization': f'Bearer {access_token}'
+            }
+            
+            # Test valid action: chest workout when user requested chest workout
+            action_data = {
+                "action": {
+                    "type": "ADD_SESSION",
+                    "workoutType": "chest",
+                    "durationMinutes": 60,
+                    "dayOfWeek": "thursday",
+                    "userRequestedType": "chest workout"
+                }
+            }
+            
+            response = requests.post(f"{API_BASE}/coach/actions/execute", headers=headers, json=action_data)
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                # Check required fields
+                if not data.get('ok'):
+                    self.log_test("Valid Coach Action", False, f"Response ok=false: {data.get('error', 'Unknown error')}", data)
+                    return False
+                
+                # Verify message contains "chest"
+                message = data.get('message', '').lower()
+                if 'chest' not in message:
+                    self.log_test("Valid Coach Action", False, f"Expected message to contain 'chest', got: {data.get('message')}", data)
+                    return False
+                
+                self.log_test("Valid Coach Action", True, f"Valid chest workout action succeeded: {data.get('message')}")
+                return True
+            else:
+                self.log_test("Valid Coach Action", False, f"Valid action failed with status {response.status_code}", {"response": response.text})
+                return False
+                
+        except Exception as e:
+            self.log_test("Valid Coach Action", False, f"Valid coach action test error: {str(e)}")
+            return False
+
+    def test_back_workout_mismatch(self) -> bool:
+        """Test Back Workout Mismatch - Another Mismatch Test"""
+        try:
+            # Use the intermediate access token
+            if 'intermediate' not in self.access_tokens:
+                self.log_test("Back Workout Mismatch", False, "No intermediate access token available for testing")
+                return False
+            
+            access_token = self.access_tokens['intermediate']
+            headers = {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+                'Authorization': f'Bearer {access_token}'
+            }
+            
+            # Test mismatch: cardio workout when user requested back and biceps
+            action_data = {
+                "action": {
+                    "type": "ADD_SESSION",
+                    "workoutType": "cardio",
+                    "durationMinutes": 45,
+                    "dayOfWeek": "friday",
+                    "userRequestedType": "back and biceps"
+                }
+            }
+            
+            response = requests.post(f"{API_BASE}/coach/actions/execute", headers=headers, json=action_data)
+            
+            # This MUST be blocked with 400 error
+            if response.status_code == 400:
+                data = response.json()
+                
+                # Check for ACTION_MISMATCH error code
+                error_code = data.get('code') or data.get('error', {}).get('code', '')
+                if error_code == 'ACTION_MISMATCH':
+                    self.log_test("Back Workout Mismatch", True, f"Correctly blocked cardio/back mismatch with code: {error_code}")
+                    return True
+                else:
+                    self.log_test("Back Workout Mismatch", False, f"Expected ACTION_MISMATCH, got code: {error_code}", data)
+                    return False
+            else:
+                self.log_test("Back Workout Mismatch", False, f"Expected 400 error for mismatch, got status {response.status_code} - MISMATCH NOT BLOCKED!", {"response": response.text})
+                return False
+                
+        except Exception as e:
+            self.log_test("Back Workout Mismatch", False, f"Back workout mismatch test error: {str(e)}")
+            return False
+
+    def test_explicit_cardio_request(self) -> bool:
+        """Test Explicit Cardio Request - Should Succeed"""
+        try:
+            # Use the intermediate access token
+            if 'intermediate' not in self.access_tokens:
+                self.log_test("Explicit Cardio Request", False, "No intermediate access token available for testing")
+                return False
+            
+            access_token = self.access_tokens['intermediate']
+            headers = {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+                'Authorization': f'Bearer {access_token}'
+            }
+            
+            # Test valid cardio: cardio workout when user explicitly requested cardio
+            action_data = {
+                "action": {
+                    "type": "ADD_SESSION",
+                    "workoutType": "cardio",
+                    "durationMinutes": 30,
+                    "dayOfWeek": "saturday",
+                    "userRequestedType": "cardio session"
+                }
+            }
+            
+            response = requests.post(f"{API_BASE}/coach/actions/execute", headers=headers, json=action_data)
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                # Check required fields
+                if not data.get('ok'):
+                    self.log_test("Explicit Cardio Request", False, f"Response ok=false: {data.get('error', 'Unknown error')}", data)
+                    return False
+                
+                self.log_test("Explicit Cardio Request", True, f"Explicit cardio request succeeded: {data.get('message', 'No message')}")
+                return True
+            else:
+                self.log_test("Explicit Cardio Request", False, f"Explicit cardio failed with status {response.status_code}", {"response": response.text})
+                return False
+                
+        except Exception as e:
+            self.log_test("Explicit Cardio Request", False, f"Explicit cardio test error: {str(e)}")
+            return False
         
     def log_test(self, test_name: str, success: bool, message: str, details: Dict = None):
         """Log test results"""
@@ -334,62 +579,72 @@ class ThryvinQALoginTester:
             print(f"   Details: {json.dumps(details, indent=2)}")
     
     def run_all_tests(self):
-        """Run all Fast Tester Login QA tests as specified in review request"""
-        print("🏋️ Starting Thryvin AI Fitness App Backend Testing - Fast Tester Login System")
-        print("Testing scenarios from review request:")
-        print("1. QA Login - Beginner Profile (POST /api/qa/login-as)")
-        print("2. QA Login - Intermediate Profile (POST /api/qa/login-as)")
-        print("3. QA Login - Injury Profile (POST /api/qa/login-as)")
-        print("4. QA Reset User (POST /api/qa/reset-user)")
-        print("5. QA Regenerate Plan (POST /api/qa/regenerate-plan)")
-        print("6. Invalid Profile Handling (POST /api/qa/login-as)")
-        print("7. Use Access Token (GET /api/auth/me)")
+        """Run all Workout Validation and Coach Action tests as specified in review request"""
+        print("🏋️ Starting Thryvin AI Fitness App Backend Testing - Workout Validation & Coach Action Tests")
+        print("Testing CRITICAL workout validation and coach action fixes:")
+        print("1. Plan Ensure Validation (POST /api/workouts/plan/ensure)")
+        print("2. Coach Action Mismatch Blocking (POST /api/coach/actions/execute) - CRITICAL")
+        print("3. Valid Coach Action (POST /api/coach/actions/execute)")
+        print("4. Back Workout Mismatch Test (POST /api/coach/actions/execute)")
+        print("5. Explicit Cardio Request (POST /api/coach/actions/execute)")
         print("=" * 60)
         
         print(f"🔗 Backend URL: {BASE_URL}")
         print("=" * 60)
         
-        # Test 1: QA Login - Beginner Profile
-        print("\n👶 Test 1: QA Login - Beginner Profile...")
+        # First, get auth tokens
+        print("\n🔑 Setting up authentication...")
         beginner_success = self.test_qa_login_beginner()
-        
-        # Test 2: QA Login - Intermediate Profile
-        print("\n💪 Test 2: QA Login - Intermediate Profile...")
         intermediate_success = self.test_qa_login_intermediate()
         
-        # Test 3: QA Login - Injury Profile
-        print("\n🏥 Test 3: QA Login - Injury Profile...")
-        injury_success = self.test_qa_login_injury()
+        if not beginner_success or not intermediate_success:
+            print("❌ Failed to get required auth tokens. Cannot proceed with workout tests.")
+            return False
         
-        # Test 4: QA Reset User
-        print("\n🔄 Test 4: QA Reset User...")
-        reset_success = self.test_qa_reset_user()
+        print("✅ Auth tokens obtained successfully")
         
-        # Test 5: QA Regenerate Plan
-        print("\n🔄 Test 5: QA Regenerate Plan...")
-        regenerate_success = self.test_qa_regenerate_plan()
+        # Test 1: Plan Ensure Validation
+        print("\n📋 Test 1: Plan Ensure Validation...")
+        plan_ensure_success = self.test_plan_ensure_validation()
         
-        # Test 6: Invalid Profile Handling
-        print("\n❌ Test 6: Invalid Profile Handling...")
-        invalid_success = self.test_invalid_profile_handling()
+        # Test 2: Coach Action Mismatch Blocking (CRITICAL)
+        print("\n🚫 Test 2: Coach Action Mismatch Blocking (CRITICAL)...")
+        mismatch_blocking_success = self.test_coach_action_mismatch_blocking()
         
-        # Test 7: Use Access Token
-        print("\n🔑 Test 7: Use Access Token...")
-        token_success = self.test_use_access_token()
+        # Test 3: Valid Coach Action
+        print("\n✅ Test 3: Valid Coach Action...")
+        valid_action_success = self.test_valid_coach_action()
+        
+        # Test 4: Back Workout Mismatch Test
+        print("\n🚫 Test 4: Back Workout Mismatch Test...")
+        back_mismatch_success = self.test_back_workout_mismatch()
+        
+        # Test 5: Explicit Cardio Request
+        print("\n💓 Test 5: Explicit Cardio Request...")
+        cardio_success = self.test_explicit_cardio_request()
         
         print("\n" + "=" * 60)
-        print("🏁 Fast Tester Login System Test Results:")
+        print("🏁 Workout Validation & Coach Action Test Results:")
         
-        passed_tests = sum(1 for result in self.test_results if result['success'])
-        total_tests = len(self.test_results)
+        # Count only the workout validation tests (not auth setup)
+        workout_tests = [
+            plan_ensure_success,
+            mismatch_blocking_success,
+            valid_action_success,
+            back_mismatch_success,
+            cardio_success
+        ]
         
-        print(f"✅ {passed_tests}/{total_tests} tests passed")
+        passed_workout_tests = sum(1 for result in workout_tests if result)
+        total_workout_tests = len(workout_tests)
         
-        if passed_tests == total_tests:
-            print("🎉 All Fast Tester Login System backend tests passed!")
+        print(f"✅ {passed_workout_tests}/{total_workout_tests} workout validation tests passed")
+        
+        if passed_workout_tests == total_workout_tests:
+            print("🎉 All CRITICAL workout validation and coach action tests passed!")
             return True
         else:
-            print(f"⚠️ {total_tests - passed_tests} tests had issues")
+            print(f"⚠️ {total_workout_tests - passed_workout_tests} CRITICAL tests failed")
             return False
     
     def print_summary(self):
@@ -406,7 +661,7 @@ class ThryvinQALoginTester:
 
 def main():
     """Main test runner"""
-    tester = ThryvinQALoginTester()
+    tester = ThryvinWorkoutValidationTester()
     
     try:
         success = tester.run_all_tests()
