@@ -234,6 +234,19 @@ export function DiagnosticsScreen() {
           </View>
         ) : (
           <>
+            {/* Token Status */}
+            <View style={styles.card}>
+              <View style={styles.cardHeader}>
+                <Text style={styles.cardTitle}>Auth Token</Text>
+                <View style={[styles.badge, tokenPresent ? styles.badgeSuccess : styles.badgeError]}>
+                  <Text style={styles.badgeText}>{tokenPresent ? 'Present' : 'Missing'}</Text>
+                </View>
+              </View>
+              <Text style={styles.meta}>
+                Bearer token stored in SecureStore: {tokenPresent ? 'Yes' : 'No'}
+              </Text>
+            </View>
+            
             {/* Health Check */}
             <EndpointCard
               title="Health Check"
@@ -247,6 +260,22 @@ export function DiagnosticsScreen() {
               endpoint="/api/version"
               result={version}
             />
+            
+            {/* Auth Me */}
+            <EndpointCard
+              title="Auth Verification"
+              endpoint="/api/auth/me"
+              result={authMe}
+            />
+            
+            {/* Plan Status */}
+            {planStatus && (
+              <EndpointCard
+                title="Plan Status"
+                endpoint="/api/workouts/plan/status"
+                result={planStatus}
+              />
+            )}
 
             {/* Recent Errors */}
             <View style={styles.card}>
