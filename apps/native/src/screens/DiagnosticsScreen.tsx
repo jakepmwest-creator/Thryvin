@@ -76,17 +76,27 @@ export function DiagnosticsScreen() {
   const [health, setHealth] = useState<EndpointResult | null>(null);
   const [version, setVersion] = useState<EndpointResult | null>(null);
   const [diagnostics, setDiagnostics] = useState<EndpointResult | null>(null);
+  const [authMe, setAuthMe] = useState<EndpointResult | null>(null);
+  const [planStatus, setPlanStatus] = useState<EndpointResult | null>(null);
+  const [tokenPresent, setTokenPresent] = useState(false);
+  const [clientErrors, setClientErrors] = useState<typeof api.recentApiErrors>([]);
   const [refreshCount, setRefreshCount] = useState(0);
 
-  const testEndpoint = async (endpoint: string): Promise<EndpointResult> => {
+  const testEndpoint = async (endpoint: string, useAuth: boolean = false): Promise<EndpointResult> => {
     const startTime = Date.now();
     try {
+      const token = useAuth ? await api.getToken() : null;
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+        'Bypass-Tunnel-Reminder': 'true',
+      };
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+      
       const response = await fetch(`${API_BASE_URL}${endpoint}`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          'Bypass-Tunnel-Reminder': 'true',
-        },
+        method: endpoint.includes('ensure') ? 'POST' : 'GET',
+        headers,
       });
       
       const contentType = response.headers.get('content-type') || 'unknown';
@@ -119,15 +129,27 @@ export function DiagnosticsScreen() {
   const runDiagnostics = async () => {
     setLoading(true);
     
-    const [healthResult, versionResult, diagResult] = await Promise.all([
+    // Check token
+    const hasToken = await api.hasToken();
+    setTokenPresent(hasToken);
+    
+    // Get client-side errors
+    const diagInfo = await api.getDiagnosticsInfo();
+    setClientErrors(diagInfo.recentErrors);
+    
+    const [healthResult, versionResult, diagResult, authResult, planResult] = await Promise.all([
       testEndpoint('/api/health'),
       testEndpoint('/api/version'),
       testEndpoint('/api/diagnostics'),
+      testEndpoint('/api/auth/me', true),
+      hasToken ? testEndpoint('/api/workouts/plan/status', true) : Promise.resolve(null),
     ]);
     
     setHealth(healthResult);
     setVersion(versionResult);
     setDiagnostics(diagResult);
+    setAuthMe(authResult);
+    setPlanStatus(planResult);
     setLoading(false);
     setRefreshCount(prev => prev + 1);
   };
