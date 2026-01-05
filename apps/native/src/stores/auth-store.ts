@@ -318,6 +318,9 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       // Reset workout store data FIRST
       await useWorkoutStore.getState().resetAllData();
       
+      // Clear JWT access token
+      await clearToken();
+      
       // Clear ALL stored user data for a fresh start on next login
       await deleteStorageItem('auth_user');
       await deleteStorageItem('user_email');
