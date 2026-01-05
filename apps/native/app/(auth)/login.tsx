@@ -20,6 +20,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useAuthStore } from '../../src/stores/auth-store';
 import { CustomAlert } from '../../src/components/CustomAlert';
+import { QuickTestLogin } from '../../src/components/auth/QuickTestLogin';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
