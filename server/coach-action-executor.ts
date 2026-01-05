@@ -247,21 +247,25 @@ async function executeMoveSession(
   try {
     const fromDate = getTargetDate({ targetDate: action.fromDate, dayOfWeek: action.fromDay });
     const toDate = getTargetDate({ targetDate: action.toDate, dayOfWeek: action.toDay });
+    const fromDateStr = fromDate.toISOString().split('T')[0];
+    const toDateStr = toDate.toISOString().split('T')[0];
     
-    console.log(`[CoachAction] MOVE_SESSION: ${fromDate.toDateString()} -> ${toDate.toDateString()} for user ${userId}`);
+    console.log(`[CoachAction] MOVE_SESSION: ${fromDateStr} -> ${toDateStr} for user ${userId}`);
     
     const workouts = await storage.getWorkoutDays(userId);
-    const fromDayName = fromDate.toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase();
-    const toDayName = toDate.toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase();
     
-    const fromWorkout = workouts.find(w => w.dayName?.toLowerCase() === fromDayName);
+    const fromWorkout = workouts.find(w => w.date === fromDateStr);
     
     if (!fromWorkout) {
+      const fromDayName = fromDate.toLocaleDateString('en-US', { weekday: 'long' });
       return { ok: false, message: `No workout found on ${fromDayName}` };
     }
     
-    // Move to new day
-    await storage.updateWorkoutDay(fromWorkout.id, { dayName: toDayName });
+    // Move to new date
+    await storage.updateWorkoutDay(fromWorkout.id, { date: toDateStr });
+    
+    const fromDayName = fromDate.toLocaleDateString('en-US', { weekday: 'long' });
+    const toDayName = toDate.toLocaleDateString('en-US', { weekday: 'long' });
     
     return {
       ok: true,
