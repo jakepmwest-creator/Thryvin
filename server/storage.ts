@@ -102,6 +102,12 @@ export interface IStorage {
   claimQuestReward(userId: number, questId: number): Promise<UserQuest | undefined>;
   calculateWorkoutStreak(userId: number): Promise<number>;
   
+  // Workout Day methods (for plan management)
+  getWorkoutDays(userId: number): Promise<WorkoutDay[]>;
+  createWorkoutDay(workoutDay: InsertWorkoutDay): Promise<WorkoutDay>;
+  updateWorkoutDay(id: number, updates: Partial<WorkoutDay>): Promise<WorkoutDay | undefined>;
+  deleteWorkoutDay(id: number): Promise<void>;
+  
   // Progress methods
   getUserProgressSnapshots(userId: number, period: string): Promise<ProgressSnapshot[]>;
   createProgressSnapshot(snapshot: InsertProgressSnapshot): Promise<ProgressSnapshot>;
