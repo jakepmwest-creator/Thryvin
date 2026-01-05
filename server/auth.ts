@@ -462,23 +462,26 @@ export function setupAuth(app: Express) {
           if (saveErr) return next(saveErr);
           // Remove password from response for security
           const { password, ...safeUser } = user;
-          res.status(201).json({ ok: true, user: safeUser });
+          const requestId = (req as ApiRequest).requestId || 'unknown';
+          res.status(201).json({ ok: true, user: safeUser, requestId });
         });
       });
     } catch (error) {
       console.error("Registration error:", error);
-      res.status(500).json({ error: "Registration failed" });
+      const requestId = (req as ApiRequest).requestId || 'unknown';
+      res.status(500).json({ ok: false, error: "Registration failed", code: "REGISTRATION_ERROR", requestId });
     }
   });
 
   app.post("/api/auth/login", (req, res, next) => {
     passport.authenticate("local", (err: any, user: SelectUser | false, info: any) => {
+      const requestId = (req as ApiRequest).requestId || 'unknown';
       if (err) {
         console.error("Login authentication error:", err);
-        return res.status(500).json({ error: "Login failed" });
+        return res.status(500).json({ ok: false, error: "Login failed", code: "LOGIN_ERROR", requestId });
       }
       if (!user) {
-        return res.status(401).json({ error: "Invalid email or password" });
+        return res.status(401).json({ ok: false, error: "Invalid email or password", code: "INVALID_CREDENTIALS", requestId });
       }
       req.logIn(user, (err: any) => {
         if (err) {
@@ -489,7 +492,7 @@ export function setupAuth(app: Express) {
           if (saveErr) return next(saveErr);
           // Remove password from response for security
           const { password, ...safeUser } = user;
-          return res.status(200).json({ ok: true, user: safeUser });
+          return res.status(200).json({ ok: true, user: safeUser, requestId });
         });
       });
     })(req, res, next);
@@ -498,7 +501,8 @@ export function setupAuth(app: Express) {
   app.post("/api/auth/logout", (req, res, next) => {
     req.logout((err) => {
       if (err) return next(err);
-      res.sendStatus(200);
+      const requestId = (req as ApiRequest).requestId || 'unknown';
+      res.json({ ok: true, requestId });
     });
   });
 }
