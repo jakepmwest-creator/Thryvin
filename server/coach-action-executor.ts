@@ -478,33 +478,47 @@ export function setupCoachActionRoutes(app: Express) {
     // C6: CRITICAL CHECK - Verify action matches user intent
     // If user requested "chest" but action is "cardio", block it
     if (validation.action?.userRequestedType) {
-      const requestedType = validation.action.userRequestedType.toLowerCase();
-      let actionType: string | undefined;
+      const intentValidation = validateCoachActionIntent(
+        validation.action.userRequestedType,
+        ('workoutType' in validation.action ? validation.action.workoutType : 
+         'newWorkoutType' in validation.action ? validation.action.newWorkoutType : '') as string
+      );
       
-      if ('workoutType' in validation.action) {
-        actionType = validation.action.workoutType;
-      } else if ('newWorkoutType' in validation.action) {
-        actionType = validation.action.newWorkoutType;
+      if (!intentValidation.valid) {
+        console.error(`[API] ${requestId} | ${intentValidation.error}`);
+        return res.status(400).json({
+          ok: false,
+          error: intentValidation.error,
+          code: 'ACTION_MISMATCH',
+          suggestion: 'Please clarify what type of workout you want, or try again.',
+          requestId,
+        });
       }
+    }
+    
+    // ADDITIONAL: Check workout type against common mismatch patterns
+    let actionType: string | undefined;
+    if ('workoutType' in validation.action!) {
+      actionType = validation.action!.workoutType;
+    } else if ('newWorkoutType' in validation.action!) {
+      actionType = (validation.action as any).newWorkoutType;
+    }
+    
+    // Block cardio when there's evidence user wanted strength training
+    if (actionType === 'cardio' || actionType === 'hiit' || actionType === 'running') {
+      const userRequest = validation.action!.userRequestedType || '';
+      const strengthKeywords = ['chest', 'back', 'arms', 'legs', 'shoulders', 'bicep', 'tricep', 'quad', 'hamstring', 'glute', 'strength', 'muscle', 'hypertrophy'];
       
-      if (actionType) {
-        // Check for mismatch
-        const isMismatch = 
-          (requestedType.includes('chest') && actionType === 'cardio') ||
-          (requestedType.includes('arms') && actionType === 'cardio') ||
-          (requestedType.includes('back') && actionType === 'cardio') ||
-          (requestedType.includes('legs') && actionType === 'cardio') ||
-          (requestedType.includes('shoulders') && actionType === 'cardio');
-        
-        if (isMismatch) {
-          console.error(`[API] ${requestId} | ACTION MISMATCH BLOCKED: User requested "${requestedType}" but action is "${actionType}"`);
-          return res.status(400).json({
-            ok: false,
-            error: `Action mismatch: You requested "${requestedType}" but the action would create "${actionType}". Please regenerate.`,
-            code: 'ACTION_MISMATCH',
-            requestId,
-          });
-        }
+      const requestedStrength = strengthKeywords.some(kw => userRequest.toLowerCase().includes(kw));
+      
+      if (requestedStrength) {
+        console.error(`[API] ${requestId} | CARDIO_DEFAULT_BLOCKED: User requested strength workout "${userRequest}" but action is "${actionType}"`);
+        return res.status(400).json({
+          ok: false,
+          error: `You asked for a "${userRequest}" workout but the action would create "${actionType}". Please regenerate or specify "cardio" explicitly.`,
+          code: 'CARDIO_DEFAULT_BLOCKED',
+          requestId,
+        });
       }
     }
     
