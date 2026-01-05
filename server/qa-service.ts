@@ -136,16 +136,36 @@ async function ensureSeededUser(profileType: ProfileType) {
       ...profile.profile,
     });
   } else {
-    // Update user profile to ensure it matches
-    console.log(`[QA] Updating seeded user: ${profile.email}`);
-    user = await storage.updateUser(user.id, profile.profile) || user;
+    // Just update specific fields to avoid SQL errors
+    console.log(`[QA] User exists, updating profile: ${profile.email}`);
+    const updates: any = {};
+    
+    // Only update fields that exist in schema
+    if (profile.profile.trainingType) updates.trainingType = profile.profile.trainingType;
+    if (profile.profile.goal) updates.goal = profile.profile.goal;
+    if (profile.profile.coachingStyle) updates.coachingStyle = profile.profile.coachingStyle;
+    if (profile.profile.selectedCoach) updates.selectedCoach = profile.profile.selectedCoach;
+    if (profile.profile.fitnessLevel) updates.fitnessLevel = profile.profile.fitnessLevel;
+    if (profile.profile.equipmentAccess) updates.equipmentAccess = profile.profile.equipmentAccess;
+    if (profile.profile.injuries) updates.injuries = profile.profile.injuries;
+    if (profile.profile.trainingDaysPerWeek) updates.trainingDaysPerWeek = profile.profile.trainingDaysPerWeek;
+    if (profile.profile.sessionDurationPreference) updates.sessionDurationPreference = profile.profile.sessionDurationPreference;
+    if (profile.profile.focusAreas) updates.focusAreas = profile.profile.focusAreas;
+    if (profile.profile.injuryHistory) updates.injuryHistory = profile.profile.injuryHistory;
+    if (profile.profile.hasCompletedAIOnboarding !== undefined) updates.hasCompletedAIOnboarding = profile.profile.hasCompletedAIOnboarding;
+    
+    if (Object.keys(updates).length > 0) {
+      user = await storage.updateUser(user.id, updates) || user;
+    }
   }
   
   // Store advanced questionnaire if applicable
   if (profile.hasAdvancedQuestionnaire && profile.advancedQuestionnaire) {
-    // Store in user's advancedQuestionnaire field
+    // Store in user's onboardingResponses field as JSON
     await storage.updateUser(user.id, {
-      advancedQuestionnaire: JSON.stringify(profile.advancedQuestionnaire),
+      onboardingResponses: JSON.stringify({
+        advancedQuestionnaire: profile.advancedQuestionnaire,
+      }),
     });
     console.log(`[QA] Saved advanced questionnaire for ${profile.email}`);
   }
