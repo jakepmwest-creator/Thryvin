@@ -307,37 +307,29 @@ async function executeRegenerateSession(
     const workouts = await storage.getWorkoutDays(userId);
     const existingWorkout = workouts.find(w => w.dayName?.toLowerCase() === dayName);
     
+    // Get workout type from existing or action
+    const workoutType = action.workoutType || (existingWorkout as any)?.workoutType || 'full_body';
+    const duration = (existingWorkout as any)?.duration || user.sessionDuration || 45;
+    
     // Delete existing
     if (existingWorkout) {
       await storage.deleteWorkoutDay(existingWorkout.id);
     }
     
-    // Determine workout type
-    const workoutType = action.workoutType || (existingWorkout as any)?.workoutType || 'full_body';
-    const category = WORKOUT_TYPE_CATEGORIES[workoutType] || workoutType;
-    
-    // Regenerate
-    const userContext = {
-      fitnessLevel: user.fitnessLevel || 'intermediate',
-      equipment: user.equipmentAccess ? (typeof user.equipmentAccess === 'string' ? JSON.parse(user.equipmentAccess) : user.equipmentAccess) : ['bodyweight'],
-      injuries: user.injuries ? (typeof user.injuries === 'string' ? JSON.parse(user.injuries) : user.injuries) : [],
-    };
-    
-    await generateAIWorkout(
+    // Create new workout day
+    await storage.createWorkoutDay({
       userId,
-      {
-        type: category,
-        duration: user.sessionDuration || 45,
-        focus: workoutType,
-        intensity: 'medium',
-        dayIndex: targetDate.getDay(),
-      },
-      userContext
-    );
+      dayName,
+      dayIndex: targetDate.getDay(),
+      workoutType,
+      duration,
+      isCompleted: false,
+      status: 'scheduled',
+    });
     
     return {
       ok: true,
-      message: `Regenerated ${dayName}'s workout`,
+      message: `Regenerated ${dayName}'s ${workoutType} workout`,
     };
   } catch (error: any) {
     console.error('[CoachAction] REGENERATE_SESSION failed:', error);
