@@ -1481,6 +1481,26 @@ export class MemoryStorage implements IStorage {
   async updateUserQuestProgress(userId: number, questId: number, progress: number): Promise<UserQuest | undefined> { return undefined; }
   async claimQuestReward(userId: number, questId: number): Promise<UserQuest | undefined> { return undefined; }
   async calculateWorkoutStreak(userId: number): Promise<number> { return 0; }
+  
+  // Workout Day stubs
+  private workoutDaysStore: WorkoutDay[] = [];
+  async getWorkoutDays(userId: number): Promise<WorkoutDay[]> { return this.workoutDaysStore.filter(wd => wd.userId === userId); }
+  async createWorkoutDay(workoutDay: InsertWorkoutDay): Promise<WorkoutDay> {
+    const wd: WorkoutDay = { id: this.nextId++, ...workoutDay, createdAt: new Date(), updatedAt: new Date() } as WorkoutDay;
+    this.workoutDaysStore.push(wd);
+    return wd;
+  }
+  async updateWorkoutDay(id: number, updates: Partial<WorkoutDay>): Promise<WorkoutDay | undefined> { 
+    const idx = this.workoutDaysStore.findIndex(wd => wd.id === id);
+    if (idx >= 0) {
+      this.workoutDaysStore[idx] = { ...this.workoutDaysStore[idx], ...updates };
+      return this.workoutDaysStore[idx];
+    }
+    return undefined;
+  }
+  async deleteWorkoutDay(id: number): Promise<void> { 
+    this.workoutDaysStore = this.workoutDaysStore.filter(wd => wd.id !== id);
+  }
 
   async getUserProgressSnapshots(userId: number, period: string): Promise<ProgressSnapshot[]> { return []; }
   async createProgressSnapshot(snapshot: InsertProgressSnapshot): Promise<ProgressSnapshot> { 
