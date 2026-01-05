@@ -11,7 +11,7 @@ import * as SecureStore from 'expo-secure-store';
 import { router } from 'expo-router';
 import { Alert } from 'react-native';
 
-const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL || 'https://coach-action-fix.preview.emergentagent.com';
+const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL || 'https://testauth.preview.emergentagent.com';
 
 // Token storage key
 const TOKEN_KEY = 'thryvin_access_token';

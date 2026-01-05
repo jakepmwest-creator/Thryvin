@@ -25,7 +25,7 @@ const COLORS = {
   warmOrange: '#FF9500',
 };
 
-const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL || 'https://coach-action-fix.preview.emergentagent.com';
+const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL || 'https://testauth.preview.emergentagent.com';
 
 export interface MentalCheckIn {
   id: string;

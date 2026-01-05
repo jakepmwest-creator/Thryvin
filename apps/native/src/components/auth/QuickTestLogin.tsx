@@ -22,7 +22,7 @@ import { COLORS } from '../../constants/colors';
 import { storeToken } from '../../services/api-client';
 import { useAuthStore } from '../../stores/auth-store';
 
-const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL || 'https://coach-action-fix.preview.emergentagent.com';
+const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL || 'https://testauth.preview.emergentagent.com';
 
 // Check if test login should be visible
 const isTestLoginEnabled = () => {
