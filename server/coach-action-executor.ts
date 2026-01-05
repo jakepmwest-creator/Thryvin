@@ -136,13 +136,12 @@ async function executeReplaceSession(
 ): Promise<{ ok: boolean; message: string }> {
   try {
     const targetDate = getTargetDate(action);
-    const category = WORKOUT_TYPE_CATEGORIES[action.newWorkoutType] || action.newWorkoutType;
+    const dayName = targetDate.toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase();
     
-    console.log(`[CoachAction] REPLACE_SESSION: ${action.newWorkoutType} (${action.durationMinutes}min) for user ${userId}`);
+    console.log(`[CoachAction] REPLACE_SESSION: ${action.newWorkoutType} (${action.durationMinutes}min) for user ${userId} on ${dayName}`);
     
     // Delete existing workout for that day
     const existingWorkouts = await storage.getWorkoutDays(userId);
-    const dayName = targetDate.toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase();
     
     for (const workout of existingWorkouts) {
       if (workout.dayName?.toLowerCase() === dayName) {
@@ -150,24 +149,16 @@ async function executeReplaceSession(
       }
     }
     
-    // Generate new workout
-    const userContext = {
-      fitnessLevel: user.fitnessLevel || 'intermediate',
-      equipment: user.equipmentAccess ? (typeof user.equipmentAccess === 'string' ? JSON.parse(user.equipmentAccess) : user.equipmentAccess) : ['bodyweight'],
-      injuries: user.injuries ? (typeof user.injuries === 'string' ? JSON.parse(user.injuries) : user.injuries) : [],
-    };
-    
-    await generateAIWorkout(
+    // Create new workout day
+    await storage.createWorkoutDay({
       userId,
-      {
-        type: category,
-        duration: action.durationMinutes,
-        focus: action.newWorkoutType,
-        intensity: action.intensity || 'medium',
-        dayIndex: targetDate.getDay(),
-      },
-      userContext
-    );
+      dayName,
+      dayIndex: targetDate.getDay(),
+      workoutType: action.newWorkoutType,
+      duration: action.durationMinutes,
+      isCompleted: false,
+      status: 'scheduled',
+    });
     
     return {
       ok: true,
