@@ -5,6 +5,12 @@
  * - Idempotent ensure endpoint
  * - Plan status checking
  * - Reliable plan generation on mobile
+ * 
+ * HARD RULES ENFORCED:
+ * - Training days = workout count (ALWAYS)
+ * - No empty or rest-only plans
+ * - Fallback splits if AI fails
+ * - Validation on all outputs
  */
 
 import { Express, Response } from 'express';
@@ -12,6 +18,13 @@ import { authenticateToken, AuthenticatedRequest } from './jwt-auth';
 import { ApiRequest } from './api-middleware';
 import { storage } from './storage';
 import { generateWeekWorkouts } from './week-generator';
+import { 
+  validatePlan, 
+  generateFallbackPlan, 
+  isRealWorkout,
+  logValidation,
+  FALLBACK_SPLITS 
+} from './workout-validation';
 
 interface PlanStatus {
   exists: boolean;
