@@ -110,6 +110,9 @@ app.use((req, res, next) => {
   // Setup coach action routes (PART C)
   setupCoachActionRoutes(app);
   
+  // Setup QA routes (dev/test only)
+  setupQARoutes(app);
+  
   const server = await registerRoutes(app);
 
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
