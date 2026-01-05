@@ -340,14 +340,14 @@ async function executeRegenerateSession(
       injuries: user.injuries ? (typeof user.injuries === 'string' ? JSON.parse(user.injuries) : user.injuries) : [],
     };
     
-    await generateDayWorkout(
+    await generateAIWorkout(
       userId,
-      targetDate.toISOString().split('T')[0],
       {
         type: category,
         duration: user.sessionDuration || 45,
         focus: workoutType,
         intensity: 'medium',
+        dayIndex: targetDate.getDay(),
       },
       userContext
     );
