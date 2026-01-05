@@ -144,6 +144,7 @@ async function executeReplaceSession(
   try {
     const targetDate = getTargetDate(action);
     const dayName = targetDate.toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase();
+    const dateStr = targetDate.toISOString().split('T')[0];
     
     console.log(`[CoachAction] REPLACE_SESSION: ${action.newWorkoutType} (${action.durationMinutes}min) for user ${userId} on ${dayName}`);
     
@@ -151,20 +152,28 @@ async function executeReplaceSession(
     const existingWorkouts = await storage.getWorkoutDays(userId);
     
     for (const workout of existingWorkouts) {
-      if (workout.dayName?.toLowerCase() === dayName) {
+      if (workout.date === dateStr) {
         await storage.deleteWorkoutDay(workout.id);
       }
     }
     
-    // Create new workout day
-    await storage.createWorkoutDay({
-      userId,
+    // Build workout payload
+    const payloadJson = {
       dayName,
       dayIndex: targetDate.getDay(),
       workoutType: action.newWorkoutType,
       duration: action.durationMinutes,
-      isCompleted: false,
-      status: 'scheduled',
+      intensity: action.intensity || 'medium',
+      exercises: [],
+      createdBy: 'coach_action',
+    };
+    
+    // Create new workout day
+    await storage.createWorkoutDay({
+      userId,
+      date: dateStr,
+      status: 'ready',
+      payloadJson,
     });
     
     return {
