@@ -3,8 +3,12 @@ import express, { type Request, Response, NextFunction } from "express";
 import cors from "cors";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
+import { setupApiMiddleware, setupApiErrorHandlers, recentApiErrors, ApiRequest } from "./api-middleware";
 
 const app = express();
+
+// Git commit SHA for version tracking
+const GIT_COMMIT = process.env.GIT_COMMIT || 'cb23b27';
 
 // Trust proxy for secure cookies on Replit/Proxies
 app.set("trust proxy", 1);
