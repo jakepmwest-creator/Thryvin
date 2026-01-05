@@ -66,7 +66,7 @@ const TEST_PROFILES: TestProfile[] = [
 
 export function QuickTestLogin() {
   const router = useRouter();
-  const { setUser } = useAuthStore();
+  const { setUserDirectly } = useAuthStore();
   const [loading, setLoading] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   
@@ -82,6 +82,7 @@ export function QuickTestLogin() {
     try {
       console.log(`[QA] Logging in as ${profile.id}...`);
       
+      // Call QA login endpoint to ensure user exists and get token
       const response = await fetch(`${API_BASE_URL}/api/qa/login-as`, {
         method: 'POST',
         headers: {
@@ -94,21 +95,26 @@ export function QuickTestLogin() {
       const data = await response.json();
       
       if (!data.ok) {
-        throw new Error(data.error || 'Login failed');
+        throw new Error(data.error || 'QA login failed');
       }
       
-      // Store token
+      // Store token directly
       if (data.accessToken) {
         await storeToken(data.accessToken);
       }
       
-      // Update auth store
-      setUser({
+      // Set user directly in auth store (bypassing normal login flow)
+      await setUserDirectly({
         id: data.user.id,
         name: data.user.name,
         email: data.user.email,
-        hasCompletedOnboarding: true,
-        ...data.user,
+        trainingType: data.user.trainingType,
+        goal: data.user.goal,
+        coachingStyle: data.user.coachingStyle,
+        trainingDays: data.user.trainingDaysPerWeek,
+        sessionDuration: data.user.sessionDurationPreference,
+        fitnessGoals: data.user.focusAreas ? JSON.parse(data.user.focusAreas) : [],
+        injuries: data.user.injuries ? JSON.parse(data.user.injuries) : [],
       });
       
       console.log(`[QA] ✅ Logged in as ${profile.id}`);

@@ -150,12 +150,22 @@ interface AuthState {
   checkAuth: () => Promise<void>;
   updateUser: (updates: Partial<User>) => Promise<void>;
   clearError: () => void;
+  // QA helper - directly set user state (for Fast Tester Login)
+  setUserDirectly: (user: User) => Promise<void>;
 }
 
 export const useAuthStore = create<AuthState>((set, get) => ({
   user: null,
   isLoading: false,
   error: null,
+
+  // QA helper - directly set user state (for Fast Tester Login)
+  setUserDirectly: async (userData: User) => {
+    set({ user: userData, isLoading: false, error: null });
+    await setStorageItem('auth_user', JSON.stringify(userData));
+    await setStorageItem('user_email', userData.email);
+    console.log('✅ User set directly (QA mode):', userData.name);
+  },
 
   login: async (credentials: { email: string; password: string }) => {
     set({ isLoading: true, error: null });
