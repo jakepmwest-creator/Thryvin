@@ -199,27 +199,30 @@ async function executeSwapDay(
   try {
     const fromDate = getTargetDate({ targetDate: action.fromDate, dayOfWeek: action.fromDay });
     const toDate = getTargetDate({ targetDate: action.toDate, dayOfWeek: action.toDay });
+    const fromDateStr = fromDate.toISOString().split('T')[0];
+    const toDateStr = toDate.toISOString().split('T')[0];
     
-    console.log(`[CoachAction] SWAP_DAY: ${fromDate.toDateString()} <-> ${toDate.toDateString()} for user ${userId}`);
+    console.log(`[CoachAction] SWAP_DAY: ${fromDateStr} <-> ${toDateStr} for user ${userId}`);
     
     const workouts = await storage.getWorkoutDays(userId);
-    const fromDayName = fromDate.toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase();
-    const toDayName = toDate.toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase();
     
-    const fromWorkout = workouts.find(w => w.dayName?.toLowerCase() === fromDayName);
-    const toWorkout = workouts.find(w => w.dayName?.toLowerCase() === toDayName);
+    const fromWorkout = workouts.find(w => w.date === fromDateStr);
+    const toWorkout = workouts.find(w => w.date === toDateStr);
     
     if (!fromWorkout && !toWorkout) {
       return { ok: false, message: 'No workouts found on either day to swap' };
     }
     
-    // Swap day names
+    // Swap dates by updating payloads
     if (fromWorkout) {
-      await storage.updateWorkoutDay(fromWorkout.id, { dayName: toDayName });
+      await storage.updateWorkoutDay(fromWorkout.id, { date: toDateStr });
     }
     if (toWorkout) {
-      await storage.updateWorkoutDay(toWorkout.id, { dayName: fromDayName });
+      await storage.updateWorkoutDay(toWorkout.id, { date: fromDateStr });
     }
+    
+    const fromDayName = fromDate.toLocaleDateString('en-US', { weekday: 'long' });
+    const toDayName = toDate.toLocaleDateString('en-US', { weekday: 'long' });
     
     return {
       ok: true,
