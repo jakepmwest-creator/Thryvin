@@ -317,30 +317,46 @@ async function executeRegenerateSession(
   try {
     const targetDate = getTargetDate(action);
     const dayName = targetDate.toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase();
+    const dateStr = targetDate.toISOString().split('T')[0];
     
     console.log(`[CoachAction] REGENERATE_SESSION: ${dayName} for user ${userId}`);
     
     const workouts = await storage.getWorkoutDays(userId);
-    const existingWorkout = workouts.find(w => w.dayName?.toLowerCase() === dayName);
+    const existingWorkout = workouts.find(w => w.date === dateStr);
     
     // Get workout type from existing or action
-    const workoutType = action.workoutType || (existingWorkout as any)?.workoutType || 'full_body';
-    const duration = (existingWorkout as any)?.duration || user.sessionDuration || 45;
+    let workoutType = action.workoutType || 'full_body';
+    let duration = user.sessionDuration || 45;
+    
+    if (existingWorkout?.payloadJson) {
+      const payload = existingWorkout.payloadJson as any;
+      workoutType = payload.workoutType || workoutType;
+      duration = payload.duration || duration;
+    }
     
     // Delete existing
     if (existingWorkout) {
       await storage.deleteWorkoutDay(existingWorkout.id);
     }
     
-    // Create new workout day
-    await storage.createWorkoutDay({
-      userId,
+    // Build workout payload
+    const payloadJson = {
       dayName,
       dayIndex: targetDate.getDay(),
       workoutType,
       duration,
-      isCompleted: false,
-      status: 'scheduled',
+      intensity: 'medium',
+      exercises: [],
+      createdBy: 'coach_action',
+      regenerated: true,
+    };
+    
+    // Create new workout day
+    await storage.createWorkoutDay({
+      userId,
+      date: dateStr,
+      status: 'ready',
+      payloadJson,
     });
     
     return {
