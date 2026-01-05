@@ -165,14 +165,14 @@ async function executeReplaceSession(
       injuries: user.injuries ? (typeof user.injuries === 'string' ? JSON.parse(user.injuries) : user.injuries) : [],
     };
     
-    await generateDayWorkout(
+    await generateAIWorkout(
       userId,
-      targetDate.toISOString().split('T')[0],
       {
         type: category,
         duration: action.durationMinutes,
         focus: action.newWorkoutType,
         intensity: action.intensity || 'medium',
+        dayIndex: targetDate.getDay(),
       },
       userContext
     );
