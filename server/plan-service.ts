@@ -322,6 +322,9 @@ export function setupPlanRoutes(app: Express) {
     
     const result = await ensurePlan(req.user.id, req.user);
     
+    // Get user's frequency for validation
+    const frequency = req.user.trainingDaysPerWeek || req.user.trainingDays || 3;
+    
     if (!result.ok) {
       return res.status(500).json({
         ok: false,
@@ -331,10 +334,25 @@ export function setupPlanRoutes(app: Express) {
       });
     }
     
+    // HARD RULE: workoutsCount MUST equal trainingDaysPerWeek
+    if (result.workoutsCount < frequency) {
+      console.error(`[API] ${requestId} | PLAN_INVALID: workoutsCount=${result.workoutsCount} < frequency=${frequency}`);
+      return res.status(400).json({
+        ok: false,
+        error: `Plan invalid: expected ${frequency} workouts but got ${result.workoutsCount}`,
+        code: 'PLAN_INVALID',
+        workoutsCount: result.workoutsCount,
+        trainingDaysPerWeek: frequency,
+        usedFallback: result.usedFallback,
+        requestId,
+      });
+    }
+    
     res.json({
       ok: true,
       planId: result.planId,
       workoutsCount: result.workoutsCount,
+      trainingDaysPerWeek: frequency,
       lastGeneratedAt: result.lastGeneratedAt,
       generated: result.generated,
       usedFallback: result.usedFallback || false,
