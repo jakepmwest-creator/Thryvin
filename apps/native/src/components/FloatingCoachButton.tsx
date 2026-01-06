@@ -1191,7 +1191,7 @@ export function FloatingCoachButton({ contextMode = 'home' }: { contextMode?: 'i
           }
           break;
         
-        // NEW: Update workout (harder/easier/shorter/longer) - doesn't regenerate whole thing
+        // NEW: Update workout (harder/easier/shorter/longer) - UPDATES exercises, doesn't regenerate
         case 'update_workout':
           const mod = action.params?.modification || 'harder';
           const modLabels: Record<string, string> = {
@@ -1206,24 +1206,20 @@ export function FloatingCoachButton({ contextMode = 'home' }: { contextMode?: 'i
             text: `🔄 Updating your workout to make it ${modLabels[mod]}...` 
           }]);
           
-          // For harder/easier, use REGENERATE_SESSION with intensity hint
-          // For shorter/longer, use REGENERATE_SESSION with duration hint
-          // This is simpler and more reliable than REPLACE_SESSION
-          const dayForUpdate = new Date().toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase();
-          
-          const updateResult = await makeAuthenticatedRequest('/api/coach/actions/execute', 'POST', {
-            action: {
-              type: 'REGENERATE_SESSION',
-              dayOfWeek: dayForUpdate,
-            }
+          // Call the NEW update-in-place endpoint - this MODIFIES exercises, doesn't regenerate
+          const updateResult = await makeAuthenticatedRequest('/api/workouts/update-in-place', 'POST', {
+            modification: mod,
+            userFeedback: action.params?.description || null,
+            targetDay: null, // null = today
           });
           
           if (updateResult.ok) {
+            const summary = updateResult.data?.message || `Workout updated to be ${modLabels[mod]}`;
             setMessages(prev => [...prev, { 
               role: 'assistant', 
-              text: `Done! ✅ Your workout has been updated to be ${modLabels[mod]}.\n\nThe changes have been applied - check your Workouts tab! 💪` 
+              text: `Done! ✅ ${summary}\n\nYour exercises have been adjusted - check your Workouts tab! 💪` 
             }]);
-            // Refresh workouts
+            // Refresh workouts to show updated exercises
             await useWorkoutStore.getState().fetchWeekWorkouts();
           } else {
             setMessages(prev => [...prev, { 
