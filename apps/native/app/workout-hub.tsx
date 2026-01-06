@@ -1479,6 +1479,7 @@ export default function WorkoutHubScreen() {
         }}
         workout={editableWorkout || currentWorkout}
         onSaveWorkout={handleSaveEditedWorkout}
+        completedExercises={activeSession?.completedExercises ? Array.from(activeSession.completedExercises) : []}
       />
     </SafeAreaView>
   );
