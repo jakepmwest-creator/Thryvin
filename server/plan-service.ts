@@ -375,11 +375,79 @@ export function setupPlanRoutes(app: Express) {
     }
     
     const status = await getPlanStatus(req.user.id);
+    const frequency = req.user.trainingDaysPerWeek || req.user.trainingDays || 3;
     
     res.json({
       ok: true,
       ...status,
+      trainingDaysPerWeek: frequency,
       requestId,
     });
+  });
+  
+  // B3: GET /api/workouts/plan/days - Get user's workout days (Bearer token compatible)
+  app.get('/api/workouts/plan/days', authenticateToken, async (req: AuthenticatedRequest, res: Response) => {
+    const requestId = (req as ApiRequest).requestId || 'unknown';
+    
+    if (!req.user) {
+      return res.status(401).json({
+        ok: false,
+        error: 'Authentication required',
+        code: 'AUTH_REQUIRED',
+        requestId,
+      });
+    }
+    
+    try {
+      const workoutDays = await storage.getWorkoutDays(req.user.id);
+      const frequency = req.user.trainingDaysPerWeek || req.user.trainingDays || 3;
+      
+      // Format workouts for frontend
+      const formattedWorkouts = workoutDays.map(w => {
+        const payload = w.payloadJson as any || {};
+        return {
+          id: w.id,
+          date: w.date,
+          status: w.status,
+          dayName: payload.dayName,
+          dayIndex: payload.dayIndex,
+          title: payload.title || 'Workout',
+          type: payload.type || payload.workoutType,
+          workoutType: payload.workoutType || payload.type,
+          duration: payload.duration || 45,
+          exercises: payload.exercises || [],
+          isRestDay: payload.isRestDay || false,
+          isActivityDay: payload.isActivityDay || false,
+          isCompleted: payload.isCompleted || !!w.completedAt,
+          completedAt: w.completedAt || payload.completedAt,
+          overview: payload.overview,
+          targetMuscles: payload.targetMuscles,
+          caloriesBurn: payload.caloriesBurn,
+        };
+      });
+      
+      // Count real workouts
+      const realWorkouts = formattedWorkouts.filter(w => 
+        !w.isRestDay && !w.isActivityDay && w.type !== 'rest' && w.exercises.length > 0
+      );
+      
+      res.json({
+        ok: true,
+        workouts: formattedWorkouts,
+        workoutsCount: realWorkouts.length,
+        trainingDaysPerWeek: frequency,
+        totalDays: formattedWorkouts.length,
+        requestId,
+      });
+      
+    } catch (error: any) {
+      console.error(`[API] ${requestId} | Error getting workout days:`, error);
+      res.status(500).json({
+        ok: false,
+        error: error.message || 'Failed to get workout days',
+        code: 'FETCH_ERROR',
+        requestId,
+      });
+    }
   });
 }
