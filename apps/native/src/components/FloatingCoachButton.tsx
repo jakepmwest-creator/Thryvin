@@ -92,12 +92,55 @@ interface ChatMessage {
   suggestionType?: 'workout_type' | 'general';
 }
 
-export function FloatingCoachButton({ contextMode = 'home' }: { contextMode?: 'in_workout' | 'home' | 'chat' }) {
+// Workout context for in-workout coaching
+interface WorkoutContext {
+  workoutId?: string;
+  workoutTitle?: string;
+  workoutType?: string;
+  currentExercise?: {
+    name: string;
+    sets?: number;
+    reps?: number | string;
+    restTime?: number;
+  };
+  remainingExercisesCount?: number;
+  progressPercent?: number;
+}
+
+// Workout-specific quick prompts
+const WORKOUT_QUICK_PROMPTS = [
+  { id: 'weight', icon: 'barbell', label: 'Weight?', prompt: 'What weight should I use for this exercise?' },
+  { id: 'form', icon: 'body', label: 'Form Tip', prompt: 'Give me a form tip for this exercise' },
+  { id: 'rest', icon: 'timer-outline', label: 'Rest Time?', prompt: 'How long should I rest between sets?' },
+  { id: 'swap', icon: 'swap-horizontal', label: 'Swap', prompt: 'Suggest a swap for this exercise' },
+  { id: 'easier', icon: 'leaf', label: 'Easier', prompt: 'Make this exercise easier' },
+  { id: 'reps', icon: 'repeat', label: 'Reps?', prompt: 'How many reps should I do?' },
+];
+
+interface FloatingCoachButtonProps {
+  contextMode?: 'in_workout' | 'home' | 'chat';
+  workoutContext?: WorkoutContext;
+  onClose?: () => void;
+}
+
+export function FloatingCoachButton({ 
+  contextMode = 'home',
+  workoutContext,
+  onClose,
+}: FloatingCoachButtonProps) {
   const { swapWorkoutDays, forceRegenerateWeek, weekWorkouts, resetProgram } = useWorkoutStore();
   const { chatVisible, initialMessage, openChat, closeChat, coachName, loadCoachSettings } = useCoachStore();
   
+  // Different greeting based on context
+  const getInitialMessage = () => {
+    if (contextMode === 'in_workout' && workoutContext?.currentExercise) {
+      return `Hey! I'm here to help with your ${workoutContext.workoutTitle || 'workout'}! 💪\n\nCurrently on: ${workoutContext.currentExercise.name}\n\nNeed help with weight, form, or want to swap this exercise?`;
+    }
+    return "Hey! I'm your AI coach. 💪 I can help with workouts, swap your training days, adjust intensity, or answer fitness questions!";
+  };
+  
   const [messages, setMessages] = useState<ChatMessage[]>([
-    { role: 'assistant', text: "Hey! I'm your AI coach. 💪 I can help with workouts, swap your training days, adjust intensity, or answer fitness questions!" },
+    { role: 'assistant', text: getInitialMessage() },
   ]);
   const [inputText, setInputText] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -105,6 +148,13 @@ export function FloatingCoachButton({ contextMode = 'home' }: { contextMode?: 'i
   const [pendingAction, setPendingAction] = useState<PendingActionDetails | null>(null);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [showQuickActionsDrawer, setShowQuickActionsDrawer] = useState(true);
+  
+  // Update greeting when context changes
+  useEffect(() => {
+    if (contextMode === 'in_workout' && workoutContext?.currentExercise) {
+      setMessages([{ role: 'assistant', text: getInitialMessage() }]);
+    }
+  }, [contextMode, workoutContext?.currentExercise?.name]);
   
   // Load coach settings on mount
   useEffect(() => {
