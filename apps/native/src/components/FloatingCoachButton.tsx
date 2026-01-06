@@ -1425,7 +1425,10 @@ export function FloatingCoachButton({
   };
 
   const handleSend = async (directMessage?: string) => {
-    const messageToSend = directMessage || inputText.trim();
+    // Guard: ensure directMessage is actually a string if provided
+    const safeDirectMessage = typeof directMessage === 'string' ? directMessage : undefined;
+    const messageToSend = safeDirectMessage || inputText.trim();
+    
     if (!messageToSend || isLoading) return;
 
     const userMessage = messageToSend;
