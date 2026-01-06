@@ -40,6 +40,9 @@ export interface PendingActionDetails {
     from?: number;
     to?: number;
     description?: string;
+    modification?: 'harder' | 'easier' | 'shorter' | 'longer';
+    reason?: string;
+    targetDay?: string;
   };
 }
 
