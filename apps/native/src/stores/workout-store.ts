@@ -434,37 +434,13 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
         
         console.log('📅 [3-WEEK] Generating for 21 days starting:', mondayOfThisWeek.toDateString());
         
-        // Get training schedule type and specific dates from onboarding
-        const onboardingData = user.onboardingResponses ? 
-          (typeof user.onboardingResponses === 'string' ? JSON.parse(user.onboardingResponses) : user.onboardingResponses) : {};
-        const trainingScheduleType = onboardingData.trainingSchedule || 'flexible';
-        const specificDatesFromOnboarding = onboardingData.specificDates || [];
+        // NOTE: We no longer pre-determine rest days on the frontend
+        // The backend's split planner is the source of truth for scheduling
+        // Each day will be sent to /api/workouts/generate and the backend will return
+        // either a workout or a rest day based on the user's frequency and constraints
         
-        // Convert specific dates to a Set for quick lookup
-        const specificDatesSet = new Set(specificDatesFromOnboarding.map((d: string) => d.split('T')[0])); // Remove time component
-        
-        console.log(`📅 [3-WEEK] Training schedule type: ${trainingScheduleType}`);
-        if (trainingScheduleType === 'depends' && specificDatesSet.size > 0) {
-          console.log(`📅 [3-WEEK] Using SPECIFIC DATES from "It Depends" mode:`, Array.from(specificDatesSet));
-        }
-        
-        // Determine rest days based on schedule type
-        const trainingDaysPerWeek = parseInt(String(userProfile.trainingDays)) || 5;
-        let restDayPattern: number[] = [];
-        
-        // For 'specific' mode - use selected day names
-        const preferredDays = user.preferredTrainingDays || user.selectedDays || onboardingData.selectedDays;
-        if (trainingScheduleType === 'specific' && preferredDays && Array.isArray(preferredDays) && preferredDays.length > 0) {
-          const dayNameToIndex: Record<string, number> = { 'mon': 0, 'tue': 1, 'wed': 2, 'thu': 3, 'fri': 4, 'sat': 5, 'sun': 6 };
-          const trainingDayIndices = preferredDays.map((d: string) => dayNameToIndex[d.toLowerCase()]).filter((i: number) => i !== undefined);
-          restDayPattern = [0, 1, 2, 3, 4, 5, 6].filter(i => !trainingDayIndices.includes(i));
-          console.log(`📅 [3-WEEK] Using SPECIFIC day pattern: ${preferredDays.join(', ')}. Rest days:`, restDayPattern);
-        } else if (trainingScheduleType !== 'depends') {
-          // For 'flexible' mode - use generic pattern
-          restDayPattern = getRestDayPattern(trainingDaysPerWeek);
-          console.log(`📅 [3-WEEK] Using FLEXIBLE pattern - ${trainingDaysPerWeek} days/week. Rest days:`, restDayPattern);
-        }
-        // Note: For 'depends' mode, we check specific dates directly in the loop below
+        console.log(`📅 [3-WEEK] Training days per week: ${parseInt(String(userProfile.trainingDays)) || 5}`);
+        console.log(`📅 [3-WEEK] Backend will determine workout vs rest for each day`);
         
         // Generate workout for each day
         const weekWorkouts: Workout[] = [];
