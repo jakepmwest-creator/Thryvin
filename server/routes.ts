@@ -2224,7 +2224,7 @@ Respond with JSON ONLY:
           const token = authHeader.substring(7);
           try {
             const jwt = require('jsonwebtoken');
-            const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your-secret-key');
+            const decoded = jwt.verify(token, process.env.JWT_SECRET || 'thryvin-jwt-secret-change-in-production');
             if (decoded && decoded.userId) {
               userId = decoded.userId;
               console.log('🔐 [COACH] Auth via Bearer token, userId:', userId);
