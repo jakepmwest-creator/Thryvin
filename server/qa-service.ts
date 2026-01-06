@@ -373,17 +373,51 @@ export function setupQARoutes(app: Express) {
       // Generate access token (same as normal login)
       const accessToken = generateAccessToken(user);
       
+      // CRITICAL: Verify the user has a valid workout plan
+      const frequency = user.trainingDaysPerWeek || SEEDED_PROFILES[profile as ProfileType].profile.trainingDaysPerWeek || 3;
+      const workouts = await storage.getWorkoutDays(user.id);
+      
+      // Count REAL workouts (not rest days)
+      let realWorkoutCount = 0;
+      for (const w of workouts) {
+        const payload = w.payloadJson as any;
+        if (payload && !payload.isRestDay && !payload.isActivityDay && payload.type !== 'rest') {
+          const exercises = payload.exercises || [];
+          if (exercises.length > 0) {
+            realWorkoutCount++;
+          }
+        }
+      }
+      
+      // Log workout validation
+      console.log(`[QA] ${requestId} | Workout validation: frequency=${frequency}, realWorkouts=${realWorkoutCount}`);
+      
+      if (realWorkoutCount < frequency) {
+        console.error(`[QA] ${requestId} | PLAN_INVALID: workoutsCount=${realWorkoutCount} < frequency=${frequency}`);
+        return res.status(400).json({
+          ok: false,
+          error: `QA user plan invalid: expected ${frequency} workouts but found ${realWorkoutCount}. Workouts may not have generated correctly.`,
+          code: 'QA_PLAN_INVALID',
+          workoutsCount: realWorkoutCount,
+          trainingDaysPerWeek: frequency,
+          hint: 'Try calling POST /api/qa/regenerate-plan to fix',
+          requestId,
+        });
+      }
+      
       // Remove password from response
       const { password, ...safeUser } = user;
       
-      console.log(`[QA] ${requestId} | login-as profile=${profile} status=SUCCESS user=${user.email}`);
+      console.log(`[QA] ${requestId} | login-as profile=${profile} status=SUCCESS user=${user.email} workouts=${realWorkoutCount}`);
       
       return res.json({
         ok: true,
         user: safeUser,
         accessToken,
         profile,
-        message: `Logged in as ${profile} test user`,
+        workoutsCount: realWorkoutCount,
+        trainingDaysPerWeek: frequency,
+        message: `Logged in as ${profile} test user with ${realWorkoutCount} workouts`,
         requestId,
       });
       
