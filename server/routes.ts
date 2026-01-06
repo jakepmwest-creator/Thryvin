@@ -2206,22 +2206,45 @@ Respond with JSON ONLY:
     try {
       const { message, coach, coachingStyle, conversationHistory, workoutContext, contextMode } = req.body;
       
-      // SECURITY: Require authenticated user
+      // SECURITY: Require authenticated user via session OR Bearer token
       // Demo mode: Use fixed demo profile (userId: -1) when DEMO_MODE=true
       const DEMO_MODE = process.env.DEMO_MODE === 'true';
       const DEMO_USER_ID = -1; // Fixed demo profile ID
       
       let userId: number | undefined;
       
+      // Check session auth first
       if (req.isAuthenticated() && req.user?.id) {
         userId = req.user.id;
-      } else if (DEMO_MODE) {
+      } 
+      // Check Bearer token auth
+      else {
+        const authHeader = req.headers.authorization;
+        if (authHeader && authHeader.startsWith('Bearer ')) {
+          const token = authHeader.substring(7);
+          try {
+            const jwt = require('jsonwebtoken');
+            const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your-secret-key');
+            if (decoded && decoded.userId) {
+              userId = decoded.userId;
+              console.log('🔐 [COACH] Auth via Bearer token, userId:', userId);
+            }
+          } catch (jwtError) {
+            console.log('⚠️ [COACH] Invalid Bearer token');
+          }
+        }
+      }
+      
+      // Fallback to demo mode if enabled
+      if (!userId && DEMO_MODE) {
         userId = DEMO_USER_ID;
         if (process.env.NODE_ENV !== 'production') {
           console.log('🎭 [COACH] Using demo profile (DEMO_MODE=true)');
         }
-      } else {
-        // No auth and no demo mode - reject
+      }
+      
+      // No auth and no demo mode - reject
+      if (!userId) {
         return res.status(401).json({ 
           error: "Authentication required",
           code: "AUTH_REQUIRED",
