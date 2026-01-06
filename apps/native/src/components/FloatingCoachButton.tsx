@@ -51,10 +51,14 @@ const makeAuthenticatedRequest = async (
   body?: any
 ): Promise<{ ok: boolean; data?: any; error?: string }> => {
   try {
-    const token = await SecureStore.getItemAsync('auth_token');
+    // Use the correct token key that matches api-client.ts
+    const token = await SecureStore.getItemAsync('thryvin_access_token');
     if (!token) {
+      console.log('❌ No auth token found in SecureStore');
       return { ok: false, error: 'Not authenticated. Please log in again.' };
     }
+    
+    console.log('🔐 Making authenticated request to:', endpoint);
     
     const response = await fetch(`${API_BASE_URL}${endpoint}`, {
       method,
@@ -68,9 +72,11 @@ const makeAuthenticatedRequest = async (
     const data = await response.json().catch(() => ({}));
     
     if (!response.ok) {
+      console.log('❌ Request failed:', response.status, data.error);
       return { ok: false, error: data.error || `Request failed (${response.status})` };
     }
     
+    console.log('✅ Request successful');
     return { ok: true, data };
   } catch (error: any) {
     console.error('API request error:', error);
