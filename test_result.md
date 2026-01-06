@@ -1,86 +1,108 @@
-# Thryvin - REST-ONLY Plans Fix Test Results
+# Thryvin - Coach Action System UI Enhancement Test Results
 
 ## Test Summary
-**Date**: 2026-01-06
-**Focus**: REST-ONLY plan generation fix - COMPREHENSIVE VALIDATION
-**Status**: ✅ ALL 7/7 TESTS PASSED
+**Date**: 2026-01-07
+**Focus**: Coach Action System UI - Comprehensive action flows with confirmation cards
+**Status**: 🔄 IN PROGRESS - Testing Required
 
 ---
 
-## Backend API Tests Completed
+## Implementation Summary
 
-### 1. Generate Workouts for All 7 Days (New User without Advanced Questionnaire) ✅ **MOST CRITICAL**
-- **Endpoint**: POST /api/workouts/generate
-- **Test**: Each dayOfWeek from 0 to 6 with beginner profile (3 training days)
-- **Expected**: At least 3 of 7 days should have type != "rest" and exercises.length > 0
-- **Status**: PASSED
-- **Results**: Perfect! 3-day plan has exactly 3 workout days [0, 2, 4] and 4 rest days [1, 3, 5, 6]
-- **CRITICAL VALIDATION**: ✅ NOT all 7 days are rest days - REST-ONLY bug is FIXED
+### Changes Made
 
-### 2. QA Login with Workout Validation ✅
-- **Endpoint**: POST /api/qa/login-as
-- **Expected**: Returns workoutsCount >= trainingDaysPerWeek
-- **Status**: PASSED
-- **Results**:
-  - Beginner: workoutsCount=6, trainingDaysPerWeek=3 ✅
-  - Intermediate: workoutsCount=9, trainingDaysPerWeek=4 ✅
-  - Injury: workoutsCount=9, trainingDaysPerWeek=4 ✅
+#### 1. QuickActionsDrawer.tsx
+- **Added "Longer" button** to secondary actions
+- **Reorganized buttons**: 4 primary (Swap Days, Add Workout, Edit, Harder) + expanded secondary
+- Updated prompts to be more specific
 
-### 3. Workout Plan Days Endpoint ✅
-- **Endpoint**: GET /api/workouts/plan/days
-- **Auth**: Bearer token
-- **Expected**: Returns formatted workouts with exercises
-- **Status**: PASSED
-- **Results**: Retrieved 10 workouts, 6 with exercises
+#### 2. FloatingCoachButton.tsx (Major Updates)
+- **User message gradient**: Changed from solid purple to nice indigo-purple gradient (`#6366F1` → `#8B5CF6` → `#A855F7`)
+- **New action handlers**:
+  - `update_workout` (harder/easier/shorter/longer) - Just UPDATE workout, not regenerate
+  - `regenerate_day` - Regenerate single day, not whole 21-day plan
+  - `skip_day` - Skip specific day with confirmation
+  - `rest_day` - Convert specific day to rest day
+- **Improved flows**:
+  - Harder/Easier/Shorter/Longer: Ask what to change → UPDATE (not regenerate)
+  - New Workout: Pick specific day → Ask reason → Regenerate that day only
+  - Skip Day/Rest Day: Ask which day first
+  - My Stats: Brief summary with link to Profile tab
+  - Tomorrow: Brief preview
 
-### 4. Plan Status Check ✅
-- **Endpoint**: GET /api/workouts/plan/status
-- **Expected**: Returns plan exists with workoutsCount >= 3
-- **Status**: PASSED
-- **Results**: Plan exists with 6 workouts
+#### 3. ActionConfirmationModal.tsx
+- Added new action types with proper icons and descriptions:
+  - `update_workout` (harder/easier/shorter/longer)
+  - `regenerate_day`
+  - `skip_day`
+  - `rest_day`
+- Added warning color for skip actions
 
-### 5. Plan Ensure Validation ✅
-- **Endpoint**: POST /api/workouts/plan/ensure
-- **Expected**: Validates workoutsCount >= frequency
-- **Status**: PASSED
-- **Results**: Plan ensured with 6 workouts
+---
+
+## Tests Needed
+
+### Frontend UI Tests
+
+1. **Quick Actions Drawer** ⏳
+   - [ ] 4 primary buttons visible (Swap Days, Add Workout, Edit, Harder)
+   - [ ] "Swipe up for more" shows expanded actions
+   - [ ] "Longer" button present in expanded view
+   - [ ] All buttons trigger correct prompts
+
+2. **User Message Gradient** ⏳
+   - [ ] User chat bubbles have gradient (not solid purple)
+   - [ ] Gradient visible and looks good
+
+3. **Action Flows** ⏳
+   - [ ] "Make my workout harder" → Asks what to make harder → Confirmation
+   - [ ] "Make my workout easier" → Asks what to make easier → Confirmation
+   - [ ] "Make my workout shorter" → Asks duration → Confirmation
+   - [ ] "Make my workout longer" → Asks duration → Confirmation
+   - [ ] "New workout" → Asks which day → Asks reason → Confirmation (single day)
+   - [ ] "Skip day" → Asks which day → Confirmation
+   - [ ] "Rest day" → Asks which day → Confirmation
+   - [ ] "My stats" → Brief stats with Profile tab link
+   - [ ] "Tomorrow" → Brief preview
+
+4. **Confirmation Modal** ⏳
+   - [ ] Shows correct action details for each type
+   - [ ] Cancel/Confirm buttons work
 
 ---
 
 ## Metadata
 
 ```yaml
-backend:
-  - task: "REST-ONLY fix"
+frontend:
+  - task: "Coach Action System UI Enhancement"
     implemented: true
-    working: true
-    priority: "critical"
+    working: null  # needs testing
+    priority: "high"
     stuck_count: 0
-    needs_retesting: false
-    status_history:
-      - working: true
-        agent: "testing"
-        comment: "All 6 critical REST-ONLY plans fix tests passed. QA Login validation working correctly: Beginner (workoutsCount=6, trainingDaysPerWeek=3), Intermediate (workoutsCount=9, trainingDaysPerWeek=4), Injury (workoutsCount=9, trainingDaysPerWeek=4). New workout plan days endpoint working. Plan status and ensure endpoints validated. NO more REST-ONLY plans - all users have real workouts with exercises."
-      - working: true
-        agent: "testing"
-        comment: "COMPREHENSIVE VALIDATION COMPLETE: All 7/7 critical REST-ONLY plans fix tests passed including the new MOST CRITICAL test - Generate Workouts for All 7 Days. Perfect 3-day plan validation: exactly 3 workout days [0, 2, 4] with exercises and 4 rest days [1, 3, 5, 6]. QA Login endpoints working: Beginner (workoutsCount=6, trainingDaysPerWeek=3), Intermediate (workoutsCount=9, trainingDaysPerWeek=4), Injury (workoutsCount=9, trainingDaysPerWeek=4). Workout plan days endpoint returns 10 workouts with 6 having exercises. Plan status and ensure endpoints validated. CONFIRMED: NO more REST-ONLY plans - workout generation API working correctly for new users without advanced questionnaire."
+    needs_retesting: true
+    components_changed:
+      - QuickActionsDrawer.tsx
+      - FloatingCoachButton.tsx
+      - ActionConfirmationModal.tsx
 
 metadata:
   created_by: "main_agent"
-  version: "6.0"
-  test_sequence: 7
-  run_ui: false
+  version: "7.0"
+  test_sequence: 8
+  run_ui: true
 
 test_plan:
   current_focus:
-    - "REST-ONLY fix comprehensive validation complete"
+    - "Coach Action System UI Enhancement"
   stuck_tasks: []
   test_all: false
-  test_priority: "high_first"
+  test_priority: "frontend_first"
 
-agent_communication:
-  - agent: "testing"
-    message: "✅ CRITICAL SUCCESS: All REST-ONLY plans fix tests passed (6/6). Key validations: workoutsCount >= trainingDaysPerWeek for all profiles, new workout plan days endpoint working with real exercises, no more REST-ONLY plans detected. Backend API fully functional for workout generation and validation."
-  - agent: "testing"
-    message: "🎯 COMPREHENSIVE SUCCESS: All 7/7 critical REST-ONLY plans fix tests passed including the MOST CRITICAL new test - Generate Workouts for All 7 Days (New User without Advanced Questionnaire). PERFECT VALIDATION: 3-day plan generates exactly 3 workout days [0, 2, 4] with exercises and 4 rest days [1, 3, 5, 6]. QA Login endpoints working flawlessly. Workout plan days endpoint returns proper workout data. CONFIRMED: The REST-ONLY plans bug is completely fixed - workout generation API now works correctly for new users without advanced questionnaire. Backend API is fully functional and ready for production."
+incorporate_user_feedback:
+  - "User messages should have gradient (not solid purple)"
+  - "Harder/easier/shorter/longer should UPDATE workout, not regenerate"
+  - "New workout should pick specific day, not reset 21 days"
+  - "Show 4 primary buttons + swipe up for more"
+  - "Add 'Longer' button"
 ```
