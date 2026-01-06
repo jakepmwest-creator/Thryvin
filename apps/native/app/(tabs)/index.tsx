@@ -390,9 +390,19 @@ export default function HomeScreen() {
   );
   
   // Get today's actual workout from weekWorkouts (most accurate source)
+  // FIX: Compare dates using local YYYY-MM-DD format to avoid timezone issues
   const actualTodayWorkout = useMemo(() => {
-    const today = new Date().toDateString();
-    const fromWeek = weekWorkouts.find(w => new Date(w.date).toDateString() === today);
+    const now = new Date();
+    const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+    
+    // Find workout where date matches today (compare YYYY-MM-DD part only)
+    const fromWeek = weekWorkouts.find(w => {
+      const workoutDateStr = typeof w.date === 'string' 
+        ? w.date.split('T')[0] // Handle ISO string
+        : new Date(w.date).toISOString().split('T')[0];
+      return workoutDateStr === todayStr;
+    });
+    
     return fromWeek || todayWorkout;
   }, [weekWorkouts, todayWorkout]);
   
