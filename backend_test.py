@@ -434,7 +434,7 @@ class ThryvinRESTOnlyPlansTester:
 
 def main():
     """Main test runner"""
-    tester = ThryvinQALoginJSONTester()
+    tester = ThryvinRESTOnlyPlansTester()
     
     try:
         success = tester.run_all_tests()
