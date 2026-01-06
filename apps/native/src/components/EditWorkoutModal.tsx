@@ -124,22 +124,23 @@ export function EditWorkoutModal({
   onClose,
   workout,
   onSaveWorkout,
-  completedExercises = [],
+  completedExerciseIndices = [],
 }: EditWorkoutModalProps) {
   const [selectedExercise, setSelectedExercise] = useState<any>(null);
+  const [selectedExerciseIndex, setSelectedExerciseIndex] = useState<number>(-1);
   const [selectedReason, setSelectedReason] = useState<string>('');
   const [additionalNotes, setAdditionalNotes] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
   const [alternatives, setAlternatives] = useState<any>(null);
   const [selectedAlternative, setSelectedAlternative] = useState<any>(null);
   
-  // Filter out completed exercises - they can't be edited
-  const editableExercises = (workout?.exercises || []).filter(
-    (ex: any) => !completedExercises.includes(ex.name)
-  );
-  
-  const handleSelectExercise = (exercise: any) => {
+  const handleSelectExercise = (exercise: any, index: number) => {
+    // Don't allow selecting completed exercises
+    if (completedExerciseIndices.includes(index)) {
+      return;
+    }
     setSelectedExercise(exercise);
+    setSelectedExerciseIndex(index);
     setSelectedReason('');
     setAdditionalNotes('');
   };
