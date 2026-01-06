@@ -443,24 +443,11 @@ export function generateWeeklyTemplate(input: SplitPlannerInput): WeeklyTemplate
       });
     }
   }
-        dayIndex: availableGymDays[dayIdx],
-        split: splitDays[i],
-      });
-    }
-  } else {
-    // Not enough available days - use what we have
-    // This should be rare but handles edge cases
-    for (let i = 0; i < Math.min(frequency, availableGymDays.length); i++) {
-      scheduledWorkouts.push({
-        dayIndex: availableGymDays[i],
-        split: splitDays[i],
-      });
-    }
-    console.log(`  ⚠️ Warning: Only ${availableGymDays.length} days available for ${frequency} workouts`);
-  }
   
   // Sort by day index for consistent ordering
   scheduledWorkouts.sort((a, b) => a.dayIndex - b.dayIndex);
+  
+  console.log(`  ✅ Scheduled ${scheduledWorkouts.length} workout(s) on days: ${scheduledWorkouts.map(w => w.dayIndex).join(', ')}`);
   
   // ==========================================================================
   // STEP 5: Build complete day plans for all 7 days
