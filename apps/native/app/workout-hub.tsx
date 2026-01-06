@@ -1301,29 +1301,23 @@ export default function WorkoutHubScreen() {
         <View style={{ height: 100 }} />
       </ScrollView>
 
-      {/* Floating Coach Button (Phase 8) */}
-      <TouchableOpacity
-        style={styles.floatingCoachButton}
-        onPress={() => setShowCoachSheet(true)}
-        activeOpacity={0.9}
-      >
-        <LinearGradient
-          colors={[COLORS.gradientStart, COLORS.gradientEnd]}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          style={styles.floatingCoachGradient}
-        >
-          <Ionicons name="chatbubble-ellipses" size={18} color={COLORS.white} />
-          <Text style={styles.floatingCoachText}>Coach</Text>
-        </LinearGradient>
-      </TouchableOpacity>
-
-      {/* Workout Coach Sheet (Phase 8) */}
-      <WorkoutCoachSheet
-        visible={showCoachSheet}
-        onClose={() => setShowCoachSheet(false)}
-        workoutContext={buildWorkoutContextForCoach()}
-        coachName="Titan"
+      {/* Floating Coach Button - adapts to workout context */}
+      <FloatingCoachButton
+        contextMode="in_workout"
+        workoutContext={{
+          workoutId: currentWorkout?.id,
+          workoutTitle: currentWorkout?.title,
+          workoutType: currentWorkout?.type,
+          currentExercise: currentExercise ? {
+            name: currentExercise.name,
+            sets: currentExercise.sets,
+            reps: currentExercise.reps,
+            restTime: currentExercise.restTime,
+          } : undefined,
+          remainingExercisesCount: (currentWorkout?.exercises?.length || 0) - (activeSession?.completedExercises?.size || 0),
+          progressPercent: activeSession?.completedExercises ? 
+            Math.round((activeSession.completedExercises.size / (currentWorkout?.exercises?.length || 1)) * 100) : 0,
+        }}
       />
 
       {/* Celebration Modal */}
