@@ -16,6 +16,7 @@ declare global {
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { setupAuth } from "./auth";
+import { authenticateToken, AuthenticatedRequest } from "./jwt-auth";
 import {
   insertUserSchema,
   insertMessageSchema,
