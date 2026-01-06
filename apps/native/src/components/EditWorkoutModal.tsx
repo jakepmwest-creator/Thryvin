@@ -247,20 +247,13 @@ export function EditWorkoutModal({
   };
   
   const renderExerciseList = () => {
-    // Get all exercises grouped by category
-    const allExercises = [
-      ...(workout?.exercises?.filter((e: any) => e.category === 'warmup') || []),
-      ...(workout?.exercises?.filter((e: any) => e.category === 'main') || []),
-      ...(workout?.exercises?.filter((e: any) => e.category === 'cooldown') || []),
-    ];
+    // Get all exercises - keep original order
+    const exercises = workout?.exercises || [];
     
-    // If no category set, just use all exercises
-    const exercisesToShow = allExercises.length > 0 ? allExercises : (workout?.exercises || []);
-    
-    return exercisesToShow.map((exercise: any, index: number) => {
-      const isCompleted = completedExercises.includes(exercise.name);
+    return exercises.map((exercise: any, index: number) => {
+      const isCompleted = completedExerciseIndices.includes(index);
       
-      // Don't show completed exercises - they can't be edited
+      // Show completed exercises as locked/disabled
       if (isCompleted) {
         return (
           <View
@@ -276,7 +269,7 @@ export function EditWorkoutModal({
                   {exercise.name}
                 </Text>
                 <Text style={styles.exerciseItemMeta}>
-                  Completed - Cannot edit
+                  ✅ Completed - Cannot edit
                 </Text>
               </View>
             </View>
@@ -290,18 +283,18 @@ export function EditWorkoutModal({
           key={index}
           style={[
             styles.exerciseItem,
-            selectedExercise?.name === exercise.name && styles.exerciseItemSelected,
+            selectedExerciseIndex === index && styles.exerciseItemSelected,
           ]}
-          onPress={() => handleSelectExercise(exercise)}
+          onPress={() => handleSelectExercise(exercise, index)}
         >
           <View style={styles.exerciseItemLeft}>
             <View style={[
               styles.exerciseNumber,
-              selectedExercise?.name === exercise.name && styles.exerciseNumberSelected,
+              selectedExerciseIndex === index && styles.exerciseNumberSelected,
             ]}>
               <Text style={[
                 styles.exerciseNumberText,
-                selectedExercise?.name === exercise.name && styles.exerciseNumberTextSelected,
+                selectedExerciseIndex === index && styles.exerciseNumberTextSelected,
               ]}>
                 {index + 1}
               </Text>
@@ -314,7 +307,7 @@ export function EditWorkoutModal({
               </Text>
             </View>
           </View>
-          {selectedExercise?.name === exercise.name && (
+          {selectedExerciseIndex === index && (
             <Ionicons name="checkmark-circle" size={24} color={COLORS.primary} />
           )}
         </TouchableOpacity>
