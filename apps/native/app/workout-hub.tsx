@@ -1255,11 +1255,11 @@ export default function WorkoutHubScreen() {
           workoutId: currentWorkout?.id,
           workoutTitle: currentWorkout?.title,
           workoutType: currentWorkout?.type,
-          currentExercise: currentExercise ? {
-            name: currentExercise.name,
-            sets: currentExercise.sets,
-            reps: currentExercise.reps,
-            restTime: currentExercise.restTime,
+          currentExercise: expandedExercise !== null && exercises[expandedExercise] ? {
+            name: exercises[expandedExercise].name,
+            sets: exercises[expandedExercise].sets,
+            reps: exercises[expandedExercise].reps,
+            restTime: exercises[expandedExercise].restTime,
           } : undefined,
           remainingExercisesCount: (currentWorkout?.exercises?.length || 0) - (activeSession?.completedExercises?.size || 0),
           progressPercent: activeSession?.completedExercises ? 
