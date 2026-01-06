@@ -48,6 +48,7 @@ export default function WorkoutHubScreen() {
   const router = useRouter();
   const { currentWorkout, activeSession, startWorkoutSession, completeSet, finishWorkoutSession, setCurrentWorkout, weekWorkouts } = useWorkoutStore();
   const { user } = useAuthStore();
+  const { openChat } = useCoachStore();
   
   // Phase 11.5: Coach Nudge System
   const { 
