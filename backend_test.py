@@ -26,7 +26,7 @@ from typing import Dict, List, Any, Optional
 BASE_URL = "https://testauth.preview.emergentagent.com"
 API_BASE = f"{BASE_URL}/api"
 
-class ThryvinQALoginJSONTester:
+class ThryvinRESTOnlyPlansTester:
     def __init__(self):
         self.session = requests.Session()
         self.session.headers.update({
@@ -34,6 +34,7 @@ class ThryvinQALoginJSONTester:
             'Accept': 'application/json'
         })
         self.test_results = []
+        self.tokens = {}  # Store tokens for different profiles
         
     def verify_json_response(self, response, test_name: str) -> tuple[bool, dict]:
         """Verify response is valid JSON with correct Content-Type"""
