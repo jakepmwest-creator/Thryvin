@@ -219,10 +219,14 @@ interface AlternativesResponse {
 
 export async function getExerciseAlternatives(request: SwapRequest, retryCount: number = 0): Promise<AlternativesResponse> {
   try {
-    const { currentExercise, reason, additionalNotes, userProfile, userId } = request;
+    const { currentExercise, reason, additionalNotes, userProfile, userId, exerciseCategory } = request;
+    
+    // Determine exercise category for filtering
+    const category = exerciseCategory || currentExercise.category || 'main';
     
     console.log('🤖 Generating alternatives for:', currentExercise.name, `(attempt ${retryCount + 1})`);
     console.log('   Reason:', reason, additionalNotes || '');
+    console.log('   Category:', category);
     
     // Get user context if userId provided (includes injuries, equipment, preferences)
     let userContext = '';
@@ -236,23 +240,61 @@ export async function getExerciseAlternatives(request: SwapRequest, retryCount: 
       }
     }
     
+    // Category-specific instructions
+    const categoryInstructions: Record<string, string> = {
+      warmup: `
+CATEGORY RULES - WARMUP ONLY:
+- Only suggest light, preparatory exercises
+- Focus on mobility, light cardio, dynamic stretches
+- NO heavy weights or max-effort exercises
+- Examples: Arm Circles, Leg Swings, Jumping Jacks, Light Jogging, Dynamic Stretches
+- Keep duration-based (30-60 seconds) not rep-based where appropriate`,
+      
+      main: `
+CATEGORY RULES - MAIN WORKOUT:
+- Suggest compound or isolation strength exercises
+- Match the intensity level of the original exercise
+- Include proper sets/reps for strength training
+- Examples: Bench Press, Squats, Rows, Curls, Presses`,
+      
+      cooldown: `
+CATEGORY RULES - COOLDOWN/RECOVERY ONLY:
+- Only suggest recovery and cool-down exercises
+- Focus on static stretches, foam rolling, light movement
+- NO high-intensity or strength exercises
+- Examples: Static Hamstring Stretch, Foam Roll Quads, Child's Pose, Cat-Cow Stretch
+- Keep duration-based (30-60 seconds)`,
+      
+      recovery: `
+CATEGORY RULES - RECOVERY ONLY:
+- Only suggest recovery exercises
+- Focus on stretches, mobility work, foam rolling
+- NO strength or cardio exercises
+- Examples: Foam Rolling, Static Stretches, Yoga Poses`
+    };
+    
+    const categoryPrompt = categoryInstructions[category] || categoryInstructions.main;
+    
     // Build AI prompt with user context
     const prompt = `You are a professional fitness coach. A user wants to swap an exercise for a better alternative.
 
 Current Exercise: ${currentExercise.name}
 Sets: ${currentExercise.sets}
 Reps: ${currentExercise.reps}
+Exercise Category: ${category.toUpperCase()}
 Reason for swap: ${reason}
 ${additionalNotes ? `Additional details: ${additionalNotes}` : ''}
 ${userContext}
+${categoryPrompt}
 
 Based on the reason, suggest 4 alternative exercises that:
-1. Target similar muscle groups
+1. Target similar muscle groups OR serve similar purpose
 2. Address the user's specific concern (${reason})
-3. Have appropriate difficulty
-4. MUST include SPECIFIC equipment type in name (e.g., "Barbell Bench Press", "Dumbbell Chest Press", "Cable Fly")
-5. MUST respect user's injuries if mentioned above - DO NOT suggest exercises that could aggravate injuries
-6. MUST use equipment the user has access to (if specified above)
+3. MATCH THE SAME CATEGORY (${category}) - this is CRITICAL
+4. Have appropriate difficulty
+5. MUST include SPECIFIC equipment type in name (e.g., "Barbell Bench Press", "Dumbbell Chest Press", "Cable Fly")
+6. MUST respect user's injuries if mentioned above - DO NOT suggest exercises that could aggravate injuries
+7. MUST use equipment the user has access to (if specified above)
 
 IMPORTANT: Use specific names with equipment:
 - "Barbell Bench Press" not "Bench Press"
