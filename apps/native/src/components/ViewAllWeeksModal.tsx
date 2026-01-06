@@ -60,7 +60,7 @@ export const ViewAllWeeksModal = ({ visible, onClose }: ViewAllWeeksModalProps) 
           dayNum: dayIndex + 1,
           workout: workout || null,
           isCompleted,
-          isToday: day === new Date().getDay() - 1 && week === 1,
+          isToday: day === getTodayDayIndex() && week === 1,
           isRest: workout?.title?.toLowerCase().includes('rest'),
         });
       }
