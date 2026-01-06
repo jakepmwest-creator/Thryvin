@@ -1,14 +1,16 @@
 #!/usr/bin/env python3
 """
-Backend API Testing Suite for Thryvin AI Fitness App - Workout Validation & Coach Action Tests
-Tests the CRITICAL workout validation and coach action fixes:
-1. Plan Ensure Validation (POST /api/workouts/plan/ensure)
-2. Coach Action Mismatch Blocking (POST /api/coach/actions/execute) - CRITICAL
-3. Valid Coach Action (POST /api/coach/actions/execute)
-4. Back Workout Mismatch Test (POST /api/coach/actions/execute)
-5. Explicit Cardio Request (POST /api/coach/actions/execute)
+Backend API Testing Suite for Thryvin AI Fitness App - QA Login JSON Response Reliability Tests
+Tests the CRITICAL QA login endpoints for JSON response reliability:
+1. QA Login - Beginner (10 consecutive times) - POST /api/qa/login-as
+2. QA Login - Intermediate - POST /api/qa/login-as  
+3. QA Login - Injury - POST /api/qa/login-as
+4. QA Login - Invalid Profile - POST /api/qa/login-as (should return 400 with INVALID_PROFILE)
+5. QA Login - Empty Body - POST /api/qa/login-as (should return 400 JSON error)
+6. QA Reset User - POST /api/qa/reset-user
+7. QA Profiles List - GET /api/qa/profiles
 
-Focus: Workout validation and coach action mismatch blocking
+CRITICAL CHECK: Every single response must be valid JSON with Content-Type application/json. NO HTML responses allowed.
 """
 
 import requests
