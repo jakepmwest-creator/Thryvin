@@ -124,6 +124,7 @@ export function EditWorkoutModal({
   onClose,
   workout,
   onSaveWorkout,
+  completedExercises = [],
 }: EditWorkoutModalProps) {
   const [selectedExercise, setSelectedExercise] = useState<any>(null);
   const [selectedReason, setSelectedReason] = useState<string>('');
@@ -131,6 +132,11 @@ export function EditWorkoutModal({
   const [isGenerating, setIsGenerating] = useState(false);
   const [alternatives, setAlternatives] = useState<any>(null);
   const [selectedAlternative, setSelectedAlternative] = useState<any>(null);
+  
+  // Filter out completed exercises - they can't be edited
+  const editableExercises = (workout?.exercises || []).filter(
+    (ex: any) => !completedExercises.includes(ex.name)
+  );
   
   const handleSelectExercise = (exercise: any) => {
     setSelectedExercise(exercise);
