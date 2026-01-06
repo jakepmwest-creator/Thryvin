@@ -459,34 +459,31 @@ export function setupQARoutes(app: Express) {
       });
     }
   });
-      console.error(`[QA] Reset failed:`, error);
-      res.status(500).json({
-        ok: false,
-        error: error.message || 'Failed to reset user',
-        code: 'QA_RESET_FAILED',
-        requestId,
-      });
-    }
-  });
   
   /**
    * POST /api/qa/regenerate-plan
    * Force regenerate plan for a test user
    */
-  app.post('/api/qa/regenerate-plan', qaGate, async (req: AuthenticatedRequest, res) => {
-    const requestId = (req as ApiRequest).requestId || 'unknown';
-    const { email } = req.body;
+  app.post('/api/qa/regenerate-plan', qaGate, async (req: AuthenticatedRequest, res: Response) => {
+    const requestId = (req as ApiRequest).requestId || `qa_regen_${Date.now()}`;
     
-    if (!email || !email.includes('@thryvin.test')) {
-      return res.status(400).json({
-        ok: false,
-        error: 'Can only regenerate for @thryvin.test accounts',
-        code: 'INVALID_EMAIL',
-        requestId,
-      });
-    }
+    // Ensure JSON response
+    res.setHeader('Content-Type', 'application/json');
     
     try {
+      const { email } = req.body || {};
+      
+      console.log(`[QA] ${requestId} | regenerate-plan email=${email} status=STARTED`);
+      
+      if (!email || !email.includes('@thryvin.test')) {
+        return res.status(400).json({
+          ok: false,
+          error: 'Can only regenerate for @thryvin.test accounts',
+          code: 'INVALID_EMAIL',
+          requestId,
+        });
+      }
+      
       const user = await storage.getUserByEmail(email);
       if (!user) {
         return res.status(404).json({
