@@ -348,8 +348,6 @@ function getMusclesForType(type: string): string {
   };
   return muscleMap[type.toLowerCase()] || 'Full Body';
 }
-  return history;
-}
 
 /**
  * Get exercises based on profile type
