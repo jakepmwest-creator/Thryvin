@@ -25,7 +25,7 @@ import { COLORS } from '../src/constants/colors';
 import ConfettiCannon from 'react-native-confetti-cannon';
 import { CoachSuggestionCard } from '../src/components/CoachSuggestionCard';
 import { EditWorkoutModal } from '../src/components/EditWorkoutModal';
-import { WorkoutCoachSheet } from '../src/components/WorkoutCoachSheet';
+import { FloatingCoachButton } from '../src/components/FloatingCoachButton';
 import { WorkoutActionBar } from '../src/components/WorkoutActionBar';
 import { CoachNudgeCard } from '../src/components/CoachNudgeCard';
 import { useCoachNudges, useLearningEvents } from '../src/hooks/useCoachNudges';
