@@ -695,7 +695,7 @@ export function FloatingCoachButton({ contextMode = 'home' }: { contextMode?: 'i
       } else if (tomorrowWorkout) {
         return {
           handled: true,
-          response: `📅 Tomorrow's workout: **${tomorrowWorkout.title}**\n\n• Duration: ${tomorrowWorkout.duration} minutes\n• Exercises: ${tomorrowWorkout.exercises?.length || 0}\n• Focus: ${tomorrowWorkout.targetMuscles || tomorrowWorkout.type}`
+          response: `📅 **Tomorrow: ${tomorrowWorkout.title}**\n\n⏱️ ${tomorrowWorkout.duration} min • ${tomorrowWorkout.exercises?.length || 0} exercises\n💪 Focus: ${tomorrowWorkout.targetMuscles || tomorrowWorkout.type}\n\nCheck Workouts tab for details!`
         };
       }
       return { handled: false };
