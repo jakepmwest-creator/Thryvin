@@ -612,21 +612,118 @@ export function FloatingCoachButton({ contextMode = 'home' }: { contextMode?: 'i
       };
     }
     
-    // Intensity change
-    if (lower.includes('harder') || lower.includes('intense') || lower.includes('challenging')) {
+    // Intensity change - HARDER (don't regenerate, just UPDATE)
+    if (lower.includes('harder') || lower.includes('more intense') || lower.includes('more challenging')) {
+      // Check if they're specifying what to make harder
+      if (lower.includes('what') || lower.length < 25) {
+        // Ask for specifics
+        return {
+          handled: true,
+          response: "Let's crank it up! 🔥\n\nWhat would you like to make harder?\n\n• More sets/reps\n• Heavier weights\n• Shorter rest periods\n• More difficult exercises\n\nJust tell me what you want to intensify!",
+          showSuggestions: false,
+        };
+      }
+      
+      // They've given details - create update action
+      const description = message.replace(/harder|more intense|more challenging|make|my|workout/gi, '').trim();
       return {
         handled: true,
-        response: "Let's crank up the intensity! 🔥\n\nI'll regenerate your workout with:\n• More sets\n• Shorter rest periods\n• Compound movements\n\nReady to make it harder?",
-        action: { type: 'regenerate' }
+        response: `Got it! 💪 I'll update your workout to make it harder${description ? `: "${description}"` : ''}.\n\nThis will:\n• Increase intensity\n• NOT regenerate the whole workout\n\nPress confirm to apply!`,
+        action: { 
+          type: 'update_workout', 
+          params: { 
+            modification: 'harder',
+            description: description || undefined,
+            date: new Date()
+          } 
+        }
       };
     }
     
-    // Shorter workout
-    if (lower.includes('shorter') || lower.includes('quick') || lower.includes('less time') || lower.includes('30 min')) {
+    // Intensity change - EASIER (don't regenerate, just UPDATE)
+    if (lower.includes('easier') || lower.includes('less intense') || lower.includes('tone it down')) {
+      // Check if they're specifying what to make easier
+      if (lower.includes('what') || lower.length < 25) {
+        return {
+          handled: true,
+          response: "No problem! 🌿\n\nWhat would you like to make easier?\n\n• Fewer sets/reps\n• Lighter weights\n• Longer rest periods\n• Simpler exercises\n\nTell me what you'd like adjusted!",
+          showSuggestions: false,
+        };
+      }
+      
+      const description = message.replace(/easier|less intense|tone it down|make|my|workout/gi, '').trim();
       return {
         handled: true,
-        response: "No problem! ⏱️ I'll create a quick but effective workout.\n\nUsing supersets and compound moves to maximize your time.\n\nShall I regenerate with a shorter duration?",
-        action: { type: 'regenerate' }
+        response: `Understood! 🌿 I'll update your workout to make it easier${description ? `: "${description}"` : ''}.\n\nThis will:\n• Reduce intensity\n• NOT regenerate the whole workout\n\nPress confirm to apply!`,
+        action: { 
+          type: 'update_workout', 
+          params: { 
+            modification: 'easier',
+            description: description || undefined,
+            date: new Date()
+          } 
+        }
+      };
+    }
+    
+    // Duration change - SHORTER (don't regenerate, just UPDATE)
+    if (lower.includes('shorter') || lower.includes('quick') || lower.includes('less time') || (lower.includes('30') && lower.includes('min'))) {
+      // Check if they're specifying details
+      if (lower.includes('what') || lower.length < 20) {
+        return {
+          handled: true,
+          response: "Need a quicker session? ⏱️\n\nHow short do you want it?\n\n• 15-20 min (express)\n• 25-30 min (quick)\n• 35-40 min (moderate)\n\nOr tell me how much time you have!",
+          showSuggestions: false,
+        };
+      }
+      
+      // Try to extract duration
+      const durationMatch = lower.match(/(\d+)\s*(min|minute)/);
+      const targetDuration = durationMatch ? parseInt(durationMatch[1]) : 30;
+      const description = message.replace(/shorter|quick|less time|\d+\s*(min|minute|minutes)?|make|my|workout/gi, '').trim();
+      
+      return {
+        handled: true,
+        response: `Got it! ⏱️ I'll make your workout shorter (~${targetDuration} min)${description ? `: "${description}"` : ''}.\n\nThis will:\n• Remove some exercises\n• Keep the most effective moves\n• NOT regenerate the whole workout\n\nPress confirm to apply!`,
+        action: { 
+          type: 'update_workout', 
+          params: { 
+            modification: 'shorter',
+            duration: targetDuration,
+            description: description || undefined,
+            date: new Date()
+          } 
+        }
+      };
+    }
+    
+    // Duration change - LONGER (NEW - don't regenerate, just UPDATE)
+    if (lower.includes('longer') || lower.includes('more time') || lower.includes('extended') || (lower.includes('60') && lower.includes('min'))) {
+      // Check if they're specifying details
+      if (lower.includes('what') || lower.length < 20) {
+        return {
+          handled: true,
+          response: "Want a longer session? ⏳\n\nHow long do you want it?\n\n• 45-50 min (moderate)\n• 55-60 min (full)\n• 70+ min (extended)\n\nOr tell me how much time you have!",
+          showSuggestions: false,
+        };
+      }
+      
+      const durationMatch = lower.match(/(\d+)\s*(min|minute)/);
+      const targetDuration = durationMatch ? parseInt(durationMatch[1]) : 60;
+      const description = message.replace(/longer|more time|extended|\d+\s*(min|minute|minutes)?|make|my|workout/gi, '').trim();
+      
+      return {
+        handled: true,
+        response: `Perfect! ⏳ I'll make your workout longer (~${targetDuration} min)${description ? `: "${description}"` : ''}.\n\nThis will:\n• Add more exercises/sets\n• Keep the workout balanced\n• NOT regenerate the whole workout\n\nPress confirm to apply!`,
+        action: { 
+          type: 'update_workout', 
+          params: { 
+            modification: 'longer',
+            duration: targetDuration,
+            description: description || undefined,
+            date: new Date()
+          } 
+        }
       };
     }
     
