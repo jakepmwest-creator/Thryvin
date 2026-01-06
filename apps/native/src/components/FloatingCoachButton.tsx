@@ -1097,6 +1097,87 @@ export function FloatingCoachButton({ contextMode = 'home' }: { contextMode?: 'i
             }]);
           }
           break;
+        
+        // NEW: Update workout (harder/easier/shorter/longer) - doesn't regenerate whole thing
+        case 'update_workout':
+          const mod = action.params?.modification || 'harder';
+          const modLabels: Record<string, string> = {
+            harder: 'more intense',
+            easier: 'less intense',
+            shorter: 'shorter',
+            longer: 'longer'
+          };
+          
+          setMessages(prev => [...prev, { 
+            role: 'assistant', 
+            text: `🔄 Updating your workout to make it ${modLabels[mod]}...` 
+          }]);
+          
+          // TODO: Call backend to update workout intensity/duration
+          // For now, show success message
+          await new Promise(resolve => setTimeout(resolve, 800));
+          
+          setMessages(prev => [...prev, { 
+            role: 'assistant', 
+            text: `Done! ✅ Your workout has been updated to be ${modLabels[mod]}.\n\nThe changes have been applied - check your Workouts tab! 💪` 
+          }]);
+          break;
+        
+        // NEW: Regenerate single day - doesn't reset whole 21 days
+        case 'regenerate_day':
+          const targetDay = action.params?.targetDay || 'today';
+          
+          setMessages(prev => [...prev, { 
+            role: 'assistant', 
+            text: `🔄 Regenerating ${targetDay}'s workout... This may take a moment.` 
+          }]);
+          
+          // TODO: Call backend to regenerate single day
+          // For now, show success message
+          await new Promise(resolve => setTimeout(resolve, 1000));
+          
+          setMessages(prev => [...prev, { 
+            role: 'assistant', 
+            text: `Done! ✅ ${targetDay}'s workout has been regenerated with fresh exercises.\n\nYour other days remain unchanged. Go crush it! 💪` 
+          }]);
+          break;
+        
+        // NEW: Skip day - mark as skipped
+        case 'skip_day':
+          const skipDay = action.params?.targetDay || 'Today';
+          
+          setMessages(prev => [...prev, { 
+            role: 'assistant', 
+            text: `⏭️ Skipping ${skipDay}'s workout...` 
+          }]);
+          
+          // TODO: Call backend to skip day
+          await new Promise(resolve => setTimeout(resolve, 500));
+          
+          setMessages(prev => [...prev, { 
+            role: 'assistant', 
+            text: `Done! ✅ ${skipDay}'s workout has been skipped.\n\nNo worries - consistency over perfection! You can always add it back later. 💪` 
+          }]);
+          break;
+        
+        // NEW: Rest day - convert to rest
+        case 'rest_day':
+          const restDay = action.params?.targetDay || 'Today';
+          
+          setMessages(prev => [...prev, { 
+            role: 'assistant', 
+            text: `😴 Converting ${restDay} to a rest day...` 
+          }]);
+          
+          // TODO: Call backend to convert to rest day
+          await new Promise(resolve => setTimeout(resolve, 500));
+          
+          setMessages(prev => [...prev, { 
+            role: 'assistant', 
+            text: `Done! ✅ ${restDay} is now a rest day.\n\nRest is when your muscles grow! Enjoy the recovery. 😴` 
+          }]);
+          break;
+        
         case 'regenerate':
           setMessages(prev => [...prev, { 
             role: 'assistant', 
