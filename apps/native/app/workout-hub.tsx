@@ -2086,31 +2086,6 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: COLORS.white,
   },
-  // Floating Coach Button styles (Phase 8)
-  floatingCoachButton: {
-    position: 'absolute',
-    bottom: 100,
-    right: 16,
-    borderRadius: 24,
-    shadowColor: COLORS.primary,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 8,
-  },
-  floatingCoachGradient: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderRadius: 24,
-    gap: 6,
-  },
-  floatingCoachText: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: COLORS.white,
-  },
   // Exercise detail coach button (Phase 8.5)
   exerciseCoachButton: {
     width: 40,
