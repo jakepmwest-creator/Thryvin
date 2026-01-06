@@ -39,6 +39,7 @@ interface EditWorkoutModalProps {
   onClose: () => void;
   workout: any;
   onSaveWorkout: (updatedWorkout: any) => void;
+  completedExercises?: string[]; // Names of exercises already completed in this session
 }
 
 interface AlternativeCardProps {
