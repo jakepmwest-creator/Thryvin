@@ -1269,7 +1269,12 @@ const styles = StyleSheet.create({
   },
   userBubble: {
     alignSelf: 'flex-end',
-    backgroundColor: COLORS.accent,
+    backgroundColor: 'transparent',
+    overflow: 'hidden',
+  },
+  userBubbleGradient: {
+    borderRadius: 18,
+    padding: 14,
   },
   assistantBubble: {
     alignSelf: 'flex-start',
