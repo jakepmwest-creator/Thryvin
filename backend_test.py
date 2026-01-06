@@ -334,6 +334,82 @@ class ThryvinRESTOnlyPlansTester:
         except Exception as e:
             self.log_test("Plan Ensure", False, f"Request error: {str(e)}")
             return False
+    
+    def test_workout_generation_all_7_days(self) -> bool:
+        """Test 1: Generate Workouts for All 7 Days (New User without Advanced Questionnaire)"""
+        try:
+            # Test user profile for beginner with 3 training days
+            user_profile = {
+                "userId": 999,
+                "fitnessLevel": "beginner",
+                "trainingDays": 3,
+                "sessionDuration": 45,
+                "equipment": ["dumbbells", "bodyweight"],
+                "injuries": [],
+                "goal": "general_fitness"
+            }
+            
+            workout_days = []
+            rest_days = []
+            
+            # Test each day of the week (0-6)
+            for day_of_week in range(7):
+                try:
+                    payload = {
+                        "userProfile": user_profile,
+                        "dayOfWeek": day_of_week
+                    }
+                    
+                    response = self.session.post(f"{API_BASE}/workouts/generate", json=payload)
+                    
+                    # Verify JSON response
+                    is_json, data = self.verify_json_response(response, f"Workout Generation Day {day_of_week}")
+                    if not is_json:
+                        continue
+                    
+                    if response.status_code == 200:
+                        workout_type = data.get('type', 'unknown')
+                        exercises = data.get('exercises', [])
+                        
+                        if workout_type != "rest" and isinstance(exercises, list) and len(exercises) > 0:
+                            workout_days.append(day_of_week)
+                        else:
+                            rest_days.append(day_of_week)
+                            
+                    else:
+                        self.log_test(f"Workout Generation Day {day_of_week}", False, f"Request failed with status {response.status_code}")
+                        
+                except Exception as e:
+                    self.log_test(f"Workout Generation Day {day_of_week}", False, f"Request error: {str(e)}")
+                    continue
+            
+            # CRITICAL VALIDATION: At least 3 of the 7 days should have workouts (not rest)
+            workout_days_count = len(workout_days)
+            rest_days_count = len(rest_days)
+            
+            if workout_days_count < 3:
+                self.log_test("Workout Generation All 7 Days", False, f"CRITICAL: Expected at least 3 workout days, got {workout_days_count}. Workout days: {workout_days}, Rest days: {rest_days}")
+                return False
+            
+            # CRITICAL: NOT all 7 days should be rest days
+            if rest_days_count == 7:
+                self.log_test("Workout Generation All 7 Days", False, f"CRITICAL: All 7 days are REST-ONLY! This is the bug we're trying to fix.")
+                return False
+            
+            # For a 3-day plan, we should have exactly 3 workout days and 4 rest days
+            if workout_days_count == 3 and rest_days_count == 4:
+                self.log_test("Workout Generation All 7 Days", True, f"Perfect! 3-day plan has exactly 3 workout days {workout_days} and 4 rest days {rest_days}")
+                return True
+            elif workout_days_count >= 3:
+                self.log_test("Workout Generation All 7 Days", True, f"Good! {workout_days_count} workout days {workout_days} and {rest_days_count} rest days {rest_days}")
+                return True
+            else:
+                self.log_test("Workout Generation All 7 Days", False, f"Unexpected: {workout_days_count} workout days, {rest_days_count} rest days")
+                return False
+                
+        except Exception as e:
+            self.log_test("Workout Generation All 7 Days", False, f"Test error: {str(e)}")
+            return False
         
     def log_test(self, test_name: str, success: bool, message: str, details: Dict = None):
         """Log test results"""
