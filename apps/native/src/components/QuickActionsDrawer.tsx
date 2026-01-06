@@ -46,18 +46,19 @@ export interface QuickActionItem {
 
 // Complete list of quick actions
 export const ALL_QUICK_ACTIONS: QuickActionItem[] = [
-  // Primary (visible in collapsed state)
+  // Primary (visible in collapsed state) - 4 buttons
   { id: 'swap', icon: 'swap-horizontal', label: 'Swap Days', prompt: 'I need to swap my workout days', category: 'primary' },
   { id: 'add', icon: 'add-circle', label: 'Add Workout', prompt: 'Add a workout', category: 'primary' },
   { id: 'edit', icon: 'create', label: 'Edit', prompt: 'I want to edit my workout', category: 'primary' },
+  { id: 'harder', icon: 'flame', label: 'Harder', prompt: 'Make my workout harder', category: 'primary' },
   
   // Secondary (shown when expanded)
-  { id: 'shorter', icon: 'time-outline', label: 'Shorter', prompt: 'Make my workout shorter today', category: 'secondary' },
-  { id: 'harder', icon: 'flame', label: 'Harder', prompt: 'I want a more intense workout', category: 'secondary' },
-  { id: 'easier', icon: 'leaf', label: 'Easier', prompt: 'Make my workout easier today', category: 'secondary' },
-  { id: 'new', icon: 'refresh', label: 'New Workout', prompt: 'Generate a new workout for today', category: 'secondary' },
-  { id: 'skip', icon: 'close-circle', label: 'Skip Day', prompt: 'I want to skip today\'s workout', category: 'secondary' },
-  { id: 'rest', icon: 'bed', label: 'Rest Day', prompt: 'Make today a rest day', category: 'secondary' },
+  { id: 'easier', icon: 'leaf', label: 'Easier', prompt: 'Make my workout easier', category: 'secondary' },
+  { id: 'shorter', icon: 'time-outline', label: 'Shorter', prompt: 'Make my workout shorter', category: 'secondary' },
+  { id: 'longer', icon: 'timer-outline', label: 'Longer', prompt: 'Make my workout longer', category: 'secondary' },
+  { id: 'new', icon: 'refresh', label: 'New Workout', prompt: 'Generate a new workout for a specific day', category: 'secondary' },
+  { id: 'skip', icon: 'close-circle', label: 'Skip Day', prompt: 'I want to skip a workout day', category: 'secondary' },
+  { id: 'rest', icon: 'bed', label: 'Rest Day', prompt: 'Make a day a rest day', category: 'secondary' },
   { id: 'stats', icon: 'stats-chart', label: 'My Stats', prompt: 'Show me my progress stats', category: 'secondary' },
   { id: 'tomorrow', icon: 'calendar', label: 'Tomorrow', prompt: 'What\'s my workout tomorrow?', category: 'secondary' },
   { id: 'log', icon: 'clipboard', label: 'Log Workout', prompt: 'I want to log an unexpected workout', category: 'secondary' },
