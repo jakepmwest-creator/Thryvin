@@ -1103,7 +1103,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // UPDATE WORKOUT IN PLACE - modify exercises without regenerating
   // This endpoint takes user feedback and intelligently adjusts the workout
-  app.post("/api/workouts/update-in-place", requireAuth, async (req, res) => {
+  app.post("/api/workouts/update-in-place", authenticateToken, async (req: AuthenticatedRequest, res) => {
     const requestId = (req as ApiRequest).requestId || 'unknown';
     
     try {
