@@ -28,6 +28,12 @@ interface ViewAllWeeksModalProps {
 
 const DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
+// Get today's day index in our week array (0=Mon, 1=Tue, ..., 6=Sun)
+const getTodayDayIndex = (): number => {
+  const jsDay = new Date().getDay(); // 0=Sun, 1=Mon, ..., 6=Sat
+  return jsDay === 0 ? 6 : jsDay - 1; // Convert to 0=Mon, ..., 6=Sun
+};
+
 export const ViewAllWeeksModal = ({ visible, onClose }: ViewAllWeeksModalProps) => {
   const { weekWorkouts, completedWorkouts } = useWorkoutStore();
   const [selectedWeek, setSelectedWeek] = useState(1);
