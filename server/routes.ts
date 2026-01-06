@@ -1100,6 +1100,179 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // UPDATE WORKOUT IN PLACE - modify exercises without regenerating
+  // This endpoint takes user feedback and intelligently adjusts the workout
+  app.post("/api/workouts/update-in-place", requireAuth, async (req, res) => {
+    const requestId = (req as ApiRequest).requestId || 'unknown';
+    
+    try {
+      const userId = req.user?.id;
+      if (!userId) {
+        return res.status(401).json({ ok: false, error: 'Authentication required', requestId });
+      }
+      
+      const { modification, userFeedback, targetDay } = req.body;
+      
+      if (!modification || !['harder', 'easier', 'shorter', 'longer'].includes(modification)) {
+        return res.status(400).json({ 
+          ok: false, 
+          error: 'Invalid modification type. Must be: harder, easier, shorter, or longer',
+          requestId 
+        });
+      }
+      
+      // Get today's or specified day's workout
+      const today = new Date();
+      let targetDate: Date;
+      
+      if (targetDay) {
+        // Parse day name to date
+        const days = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+        const dayIndex = days.indexOf(targetDay.toLowerCase());
+        if (dayIndex === -1) {
+          return res.status(400).json({ ok: false, error: 'Invalid day name', requestId });
+        }
+        const currentDay = today.getDay();
+        const diff = dayIndex - currentDay;
+        targetDate = new Date(today);
+        targetDate.setDate(today.getDate() + diff);
+      } else {
+        targetDate = today;
+      }
+      
+      const dateStr = targetDate.toISOString().split('T')[0];
+      
+      // Get workout from database
+      const workouts = await storage.getWorkoutDays(userId);
+      const workout = workouts.find(w => w.date === dateStr);
+      
+      if (!workout) {
+        return res.status(404).json({ 
+          ok: false, 
+          error: `No workout found for ${dateStr}`,
+          requestId 
+        });
+      }
+      
+      const workoutData = workout.payloadJson as any;
+      
+      if (!workoutData || workoutData.isRestDay || workoutData.type === 'rest') {
+        return res.status(400).json({ 
+          ok: false, 
+          error: 'Cannot modify a rest day',
+          requestId 
+        });
+      }
+      
+      const exercises = workoutData.exercises || [];
+      
+      if (exercises.length === 0) {
+        return res.status(400).json({ 
+          ok: false, 
+          error: 'No exercises found in workout',
+          requestId 
+        });
+      }
+      
+      // Use AI to intelligently modify exercises based on feedback
+      const modificationPrompt = `You are a professional fitness trainer. Modify this workout based on the user's request.
+
+MODIFICATION TYPE: ${modification.toUpperCase()}
+USER FEEDBACK: ${userFeedback || 'General ' + modification + ' request'}
+
+CURRENT WORKOUT:
+Title: ${workoutData.title}
+Duration: ${workoutData.duration} minutes
+Exercises: ${JSON.stringify(exercises.map((e: any) => ({
+  name: e.name,
+  sets: e.sets,
+  reps: e.reps,
+  weight: e.weight,
+  duration: e.duration,
+  restTime: e.restTime
+})), null, 2)}
+
+MODIFICATION RULES:
+- HARDER: Increase sets by 1, increase reps by 2-3, decrease rest time by 10-15 sec, or increase weight suggestion
+- EASIER: Decrease sets by 1, decrease reps by 2-3, increase rest time by 15-30 sec
+- SHORTER: Remove 1-2 exercises OR reduce sets across all exercises. Target 20-30 min total.
+- LONGER: Add 1-2 sets to each exercise OR add a finisher set. Target 50-60 min total.
+
+Respond with JSON ONLY:
+{
+  "exercises": [
+    {
+      "name": "Exercise Name",
+      "sets": number,
+      "reps": number or "string like 30 sec",
+      "weight": "weight suggestion string",
+      "duration": number_in_seconds_if_applicable,
+      "restTime": number_in_seconds,
+      "notes": "brief note about change"
+    }
+  ],
+  "newDuration": estimated_total_minutes,
+  "summary": "One line summary of what changed"
+}`;
+
+      const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+      
+      const response = await openai.chat.completions.create({
+        model: "gpt-4o-mini",
+        messages: [
+          { role: "system", content: "You are a fitness expert. Respond with valid JSON only. Keep exercise names EXACTLY the same." },
+          { role: "user", content: modificationPrompt }
+        ],
+        response_format: { type: "json_object" },
+        temperature: 0.3,
+        max_tokens: 1500,
+      });
+      
+      const aiResponse = JSON.parse(response.choices[0].message.content || "{}");
+      
+      if (!aiResponse.exercises || !Array.isArray(aiResponse.exercises)) {
+        throw new Error('AI returned invalid response');
+      }
+      
+      // Update the workout in database
+      const updatedPayload = {
+        ...workoutData,
+        exercises: aiResponse.exercises,
+        duration: aiResponse.newDuration || workoutData.duration,
+        lastModified: new Date().toISOString(),
+        modificationHistory: [
+          ...(workoutData.modificationHistory || []),
+          { type: modification, feedback: userFeedback, timestamp: new Date().toISOString() }
+        ]
+      };
+      
+      await storage.updateWorkoutDay(workout.id, {
+        payloadJson: updatedPayload,
+      });
+      
+      console.log(`[API] ${requestId} | Updated workout for ${dateStr}: ${aiResponse.summary}`);
+      
+      res.json({
+        ok: true,
+        message: aiResponse.summary || `Workout updated to be ${modification}`,
+        updatedWorkout: {
+          title: workoutData.title,
+          duration: aiResponse.newDuration,
+          exerciseCount: aiResponse.exercises.length,
+        },
+        requestId,
+      });
+      
+    } catch (error: any) {
+      console.error(`[API] ${requestId} | Update workout error:`, error);
+      res.status(500).json({
+        ok: false,
+        error: error.message || 'Failed to update workout',
+        requestId,
+      });
+    }
+  });
+
   // Forgot password endpoint
   app.post("/api/auth/forgot-password", async (req, res) => {
     try {
