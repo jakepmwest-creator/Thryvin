@@ -175,23 +175,110 @@ async function ensureSeededUser(profileType: ProfileType) {
 
 /**
  * Seed workout history for a user
+ * Creates BOTH past workout history AND current week's workout plan
  */
 async function seedWorkoutHistory(userId: number, profileType: ProfileType) {
   console.log(`[QA] Seeding workout history for user ${userId} (${profileType})`);
   
-  // Create some realistic workout history entries
+  const profile = SEEDED_PROFILES[profileType];
+  const frequency = profile.profile.trainingDaysPerWeek || 3;
+  
+  // Clear any existing workout days first
+  const existingWorkouts = await storage.getWorkoutDays(userId);
+  for (const w of existingWorkouts) {
+    await storage.deleteWorkoutDay(w.id);
+  }
+  
   const now = new Date();
   const history = [];
   
-  // Generate 3-5 past workouts
-  const workoutCount = profileType === 'beginner' ? 3 : 5;
+  // ==========================================================================
+  // PART 1: Create CURRENT WEEK's workout plan (CRITICAL)
+  // ==========================================================================
   
-  for (let i = 0; i < workoutCount; i++) {
-    const date = new Date(now);
-    date.setDate(date.getDate() - (i * 2 + 1)); // Every other day going back
+  // Calculate Monday of current week
+  const currentDay = now.getDay();
+  const mondayOffset = currentDay === 0 ? -6 : 1 - currentDay;
+  const monday = new Date(now);
+  monday.setDate(now.getDate() + mondayOffset);
+  monday.setHours(0, 0, 0, 0);
+  
+  // Distribute workouts across the week based on frequency
+  const workoutDays = getWorkoutDaysForFrequency(frequency);
+  
+  console.log(`[QA] Creating ${frequency} workouts for current week on days: ${workoutDays.join(', ')}`);
+  
+  for (let dayIndex = 0; dayIndex < 7; dayIndex++) {
+    const date = new Date(monday);
+    date.setDate(monday.getDate() + dayIndex);
     const dateStr = date.toISOString().split('T')[0];
     
-    // Create workout day entry
+    const isWorkoutDay = workoutDays.includes(dayIndex);
+    
+    if (isWorkoutDay) {
+      // Get workout for this day
+      const workoutIndex = workoutDays.indexOf(dayIndex);
+      const exercises = getExercisesForProfile(profileType, workoutIndex);
+      
+      await storage.createWorkoutDay({
+        userId,
+        date: dateStr,
+        status: 'ready',
+        payloadJson: {
+          title: `${exercises.type.charAt(0).toUpperCase() + exercises.type.slice(1)} Workout`,
+          dayName: date.toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase(),
+          dayIndex: date.getDay(),
+          workoutType: exercises.type,
+          type: exercises.type,
+          duration: profileType === 'intermediate' ? 60 : 45,
+          intensity: 'medium',
+          exercises: exercises.list,
+          isRestDay: false,
+          isActivityDay: false,
+          overview: `${profileType.charAt(0).toUpperCase() + profileType.slice(1)} ${exercises.type} workout`,
+          targetMuscles: getMusclesForType(exercises.type),
+          caloriesBurn: Math.round((profileType === 'intermediate' ? 60 : 45) * 8),
+        },
+      });
+      history.push(dateStr);
+    } else {
+      // Create rest day entry
+      await storage.createWorkoutDay({
+        userId,
+        date: dateStr,
+        status: 'ready',
+        payloadJson: {
+          title: 'Rest Day',
+          dayName: date.toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase(),
+          dayIndex: date.getDay(),
+          workoutType: 'rest',
+          type: 'rest',
+          duration: 0,
+          exercises: [],
+          isRestDay: true,
+          isActivityDay: false,
+          overview: 'Rest and recovery',
+          targetMuscles: 'None',
+          caloriesBurn: 0,
+        },
+      });
+    }
+  }
+  
+  console.log(`[QA] Created ${history.length} current week workouts + ${7 - history.length} rest days`);
+  
+  // ==========================================================================
+  // PART 2: Create some PAST workout history (for stats)
+  // ==========================================================================
+  
+  // Generate 3-5 past workouts (last week)
+  const pastWorkoutCount = profileType === 'beginner' ? 3 : 5;
+  
+  for (let i = 0; i < pastWorkoutCount; i++) {
+    const date = new Date(monday);
+    date.setDate(monday.getDate() - (i * 2 + 1)); // Every other day going back from Monday
+    const dateStr = date.toISOString().split('T')[0];
+    
     const exercises = getExercisesForProfile(profileType, i);
     
     try {
@@ -200,24 +287,67 @@ async function seedWorkoutHistory(userId: number, profileType: ProfileType) {
         date: dateStr,
         status: 'ready',
         payloadJson: {
+          title: `${exercises.type.charAt(0).toUpperCase() + exercises.type.slice(1)} Workout`,
           dayName: date.toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase(),
           dayIndex: date.getDay(),
           workoutType: exercises.type,
+          type: exercises.type,
           duration: profileType === 'intermediate' ? 60 : 45,
           intensity: 'medium',
           exercises: exercises.list,
           isCompleted: true,
           completedAt: date.toISOString(),
+          isRestDay: false,
+          overview: `Completed ${exercises.type} workout`,
+          targetMuscles: getMusclesForType(exercises.type),
         },
         completedAt: date,
       });
-      history.push(dateStr);
     } catch (error) {
       // May already exist, ignore
     }
   }
   
-  console.log(`[QA] Created ${history.length} workout history entries`);
+  console.log(`[QA] Created ${pastWorkoutCount} past workout history entries`);
+  return history;
+}
+
+/**
+ * Get workout days distribution based on frequency
+ */
+function getWorkoutDaysForFrequency(frequency: number): number[] {
+  // 0=Sun, 1=Mon, 2=Tue, 3=Wed, 4=Thu, 5=Fri, 6=Sat
+  const distributions: Record<number, number[]> = {
+    1: [1],                          // Monday
+    2: [1, 4],                       // Mon, Thu
+    3: [1, 3, 5],                    // Mon, Wed, Fri
+    4: [1, 2, 4, 5],                 // Mon, Tue, Thu, Fri
+    5: [1, 2, 3, 4, 5],              // Mon-Fri
+    6: [1, 2, 3, 4, 5, 6],           // Mon-Sat
+    7: [0, 1, 2, 3, 4, 5, 6],        // Every day
+  };
+  return distributions[frequency] || distributions[3];
+}
+
+/**
+ * Get target muscles for workout type
+ */
+function getMusclesForType(type: string): string {
+  const muscleMap: Record<string, string> = {
+    'full_body': 'Chest, Back, Legs, Shoulders',
+    'full': 'Chest, Back, Legs, Shoulders',
+    'upper': 'Chest, Back, Shoulders, Arms',
+    'lower': 'Quads, Hamstrings, Glutes, Calves',
+    'push': 'Chest, Shoulders, Triceps',
+    'pull': 'Back, Biceps, Rear Delts',
+    'legs': 'Quads, Hamstrings, Glutes, Calves',
+    'chest': 'Chest, Triceps',
+    'back': 'Back, Biceps',
+    'machine_circuit': 'Full Body (Machines)',
+    'recovery': 'Core, Mobility',
+  };
+  return muscleMap[type.toLowerCase()] || 'Full Body';
+}
   return history;
 }
 
