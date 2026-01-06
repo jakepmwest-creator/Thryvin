@@ -46,13 +46,13 @@ export interface QuickActionItem {
 
 // Complete list of quick actions
 export const ALL_QUICK_ACTIONS: QuickActionItem[] = [
-  // Primary (visible in collapsed state) - 4 buttons
+  // Primary (visible in collapsed state) - 3 buttons only
   { id: 'swap', icon: 'swap-horizontal', label: 'Swap Days', prompt: 'I need to swap my workout days', category: 'primary' },
   { id: 'add', icon: 'add-circle', label: 'Add Workout', prompt: 'Add a workout', category: 'primary' },
   { id: 'edit', icon: 'create', label: 'Edit', prompt: 'I want to edit my workout', category: 'primary' },
-  { id: 'harder', icon: 'flame', label: 'Harder', prompt: 'Make my workout harder', category: 'primary' },
   
   // Secondary (shown when expanded)
+  { id: 'harder', icon: 'flame', label: 'Harder', prompt: 'Make my workout harder', category: 'secondary' },
   { id: 'easier', icon: 'leaf', label: 'Easier', prompt: 'Make my workout easier', category: 'secondary' },
   { id: 'shorter', icon: 'time-outline', label: 'Shorter', prompt: 'Make my workout shorter', category: 'secondary' },
   { id: 'longer', icon: 'timer-outline', label: 'Longer', prompt: 'Make my workout longer', category: 'secondary' },
