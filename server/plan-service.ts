@@ -35,6 +35,7 @@ interface PlanStatus {
 
 /**
  * Get plan status for a user
+ * FIXED: Now counts REAL workouts only (not rest days)
  */
 async function getPlanStatus(userId: number): Promise<PlanStatus> {
   try {
@@ -50,6 +51,19 @@ async function getPlanStatus(userId: number): Promise<PlanStatus> {
       };
     }
     
+    // Count REAL workouts only (not rest days or activity days)
+    let realWorkoutCount = 0;
+    for (const w of workouts) {
+      const payload = w.payloadJson as any;
+      if (payload && !payload.isRestDay && !payload.isActivityDay && payload.type !== 'rest') {
+        // Check if it has exercises
+        const exercises = payload.exercises || [];
+        if (exercises.length > 0 || payload.type === 'generating' || payload.status === 'pending') {
+          realWorkoutCount++;
+        }
+      }
+    }
+    
     // Find the most recent generation timestamp
     const sortedWorkouts = [...workouts].sort((a, b) => {
       const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
@@ -60,10 +74,10 @@ async function getPlanStatus(userId: number): Promise<PlanStatus> {
     const lastGenerated = sortedWorkouts[0]?.createdAt;
     
     return {
-      exists: true,
-      workoutsCount: workouts.length,
+      exists: realWorkoutCount > 0,
+      workoutsCount: realWorkoutCount,
       lastGeneratedAt: lastGenerated ? new Date(lastGenerated).toISOString() : null,
-      planId: `plan_${userId}_${workouts.length}`,
+      planId: realWorkoutCount > 0 ? `plan_${userId}_${realWorkoutCount}` : null,
     };
   } catch (error) {
     console.error('Error getting plan status:', error);
