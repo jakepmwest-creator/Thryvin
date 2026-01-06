@@ -863,10 +863,10 @@ export default function WorkoutHubScreen() {
                           <Ionicons name="chevron-back" size={28} color={COLORS.text} />
                         </TouchableOpacity>
                         <Text style={styles.modalTitle}>{exercise.name}</Text>
-                        {/* Coach button in exercise detail (Phase 8.5) */}
+                        {/* Coach button in exercise detail - opens FloatingCoachButton */}
                         <TouchableOpacity
                           style={styles.exerciseCoachButton}
-                          onPress={() => setShowCoachSheet(true)}
+                          onPress={() => openChat(`Help me with ${exercise.name}`)}
                         >
                           <Ionicons name="chatbubble-ellipses" size={20} color={COLORS.primary} />
                         </TouchableOpacity>
