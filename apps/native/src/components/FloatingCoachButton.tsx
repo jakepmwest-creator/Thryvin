@@ -44,6 +44,40 @@ const EDGE_PADDING = 20;
 // Use backend API instead of direct OpenAI calls
 const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL || 'https://login-wizard-3.preview.emergentagent.com';
 
+// Helper to make authenticated API calls
+const makeAuthenticatedRequest = async (
+  endpoint: string, 
+  method: string = 'POST', 
+  body?: any
+): Promise<{ ok: boolean; data?: any; error?: string }> => {
+  try {
+    const token = await SecureStore.getItemAsync('auth_token');
+    if (!token) {
+      return { ok: false, error: 'Not authenticated. Please log in again.' };
+    }
+    
+    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+      method,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+      body: body ? JSON.stringify(body) : undefined,
+    });
+    
+    const data = await response.json().catch(() => ({}));
+    
+    if (!response.ok) {
+      return { ok: false, error: data.error || `Request failed (${response.status})` };
+    }
+    
+    return { ok: true, data };
+  } catch (error: any) {
+    console.error('API request error:', error);
+    return { ok: false, error: error.message || 'Network error' };
+  }
+};
+
 // Message type that can include inline suggestions
 interface ChatMessage {
   role: 'user' | 'assistant';
