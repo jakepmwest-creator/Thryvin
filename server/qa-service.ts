@@ -508,17 +508,18 @@ export function setupQARoutes(app: Express) {
       // Seed new workout history
       const history = await seedWorkoutHistory(user.id, profileType);
       
-      console.log(`[QA] Regenerated plan for ${email}`);
+      console.log(`[QA] ${requestId} | regenerate-plan email=${email} status=SUCCESS workouts=${history.length}`);
       
-      res.json({
+      return res.json({
         ok: true,
         message: `Regenerated plan for ${email}`,
         workoutsCreated: history.length,
         requestId,
       });
+      
     } catch (error: any) {
-      console.error(`[QA] Regenerate failed:`, error);
-      res.status(500).json({
+      console.error(`[QA] ${requestId} | regenerate-plan status=ERROR error=${error.message}`);
+      return res.status(500).json({
         ok: false,
         error: error.message || 'Failed to regenerate plan',
         code: 'QA_REGENERATE_FAILED',
@@ -531,18 +532,21 @@ export function setupQARoutes(app: Express) {
    * GET /api/qa/profiles
    * Get available test profiles (for debugging)
    */
-  app.get('/api/qa/profiles', qaGate, (req, res) => {
-    const requestId = (req as ApiRequest).requestId || 'unknown';
+  app.get('/api/qa/profiles', qaGate, (req: any, res: Response) => {
+    const requestId = (req as ApiRequest).requestId || `qa_profiles_${Date.now()}`;
     
-    res.json({
+    // Ensure JSON response
+    res.setHeader('Content-Type', 'application/json');
+    
+    return res.json({
       ok: true,
       profiles: Object.keys(SEEDED_PROFILES).map(key => ({
         id: key,
         email: SEEDED_PROFILES[key as ProfileType].email,
         name: SEEDED_PROFILES[key as ProfileType].name,
         hasAdvancedQuestionnaire: SEEDED_PROFILES[key as ProfileType].hasAdvancedQuestionnaire,
-        trainingDays: SEEDED_PROFILES[key as ProfileType].profile.trainingDays,
-        sessionDuration: SEEDED_PROFILES[key as ProfileType].profile.sessionDuration,
+        trainingDays: SEEDED_PROFILES[key as ProfileType].profile.trainingDaysPerWeek,
+        sessionDuration: SEEDED_PROFILES[key as ProfileType].profile.sessionDurationPreference,
       })),
       requestId,
     });
