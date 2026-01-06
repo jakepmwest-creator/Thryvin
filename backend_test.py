@@ -292,72 +292,76 @@ class ThryvinQALoginJSONTester:
             print(f"   Details: {json.dumps(details, indent=2)}")
     
     def run_all_tests(self):
-        """Run all Workout Validation and Coach Action tests as specified in review request"""
-        print("🏋️ Starting Thryvin AI Fitness App Backend Testing - Workout Validation & Coach Action Tests")
-        print("Testing CRITICAL workout validation and coach action fixes:")
-        print("1. Plan Ensure Validation (POST /api/workouts/plan/ensure)")
-        print("2. Coach Action Mismatch Blocking (POST /api/coach/actions/execute) - CRITICAL")
-        print("3. Valid Coach Action (POST /api/coach/actions/execute)")
-        print("4. Back Workout Mismatch Test (POST /api/coach/actions/execute)")
-        print("5. Explicit Cardio Request (POST /api/coach/actions/execute)")
-        print("=" * 60)
+        """Run all QA Login JSON Response Reliability tests as specified in review request"""
+        print("🔐 Starting Thryvin AI Fitness App Backend Testing - QA Login JSON Response Reliability Tests")
+        print("Testing CRITICAL QA login endpoints for JSON response reliability:")
+        print("1. QA Login - Beginner (10 consecutive times) - POST /api/qa/login-as")
+        print("2. QA Login - Intermediate - POST /api/qa/login-as")
+        print("3. QA Login - Injury - POST /api/qa/login-as")
+        print("4. QA Login - Invalid Profile - POST /api/qa/login-as (should return 400 with INVALID_PROFILE)")
+        print("5. QA Login - Empty Body - POST /api/qa/login-as (should return 400 JSON error)")
+        print("6. QA Reset User - POST /api/qa/reset-user")
+        print("7. QA Profiles List - GET /api/qa/profiles")
+        print("=" * 80)
         
         print(f"🔗 Backend URL: {BASE_URL}")
-        print("=" * 60)
+        print("🚨 CRITICAL CHECK: Every single response must be valid JSON with Content-Type application/json. NO HTML responses allowed.")
+        print("=" * 80)
         
-        # First, get auth tokens
-        print("\n🔑 Setting up authentication...")
-        beginner_success = self.test_qa_login_beginner()
+        # Test 1: QA Login - Beginner (10 consecutive times)
+        print("\n🔄 Test 1: QA Login - Beginner (10 consecutive times)...")
+        beginner_10x_success = self.test_qa_login_beginner_10x()
+        
+        # Test 2: QA Login - Intermediate
+        print("\n🔐 Test 2: QA Login - Intermediate...")
         intermediate_success = self.test_qa_login_intermediate()
         
-        if not beginner_success or not intermediate_success:
-            print("❌ Failed to get required auth tokens. Cannot proceed with workout tests.")
-            return False
+        # Test 3: QA Login - Injury
+        print("\n🏥 Test 3: QA Login - Injury...")
+        injury_success = self.test_qa_login_injury()
         
-        print("✅ Auth tokens obtained successfully")
+        # Test 4: QA Login - Invalid Profile
+        print("\n❌ Test 4: QA Login - Invalid Profile...")
+        invalid_profile_success = self.test_qa_login_invalid_profile()
         
-        # Test 1: Plan Ensure Validation
-        print("\n📋 Test 1: Plan Ensure Validation...")
-        plan_ensure_success = self.test_plan_ensure_validation()
+        # Test 5: QA Login - Empty Body
+        print("\n📭 Test 5: QA Login - Empty Body...")
+        empty_body_success = self.test_qa_login_empty_body()
         
-        # Test 2: Coach Action Mismatch Blocking (CRITICAL)
-        print("\n🚫 Test 2: Coach Action Mismatch Blocking (CRITICAL)...")
-        mismatch_blocking_success = self.test_coach_action_mismatch_blocking()
+        # Test 6: QA Reset User
+        print("\n🔄 Test 6: QA Reset User...")
+        reset_user_success = self.test_qa_reset_user()
         
-        # Test 3: Valid Coach Action
-        print("\n✅ Test 3: Valid Coach Action...")
-        valid_action_success = self.test_valid_coach_action()
+        # Test 7: QA Profiles List
+        print("\n📋 Test 7: QA Profiles List...")
+        profiles_list_success = self.test_qa_profiles_list()
         
-        # Test 4: Back Workout Mismatch Test
-        print("\n🚫 Test 4: Back Workout Mismatch Test...")
-        back_mismatch_success = self.test_back_workout_mismatch()
+        print("\n" + "=" * 80)
+        print("🏁 QA Login JSON Response Reliability Test Results:")
         
-        # Test 5: Explicit Cardio Request
-        print("\n💓 Test 5: Explicit Cardio Request...")
-        cardio_success = self.test_explicit_cardio_request()
-        
-        print("\n" + "=" * 60)
-        print("🏁 Workout Validation & Coach Action Test Results:")
-        
-        # Count only the workout validation tests (not auth setup)
-        workout_tests = [
-            plan_ensure_success,
-            mismatch_blocking_success,
-            valid_action_success,
-            back_mismatch_success,
-            cardio_success
+        # Count all QA login tests
+        qa_tests = [
+            beginner_10x_success,
+            intermediate_success,
+            injury_success,
+            invalid_profile_success,
+            empty_body_success,
+            reset_user_success,
+            profiles_list_success
         ]
         
-        passed_workout_tests = sum(1 for result in workout_tests if result)
-        total_workout_tests = len(workout_tests)
+        passed_qa_tests = sum(1 for result in qa_tests if result)
+        total_qa_tests = len(qa_tests)
         
-        print(f"✅ {passed_workout_tests}/{total_workout_tests} workout validation tests passed")
+        print(f"✅ {passed_qa_tests}/{total_qa_tests} QA login JSON response tests passed")
         
-        if passed_workout_tests == total_workout_tests:
-            print("🎉 All CRITICAL workout validation and coach action tests passed!")
+        if passed_qa_tests == total_qa_tests:
+            print("🎉 All CRITICAL QA login JSON response reliability tests passed!")
+            print("🔒 All responses are valid JSON with correct Content-Type headers!")
             return True
         else:
-            print(f"⚠️ {total_workout_tests - passed_workout_tests} CRITICAL tests failed")
+            print(f"⚠️ {total_qa_tests - passed_qa_tests} CRITICAL tests failed")
+            print("🚨 Some responses may not be valid JSON or have incorrect Content-Type!")
             return False
     
     def print_summary(self):
@@ -374,7 +378,7 @@ class ThryvinQALoginJSONTester:
 
 def main():
     """Main test runner"""
-    tester = ThryvinWorkoutValidationTester()
+    tester = ThryvinQALoginJSONTester()
     
     try:
         success = tester.run_all_tests()
