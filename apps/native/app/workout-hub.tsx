@@ -30,6 +30,7 @@ import { WorkoutActionBar } from '../src/components/WorkoutActionBar';
 import { CoachNudgeCard } from '../src/components/CoachNudgeCard';
 import { useCoachNudges, useLearningEvents } from '../src/hooks/useCoachNudges';
 import { useAuthStore } from '../src/stores/auth-store';
+import { useCoachStore } from '../src/stores/coach-store';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
