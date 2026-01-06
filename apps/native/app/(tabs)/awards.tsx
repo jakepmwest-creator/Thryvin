@@ -1104,7 +1104,7 @@ export default function AwardsScreen() {
       const rarityEmoji = selectedBadge.rarity === 'legendary' ? '💎' : selectedBadge.rarity === 'epic' ? '⭐' : selectedBadge.rarity === 'rare' ? '🔷' : '✨';
       const island = ISLANDS.find(i => i.id === selectedBadge.island);
       
-      // Rich share message with visual appeal
+      // Rich share message with visual appeal and link to thryvin.app
       const shareMessage = `
 🏆 Achievement Unlocked! 🏆
 
@@ -1118,13 +1118,14 @@ ${RARITY_LABELS[selectedBadge.rarity]} Badge
 💪 Join me on Thryvin - Your AI Fitness Coach!
 Transform your fitness journey with personalized workouts and gamified progression.
 
-🔗 Download Thryvin (Coming Soon to App Store)
+🔗 https://thryvin.app
 #Thryvin #FitnessGoals #Achievement #WorkoutMotivation
       `.trim();
       
       await Share.share({ 
         message: shareMessage,
         title: `${selectedBadge.name} - Thryvin Achievement`,
+        url: 'https://thryvin.app',
       });
     } catch (error) { 
       console.error('Error sharing:', error); 
