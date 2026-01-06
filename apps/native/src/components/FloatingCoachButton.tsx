@@ -1623,7 +1623,7 @@ export function FloatingCoachButton({
                         end={{ x: 1, y: 1 }}
                       >
                         <Text style={[styles.messageText, styles.userText]}>
-                          {msg.text}
+                          {typeof msg.text === 'string' ? msg.text : JSON.stringify(msg.text)}
                         </Text>
                       </LinearGradient>
                     ) : (
@@ -1632,7 +1632,7 @@ export function FloatingCoachButton({
                           <Ionicons name="sparkles" size={14} color={COLORS.accent} />
                         </View>
                         <Text style={[styles.messageText, styles.assistantText]}>
-                          {msg.text}
+                          {typeof msg.text === 'string' ? msg.text : JSON.stringify(msg.text)}
                         </Text>
                       </>
                     )}
