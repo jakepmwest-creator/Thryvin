@@ -597,41 +597,11 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
             });
             console.log(`💪 [3-WEEK] Day ${i + 1}/21: ${workout.title} (${workout.exercises?.length || 0} exercises)`);
           }
-                // Save partial progress
-                await setStorageItem('week_workouts', JSON.stringify(weekWorkouts));
-                await setStorageItem('week_workouts_date', weekKey);
-                await setStorageItem('week_workouts_version', CACHE_VERSION);
-                // Release lock on partial save
-                await deleteStorageItem('workout_generation_lock');
-                set({ weekWorkouts, isLoading: false, error: `Generated ${weekWorkouts.length}/21 days. ${lastError || 'Some days failed to generate.'}` });
-                return;
-              }
-              throw new Error(`Failed to generate day ${i + 1}: ${lastError}`);
-            }
-            
-            weekWorkouts.push({
-              id: `workout_${date.getTime()}`,
-              title: workout.title,
-              type: workout.type,
-              difficulty: workout.difficulty,
-              duration: workout.duration,
-              date: date.toISOString(),
-              exercises: workout.exercises,
-              overview: workout.overview,
-              targetMuscles: workout.targetMuscles,
-              caloriesBurn: workout.caloriesBurn,
-              exerciseList: workout.exercises,
-              status: 'ready',
-            });
-            
-            workoutDayCounter++;
-            console.log(`✅ [3-WEEK] Day ${i + 1}/21 complete: ${workout.title}`);
-            
-            // Save progress every 7 days to prevent total loss
-            if (weekWorkouts.length % 7 === 0) {
-              console.log(`💾 [3-WEEK] Saving checkpoint at ${weekWorkouts.length} days...`);
-              await setStorageItem('week_workouts', JSON.stringify(weekWorkouts));
-            }
+          
+          // Save progress every 7 days to prevent total loss
+          if (weekWorkouts.length % 7 === 0) {
+            console.log(`💾 [3-WEEK] Saving checkpoint at ${weekWorkouts.length} days...`);
+            await setStorageItem('week_workouts', JSON.stringify(weekWorkouts));
           }
         }
         
