@@ -1679,11 +1679,41 @@ export function FloatingCoachButton({
               )}
             </ScrollView>
             
-            {/* Swipe-Up Quick Actions Drawer */}
-            <QuickActionsDrawer
-              onSelectAction={handleQuickActionFromDrawer}
-              visible={showQuickActionsDrawer && !isLoading}
-            />
+            {/* Workout-Specific Quick Prompts (only in workout mode) */}
+            {contextMode === 'in_workout' && workoutContext?.currentExercise && (
+              <View style={styles.workoutPromptsContainer}>
+                <Text style={styles.workoutPromptsLabel}>
+                  💪 {workoutContext.currentExercise.name}
+                </Text>
+                <ScrollView 
+                  horizontal 
+                  showsHorizontalScrollIndicator={false}
+                  contentContainerStyle={styles.workoutPromptsScroll}
+                >
+                  {WORKOUT_QUICK_PROMPTS.map((prompt) => (
+                    <TouchableOpacity
+                      key={prompt.id}
+                      style={styles.workoutPromptChip}
+                      onPress={() => {
+                        setInputText(prompt.prompt);
+                        handleSend(prompt.prompt);
+                      }}
+                    >
+                      <Ionicons name={prompt.icon as any} size={14} color={COLORS.accent} />
+                      <Text style={styles.workoutPromptText}>{prompt.label}</Text>
+                    </TouchableOpacity>
+                  ))}
+                </ScrollView>
+              </View>
+            )}
+            
+            {/* Swipe-Up Quick Actions Drawer (hidden in workout mode - use chips above instead) */}
+            {contextMode !== 'in_workout' && (
+              <QuickActionsDrawer
+                onSelectAction={handleQuickActionFromDrawer}
+                visible={showQuickActionsDrawer && !isLoading}
+              />
+            )}
 
             <View style={styles.inputContainer}>
               <View style={styles.inputWrapper}>
