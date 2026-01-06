@@ -1,16 +1,18 @@
 #!/usr/bin/env python3
 """
-Backend API Testing Suite for Thryvin AI Fitness App - QA Login JSON Response Reliability Tests
-Tests the CRITICAL QA login endpoints for JSON response reliability:
-1. QA Login - Beginner (10 consecutive times) - POST /api/qa/login-as
-2. QA Login - Intermediate - POST /api/qa/login-as  
-3. QA Login - Injury - POST /api/qa/login-as
-4. QA Login - Invalid Profile - POST /api/qa/login-as (should return 400 with INVALID_PROFILE)
-5. QA Login - Empty Body - POST /api/qa/login-as (should return 400 JSON error)
-6. QA Reset User - POST /api/qa/reset-user
-7. QA Profiles List - GET /api/qa/profiles
+Backend API Testing Suite for Thryvin AI Fitness App - REST-ONLY Plans Fix Tests
+Tests the CRITICAL REST-ONLY plans fix:
+1. QA Login - Beginner Profile (workoutsCount >= 3, trainingDaysPerWeek = 3)
+2. QA Login - Intermediate Profile (workoutsCount >= 4, trainingDaysPerWeek = 4)
+3. QA Login - Injury Profile (workoutsCount >= 4, trainingDaysPerWeek = 4)
+4. Get Workout Plan Days (NEW ENDPOINT) - GET /api/workouts/plan/days
+5. Plan Status Check - GET /api/workouts/plan/status
+6. Plan Ensure - POST /api/workouts/plan/ensure
 
-CRITICAL CHECK: Every single response must be valid JSON with Content-Type application/json. NO HTML responses allowed.
+CRITICAL CHECKS:
+- NO more REST-ONLY plans
+- All QA users have real workouts with exercises
+- workoutsCount MUST always be >= trainingDaysPerWeek
 """
 
 import requests
