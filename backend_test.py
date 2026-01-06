@@ -429,12 +429,13 @@ class ThryvinRESTOnlyPlansTester:
         """Run all REST-ONLY Plans Fix tests as specified in review request"""
         print("🏋️ Starting Thryvin AI Fitness App Backend Testing - REST-ONLY Plans Fix Tests")
         print("Testing CRITICAL REST-ONLY plans fix:")
-        print("1. QA Login - Beginner Profile (workoutsCount >= 3, trainingDaysPerWeek = 3)")
-        print("2. QA Login - Intermediate Profile (workoutsCount >= 4, trainingDaysPerWeek = 4)")
-        print("3. QA Login - Injury Profile (workoutsCount >= 4, trainingDaysPerWeek = 4)")
-        print("4. Get Workout Plan Days (NEW ENDPOINT) - GET /api/workouts/plan/days")
-        print("5. Plan Status Check - GET /api/workouts/plan/status")
-        print("6. Plan Ensure - POST /api/workouts/plan/ensure")
+        print("1. Generate Workouts for All 7 Days (New User without Advanced Questionnaire)")
+        print("2. QA Login - Beginner Profile (workoutsCount >= 3, trainingDaysPerWeek = 3)")
+        print("3. QA Login - Intermediate Profile (workoutsCount >= 4, trainingDaysPerWeek = 4)")
+        print("4. QA Login - Injury Profile (workoutsCount >= 4, trainingDaysPerWeek = 4)")
+        print("5. Get Workout Plan Days (NEW ENDPOINT) - GET /api/workouts/plan/days")
+        print("6. Plan Status Check - GET /api/workouts/plan/status")
+        print("7. Plan Ensure - POST /api/workouts/plan/ensure")
         print("=" * 80)
         
         print(f"🔗 Backend URL: {BASE_URL}")
@@ -442,30 +443,35 @@ class ThryvinRESTOnlyPlansTester:
         print("   - NO more REST-ONLY plans")
         print("   - All QA users have real workouts with exercises")
         print("   - workoutsCount MUST always be >= trainingDaysPerWeek")
+        print("   - 3-day plan should have exactly 3 workout days with exercises")
         print("=" * 80)
         
-        # Test 1: QA Login - Beginner Profile with workout validation
-        print("\n🔰 Test 1: QA Login - Beginner Profile...")
+        # Test 1: Generate Workouts for All 7 Days (MOST CRITICAL)
+        print("\n🎯 Test 1: Generate Workouts for All 7 Days (New User without Advanced Questionnaire)...")
+        workout_generation_success = self.test_workout_generation_all_7_days()
+        
+        # Test 2: QA Login - Beginner Profile with workout validation
+        print("\n🔰 Test 2: QA Login - Beginner Profile...")
         beginner_success = self.test_qa_login_beginner_with_workout_validation()
         
-        # Test 2: QA Login - Intermediate Profile with workout validation
-        print("\n🔶 Test 2: QA Login - Intermediate Profile...")
+        # Test 3: QA Login - Intermediate Profile with workout validation
+        print("\n🔶 Test 3: QA Login - Intermediate Profile...")
         intermediate_success = self.test_qa_login_intermediate_with_workout_validation()
         
-        # Test 3: QA Login - Injury Profile with workout validation
-        print("\n🏥 Test 3: QA Login - Injury Profile...")
+        # Test 4: QA Login - Injury Profile with workout validation
+        print("\n🏥 Test 4: QA Login - Injury Profile...")
         injury_success = self.test_qa_login_injury_with_workout_validation()
         
-        # Test 4: Get Workout Plan Days (NEW ENDPOINT)
-        print("\n📅 Test 4: Get Workout Plan Days (NEW ENDPOINT)...")
+        # Test 5: Get Workout Plan Days (NEW ENDPOINT)
+        print("\n📅 Test 5: Get Workout Plan Days (NEW ENDPOINT)...")
         plan_days_success = self.test_workout_plan_days()
         
-        # Test 5: Plan Status Check
-        print("\n📊 Test 5: Plan Status Check...")
+        # Test 6: Plan Status Check
+        print("\n📊 Test 6: Plan Status Check...")
         plan_status_success = self.test_plan_status_check()
         
-        # Test 6: Plan Ensure
-        print("\n✅ Test 6: Plan Ensure...")
+        # Test 7: Plan Ensure
+        print("\n✅ Test 7: Plan Ensure...")
         plan_ensure_success = self.test_plan_ensure()
         
         print("\n" + "=" * 80)
@@ -473,6 +479,7 @@ class ThryvinRESTOnlyPlansTester:
         
         # Count all critical tests
         critical_tests = [
+            workout_generation_success,  # MOST CRITICAL TEST
             beginner_success,
             intermediate_success,
             injury_success,
