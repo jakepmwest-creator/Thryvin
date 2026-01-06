@@ -602,58 +602,6 @@ export default function WorkoutHubScreen() {
 
   // Build workout context for coach (Phase 8)
   // CRASH FIX: Safely access session data with optional chaining + defaults
-  const buildWorkoutContextForCoach = () => {
-    const currentEx = expandedExercise !== null ? exercises[expandedExercise] : null;
-    const totalExercises = exercises?.length || 0;
-    
-    // Safely get completed exercises count from session
-    const completedExercisesCount = activeSession?.completedExercises?.size || 0;
-    const progressPercent = totalExercises > 0 
-      ? Math.round((completedExercisesCount / totalExercises) * 100) 
-      : 0;
-    
-    // Safely get logged sets for current exercise from session exerciseData
-    let userLoggedSets = 0;
-    let lastWeight: number | undefined;
-    let lastReps: number | undefined;
-    
-    if (currentEx && activeSession?.exerciseData && expandedExercise !== null) {
-      const exerciseData = activeSession.exerciseData.get(expandedExercise);
-      const completedSetsForExercise = exerciseData?.completedSets || [];
-      userLoggedSets = completedSetsForExercise.length;
-      
-      // Get last logged weight/reps if available
-      if (completedSetsForExercise.length > 0) {
-        const lastSet = completedSetsForExercise[completedSetsForExercise.length - 1];
-        lastWeight = lastSet?.weight;
-        lastReps = lastSet?.reps;
-      }
-    }
-    
-    // Use input fields if no logged data, with safe parsing
-    const currentWeight = lastWeight ?? (weight ? parseFloat(weight) : undefined);
-    const currentReps = lastReps ?? (reps ? parseInt(reps, 10) : undefined);
-    
-    return {
-      workoutId: currentWorkout?.id,
-      workoutTitle: currentWorkout?.title || 'Today\'s Workout',
-      workoutType: currentWorkout?.type || 'strength',
-      currentExercise: currentEx ? {
-        id: currentEx.id,
-        name: currentEx.name,
-        sets: currentEx.sets,
-        reps: currentEx.reps,
-        restTime: currentEx.restTime,
-        userLoggedSets,
-        lastEnteredWeight: currentWeight,
-        lastEnteredReps: currentReps,
-      } : undefined,
-      remainingExercisesCount: Math.max(0, totalExercises - completedExercisesCount),
-      progressPercent,
-      userIntentHint: 'in_workout' as const,
-    };
-  };
-
   // Safety check: if no workout, show message
   if (!currentWorkout || exercises.length === 0) {
     return (
