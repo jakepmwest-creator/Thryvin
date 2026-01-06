@@ -1206,14 +1206,30 @@ export function FloatingCoachButton({ contextMode = 'home' }: { contextMode?: 'i
             text: `🔄 Updating your workout to make it ${modLabels[mod]}...` 
           }]);
           
-          // TODO: Call backend to update workout intensity/duration
-          // For now, show success message
-          await new Promise(resolve => setTimeout(resolve, 800));
+          // Call backend to update workout
+          const updateResult = await makeAuthenticatedRequest('/api/coach/actions/execute', 'POST', {
+            action: {
+              type: mod === 'shorter' || mod === 'longer' ? 'REGENERATE_SESSION' : 'REPLACE_SESSION',
+              dayOfWeek: new Date().toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase(),
+              workoutType: action.params?.workoutType || 'strength',
+              durationMinutes: mod === 'shorter' ? 30 : mod === 'longer' ? 60 : 45,
+              intensity: mod === 'harder' ? 'high' : mod === 'easier' ? 'low' : 'medium',
+            }
+          });
           
-          setMessages(prev => [...prev, { 
-            role: 'assistant', 
-            text: `Done! ✅ Your workout has been updated to be ${modLabels[mod]}.\n\nThe changes have been applied - check your Workouts tab! 💪` 
-          }]);
+          if (updateResult.ok) {
+            setMessages(prev => [...prev, { 
+              role: 'assistant', 
+              text: `Done! ✅ Your workout has been updated to be ${modLabels[mod]}.\n\nThe changes have been applied - check your Workouts tab! 💪` 
+            }]);
+            // Refresh workouts
+            await useWorkoutStore.getState().fetchWeekWorkouts();
+          } else {
+            setMessages(prev => [...prev, { 
+              role: 'assistant', 
+              text: `Hmm, I couldn't update your workout: ${updateResult.error}\n\nPlease try again! 🤔` 
+            }]);
+          }
           break;
         
         // NEW: Regenerate single day - doesn't reset whole 21 days
@@ -1225,14 +1241,26 @@ export function FloatingCoachButton({ contextMode = 'home' }: { contextMode?: 'i
             text: `🔄 Regenerating ${targetDay}'s workout... This may take a moment.` 
           }]);
           
-          // TODO: Call backend to regenerate single day
-          // For now, show success message
-          await new Promise(resolve => setTimeout(resolve, 1000));
+          // Call backend to regenerate single day
+          const regenResult = await makeAuthenticatedRequest('/api/coach/actions/execute', 'POST', {
+            action: {
+              type: 'REGENERATE_SESSION',
+              dayOfWeek: targetDay.toLowerCase(),
+            }
+          });
           
-          setMessages(prev => [...prev, { 
-            role: 'assistant', 
-            text: `Done! ✅ ${targetDay}'s workout has been regenerated with fresh exercises.\n\nYour other days remain unchanged. Go crush it! 💪` 
-          }]);
+          if (regenResult.ok) {
+            setMessages(prev => [...prev, { 
+              role: 'assistant', 
+              text: `Done! ✅ ${targetDay}'s workout has been regenerated with fresh exercises.\n\nYour other days remain unchanged. Go crush it! 💪` 
+            }]);
+            await useWorkoutStore.getState().fetchWeekWorkouts();
+          } else {
+            setMessages(prev => [...prev, { 
+              role: 'assistant', 
+              text: `Hmm, I couldn't regenerate ${targetDay}'s workout: ${regenResult.error}\n\nPlease try again! 🤔` 
+            }]);
+          }
           break;
         
         // NEW: Skip day - mark as skipped
@@ -1244,13 +1272,27 @@ export function FloatingCoachButton({ contextMode = 'home' }: { contextMode?: 'i
             text: `⏭️ Skipping ${skipDay}'s workout...` 
           }]);
           
-          // TODO: Call backend to skip day
-          await new Promise(resolve => setTimeout(resolve, 500));
+          // Call backend to skip day
+          const skipResult = await makeAuthenticatedRequest('/api/coach/actions/execute', 'POST', {
+            action: {
+              type: 'SKIP_DAY',
+              dayOfWeek: skipDay.toLowerCase(),
+              reason: action.params?.reason || 'User requested skip',
+            }
+          });
           
-          setMessages(prev => [...prev, { 
-            role: 'assistant', 
-            text: `Done! ✅ ${skipDay}'s workout has been skipped.\n\nNo worries - consistency over perfection! You can always add it back later. 💪` 
-          }]);
+          if (skipResult.ok) {
+            setMessages(prev => [...prev, { 
+              role: 'assistant', 
+              text: `Done! ✅ ${skipDay}'s workout has been skipped.\n\nNo worries - consistency over perfection! You can always add it back later. 💪` 
+            }]);
+            await useWorkoutStore.getState().fetchWeekWorkouts();
+          } else {
+            setMessages(prev => [...prev, { 
+              role: 'assistant', 
+              text: `Hmm, I couldn't skip ${skipDay}'s workout: ${skipResult.error}\n\nPlease try again! 🤔` 
+            }]);
+          }
           break;
         
         // NEW: Rest day - convert to rest
@@ -1262,13 +1304,27 @@ export function FloatingCoachButton({ contextMode = 'home' }: { contextMode?: 'i
             text: `😴 Converting ${restDay} to a rest day...` 
           }]);
           
-          // TODO: Call backend to convert to rest day
-          await new Promise(resolve => setTimeout(resolve, 500));
+          // Call backend to convert to rest day
+          const restResult = await makeAuthenticatedRequest('/api/coach/actions/execute', 'POST', {
+            action: {
+              type: 'SKIP_DAY',
+              dayOfWeek: restDay.toLowerCase(),
+              reason: 'Converted to rest day',
+            }
+          });
           
-          setMessages(prev => [...prev, { 
-            role: 'assistant', 
-            text: `Done! ✅ ${restDay} is now a rest day.\n\nRest is when your muscles grow! Enjoy the recovery. 😴` 
-          }]);
+          if (restResult.ok) {
+            setMessages(prev => [...prev, { 
+              role: 'assistant', 
+              text: `Done! ✅ ${restDay} is now a rest day.\n\nRest is when your muscles grow! Enjoy the recovery. 😴` 
+            }]);
+            await useWorkoutStore.getState().fetchWeekWorkouts();
+          } else {
+            setMessages(prev => [...prev, { 
+              role: 'assistant', 
+              text: `Hmm, I couldn't convert ${restDay} to a rest day: ${restResult.error}\n\nPlease try again! 🤔` 
+            }]);
+          }
           break;
         
         case 'regenerate':
