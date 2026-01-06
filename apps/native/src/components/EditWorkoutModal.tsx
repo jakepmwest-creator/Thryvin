@@ -630,6 +630,9 @@ const styles = StyleSheet.create({
   exerciseNumberSelected: {
     backgroundColor: COLORS.primary,
   },
+  exerciseNumberCompleted: {
+    backgroundColor: COLORS.success,
+  },
   exerciseNumberText: {
     fontSize: 14,
     fontWeight: '700',
