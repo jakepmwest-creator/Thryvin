@@ -650,6 +650,10 @@ const styles = StyleSheet.create({
     color: COLORS.text,
     marginBottom: 4,
   },
+  exerciseItemNameCompleted: {
+    color: COLORS.mediumGray,
+    textDecorationLine: 'line-through',
+  },
   exerciseItemMeta: {
     fontSize: 13,
     color: COLORS.mediumGray,
