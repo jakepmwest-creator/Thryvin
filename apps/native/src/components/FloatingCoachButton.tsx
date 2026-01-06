@@ -16,6 +16,7 @@ import {
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
+import * as SecureStore from 'expo-secure-store';
 import { VoiceInputButton } from './VoiceInputButton';
 import { useWorkoutStore } from '../stores/workout-store';
 import { useCoachStore } from '../stores/coach-store';
