@@ -1746,7 +1746,7 @@ export function FloatingCoachButton({
               </View>
               <TouchableOpacity
                 style={styles.sendButton}
-                onPress={handleSend}
+                onPress={() => handleSend()}
                 disabled={isLoading || !inputText.trim()}
               >
                 <LinearGradient
