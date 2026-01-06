@@ -209,6 +209,7 @@ interface SwapRequest {
   additionalNotes?: string;
   userProfile?: any;
   userId?: number; // For loading full context
+  exerciseCategory?: 'warmup' | 'main' | 'cooldown' | 'recovery'; // Filter alternatives by category
 }
 
 interface AlternativesResponse {
