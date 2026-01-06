@@ -90,6 +90,157 @@ const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY || "" });
 // STABILIZATION: AI Feature Flag for backend
 const AI_ENABLED = true;
 
+// =============================================================================
+// MISSING FUNCTION: generatePersonalizedWorkout
+// This was being called but never defined, causing runtime errors
+// =============================================================================
+
+interface PersonalizedWorkoutRequest {
+  user: any;
+  workoutType?: string;
+  duration?: number;
+  equipment?: string[];
+  focus?: string;
+  previousWorkouts?: any[];
+}
+
+async function generatePersonalizedWorkout(request: PersonalizedWorkoutRequest): Promise<{
+  title: string;
+  type: string;
+  difficulty: string;
+  duration: number;
+  estimatedDuration: number;
+  description: string;
+  exercises: any[];
+  overview?: string;
+  targetMuscles?: string;
+  caloriesBurn?: number;
+}> {
+  const { user, workoutType, duration = 45, equipment = ['bodyweight'], focus } = request;
+  
+  console.log(`[WORKOUT-GEN] Generating personalized workout for user ${user?.id || 'unknown'}`);
+  console.log(`  Type: ${workoutType}, Duration: ${duration}, Focus: ${focus}`);
+  
+  try {
+    // Use the AI workout generator
+    const { generateAIWorkout } = await import('./ai-workout-generator');
+    
+    // Build user profile for AI generator
+    const userProfile = {
+      fitnessGoals: user?.fitnessGoals ? (typeof user.fitnessGoals === 'string' ? JSON.parse(user.fitnessGoals) : user.fitnessGoals) : ['general_fitness'],
+      goal: user?.goal || 'general_fitness',
+      experience: user?.fitnessLevel || 'intermediate',
+      trainingType: workoutType || user?.trainingType || 'mixed',
+      sessionDuration: duration,
+      trainingDays: user?.trainingDaysPerWeek || 3,
+      equipment: equipment.length > 0 ? equipment : (user?.equipmentAccess ? (typeof user.equipmentAccess === 'string' ? JSON.parse(user.equipmentAccess) : user.equipmentAccess) : ['bodyweight']),
+      injuries: user?.injuries ? (typeof user.injuries === 'string' ? JSON.parse(user.injuries) : user.injuries) : [],
+      userId: user?.id,
+    };
+    
+    // Get day of week (0 = Sunday)
+    const dayOfWeek = new Date().getDay();
+    
+    const workout = await generateAIWorkout(userProfile, dayOfWeek, 1);
+    
+    return {
+      title: workout.title || 'Personalized Workout',
+      type: workout.type || workoutType || 'mixed',
+      difficulty: workout.difficulty || 'intermediate',
+      duration: workout.duration || duration,
+      estimatedDuration: workout.duration || duration,
+      description: workout.overview || 'A personalized workout designed for you.',
+      exercises: (workout.exercises || []).map((ex: any) => ({
+        id: ex.id || `ex-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+        name: ex.name,
+        sets: ex.sets || 3,
+        reps: ex.reps || '10',
+        restTime: ex.restTime || 60,
+        category: ex.category || 'main',
+        targetMuscles: ex.targetMuscles || [workout.targetMuscles || 'Full Body'],
+        videoUrl: ex.videoUrl,
+        suggestedWeight: ex.suggestedWeight,
+        aiNote: ex.aiNote,
+      })),
+      overview: workout.overview,
+      targetMuscles: workout.targetMuscles,
+      caloriesBurn: workout.caloriesBurn,
+    };
+    
+  } catch (error: any) {
+    console.error('[WORKOUT-GEN] AI generation failed:', error.message);
+    
+    // Return a fallback workout
+    return {
+      title: `${focus || workoutType || 'Mixed'} Workout`,
+      type: workoutType || 'mixed',
+      difficulty: 'intermediate',
+      duration: duration,
+      estimatedDuration: duration,
+      description: 'A balanced workout to keep you progressing.',
+      exercises: generateFallbackExercises(workoutType || 'full', duration, equipment),
+      overview: 'Fallback workout - AI temporarily unavailable',
+      targetMuscles: 'Full Body',
+      caloriesBurn: Math.round(duration * 8),
+    };
+  }
+}
+
+// Generate fallback exercises when AI fails
+function generateFallbackExercises(type: string, duration: number, equipment: string[]): any[] {
+  const hasWeights = equipment.some(e => ['dumbbells', 'barbells', 'full_gym', 'cables'].includes(e.toLowerCase()));
+  
+  const fallbackSets: Record<string, any[]> = {
+    'upper': [
+      { name: hasWeights ? 'Dumbbell Bench Press' : 'Push-ups', sets: 3, reps: '10-12', targetMuscles: ['Chest', 'Triceps'] },
+      { name: hasWeights ? 'Dumbbell Row' : 'Inverted Row', sets: 3, reps: '10-12', targetMuscles: ['Back', 'Biceps'] },
+      { name: hasWeights ? 'Shoulder Press' : 'Pike Push-ups', sets: 3, reps: '10', targetMuscles: ['Shoulders'] },
+      { name: hasWeights ? 'Bicep Curls' : 'Chin-ups', sets: 3, reps: '10', targetMuscles: ['Biceps'] },
+    ],
+    'lower': [
+      { name: hasWeights ? 'Goblet Squat' : 'Bodyweight Squat', sets: 4, reps: '12', targetMuscles: ['Quads', 'Glutes'] },
+      { name: hasWeights ? 'Romanian Deadlift' : 'Single Leg Deadlift', sets: 3, reps: '10', targetMuscles: ['Hamstrings', 'Glutes'] },
+      { name: 'Lunges', sets: 3, reps: '10 each', targetMuscles: ['Quads', 'Glutes'] },
+      { name: 'Calf Raises', sets: 3, reps: '15', targetMuscles: ['Calves'] },
+    ],
+    'full': [
+      { name: hasWeights ? 'Goblet Squat' : 'Bodyweight Squat', sets: 3, reps: '12', targetMuscles: ['Quads', 'Glutes'] },
+      { name: hasWeights ? 'Dumbbell Bench Press' : 'Push-ups', sets: 3, reps: '10', targetMuscles: ['Chest', 'Triceps'] },
+      { name: hasWeights ? 'Dumbbell Row' : 'Inverted Row', sets: 3, reps: '10', targetMuscles: ['Back', 'Biceps'] },
+      { name: 'Lunges', sets: 3, reps: '10 each', targetMuscles: ['Quads', 'Glutes'] },
+      { name: hasWeights ? 'Shoulder Press' : 'Pike Push-ups', sets: 3, reps: '10', targetMuscles: ['Shoulders'] },
+    ],
+    'push': [
+      { name: hasWeights ? 'Dumbbell Bench Press' : 'Push-ups', sets: 4, reps: '10', targetMuscles: ['Chest', 'Triceps'] },
+      { name: hasWeights ? 'Incline Press' : 'Decline Push-ups', sets: 3, reps: '10', targetMuscles: ['Upper Chest'] },
+      { name: hasWeights ? 'Shoulder Press' : 'Pike Push-ups', sets: 3, reps: '10', targetMuscles: ['Shoulders'] },
+      { name: hasWeights ? 'Tricep Pushdown' : 'Diamond Push-ups', sets: 3, reps: '12', targetMuscles: ['Triceps'] },
+    ],
+    'pull': [
+      { name: hasWeights ? 'Lat Pulldown' : 'Pull-ups', sets: 4, reps: '10', targetMuscles: ['Back', 'Biceps'] },
+      { name: hasWeights ? 'Seated Row' : 'Inverted Row', sets: 3, reps: '10', targetMuscles: ['Back'] },
+      { name: hasWeights ? 'Face Pulls' : 'Rear Delt Raises', sets: 3, reps: '12', targetMuscles: ['Rear Delts'] },
+      { name: hasWeights ? 'Bicep Curls' : 'Chin-ups', sets: 3, reps: '10', targetMuscles: ['Biceps'] },
+    ],
+    'legs': [
+      { name: hasWeights ? 'Barbell Squat' : 'Goblet Squat', sets: 4, reps: '10', targetMuscles: ['Quads', 'Glutes'] },
+      { name: hasWeights ? 'Romanian Deadlift' : 'Single Leg Deadlift', sets: 3, reps: '10', targetMuscles: ['Hamstrings'] },
+      { name: 'Walking Lunges', sets: 3, reps: '12 each', targetMuscles: ['Quads', 'Glutes'] },
+      { name: 'Leg Curl', sets: 3, reps: '12', targetMuscles: ['Hamstrings'] },
+      { name: 'Calf Raises', sets: 4, reps: '15', targetMuscles: ['Calves'] },
+    ],
+  };
+  
+  const exercises = fallbackSets[type.toLowerCase()] || fallbackSets['full'];
+  
+  return exercises.map((ex, idx) => ({
+    id: `fallback-${idx}-${Date.now()}`,
+    ...ex,
+    restTime: 60,
+    category: 'main',
+  }));
+}
+
 // Utility function to generate slug from exercise name
 function toSlug(name: string): string {
   return name
