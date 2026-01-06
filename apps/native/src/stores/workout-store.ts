@@ -475,24 +475,68 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
           const dateStr = date.toISOString().split('T')[0]; // YYYY-MM-DD format
           const actualDayOfWeek = date.getDay(); // JavaScript: 0=Sunday, 1=Monday, ..., 6=Saturday
           
-          // Determine if this is a rest day
-          let isRestDay = false;
-          if (trainingScheduleType === 'depends') {
-            // For "It Depends" mode - check if this specific date was selected
-            isRestDay = !specificDatesSet.has(dateStr);
-            if (isRestDay) {
-              console.log(`😴 [3-WEEK] Day ${i + 1}/21 (${dateStr}): REST - not in selected dates`);
+          // CRITICAL FIX: Always call the backend to determine if this is a workout or rest day
+          // The backend's split planner is the source of truth for scheduling
+          // Don't make local decisions about rest days - let the backend decide
+          
+          console.log(`🤖 [3-WEEK] Generating day ${i + 1}/21...`);
+          
+          const weekNumber = Math.floor(i / 7) + 1; // 1, 2, or 3
+          
+          // Collect recent exercises from generated workouts to avoid repetition
+          const recentExercises = (weekWorkouts || [])
+            .filter(w => !w.isRestDay && w.type !== 'Rest' && w.type !== 'rest') // Only look at actual workouts
+            .slice(-3) // Last 3 workouts
+            .flatMap(w => w.exercises?.map((e: any) => e.name) || [])
+            .filter(Boolean);
+          
+          let workout = null;
+          let retries = 3;
+          let lastError = null;
+          
+          while (retries > 0 && !workout) {
+            try {
+              const response = await fetch(`${API_BASE_URL}/api/workouts/generate`, {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  'Bypass-Tunnel-Reminder': 'true',
+                },
+                body: JSON.stringify({
+                  userProfile,
+                  dayOfWeek: actualDayOfWeek, // Use actual day of week (0=Sun, 1=Mon, etc.)
+                  weekNumber,
+                  recentExercises, // Pass recent exercises to avoid repetition
+                }),
+              });
+              
+              if (!response.ok) {
+                const text = await response.text();
+                lastError = `API Error ${response.status}: ${text.substring(0, 100)}`;
+                retries--;
+                if (retries > 0) {
+                  console.log(`⚠️ [3-WEEK] Retry ${3 - retries}/3 for day ${i + 1}...`);
+                  await new Promise(r => setTimeout(r, 2000)); // Wait 2 seconds before retry
+                }
+                continue;
+              }
+              
+              workout = await response.json();
+            } catch (fetchError: any) {
+              lastError = fetchError.message;
+              retries--;
+              if (retries > 0) {
+                console.log(`⚠️ [3-WEEK] Network retry ${3 - retries}/3 for day ${i + 1}...`);
+                await new Promise(r => setTimeout(r, 2000));
+              }
             }
-          } else {
-            // For other modes - use the pattern (convert actualDayOfWeek to 0=Mon index for pattern)
-            const patternIndex = actualDayOfWeek === 0 ? 6 : actualDayOfWeek - 1;
-            isRestDay = restDayPattern.includes(patternIndex);
           }
           
-          if (isRestDay) {
-            // Create rest day entry
+          if (!workout) {
+            // API failed - create a fallback rest day
+            console.log(`⚠️ [3-WEEK] Failed to get day ${i + 1}, using fallback rest day`);
             weekWorkouts.push({
-              id: `rest_${date.getTime()}`,
+              id: `fallback_${date.getTime()}`,
               title: 'Rest Day',
               type: 'Rest',
               difficulty: 'rest',
@@ -506,66 +550,53 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
               status: 'rest',
               isRestDay: true,
             });
-            console.log(`😴 [3-WEEK] Day ${i + 1}/21: Rest day`);
+          } else if (workout.type === 'rest' || workout.type === 'Rest' || workout.isRestDay) {
+            // Backend returned a rest day
+            weekWorkouts.push({
+              id: `rest_${date.getTime()}`,
+              title: 'Rest Day',
+              type: 'Rest',
+              difficulty: 'rest',
+              duration: 0,
+              date: date.toISOString(),
+              exercises: [],
+              overview: workout.overview || 'Take time to recover. Stay hydrated and get good sleep!',
+              targetMuscles: '',
+              caloriesBurn: 0,
+              exerciseList: [],
+              status: 'rest',
+              isRestDay: true,
+            });
+            console.log(`😴 [3-WEEK] Day ${i + 1}/21: Rest day (from backend)`);
           } else {
-            // Generate workout with retry logic
-            console.log(`🤖 [3-WEEK] Generating day ${i + 1}/21 (workout #${workoutDayCounter + 1})...`);
-            
-            const weekNumber = Math.floor(i / 7) + 1; // 1, 2, or 3
-            
-            // Collect recent exercises from generated workouts to avoid repetition
-            const recentExercises = (weekWorkouts || [])
-              .filter(w => !w.isRestDay) // Only look at actual workouts, not rest days
-              .slice(-3) // Last 3 workouts
-              .flatMap(w => w.exercises?.map((e: any) => e.name) || [])
-              .filter(Boolean);
-            
-            let workout = null;
-            let retries = 3;
-            let lastError = null;
-            
-            while (retries > 0 && !workout) {
-              try {
-                const response = await fetch(`${API_BASE_URL}/api/workouts/generate`, {
-                  method: 'POST',
-                  headers: {
-                    'Content-Type': 'application/json',
-                    'Bypass-Tunnel-Reminder': 'true',
-                  },
-                  body: JSON.stringify({
-                    userProfile,
-                    dayOfWeek: actualDayOfWeek, // Use actual day of week (0=Sun, 1=Mon, etc.)
-                    weekNumber,
-                    recentExercises, // Pass recent exercises to avoid repetition
-                  }),
-                });
-                
-                if (!response.ok) {
-                  const text = await response.text();
-                  lastError = `API Error ${response.status}: ${text.substring(0, 100)}`;
-                  retries--;
-                  if (retries > 0) {
-                    console.log(`⚠️ [3-WEEK] Retry ${3 - retries}/3 for day ${i + 1}...`);
-                    await new Promise(r => setTimeout(r, 2000)); // Wait 2 seconds before retry
-                  }
-                  continue;
-                }
-                
-                workout = await response.json();
-              } catch (fetchError: any) {
-                lastError = fetchError.message;
-                retries--;
-                if (retries > 0) {
-                  console.log(`⚠️ [3-WEEK] Network retry ${3 - retries}/3 for day ${i + 1}...`);
-                  await new Promise(r => setTimeout(r, 2000));
-                }
-              }
-            }
-            
-            if (!workout) {
-              // If we have at least 7 days, save partial progress and continue
-              if (weekWorkouts.length >= 7) {
-                console.log(`⚠️ [3-WEEK] Failed day ${i + 1} after 3 retries, saving ${weekWorkouts.length} days and stopping`);
+            // Backend returned an actual workout
+            workoutDayCounter++;
+            weekWorkouts.push({
+              id: workout.id || `workout_${date.getTime()}`,
+              title: workout.title || `Workout ${workoutDayCounter}`,
+              type: workout.type || 'strength',
+              difficulty: workout.difficulty || 'intermediate',
+              duration: workout.duration || userProfile.sessionDuration,
+              date: date.toISOString(),
+              exercises: workout.exercises || [],
+              overview: workout.overview || '',
+              targetMuscles: workout.targetMuscles || '',
+              caloriesBurn: workout.caloriesBurn || 0,
+              exerciseList: (workout.exercises || []).map((e: any) => ({
+                id: e.id || `${e.name}_${Date.now()}`,
+                name: e.name,
+                sets: e.sets,
+                reps: e.reps,
+                weight: e.weight,
+                duration: e.duration,
+                restTime: e.restTime,
+                notes: e.notes || e.aiNote,
+              })),
+              status: 'pending',
+              isRestDay: false,
+            });
+            console.log(`💪 [3-WEEK] Day ${i + 1}/21: ${workout.title} (${workout.exercises?.length || 0} exercises)`);
+          }
                 // Save partial progress
                 await setStorageItem('week_workouts', JSON.stringify(weekWorkouts));
                 await setStorageItem('week_workouts_date', weekKey);
