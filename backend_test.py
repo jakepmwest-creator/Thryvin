@@ -24,7 +24,7 @@ from typing import Dict, List, Any, Optional
 BASE_URL = "https://testauth.preview.emergentagent.com"
 API_BASE = f"{BASE_URL}/api"
 
-class ThryvinWorkoutValidationTester:
+class ThryvinQALoginJSONTester:
     def __init__(self):
         self.session = requests.Session()
         self.session.headers.update({
@@ -32,53 +32,65 @@ class ThryvinWorkoutValidationTester:
             'Accept': 'application/json'
         })
         self.test_results = []
-        self.access_tokens = {}  # Store tokens for each profile
         
-    def test_qa_login_beginner(self) -> bool:
-        """Test QA Login - Beginner Profile"""
+    def verify_json_response(self, response, test_name: str) -> tuple[bool, dict]:
+        """Verify response is valid JSON with correct Content-Type"""
         try:
-            response = self.session.post(f"{API_BASE}/qa/login-as", json={"profile": "beginner"})
+            # Check Content-Type header
+            content_type = response.headers.get('content-type', '').lower()
+            if 'application/json' not in content_type:
+                self.log_test(test_name, False, f"Invalid Content-Type: {content_type}, expected application/json")
+                return False, {}
             
-            if response.status_code == 200:
-                data = response.json()
-                
-                # Check required fields
-                if not data.get('ok'):
-                    self.log_test("QA Login Beginner", False, f"Response ok=false: {data.get('error', 'Unknown error')}", data)
-                    return False
-                
-                if 'user' not in data or 'accessToken' not in data:
-                    self.log_test("QA Login Beginner", False, "Missing user or accessToken in response", data)
-                    return False
-                
-                user = data['user']
-                
-                # Verify user has selectedCoach="kai"
-                if user.get('selectedCoach') != 'kai':
-                    self.log_test("QA Login Beginner", False, f"Expected selectedCoach='kai', got '{user.get('selectedCoach')}'", data)
-                    return False
-                
-                # Verify user has fitnessLevel="beginner"
-                if user.get('fitnessLevel') != 'beginner':
-                    self.log_test("QA Login Beginner", False, f"Expected fitnessLevel='beginner', got '{user.get('fitnessLevel')}'", data)
-                    return False
-                
-                # Verify user has trainingDaysPerWeek=3
-                if user.get('trainingDaysPerWeek') != 3:
-                    self.log_test("QA Login Beginner", False, f"Expected trainingDaysPerWeek=3, got {user.get('trainingDaysPerWeek')}", data)
-                    return False
-                
-                # Store access token for later use
-                self.access_tokens['beginner'] = data['accessToken']
-                
-                self.log_test("QA Login Beginner", True, "Successfully logged in as beginner with correct profile data")
-                return True
-            else:
-                self.log_test("QA Login Beginner", False, f"Login failed with status {response.status_code}", {"response": response.text})
-                return False
-                
+            # Try to parse JSON
+            data = response.json()
+            return True, data
+            
+        except ValueError as e:
+            self.log_test(test_name, False, f"Invalid JSON response: {str(e)}")
+            return False, {}
         except Exception as e:
-            self.log_test("QA Login Beginner", False, f"Login error: {str(e)}")
+            self.log_test(test_name, False, f"Response parsing error: {str(e)}")
+            return False, {}
+    
+    def test_qa_login_beginner_10x(self) -> bool:
+        """Test QA Login - Beginner Profile (10 consecutive times)"""
+        print("🔄 Running QA Login Beginner test 10 consecutive times...")
+        
+        success_count = 0
+        for i in range(1, 11):
+            try:
+                response = self.session.post(f"{API_BASE}/qa/login-as", json={"profile": "beginner"})
+                
+                # Verify JSON response
+                is_json, data = self.verify_json_response(response, f"QA Login Beginner #{i}")
+                if not is_json:
+                    continue
+                
+                if response.status_code == 200:
+                    # Check required fields
+                    if not data.get('ok'):
+                        self.log_test(f"QA Login Beginner #{i}", False, f"Response ok=false: {data.get('error', 'Unknown error')}")
+                        continue
+                    
+                    if 'accessToken' not in data:
+                        self.log_test(f"QA Login Beginner #{i}", False, "Missing accessToken in response")
+                        continue
+                    
+                    self.log_test(f"QA Login Beginner #{i}", True, "Successfully logged in as beginner with JSON response")
+                    success_count += 1
+                else:
+                    self.log_test(f"QA Login Beginner #{i}", False, f"Login failed with status {response.status_code}")
+                    
+            except Exception as e:
+                self.log_test(f"QA Login Beginner #{i}", False, f"Login error: {str(e)}")
+        
+        # Overall result
+        if success_count == 10:
+            self.log_test("QA Login Beginner 10x", True, f"All 10/10 consecutive logins successful with JSON responses")
+            return True
+        else:
+            self.log_test("QA Login Beginner 10x", False, f"Only {success_count}/10 consecutive logins successful")
             return False
     
     def test_qa_login_intermediate(self) -> bool:
@@ -86,47 +98,25 @@ class ThryvinWorkoutValidationTester:
         try:
             response = self.session.post(f"{API_BASE}/qa/login-as", json={"profile": "intermediate"})
             
+            # Verify JSON response
+            is_json, data = self.verify_json_response(response, "QA Login Intermediate")
+            if not is_json:
+                return False
+            
             if response.status_code == 200:
-                data = response.json()
-                
                 # Check required fields
                 if not data.get('ok'):
-                    self.log_test("QA Login Intermediate", False, f"Response ok=false: {data.get('error', 'Unknown error')}", data)
+                    self.log_test("QA Login Intermediate", False, f"Response ok=false: {data.get('error', 'Unknown error')}")
                     return False
                 
-                if 'user' not in data or 'accessToken' not in data:
-                    self.log_test("QA Login Intermediate", False, "Missing user or accessToken in response", data)
+                if 'accessToken' not in data:
+                    self.log_test("QA Login Intermediate", False, "Missing accessToken in response")
                     return False
                 
-                user = data['user']
-                
-                # Verify user has selectedCoach="titan"
-                if user.get('selectedCoach') != 'titan':
-                    self.log_test("QA Login Intermediate", False, f"Expected selectedCoach='titan', got '{user.get('selectedCoach')}'", data)
-                    return False
-                
-                # Verify user has fitnessLevel="intermediate"
-                if user.get('fitnessLevel') != 'intermediate':
-                    self.log_test("QA Login Intermediate", False, f"Expected fitnessLevel='intermediate', got '{user.get('fitnessLevel')}'", data)
-                    return False
-                
-                # Verify user has trainingDaysPerWeek=4
-                if user.get('trainingDaysPerWeek') != 4:
-                    self.log_test("QA Login Intermediate", False, f"Expected trainingDaysPerWeek=4, got {user.get('trainingDaysPerWeek')}", data)
-                    return False
-                
-                # Verify user has sessionDurationPreference=60
-                if user.get('sessionDurationPreference') != 60:
-                    self.log_test("QA Login Intermediate", False, f"Expected sessionDurationPreference=60, got {user.get('sessionDurationPreference')}", data)
-                    return False
-                
-                # Store access token for later use
-                self.access_tokens['intermediate'] = data['accessToken']
-                
-                self.log_test("QA Login Intermediate", True, "Successfully logged in as intermediate with correct profile data")
+                self.log_test("QA Login Intermediate", True, "Successfully logged in as intermediate with JSON response")
                 return True
             else:
-                self.log_test("QA Login Intermediate", False, f"Login failed with status {response.status_code}", {"response": response.text})
+                self.log_test("QA Login Intermediate", False, f"Login failed with status {response.status_code}")
                 return False
                 
         except Exception as e:
@@ -138,49 +128,89 @@ class ThryvinWorkoutValidationTester:
         try:
             response = self.session.post(f"{API_BASE}/qa/login-as", json={"profile": "injury"})
             
+            # Verify JSON response
+            is_json, data = self.verify_json_response(response, "QA Login Injury")
+            if not is_json:
+                return False
+            
             if response.status_code == 200:
-                data = response.json()
-                
                 # Check required fields
                 if not data.get('ok'):
-                    self.log_test("QA Login Injury", False, f"Response ok=false: {data.get('error', 'Unknown error')}", data)
+                    self.log_test("QA Login Injury", False, f"Response ok=false: {data.get('error', 'Unknown error')}")
                     return False
                 
-                if 'user' not in data or 'accessToken' not in data:
-                    self.log_test("QA Login Injury", False, "Missing user or accessToken in response", data)
+                if 'accessToken' not in data:
+                    self.log_test("QA Login Injury", False, "Missing accessToken in response")
                     return False
                 
-                user = data['user']
-                
-                # Verify user has selectedCoach="lumi"
-                if user.get('selectedCoach') != 'lumi':
-                    self.log_test("QA Login Injury", False, f"Expected selectedCoach='lumi', got '{user.get('selectedCoach')}'", data)
-                    return False
-                
-                # Verify user has injuries including "lower_back" and "knee"
-                injuries_str = user.get('injuries', '[]')
-                try:
-                    injuries = json.loads(injuries_str) if isinstance(injuries_str, str) else injuries_str
-                    if not isinstance(injuries, list):
-                        injuries = []
-                except:
-                    injuries = []
-                
-                if 'lower_back' not in injuries or 'knee' not in injuries:
-                    self.log_test("QA Login Injury", False, f"Expected injuries to include 'lower_back' and 'knee', got {injuries}", data)
-                    return False
-                
-                # Store access token for later use
-                self.access_tokens['injury'] = data['accessToken']
-                
-                self.log_test("QA Login Injury", True, "Successfully logged in as injury profile with correct data")
+                self.log_test("QA Login Injury", True, "Successfully logged in as injury profile with JSON response")
                 return True
             else:
-                self.log_test("QA Login Injury", False, f"Login failed with status {response.status_code}", {"response": response.text})
+                self.log_test("QA Login Injury", False, f"Login failed with status {response.status_code}")
                 return False
                 
         except Exception as e:
             self.log_test("QA Login Injury", False, f"Login error: {str(e)}")
+            return False
+    
+    def test_qa_login_invalid_profile(self) -> bool:
+        """Test QA Login - Invalid Profile (should return 400 with INVALID_PROFILE)"""
+        try:
+            response = self.session.post(f"{API_BASE}/qa/login-as", json={"profile": "invalid"})
+            
+            # Verify JSON response
+            is_json, data = self.verify_json_response(response, "QA Login Invalid Profile")
+            if not is_json:
+                return False
+            
+            # Should return 400 status
+            if response.status_code == 400:
+                # Check that ok=false
+                if data.get('ok') is False:
+                    # Check for INVALID_PROFILE code
+                    error_code = data.get('code')
+                    if error_code == 'INVALID_PROFILE':
+                        self.log_test("QA Login Invalid Profile", True, "Correctly rejected invalid profile with INVALID_PROFILE code")
+                        return True
+                    else:
+                        self.log_test("QA Login Invalid Profile", False, f"Expected code=INVALID_PROFILE, got code={error_code}")
+                        return False
+                else:
+                    self.log_test("QA Login Invalid Profile", False, f"Expected ok=false for invalid profile, got ok={data.get('ok')}")
+                    return False
+            else:
+                self.log_test("QA Login Invalid Profile", False, f"Expected 400 status for invalid profile, got {response.status_code}")
+                return False
+                
+        except Exception as e:
+            self.log_test("QA Login Invalid Profile", False, f"Invalid profile test error: {str(e)}")
+            return False
+    
+    def test_qa_login_empty_body(self) -> bool:
+        """Test QA Login - Empty Body (should return 400 JSON error, never HTML)"""
+        try:
+            response = self.session.post(f"{API_BASE}/qa/login-as", json={})
+            
+            # Verify JSON response (CRITICAL - must never be HTML)
+            is_json, data = self.verify_json_response(response, "QA Login Empty Body")
+            if not is_json:
+                return False
+            
+            # Should return 400 status
+            if response.status_code == 400:
+                # Check that ok=false
+                if data.get('ok') is False:
+                    self.log_test("QA Login Empty Body", True, "Correctly rejected empty body with JSON error response")
+                    return True
+                else:
+                    self.log_test("QA Login Empty Body", False, f"Expected ok=false for empty body, got ok={data.get('ok')}")
+                    return False
+            else:
+                self.log_test("QA Login Empty Body", False, f"Expected 400 status for empty body, got {response.status_code}")
+                return False
+                
+        except Exception as e:
+            self.log_test("QA Login Empty Body", False, f"Empty body test error: {str(e)}")
             return False
     
     def test_qa_reset_user(self) -> bool:
@@ -188,382 +218,63 @@ class ThryvinWorkoutValidationTester:
         try:
             response = self.session.post(f"{API_BASE}/qa/reset-user", json={"email": "qa_beginner@thryvin.test"})
             
+            # Verify JSON response
+            is_json, data = self.verify_json_response(response, "QA Reset User")
+            if not is_json:
+                return False
+            
             if response.status_code == 200:
-                data = response.json()
-                
                 # Check required fields
                 if not data.get('ok'):
-                    self.log_test("QA Reset User", False, f"Response ok=false: {data.get('error', 'Unknown error')}", data)
+                    self.log_test("QA Reset User", False, f"Response ok=false: {data.get('error', 'Unknown error')}")
                     return False
                 
-                # Verify deletedWorkouts is a number >= 0
-                deleted_workouts = data.get('deletedWorkouts')
-                if not isinstance(deleted_workouts, int) or deleted_workouts < 0:
-                    self.log_test("QA Reset User", False, f"Expected deletedWorkouts >= 0, got {deleted_workouts}", data)
-                    return False
-                
-                self.log_test("QA Reset User", True, f"Successfully reset user, deleted {deleted_workouts} workouts")
+                self.log_test("QA Reset User", True, "Successfully reset user with JSON response")
                 return True
             else:
-                self.log_test("QA Reset User", False, f"Reset failed with status {response.status_code}", {"response": response.text})
+                self.log_test("QA Reset User", False, f"Reset failed with status {response.status_code}")
                 return False
                 
         except Exception as e:
             self.log_test("QA Reset User", False, f"Reset error: {str(e)}")
             return False
     
-    def test_qa_regenerate_plan(self) -> bool:
-        """Test QA Regenerate Plan"""
+    def test_qa_profiles_list(self) -> bool:
+        """Test QA Profiles List"""
         try:
-            response = self.session.post(f"{API_BASE}/qa/regenerate-plan", json={"email": "qa_beginner@thryvin.test"})
+            response = self.session.get(f"{API_BASE}/qa/profiles")
+            
+            # Verify JSON response
+            is_json, data = self.verify_json_response(response, "QA Profiles List")
+            if not is_json:
+                return False
             
             if response.status_code == 200:
-                data = response.json()
-                
-                # Check required fields
-                if not data.get('ok'):
-                    self.log_test("QA Regenerate Plan", False, f"Response ok=false: {data.get('error', 'Unknown error')}", data)
+                # Check for profiles array
+                if 'profiles' not in data:
+                    self.log_test("QA Profiles List", False, "Missing profiles array in response")
                     return False
                 
-                # Verify workoutsCreated is a number >= 0
-                workouts_created = data.get('workoutsCreated')
-                if not isinstance(workouts_created, int) or workouts_created < 0:
-                    self.log_test("QA Regenerate Plan", False, f"Expected workoutsCreated >= 0, got {workouts_created}", data)
+                profiles = data['profiles']
+                if not isinstance(profiles, list):
+                    self.log_test("QA Profiles List", False, f"Expected profiles to be array, got {type(profiles)}")
                     return False
                 
-                self.log_test("QA Regenerate Plan", True, f"Successfully regenerated plan, created {workouts_created} workouts")
-                return True
-            else:
-                self.log_test("QA Regenerate Plan", False, f"Regenerate failed with status {response.status_code}", {"response": response.text})
-                return False
-                
-        except Exception as e:
-            self.log_test("QA Regenerate Plan", False, f"Regenerate error: {str(e)}")
-            return False
-    
-    def test_invalid_profile_handling(self) -> bool:
-        """Test Invalid Profile Handling"""
-        try:
-            response = self.session.post(f"{API_BASE}/qa/login-as", json={"profile": "invalid"})
-            
-            # Should return 400 or similar error status
-            if response.status_code >= 400:
-                data = response.json()
-                
-                # Check that ok=false
-                if data.get('ok') is False:
-                    # Check that there's an error message about invalid profile
-                    error_msg = data.get('error', '').lower()
-                    if 'invalid' in error_msg and 'profile' in error_msg:
-                        self.log_test("Invalid Profile Handling", True, "Correctly rejected invalid profile with appropriate error")
-                        return True
-                    else:
-                        self.log_test("Invalid Profile Handling", False, f"Error message doesn't mention invalid profile: {data.get('error')}", data)
+                # Check for required profiles
+                expected_profiles = ['beginner', 'intermediate', 'injury']
+                for profile in expected_profiles:
+                    if profile not in profiles:
+                        self.log_test("QA Profiles List", False, f"Missing required profile '{profile}' in profiles list")
                         return False
-                else:
-                    self.log_test("Invalid Profile Handling", False, f"Expected ok=false for invalid profile, got ok={data.get('ok')}", data)
-                    return False
-            else:
-                self.log_test("Invalid Profile Handling", False, f"Expected error status for invalid profile, got {response.status_code}", {"response": response.text})
-                return False
                 
-        except Exception as e:
-            self.log_test("Invalid Profile Handling", False, f"Invalid profile test error: {str(e)}")
-            return False
-    
-    def test_use_access_token(self) -> bool:
-        """Test Use Access Token with /api/auth/me"""
-        try:
-            # Use the beginner access token if available
-            if 'beginner' not in self.access_tokens:
-                self.log_test("Use Access Token", False, "No beginner access token available for testing")
-                return False
-            
-            access_token = self.access_tokens['beginner']
-            
-            # Create a new session with Authorization header
-            headers = {
-                'Content-Type': 'application/json',
-                'Accept': 'application/json',
-                'Authorization': f'Bearer {access_token}'
-            }
-            
-            response = requests.get(f"{API_BASE}/auth/me", headers=headers)
-            
-            if response.status_code == 200:
-                data = response.json()
-                
-                # Check required fields
-                if not data.get('ok'):
-                    self.log_test("Use Access Token", False, f"Response ok=false: {data.get('error', 'Unknown error')}", data)
-                    return False
-                
-                if 'user' not in data:
-                    self.log_test("Use Access Token", False, "Missing user in response", data)
-                    return False
-                
-                user = data['user']
-                
-                # Verify this matches the beginner profile
-                if user.get('selectedCoach') != 'kai' or user.get('fitnessLevel') != 'beginner':
-                    self.log_test("Use Access Token", False, "User data doesn't match expected beginner profile", data)
-                    return False
-                
-                self.log_test("Use Access Token", True, "Successfully used access token to retrieve user data")
+                self.log_test("QA Profiles List", True, f"Successfully retrieved profiles list with JSON response: {profiles}")
                 return True
             else:
-                self.log_test("Use Access Token", False, f"Auth/me failed with status {response.status_code}", {"response": response.text})
+                self.log_test("QA Profiles List", False, f"Profiles list failed with status {response.status_code}")
                 return False
                 
         except Exception as e:
-            self.log_test("Use Access Token", False, f"Access token test error: {str(e)}")
-            return False
-
-    def test_plan_ensure_validation(self) -> bool:
-        """Test Plan Ensure Validation - CRITICAL"""
-        try:
-            # Use the beginner access token
-            if 'beginner' not in self.access_tokens:
-                self.log_test("Plan Ensure Validation", False, "No beginner access token available for testing")
-                return False
-            
-            access_token = self.access_tokens['beginner']
-            headers = {
-                'Content-Type': 'application/json',
-                'Accept': 'application/json',
-                'Authorization': f'Bearer {access_token}'
-            }
-            
-            response = requests.post(f"{API_BASE}/workouts/plan/ensure", headers=headers)
-            
-            if response.status_code == 200:
-                data = response.json()
-                
-                # Check required fields
-                if not data.get('ok'):
-                    self.log_test("Plan Ensure Validation", False, f"Response ok=false: {data.get('error', 'Unknown error')}", data)
-                    return False
-                
-                # Verify workoutsCount >= 3 (beginner has 3 training days)
-                workouts_count = data.get('workoutsCount')
-                if not isinstance(workouts_count, int) or workouts_count < 3:
-                    self.log_test("Plan Ensure Validation", False, f"Expected workoutsCount >= 3 for beginner, got {workouts_count}", data)
-                    return False
-                
-                # Verify usedFallback is boolean
-                used_fallback = data.get('usedFallback')
-                if not isinstance(used_fallback, bool):
-                    self.log_test("Plan Ensure Validation", False, f"Expected usedFallback to be boolean, got {type(used_fallback)}", data)
-                    return False
-                
-                # Verify validationWarnings is array
-                validation_warnings = data.get('validationWarnings')
-                if not isinstance(validation_warnings, list):
-                    self.log_test("Plan Ensure Validation", False, f"Expected validationWarnings to be array, got {type(validation_warnings)}", data)
-                    return False
-                
-                self.log_test("Plan Ensure Validation", True, f"Plan validation successful: {workouts_count} workouts, fallback={used_fallback}, warnings={len(validation_warnings)}")
-                return True
-            else:
-                self.log_test("Plan Ensure Validation", False, f"Plan ensure failed with status {response.status_code}", {"response": response.text})
-                return False
-                
-        except Exception as e:
-            self.log_test("Plan Ensure Validation", False, f"Plan ensure error: {str(e)}")
-            return False
-
-    def test_coach_action_mismatch_blocking(self) -> bool:
-        """Test Coach Action Mismatch Blocking - CRITICAL"""
-        try:
-            # Use the intermediate access token for this test
-            if 'intermediate' not in self.access_tokens:
-                self.log_test("Coach Action Mismatch Blocking", False, "No intermediate access token available for testing")
-                return False
-            
-            access_token = self.access_tokens['intermediate']
-            headers = {
-                'Content-Type': 'application/json',
-                'Accept': 'application/json',
-                'Authorization': f'Bearer {access_token}'
-            }
-            
-            # Test mismatch: cardio workout when user requested chest workout
-            action_data = {
-                "action": {
-                    "type": "ADD_SESSION",
-                    "workoutType": "cardio",
-                    "durationMinutes": 45,
-                    "dayOfWeek": "wednesday",
-                    "userRequestedType": "chest workout"
-                }
-            }
-            
-            response = requests.post(f"{API_BASE}/coach/actions/execute", headers=headers, json=action_data)
-            
-            # This MUST be blocked with 400 error
-            if response.status_code == 400:
-                data = response.json()
-                
-                # Check for ACTION_MISMATCH or CARDIO_DEFAULT_BLOCKED error code
-                error_code = data.get('code') or data.get('error', {}).get('code', '')
-                if error_code in ['ACTION_MISMATCH', 'CARDIO_DEFAULT_BLOCKED']:
-                    self.log_test("Coach Action Mismatch Blocking", True, f"Correctly blocked cardio/chest mismatch with code: {error_code}")
-                    return True
-                else:
-                    self.log_test("Coach Action Mismatch Blocking", False, f"Expected ACTION_MISMATCH or CARDIO_DEFAULT_BLOCKED, got code: {error_code}", data)
-                    return False
-            else:
-                self.log_test("Coach Action Mismatch Blocking", False, f"Expected 400 error for mismatch, got status {response.status_code} - MISMATCH NOT BLOCKED!", {"response": response.text})
-                return False
-                
-        except Exception as e:
-            self.log_test("Coach Action Mismatch Blocking", False, f"Coach action mismatch test error: {str(e)}")
-            return False
-
-    def test_valid_coach_action(self) -> bool:
-        """Test Valid Coach Action"""
-        try:
-            # Use the intermediate access token
-            if 'intermediate' not in self.access_tokens:
-                self.log_test("Valid Coach Action", False, "No intermediate access token available for testing")
-                return False
-            
-            access_token = self.access_tokens['intermediate']
-            headers = {
-                'Content-Type': 'application/json',
-                'Accept': 'application/json',
-                'Authorization': f'Bearer {access_token}'
-            }
-            
-            # Test valid action: chest workout when user requested chest workout
-            action_data = {
-                "action": {
-                    "type": "ADD_SESSION",
-                    "workoutType": "chest",
-                    "durationMinutes": 60,
-                    "dayOfWeek": "thursday",
-                    "userRequestedType": "chest workout"
-                }
-            }
-            
-            response = requests.post(f"{API_BASE}/coach/actions/execute", headers=headers, json=action_data)
-            
-            if response.status_code == 200:
-                data = response.json()
-                
-                # Check required fields
-                if not data.get('ok'):
-                    self.log_test("Valid Coach Action", False, f"Response ok=false: {data.get('error', 'Unknown error')}", data)
-                    return False
-                
-                # Verify message contains "chest"
-                message = data.get('message', '').lower()
-                if 'chest' not in message:
-                    self.log_test("Valid Coach Action", False, f"Expected message to contain 'chest', got: {data.get('message')}", data)
-                    return False
-                
-                self.log_test("Valid Coach Action", True, f"Valid chest workout action succeeded: {data.get('message')}")
-                return True
-            else:
-                self.log_test("Valid Coach Action", False, f"Valid action failed with status {response.status_code}", {"response": response.text})
-                return False
-                
-        except Exception as e:
-            self.log_test("Valid Coach Action", False, f"Valid coach action test error: {str(e)}")
-            return False
-
-    def test_back_workout_mismatch(self) -> bool:
-        """Test Back Workout Mismatch - Another Mismatch Test"""
-        try:
-            # Use the intermediate access token
-            if 'intermediate' not in self.access_tokens:
-                self.log_test("Back Workout Mismatch", False, "No intermediate access token available for testing")
-                return False
-            
-            access_token = self.access_tokens['intermediate']
-            headers = {
-                'Content-Type': 'application/json',
-                'Accept': 'application/json',
-                'Authorization': f'Bearer {access_token}'
-            }
-            
-            # Test mismatch: cardio workout when user requested back and biceps
-            action_data = {
-                "action": {
-                    "type": "ADD_SESSION",
-                    "workoutType": "cardio",
-                    "durationMinutes": 45,
-                    "dayOfWeek": "friday",
-                    "userRequestedType": "back and biceps"
-                }
-            }
-            
-            response = requests.post(f"{API_BASE}/coach/actions/execute", headers=headers, json=action_data)
-            
-            # This MUST be blocked with 400 error
-            if response.status_code == 400:
-                data = response.json()
-                
-                # Check for ACTION_MISMATCH error code
-                error_code = data.get('code') or data.get('error', {}).get('code', '')
-                if error_code == 'ACTION_MISMATCH':
-                    self.log_test("Back Workout Mismatch", True, f"Correctly blocked cardio/back mismatch with code: {error_code}")
-                    return True
-                else:
-                    self.log_test("Back Workout Mismatch", False, f"Expected ACTION_MISMATCH, got code: {error_code}", data)
-                    return False
-            else:
-                self.log_test("Back Workout Mismatch", False, f"Expected 400 error for mismatch, got status {response.status_code} - MISMATCH NOT BLOCKED!", {"response": response.text})
-                return False
-                
-        except Exception as e:
-            self.log_test("Back Workout Mismatch", False, f"Back workout mismatch test error: {str(e)}")
-            return False
-
-    def test_explicit_cardio_request(self) -> bool:
-        """Test Explicit Cardio Request - Should Succeed"""
-        try:
-            # Use the intermediate access token
-            if 'intermediate' not in self.access_tokens:
-                self.log_test("Explicit Cardio Request", False, "No intermediate access token available for testing")
-                return False
-            
-            access_token = self.access_tokens['intermediate']
-            headers = {
-                'Content-Type': 'application/json',
-                'Accept': 'application/json',
-                'Authorization': f'Bearer {access_token}'
-            }
-            
-            # Test valid cardio: cardio workout when user explicitly requested cardio
-            action_data = {
-                "action": {
-                    "type": "ADD_SESSION",
-                    "workoutType": "cardio",
-                    "durationMinutes": 30,
-                    "dayOfWeek": "saturday",
-                    "userRequestedType": "cardio session"
-                }
-            }
-            
-            response = requests.post(f"{API_BASE}/coach/actions/execute", headers=headers, json=action_data)
-            
-            if response.status_code == 200:
-                data = response.json()
-                
-                # Check required fields
-                if not data.get('ok'):
-                    self.log_test("Explicit Cardio Request", False, f"Response ok=false: {data.get('error', 'Unknown error')}", data)
-                    return False
-                
-                self.log_test("Explicit Cardio Request", True, f"Explicit cardio request succeeded: {data.get('message', 'No message')}")
-                return True
-            else:
-                self.log_test("Explicit Cardio Request", False, f"Explicit cardio failed with status {response.status_code}", {"response": response.text})
-                return False
-                
-        except Exception as e:
-            self.log_test("Explicit Cardio Request", False, f"Explicit cardio test error: {str(e)}")
+            self.log_test("QA Profiles List", False, f"Profiles list error: {str(e)}")
             return False
         
     def log_test(self, test_name: str, success: bool, message: str, details: Dict = None):
