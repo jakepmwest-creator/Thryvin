@@ -607,6 +607,12 @@ const styles = StyleSheet.create({
     borderColor: COLORS.primary,
     backgroundColor: `${COLORS.primary}10`,
   },
+  exerciseItemCompleted: {
+    backgroundColor: '#F0F0F0',
+    borderColor: '#E0E0E0',
+    borderWidth: 1,
+    opacity: 0.7,
+  },
   exerciseItemLeft: {
     flexDirection: 'row',
     alignItems: 'center',
