@@ -319,13 +319,20 @@ function getExercisesForProfile(profileType: ProfileType, dayIndex: number) {
  * Setup QA routes
  */
 export function setupQARoutes(app: Express) {
-  // Gate all QA routes
+  // Gate all QA routes - ALWAYS returns JSON
   const qaGate = (req: any, res: Response, next: any) => {
+    const requestId = (req as ApiRequest).requestId || 'unknown';
+    
+    // Always set JSON content type
+    res.setHeader('Content-Type', 'application/json');
+    
     if (!isQAEnabled()) {
+      console.log(`[QA] ${requestId} | QA_DISABLED - env check failed`);
       return res.status(403).json({
         ok: false,
-        error: 'QA endpoints are disabled in production',
+        error: 'QA endpoints are disabled in production. Set QA_MODE=true or use development environment.',
         code: 'QA_DISABLED',
+        requestId,
       });
     }
     next();
@@ -334,23 +341,29 @@ export function setupQARoutes(app: Express) {
   /**
    * POST /api/qa/login-as
    * Login as a seeded test user
+   * ALWAYS returns JSON - never HTML
    */
-  app.post('/api/qa/login-as', qaGate, async (req, res) => {
-    const requestId = (req as ApiRequest).requestId || 'unknown';
-    const { profile } = req.body;
+  app.post('/api/qa/login-as', qaGate, async (req: any, res: Response) => {
+    const requestId = (req as ApiRequest).requestId || `qa_${Date.now()}`;
     
-    console.log(`[QA] Login request for profile: ${profile}`);
-    
-    if (!profile || !['beginner', 'intermediate', 'injury'].includes(profile)) {
-      return res.status(400).json({
-        ok: false,
-        error: 'Invalid profile. Must be: beginner, intermediate, or injury',
-        code: 'INVALID_PROFILE',
-        requestId,
-      });
-    }
+    // Ensure JSON response
+    res.setHeader('Content-Type', 'application/json');
     
     try {
+      const { profile } = req.body || {};
+      
+      console.log(`[QA] ${requestId} | login-as profile=${profile} status=STARTED`);
+      
+      if (!profile || !['beginner', 'intermediate', 'injury'].includes(profile)) {
+        console.log(`[QA] ${requestId} | login-as profile=${profile} status=INVALID_PROFILE`);
+        return res.status(400).json({
+          ok: false,
+          error: 'Invalid profile. Must be: beginner, intermediate, or injury',
+          code: 'INVALID_PROFILE',
+          requestId,
+        });
+      }
+      
       // Ensure user exists
       const user = await ensureSeededUser(profile as ProfileType);
       
@@ -363,9 +376,9 @@ export function setupQARoutes(app: Express) {
       // Remove password from response
       const { password, ...safeUser } = user;
       
-      console.log(`[QA] ✅ Successfully logged in as ${profile}: ${user.email}`);
+      console.log(`[QA] ${requestId} | login-as profile=${profile} status=SUCCESS user=${user.email}`);
       
-      res.json({
+      return res.json({
         ok: true,
         user: safeUser,
         accessToken,
@@ -373,11 +386,19 @@ export function setupQARoutes(app: Express) {
         message: `Logged in as ${profile} test user`,
         requestId,
       });
+      
     } catch (error: any) {
-      console.error(`[QA] Login failed:`, error);
-      res.status(500).json({
+      console.error(`[QA] ${requestId} | login-as status=ERROR error=${error.message}`);
+      
+      return res.status(500).json({
         ok: false,
         error: error.message || 'Failed to login as test user',
+        code: 'QA_LOGIN_FAILED',
+        hint: 'Check server logs for details',
+        requestId,
+      });
+    }
+  });
         code: 'QA_LOGIN_FAILED',
         requestId,
       });
