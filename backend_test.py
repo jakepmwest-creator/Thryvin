@@ -260,14 +260,16 @@ class ThryvinQALoginJSONTester:
                     self.log_test("QA Profiles List", False, f"Expected profiles to be array, got {type(profiles)}")
                     return False
                 
-                # Check for required profiles
-                expected_profiles = ['beginner', 'intermediate', 'injury']
-                for profile in expected_profiles:
-                    if profile not in profiles:
-                        self.log_test("QA Profiles List", False, f"Missing required profile '{profile}' in profiles list")
+                # Check for required profile IDs
+                expected_profile_ids = ['beginner', 'intermediate', 'injury']
+                profile_ids = [profile.get('id') for profile in profiles if isinstance(profile, dict)]
+                
+                for profile_id in expected_profile_ids:
+                    if profile_id not in profile_ids:
+                        self.log_test("QA Profiles List", False, f"Missing required profile ID '{profile_id}' in profiles list")
                         return False
                 
-                self.log_test("QA Profiles List", True, f"Successfully retrieved profiles list with JSON response: {profiles}")
+                self.log_test("QA Profiles List", True, f"Successfully retrieved profiles list with JSON response: {profile_ids}")
                 return True
             else:
                 self.log_test("QA Profiles List", False, f"Profiles list failed with status {response.status_code}")
