@@ -1970,4 +1970,38 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: COLORS.white,
   },
+  // Workout-specific quick prompts styles
+  workoutPromptsContainer: {
+    backgroundColor: COLORS.white,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    borderTopWidth: 1,
+    borderTopColor: COLORS.lightGray,
+  },
+  workoutPromptsLabel: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: COLORS.text,
+    marginBottom: 8,
+  },
+  workoutPromptsScroll: {
+    gap: 8,
+    paddingRight: 12,
+  },
+  workoutPromptChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    backgroundColor: `${COLORS.accent}15`,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: `${COLORS.accent}30`,
+    gap: 4,
+  },
+  workoutPromptText: {
+    fontSize: 13,
+    fontWeight: '500',
+    color: COLORS.accent,
+  },
 });
