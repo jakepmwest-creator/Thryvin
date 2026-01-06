@@ -53,12 +53,14 @@ const makeAuthenticatedRequest = async (
   try {
     // Use the correct token key that matches api-client.ts
     const token = await SecureStore.getItemAsync('thryvin_access_token');
+    
+    // Dev logging (never log actual token value)
+    console.log(`🔐 [API] ${method} ${endpoint} | Token exists: ${!!token}`);
+    
     if (!token) {
-      console.log('❌ No auth token found in SecureStore');
+      console.log('❌ [API] No auth token found in SecureStore');
       return { ok: false, error: 'Not authenticated. Please log in again.' };
     }
-    
-    console.log('🔐 Making authenticated request to:', endpoint);
     
     const response = await fetch(`${API_BASE_URL}${endpoint}`, {
       method,
@@ -72,14 +74,14 @@ const makeAuthenticatedRequest = async (
     const data = await response.json().catch(() => ({}));
     
     if (!response.ok) {
-      console.log('❌ Request failed:', response.status, data.error);
+      console.log(`❌ [API] ${endpoint} failed:`, response.status, data.error || 'Unknown error');
       return { ok: false, error: data.error || `Request failed (${response.status})` };
     }
     
-    console.log('✅ Request successful');
+    console.log(`✅ [API] ${endpoint} success`);
     return { ok: true, data };
   } catch (error: any) {
-    console.error('API request error:', error);
+    console.error(`❌ [API] ${endpoint} error:`, error.message);
     return { ok: false, error: error.message || 'Network error' };
   }
 };
