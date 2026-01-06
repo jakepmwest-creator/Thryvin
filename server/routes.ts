@@ -2224,13 +2224,15 @@ Respond with JSON ONLY:
           const token = authHeader.substring(7);
           try {
             const jwt = require('jsonwebtoken');
-            const decoded = jwt.verify(token, process.env.JWT_SECRET || 'thryvin-jwt-secret-change-in-production');
+            const secret = process.env.JWT_SECRET || 'thryvin-jwt-secret-change-in-production';
+            const decoded = jwt.verify(token, secret) as any;
+            console.log('🔐 [COACH] Token decoded:', decoded);
             if (decoded && decoded.userId) {
               userId = decoded.userId;
               console.log('🔐 [COACH] Auth via Bearer token, userId:', userId);
             }
-          } catch (jwtError) {
-            console.log('⚠️ [COACH] Invalid Bearer token');
+          } catch (jwtError: any) {
+            console.log('⚠️ [COACH] Invalid Bearer token:', jwtError.message);
           }
         }
       }
