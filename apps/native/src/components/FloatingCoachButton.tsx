@@ -1413,10 +1413,11 @@ export function FloatingCoachButton({
     setPendingAction(null);
   };
 
-  const handleSend = async () => {
-    if (!inputText.trim() || isLoading) return;
+  const handleSend = async (directMessage?: string) => {
+    const messageToSend = directMessage || inputText.trim();
+    if (!messageToSend || isLoading) return;
 
-    const userMessage = inputText.trim();
+    const userMessage = messageToSend;
     setInputText('');
     
     setMessages(prev => [...prev, { role: 'user', text: userMessage }]);
