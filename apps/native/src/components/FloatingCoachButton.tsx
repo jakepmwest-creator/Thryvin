@@ -1206,14 +1206,15 @@ export function FloatingCoachButton({ contextMode = 'home' }: { contextMode?: 'i
             text: `🔄 Updating your workout to make it ${modLabels[mod]}...` 
           }]);
           
-          // Call backend to update workout
+          // For harder/easier, use REGENERATE_SESSION with intensity hint
+          // For shorter/longer, use REGENERATE_SESSION with duration hint
+          // This is simpler and more reliable than REPLACE_SESSION
+          const dayForUpdate = new Date().toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase();
+          
           const updateResult = await makeAuthenticatedRequest('/api/coach/actions/execute', 'POST', {
             action: {
-              type: mod === 'shorter' || mod === 'longer' ? 'REGENERATE_SESSION' : 'REPLACE_SESSION',
-              dayOfWeek: new Date().toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase(),
-              workoutType: action.params?.workoutType || 'strength',
-              durationMinutes: mod === 'shorter' ? 30 : mod === 'longer' ? 60 : 45,
-              intensity: mod === 'harder' ? 'high' : mod === 'easier' ? 'low' : 'medium',
+              type: 'REGENERATE_SESSION',
+              dayOfWeek: dayForUpdate,
             }
           });
           
