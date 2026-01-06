@@ -93,6 +93,45 @@ function getActionDetails(action: PendingActionDetails): {
         color: COLORS.success,
       };
     
+    case 'update_workout':
+      const modMap: Record<string, { icon: string; title: string; desc: string }> = {
+        harder: { icon: 'flame', title: 'Make Workout Harder', desc: 'Increase intensity with more sets, shorter rest, and heavier weights' },
+        easier: { icon: 'leaf', title: 'Make Workout Easier', desc: 'Reduce intensity with fewer sets, longer rest periods' },
+        shorter: { icon: 'time-outline', title: 'Make Workout Shorter', desc: 'Reduce duration by removing exercises while keeping it effective' },
+        longer: { icon: 'timer-outline', title: 'Make Workout Longer', desc: 'Add more exercises and sets for a longer session' },
+      };
+      const mod = modMap[params?.modification || 'harder'];
+      return {
+        icon: mod.icon,
+        title: mod.title,
+        description: `${mod.desc} for ${getDayName(params?.date)}${params?.description ? `\n\nYour notes: "${params.description}"` : ''}`,
+        color: COLORS.accent,
+      };
+    
+    case 'regenerate_day':
+      return {
+        icon: 'refresh',
+        title: 'Regenerate Day\'s Workout',
+        description: `Generate a fresh workout for ${params?.targetDay || getDayName(params?.date)}${params?.reason ? `\n\nReason: "${params.reason}"` : ''}`,
+        color: COLORS.accent,
+      };
+    
+    case 'skip_day':
+      return {
+        icon: 'close-circle',
+        title: 'Skip Workout Day',
+        description: `Skip the workout scheduled for ${params?.targetDay || getDayName(params?.date)}${params?.reason ? `\n\nReason: "${params.reason}"` : ''}`,
+        color: COLORS.warning,
+      };
+    
+    case 'rest_day':
+      return {
+        icon: 'bed',
+        title: 'Convert to Rest Day',
+        description: `Make ${params?.targetDay || getDayName(params?.date)} a rest day for recovery`,
+        color: COLORS.mediumGray,
+      };
+    
     case 'remove_workout':
       const dayName = params?.dayIndex !== undefined ? DAYS_OF_WEEK[params.dayIndex] : 'this day';
       return {
