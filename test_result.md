@@ -2,14 +2,22 @@
 
 ## Test Summary
 **Date**: 2026-01-06
-**Focus**: REST-ONLY plan generation fix
-**Status**: ✅ ALL TESTS PASSED
+**Focus**: REST-ONLY plan generation fix - COMPREHENSIVE VALIDATION
+**Status**: ✅ ALL 7/7 TESTS PASSED
 
 ---
 
 ## Backend API Tests Completed
 
-### 1. QA Login with Workout Validation ✅
+### 1. Generate Workouts for All 7 Days (New User without Advanced Questionnaire) ✅ **MOST CRITICAL**
+- **Endpoint**: POST /api/workouts/generate
+- **Test**: Each dayOfWeek from 0 to 6 with beginner profile (3 training days)
+- **Expected**: At least 3 of 7 days should have type != "rest" and exercises.length > 0
+- **Status**: PASSED
+- **Results**: Perfect! 3-day plan has exactly 3 workout days [0, 2, 4] and 4 rest days [1, 3, 5, 6]
+- **CRITICAL VALIDATION**: ✅ NOT all 7 days are rest days - REST-ONLY bug is FIXED
+
+### 2. QA Login with Workout Validation ✅
 - **Endpoint**: POST /api/qa/login-as
 - **Expected**: Returns workoutsCount >= trainingDaysPerWeek
 - **Status**: PASSED
@@ -18,20 +26,20 @@
   - Intermediate: workoutsCount=9, trainingDaysPerWeek=4 ✅
   - Injury: workoutsCount=9, trainingDaysPerWeek=4 ✅
 
-### 2. Workout Plan Days Endpoint ✅
+### 3. Workout Plan Days Endpoint ✅
 - **Endpoint**: GET /api/workouts/plan/days
 - **Auth**: Bearer token
 - **Expected**: Returns formatted workouts with exercises
 - **Status**: PASSED
 - **Results**: Retrieved 10 workouts, 6 with exercises
 
-### 3. Plan Status Check ✅
+### 4. Plan Status Check ✅
 - **Endpoint**: GET /api/workouts/plan/status
 - **Expected**: Returns plan exists with workoutsCount >= 3
 - **Status**: PASSED
 - **Results**: Plan exists with 6 workouts
 
-### 4. Plan Ensure Validation ✅
+### 5. Plan Ensure Validation ✅
 - **Endpoint**: POST /api/workouts/plan/ensure
 - **Expected**: Validates workoutsCount >= frequency
 - **Status**: PASSED
