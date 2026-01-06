@@ -271,6 +271,12 @@ export function FloatingCoachButton({
 
   // Detect workout intents and handle locally
   const detectWorkoutIntent = (message: string): { handled: boolean; response?: string; action?: PendingActionDetails; showSuggestions?: boolean; suggestionType?: 'workout_type' | 'general' } => {
+    // Safety check - ensure message is a string
+    if (typeof message !== 'string') {
+      console.error('detectWorkoutIntent received non-string:', typeof message, message);
+      return { handled: false };
+    }
+    
     const lower = message.toLowerCase();
     
     // ===========================================================================
