@@ -778,8 +778,8 @@ export default function WorkoutHubScreen() {
             personality={personality}
             onResolve={handleNudgeResolve}
             onAskCoach={(message) => {
-              setShowCoachSheet(true);
-              // The coach sheet will receive the message via context
+              // FloatingCoachButton handles its own state now
+              // The message will be passed via context if needed
             }}
             compact={false}
           />
