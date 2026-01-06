@@ -235,19 +235,29 @@ export function FloatingCoachButton({
   // Call backend coach API (includes full user context: onboarding, advanced questionnaire, workout history)
   const callCoachAPI = async (userMessage: string) => {
     try {
+      // Get auth token for Bearer auth
+      const token = await SecureStore.getItemAsync('thryvin_access_token');
+      
       // Get user ID from AsyncStorage for personalized context
       const userDataStr = await AsyncStorage.getItem('user_data');
       const userData = userDataStr ? JSON.parse(userDataStr) : null;
       const userId = userData?.id || userData?.userId;
       
-      console.log('🤖 [COACH] Calling backend API with userId:', userId);
+      console.log('🤖 [COACH] Calling backend API with userId:', userId, 'hasToken:', !!token);
+      
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+      };
+      
+      // Add Bearer token if available
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
       
       const response = await fetch(`${API_BASE_URL}/api/coach/chat`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include', // Include session cookies for auth
+        headers,
+        credentials: 'include', // Include session cookies as fallback
         body: JSON.stringify({
           message: userMessage,
           coach: coachName || 'default',
@@ -255,7 +265,7 @@ export function FloatingCoachButton({
           // Note: Backend derives userId from session, not from body (security)
           conversationHistory: messages.slice(-6).map(m => ({
             role: m.role === 'assistant' ? 'coach' : 'user',
-            content: m.text
+            content: typeof m.text === 'string' ? m.text : ''
           })),
         }),
       });
