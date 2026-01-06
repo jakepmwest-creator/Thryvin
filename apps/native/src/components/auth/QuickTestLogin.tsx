@@ -69,6 +69,7 @@ export function QuickTestLogin() {
   const { setUserDirectly } = useAuthStore();
   const [loading, setLoading] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [lastError, setLastError] = useState<{ body: string; status: number } | null>(null);
   
   // Don't render if not enabled
   if (!isTestLoginEnabled()) {
@@ -78,21 +79,58 @@ export function QuickTestLogin() {
   const handleTestLogin = async (profile: TestProfile) => {
     setLoading(profile.id);
     setError(null);
+    setLastError(null);
     
     try {
       console.log(`[QA] Logging in as ${profile.id}...`);
+      console.log(`[QA] API URL: ${API_BASE_URL}/api/qa/login-as`);
       
       // Call QA login endpoint to ensure user exists and get token
       const response = await fetch(`${API_BASE_URL}/api/qa/login-as`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Accept': 'application/json',
           'Bypass-Tunnel-Reminder': 'true',
         },
         body: JSON.stringify({ profile: profile.id }),
       });
       
-      const data = await response.json();
+      // Get response text first for debugging
+      const responseText = await response.text();
+      
+      // Check if response is JSON
+      const contentType = response.headers.get('content-type') || '';
+      const isJson = contentType.includes('application/json');
+      
+      console.log(`[QA] Response status: ${response.status}, Content-Type: ${contentType}`);
+      console.log(`[QA] Response body preview: ${responseText.substring(0, 200)}`);
+      
+      // Try to parse as JSON
+      let data: any;
+      try {
+        data = JSON.parse(responseText);
+      } catch (parseError) {
+        // Not valid JSON - store for diagnostics
+        setLastError({ body: responseText.substring(0, 500), status: response.status });
+        
+        // Check for common error patterns
+        if (responseText.includes('<!DOCTYPE') || responseText.includes('<html')) {
+          throw new Error(`Server returned HTML instead of JSON (status ${response.status}). The server may be down or misconfigured.`);
+        }
+        if (response.status === 520) {
+          throw new Error('Server error (520). Please try again in a moment.');
+        }
+        if (response.status === 502 || response.status === 503) {
+          throw new Error(`Server temporarily unavailable (${response.status}). Please try again.`);
+        }
+        throw new Error(`Invalid response from server (status ${response.status}). Expected JSON but got: ${responseText.substring(0, 100)}...`);
+      }
+      
+      // Check for QA disabled
+      if (data.code === 'QA_DISABLED') {
+        throw new Error('QA login is disabled in this environment. Set QA_MODE=true or use dev build.');
+      }
       
       if (!data.ok) {
         throw new Error(data.error || 'QA login failed');
@@ -101,6 +139,8 @@ export function QuickTestLogin() {
       // Store token directly
       if (data.accessToken) {
         await storeToken(data.accessToken);
+      } else {
+        console.warn('[QA] No access token in response!');
       }
       
       // Set user directly in auth store (bypassing normal login flow)
@@ -117,18 +157,24 @@ export function QuickTestLogin() {
         injuries: data.user.injuries ? JSON.parse(data.user.injuries) : [],
       });
       
-      console.log(`[QA] ✅ Logged in as ${profile.id}`);
+      console.log(`[QA] ✅ Logged in as ${profile.id} (requestId: ${data.requestId})`);
       
       // Navigate to home
       router.replace('/(tabs)');
       
     } catch (err: any) {
       console.error(`[QA] Login failed:`, err);
-      setError(err.message || 'Failed to login');
+      const errorMessage = err.message || 'Failed to login';
+      setError(errorMessage);
       Alert.alert(
         'Login Failed',
-        err.message || 'Could not login as test user. Try again.',
-        [{ text: 'OK' }]
+        errorMessage,
+        [
+          { text: 'OK' },
+          lastError ? { text: 'View Details', onPress: () => {
+            Alert.alert('Error Details', `Status: ${lastError.status}\nBody: ${lastError.body}`);
+          }} : null,
+        ].filter(Boolean) as any
       );
     } finally {
       setLoading(null);
