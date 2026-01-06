@@ -133,8 +133,11 @@ export function FloatingCoachButton({
   
   // Different greeting based on context
   const getInitialMessage = () => {
-    if (contextMode === 'in_workout' && workoutContext?.currentExercise) {
+    if (contextMode === 'in_workout' && workoutContext?.currentExercise?.name) {
       return `Hey! I'm here to help with your ${workoutContext.workoutTitle || 'workout'}! 💪\n\nCurrently on: ${workoutContext.currentExercise.name}\n\nNeed help with weight, form, or want to swap this exercise?`;
+    }
+    if (contextMode === 'in_workout') {
+      return `Hey! I'm here to help with your ${workoutContext?.workoutTitle || 'workout'}! 💪\n\nTap an exercise to focus on it, or ask me anything!`;
     }
     return "Hey! I'm your AI coach. 💪 I can help with workouts, swap your training days, adjust intensity, or answer fitness questions!";
   };
@@ -149,12 +152,14 @@ export function FloatingCoachButton({
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [showQuickActionsDrawer, setShowQuickActionsDrawer] = useState(true);
   
-  // Update greeting when context changes
+  // Update greeting when exercise changes (but not too frequently)
+  const currentExerciseName = workoutContext?.currentExercise?.name;
   useEffect(() => {
-    if (contextMode === 'in_workout' && workoutContext?.currentExercise) {
-      setMessages([{ role: 'assistant', text: getInitialMessage() }]);
+    if (contextMode === 'in_workout') {
+      const newMessage = getInitialMessage();
+      setMessages([{ role: 'assistant', text: newMessage }]);
     }
-  }, [contextMode, workoutContext?.currentExercise?.name]);
+  }, [currentExerciseName]);
   
   // Load coach settings on mount
   useEffect(() => {
