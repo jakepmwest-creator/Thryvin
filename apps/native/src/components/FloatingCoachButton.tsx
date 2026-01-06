@@ -1059,19 +1059,27 @@ export function FloatingCoachButton({ contextMode = 'home' }: { contextMode?: 'i
                       msg.role === 'user' ? styles.userBubble : styles.assistantBubble,
                     ]}
                   >
-                    {msg.role === 'assistant' && (
-                      <View style={styles.assistantIcon}>
-                        <Ionicons name="sparkles" size={14} color={COLORS.accent} />
-                      </View>
+                    {msg.role === 'user' ? (
+                      <LinearGradient
+                        colors={['#6366F1', '#8B5CF6', '#A855F7']}
+                        style={styles.userBubbleGradient}
+                        start={{ x: 0, y: 0 }}
+                        end={{ x: 1, y: 1 }}
+                      >
+                        <Text style={[styles.messageText, styles.userText]}>
+                          {msg.text}
+                        </Text>
+                      </LinearGradient>
+                    ) : (
+                      <>
+                        <View style={styles.assistantIcon}>
+                          <Ionicons name="sparkles" size={14} color={COLORS.accent} />
+                        </View>
+                        <Text style={[styles.messageText, styles.assistantText]}>
+                          {msg.text}
+                        </Text>
+                      </>
                     )}
-                    <Text
-                      style={[
-                        styles.messageText,
-                        msg.role === 'user' ? styles.userText : styles.assistantText,
-                      ]}
-                    >
-                      {msg.text}
-                    </Text>
                   </View>
                   
                   {/* Show inline suggestions when confidence is low */}
