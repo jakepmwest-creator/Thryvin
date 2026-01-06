@@ -246,45 +246,79 @@ export function EditWorkoutModal({
   };
   
   const renderExerciseList = () => {
+    // Get all exercises grouped by category
     const allExercises = [
       ...(workout?.exercises?.filter((e: any) => e.category === 'warmup') || []),
       ...(workout?.exercises?.filter((e: any) => e.category === 'main') || []),
       ...(workout?.exercises?.filter((e: any) => e.category === 'cooldown') || []),
     ];
     
-    return allExercises.map((exercise: any, index: number) => (
-      <TouchableOpacity
-        key={index}
-        style={[
-          styles.exerciseItem,
-          selectedExercise?.name === exercise.name && styles.exerciseItemSelected,
-        ]}
-        onPress={() => handleSelectExercise(exercise)}
-      >
-        <View style={styles.exerciseItemLeft}>
-          <View style={[
-            styles.exerciseNumber,
-            selectedExercise?.name === exercise.name && styles.exerciseNumberSelected,
-          ]}>
-            <Text style={[
-              styles.exerciseNumberText,
-              selectedExercise?.name === exercise.name && styles.exerciseNumberTextSelected,
+    // If no category set, just use all exercises
+    const exercisesToShow = allExercises.length > 0 ? allExercises : (workout?.exercises || []);
+    
+    return exercisesToShow.map((exercise: any, index: number) => {
+      const isCompleted = completedExercises.includes(exercise.name);
+      
+      // Don't show completed exercises - they can't be edited
+      if (isCompleted) {
+        return (
+          <View
+            key={index}
+            style={[styles.exerciseItem, styles.exerciseItemCompleted]}
+          >
+            <View style={styles.exerciseItemLeft}>
+              <View style={[styles.exerciseNumber, styles.exerciseNumberCompleted]}>
+                <Ionicons name="checkmark" size={16} color="#FFFFFF" />
+              </View>
+              <View style={styles.exerciseItemInfo}>
+                <Text style={[styles.exerciseItemName, styles.exerciseItemNameCompleted]}>
+                  {exercise.name}
+                </Text>
+                <Text style={styles.exerciseItemMeta}>
+                  Completed - Cannot edit
+                </Text>
+              </View>
+            </View>
+            <Ionicons name="lock-closed" size={20} color={COLORS.mediumGray} />
+          </View>
+        );
+      }
+      
+      return (
+        <TouchableOpacity
+          key={index}
+          style={[
+            styles.exerciseItem,
+            selectedExercise?.name === exercise.name && styles.exerciseItemSelected,
+          ]}
+          onPress={() => handleSelectExercise(exercise)}
+        >
+          <View style={styles.exerciseItemLeft}>
+            <View style={[
+              styles.exerciseNumber,
+              selectedExercise?.name === exercise.name && styles.exerciseNumberSelected,
             ]}>
-              {index + 1}
-            </Text>
+              <Text style={[
+                styles.exerciseNumberText,
+                selectedExercise?.name === exercise.name && styles.exerciseNumberTextSelected,
+              ]}>
+                {index + 1}
+              </Text>
+            </View>
+            <View style={styles.exerciseItemInfo}>
+              <Text style={styles.exerciseItemName}>{exercise.name}</Text>
+              <Text style={styles.exerciseItemMeta}>
+                {exercise.sets} sets • {exercise.reps} reps • {exercise.restTime}s rest
+                {exercise.category && ` • ${exercise.category}`}
+              </Text>
+            </View>
           </View>
-          <View style={styles.exerciseItemInfo}>
-            <Text style={styles.exerciseItemName}>{exercise.name}</Text>
-            <Text style={styles.exerciseItemMeta}>
-              {exercise.sets} sets • {exercise.reps} reps • {exercise.restTime}s rest
-            </Text>
-          </View>
-        </View>
-        {selectedExercise?.name === exercise.name && (
-          <Ionicons name="checkmark-circle" size={24} color={COLORS.primary} />
-        )}
-      </TouchableOpacity>
-    ));
+          {selectedExercise?.name === exercise.name && (
+            <Ionicons name="checkmark-circle" size={24} color={COLORS.primary} />
+          )}
+        </TouchableOpacity>
+      );
+    });
   };
   
   const renderSwapReasons = () => {
