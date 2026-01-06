@@ -541,6 +541,100 @@ export function FloatingCoachButton({ contextMode = 'home' }: { contextMode?: 'i
       }
     }
     
+    // SKIP DAY intent - Ask which day
+    if ((lower.includes('skip') && (lower.includes('day') || lower.includes('workout'))) && !lower.includes('remove')) {
+      const dayMap: Record<string, string> = { 
+        monday: 'Monday', tuesday: 'Tuesday', wednesday: 'Wednesday', thursday: 'Thursday', 
+        friday: 'Friday', saturday: 'Saturday', sunday: 'Sunday',
+        mon: 'Monday', tue: 'Tuesday', wed: 'Wednesday', thu: 'Thursday', 
+        fri: 'Friday', sat: 'Saturday', sun: 'Sunday'
+      };
+      
+      let targetDay: string | null = null;
+      for (const [key, dayName] of Object.entries(dayMap)) {
+        if (lower.includes(key)) {
+          targetDay = dayName;
+          break;
+        }
+      }
+      
+      // Check for today/tomorrow
+      if (lower.includes('today')) {
+        targetDay = new Date().toLocaleDateString('en-US', { weekday: 'long' });
+      } else if (lower.includes('tomorrow')) {
+        const tomorrow = new Date();
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        targetDay = tomorrow.toLocaleDateString('en-US', { weekday: 'long' });
+      }
+      
+      // If no day specified, ask which day
+      if (!targetDay) {
+        return {
+          handled: true,
+          response: "Which day would you like to skip? 📅\n\n• Today\n• Tomorrow\n• Or pick a specific day\n\nYour workout will be marked as skipped and you can reschedule if needed."
+        };
+      }
+      
+      return {
+        handled: true,
+        response: `Got it! I'll skip ${targetDay}'s workout. ⏭️\n\nDon't worry - you can always add it back later.\n\nPress confirm to skip this day!`,
+        action: { 
+          type: 'skip_day', 
+          params: { 
+            targetDay,
+            date: new Date()
+          } 
+        }
+      };
+    }
+    
+    // REST DAY intent - Convert a day to rest
+    if ((lower.includes('rest day') || lower.includes('rest') && lower.includes('day')) && !lower.includes('today is a rest')) {
+      const dayMap: Record<string, string> = { 
+        monday: 'Monday', tuesday: 'Tuesday', wednesday: 'Wednesday', thursday: 'Thursday', 
+        friday: 'Friday', saturday: 'Saturday', sunday: 'Sunday',
+        mon: 'Monday', tue: 'Tuesday', wed: 'Wednesday', thu: 'Thursday', 
+        fri: 'Friday', sat: 'Saturday', sun: 'Sunday'
+      };
+      
+      let targetDay: string | null = null;
+      for (const [key, dayName] of Object.entries(dayMap)) {
+        if (lower.includes(key)) {
+          targetDay = dayName;
+          break;
+        }
+      }
+      
+      // Check for today/tomorrow
+      if (lower.includes('today')) {
+        targetDay = new Date().toLocaleDateString('en-US', { weekday: 'long' });
+      } else if (lower.includes('tomorrow')) {
+        const tomorrow = new Date();
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        targetDay = tomorrow.toLocaleDateString('en-US', { weekday: 'long' });
+      }
+      
+      // If no day specified, ask which day
+      if (!targetDay) {
+        return {
+          handled: true,
+          response: "Which day would you like to make a rest day? 😴\n\n• Today\n• Tomorrow\n• Or pick a specific day\n\nRest is important for recovery!"
+        };
+      }
+      
+      return {
+        handled: true,
+        response: `Rest day incoming! 😴 I'll convert ${targetDay} to a rest day.\n\nYour body needs recovery to get stronger!\n\nPress confirm to make it a rest day!`,
+        action: { 
+          type: 'rest_day', 
+          params: { 
+            targetDay,
+            date: new Date()
+          } 
+        }
+      };
+    }
+    
     // Stats inquiry
     if (lower.includes('my stats') || lower.includes('my progress') || lower.includes('how many workouts') || lower.includes('streak')) {
       // Compute stats from weekWorkouts
