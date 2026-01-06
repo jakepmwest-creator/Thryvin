@@ -350,76 +350,74 @@ class ThryvinRESTOnlyPlansTester:
             print(f"   Details: {json.dumps(details, indent=2)}")
     
     def run_all_tests(self):
-        """Run all QA Login JSON Response Reliability tests as specified in review request"""
-        print("🔐 Starting Thryvin AI Fitness App Backend Testing - QA Login JSON Response Reliability Tests")
-        print("Testing CRITICAL QA login endpoints for JSON response reliability:")
-        print("1. QA Login - Beginner (10 consecutive times) - POST /api/qa/login-as")
-        print("2. QA Login - Intermediate - POST /api/qa/login-as")
-        print("3. QA Login - Injury - POST /api/qa/login-as")
-        print("4. QA Login - Invalid Profile - POST /api/qa/login-as (should return 400 with INVALID_PROFILE)")
-        print("5. QA Login - Empty Body - POST /api/qa/login-as (should return 400 JSON error)")
-        print("6. QA Reset User - POST /api/qa/reset-user")
-        print("7. QA Profiles List - GET /api/qa/profiles")
+        """Run all REST-ONLY Plans Fix tests as specified in review request"""
+        print("🏋️ Starting Thryvin AI Fitness App Backend Testing - REST-ONLY Plans Fix Tests")
+        print("Testing CRITICAL REST-ONLY plans fix:")
+        print("1. QA Login - Beginner Profile (workoutsCount >= 3, trainingDaysPerWeek = 3)")
+        print("2. QA Login - Intermediate Profile (workoutsCount >= 4, trainingDaysPerWeek = 4)")
+        print("3. QA Login - Injury Profile (workoutsCount >= 4, trainingDaysPerWeek = 4)")
+        print("4. Get Workout Plan Days (NEW ENDPOINT) - GET /api/workouts/plan/days")
+        print("5. Plan Status Check - GET /api/workouts/plan/status")
+        print("6. Plan Ensure - POST /api/workouts/plan/ensure")
         print("=" * 80)
         
         print(f"🔗 Backend URL: {BASE_URL}")
-        print("🚨 CRITICAL CHECK: Every single response must be valid JSON with Content-Type application/json. NO HTML responses allowed.")
+        print("🚨 CRITICAL CHECKS:")
+        print("   - NO more REST-ONLY plans")
+        print("   - All QA users have real workouts with exercises")
+        print("   - workoutsCount MUST always be >= trainingDaysPerWeek")
         print("=" * 80)
         
-        # Test 1: QA Login - Beginner (10 consecutive times)
-        print("\n🔄 Test 1: QA Login - Beginner (10 consecutive times)...")
-        beginner_10x_success = self.test_qa_login_beginner_10x()
+        # Test 1: QA Login - Beginner Profile with workout validation
+        print("\n🔰 Test 1: QA Login - Beginner Profile...")
+        beginner_success = self.test_qa_login_beginner_with_workout_validation()
         
-        # Test 2: QA Login - Intermediate
-        print("\n🔐 Test 2: QA Login - Intermediate...")
-        intermediate_success = self.test_qa_login_intermediate()
+        # Test 2: QA Login - Intermediate Profile with workout validation
+        print("\n🔶 Test 2: QA Login - Intermediate Profile...")
+        intermediate_success = self.test_qa_login_intermediate_with_workout_validation()
         
-        # Test 3: QA Login - Injury
-        print("\n🏥 Test 3: QA Login - Injury...")
-        injury_success = self.test_qa_login_injury()
+        # Test 3: QA Login - Injury Profile with workout validation
+        print("\n🏥 Test 3: QA Login - Injury Profile...")
+        injury_success = self.test_qa_login_injury_with_workout_validation()
         
-        # Test 4: QA Login - Invalid Profile
-        print("\n❌ Test 4: QA Login - Invalid Profile...")
-        invalid_profile_success = self.test_qa_login_invalid_profile()
+        # Test 4: Get Workout Plan Days (NEW ENDPOINT)
+        print("\n📅 Test 4: Get Workout Plan Days (NEW ENDPOINT)...")
+        plan_days_success = self.test_workout_plan_days()
         
-        # Test 5: QA Login - Empty Body
-        print("\n📭 Test 5: QA Login - Empty Body...")
-        empty_body_success = self.test_qa_login_empty_body()
+        # Test 5: Plan Status Check
+        print("\n📊 Test 5: Plan Status Check...")
+        plan_status_success = self.test_plan_status_check()
         
-        # Test 6: QA Reset User
-        print("\n🔄 Test 6: QA Reset User...")
-        reset_user_success = self.test_qa_reset_user()
-        
-        # Test 7: QA Profiles List
-        print("\n📋 Test 7: QA Profiles List...")
-        profiles_list_success = self.test_qa_profiles_list()
+        # Test 6: Plan Ensure
+        print("\n✅ Test 6: Plan Ensure...")
+        plan_ensure_success = self.test_plan_ensure()
         
         print("\n" + "=" * 80)
-        print("🏁 QA Login JSON Response Reliability Test Results:")
+        print("🏁 REST-ONLY Plans Fix Test Results:")
         
-        # Count all QA login tests
-        qa_tests = [
-            beginner_10x_success,
+        # Count all critical tests
+        critical_tests = [
+            beginner_success,
             intermediate_success,
             injury_success,
-            invalid_profile_success,
-            empty_body_success,
-            reset_user_success,
-            profiles_list_success
+            plan_days_success,
+            plan_status_success,
+            plan_ensure_success
         ]
         
-        passed_qa_tests = sum(1 for result in qa_tests if result)
-        total_qa_tests = len(qa_tests)
+        passed_tests = sum(1 for result in critical_tests if result)
+        total_tests = len(critical_tests)
         
-        print(f"✅ {passed_qa_tests}/{total_qa_tests} QA login JSON response tests passed")
+        print(f"✅ {passed_tests}/{total_tests} CRITICAL REST-ONLY plans fix tests passed")
         
-        if passed_qa_tests == total_qa_tests:
-            print("🎉 All CRITICAL QA login JSON response reliability tests passed!")
-            print("🔒 All responses are valid JSON with correct Content-Type headers!")
+        if passed_tests == total_tests:
+            print("🎉 All CRITICAL REST-ONLY plans fix tests passed!")
+            print("🏋️ No more REST-ONLY plans - all users have real workouts!")
+            print("✅ workoutsCount >= trainingDaysPerWeek validation working!")
             return True
         else:
-            print(f"⚠️ {total_qa_tests - passed_qa_tests} CRITICAL tests failed")
-            print("🚨 Some responses may not be valid JSON or have incorrect Content-Type!")
+            print(f"⚠️ {total_tests - passed_tests} CRITICAL tests failed")
+            print("🚨 REST-ONLY plans fix may not be working correctly!")
             return False
     
     def print_summary(self):
