@@ -603,12 +603,74 @@ export function FloatingCoachButton({ contextMode = 'home' }: { contextMode?: 'i
       };
     }
     
-    // Regenerate workout intent
+    // Regenerate workout intent - pick a SPECIFIC DAY, not the whole 21 days
     if (lower.includes('new workout') || lower.includes('regenerate') || lower.includes('different workout') || lower.includes('fresh workout')) {
+      // Check if they specified a day
+      const days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+      const dayMap: Record<string, string> = { 
+        monday: 'Monday', tuesday: 'Tuesday', wednesday: 'Wednesday', thursday: 'Thursday', 
+        friday: 'Friday', saturday: 'Saturday', sunday: 'Sunday',
+        mon: 'Monday', tue: 'Tuesday', wed: 'Wednesday', thu: 'Thursday', 
+        fri: 'Friday', sat: 'Saturday', sun: 'Sunday'
+      };
+      
+      let targetDay: string | null = null;
+      for (const [key, dayName] of Object.entries(dayMap)) {
+        if (lower.includes(key)) {
+          targetDay = dayName;
+          break;
+        }
+      }
+      
+      // Check for today/tomorrow
+      if (lower.includes('today')) {
+        targetDay = new Date().toLocaleDateString('en-US', { weekday: 'long' });
+      } else if (lower.includes('tomorrow')) {
+        const tomorrow = new Date();
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        targetDay = tomorrow.toLocaleDateString('en-US', { weekday: 'long' });
+      }
+      
+      // If no day specified, ask which day
+      if (!targetDay) {
+        return {
+          handled: true,
+          response: "Which day would you like me to regenerate? 📅\n\n• Today\n• Tomorrow\n• Or pick a specific day (Monday, Tuesday, etc.)\n\nThis will ONLY regenerate that one day, not your whole program!",
+          showSuggestions: false,
+        };
+      }
+      
+      // Now ask for reason
+      const hasReason = lower.includes('because') || lower.includes('want') || lower.includes('need') || lower.includes('bored');
+      
+      if (!hasReason && lower.split(' ').length < 8) {
+        return {
+          handled: true,
+          response: `Regenerating ${targetDay}'s workout! 🔄\n\nQuick question - any specific reason? This helps me give you something better:\n\n• Bored with current exercises\n• Want more variety\n• Different muscle focus\n• Just want something fresh\n\nOr just say "go ahead" to regenerate!`,
+          action: { 
+            type: 'regenerate_day', 
+            params: { 
+              targetDay,
+              date: new Date()
+            } 
+          }
+        };
+      }
+      
+      // Extract reason
+      const reason = message.replace(/new workout|regenerate|different workout|fresh workout|for|today|tomorrow|monday|tuesday|wednesday|thursday|friday|saturday|sunday/gi, '').trim();
+      
       return {
         handled: true,
-        response: "Sure! I'll generate a fresh workout for you. 💪\n\nThis will create new exercises while keeping your preferences.\n\nConfirm to regenerate?",
-        action: { type: 'regenerate' }
+        response: `Got it! 🔄 I'll regenerate ${targetDay}'s workout${reason ? ` based on: "${reason}"` : ''}.\n\nThis will:\n• Create fresh exercises for ${targetDay}\n• Keep your other days unchanged\n• Respect your preferences\n\nPress confirm to regenerate!`,
+        action: { 
+          type: 'regenerate_day', 
+          params: { 
+            targetDay,
+            reason: reason || undefined,
+            date: new Date()
+          } 
+        }
       };
     }
     
