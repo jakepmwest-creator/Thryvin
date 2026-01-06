@@ -374,16 +374,27 @@ export function generateWeeklyTemplate(input: SplitPlannerInput): WeeklyTemplate
   // ==========================================================================
   
   const allDays = [0, 1, 2, 3, 4, 5, 6];
+  
+  // CRITICAL FIX: If gymDaysAvailable is empty, default to all days
+  const effectiveGymDays = (gymDaysAvailable && gymDaysAvailable.length > 0) 
+    ? gymDaysAvailable 
+    : allDays;
+  
   const availableGymDays = allDays.filter(day => {
     const activity = externalActivityDays.get(day);
     // Skip days with hard external activities
     if (activity && activity.intensity === 'hard') {
       return false;
     }
-    return gymDaysAvailable.includes(day);
+    return effectiveGymDays.includes(day);
   });
   
-  console.log(`  🏋️ Available gym days: ${availableGymDays.join(', ')}`);
+  // HARD RULE: If no days available after filtering, use all days except hard activities
+  const finalAvailableDays = availableGymDays.length > 0 
+    ? availableGymDays 
+    : allDays.filter(day => !externalActivityDays.has(day) || externalActivityDays.get(day)?.intensity !== 'hard');
+  
+  console.log(`  🏋️ Available gym days: ${finalAvailableDays.join(', ')} (${finalAvailableDays.length} days)`);
   
   // ==========================================================================
   // STEP 4: Schedule gym workouts on available days
