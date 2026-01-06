@@ -918,6 +918,64 @@ export function FloatingCoachButton({ contextMode = 'home' }: { contextMode?: 'i
       };
     }
     
+    // Handle standalone day name as response (when user just types "Thursday" etc.)
+    // Check if last message was asking for a day
+    const lastAssistantMsg = messages.filter(m => m.role === 'assistant').pop();
+    const wasAskingForDay = lastAssistantMsg?.text?.includes('Which day') || 
+                           lastAssistantMsg?.text?.includes('which day') ||
+                           lastAssistantMsg?.text?.includes('What day');
+    
+    if (wasAskingForDay) {
+      const dayMap: Record<string, string> = { 
+        monday: 'Monday', tuesday: 'Tuesday', wednesday: 'Wednesday', thursday: 'Thursday', 
+        friday: 'Friday', saturday: 'Saturday', sunday: 'Sunday',
+        mon: 'Monday', tue: 'Tuesday', wed: 'Wednesday', thu: 'Thursday', 
+        fri: 'Friday', sat: 'Saturday', sun: 'Sunday',
+        today: new Date().toLocaleDateString('en-US', { weekday: 'long' }),
+        tomorrow: (() => { const d = new Date(); d.setDate(d.getDate() + 1); return d.toLocaleDateString('en-US', { weekday: 'long' }); })()
+      };
+      
+      // Check if user's message is primarily a day name
+      const cleanedInput = lower.trim();
+      let detectedDay: string | null = null;
+      
+      for (const [key, dayName] of Object.entries(dayMap)) {
+        if (cleanedInput === key || cleanedInput.startsWith(key + ' ') || cleanedInput.includes(key)) {
+          detectedDay = dayName;
+          break;
+        }
+      }
+      
+      if (detectedDay) {
+        // Determine what action type based on the last question
+        const isSkipQuestion = lastAssistantMsg?.text?.toLowerCase().includes('skip');
+        const isRestQuestion = lastAssistantMsg?.text?.toLowerCase().includes('rest');
+        const isRegenerateQuestion = lastAssistantMsg?.text?.toLowerCase().includes('regenerate');
+        const isHarderQuestion = lastAssistantMsg?.text?.toLowerCase().includes('harder');
+        const isEasierQuestion = lastAssistantMsg?.text?.toLowerCase().includes('easier');
+        
+        if (isSkipQuestion) {
+          return {
+            handled: true,
+            response: `Got it! I'll skip ${detectedDay}'s workout. ⏭️\n\nDon't worry - you can always add it back later.\n\nPress confirm to skip!`,
+            action: { type: 'skip_day', params: { targetDay: detectedDay } }
+          };
+        } else if (isRestQuestion) {
+          return {
+            handled: true,
+            response: `Rest day incoming! 😴 I'll convert ${detectedDay} to a rest day.\n\nPress confirm to make it a rest day!`,
+            action: { type: 'rest_day', params: { targetDay: detectedDay } }
+          };
+        } else if (isRegenerateQuestion) {
+          return {
+            handled: true,
+            response: `Got it! 🔄 I'll regenerate ${detectedDay}'s workout with fresh exercises.\n\nPress confirm to regenerate!`,
+            action: { type: 'regenerate_day', params: { targetDay: detectedDay } }
+          };
+        }
+      }
+    }
+    
     return { handled: false };
   };
   
