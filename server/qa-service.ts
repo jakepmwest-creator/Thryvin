@@ -399,30 +399,31 @@ export function setupQARoutes(app: Express) {
       });
     }
   });
-        code: 'QA_LOGIN_FAILED',
-        requestId,
-      });
-    }
-  });
   
   /**
    * POST /api/qa/reset-user
    * Reset a test user's data (clears plan + history, keeps account)
    */
-  app.post('/api/qa/reset-user', qaGate, async (req: AuthenticatedRequest, res) => {
-    const requestId = (req as ApiRequest).requestId || 'unknown';
-    const { email } = req.body;
+  app.post('/api/qa/reset-user', qaGate, async (req: AuthenticatedRequest, res: Response) => {
+    const requestId = (req as ApiRequest).requestId || `qa_reset_${Date.now()}`;
     
-    if (!email || !email.includes('@thryvin.test')) {
-      return res.status(400).json({
-        ok: false,
-        error: 'Can only reset @thryvin.test accounts',
-        code: 'INVALID_EMAIL',
-        requestId,
-      });
-    }
+    // Ensure JSON response
+    res.setHeader('Content-Type', 'application/json');
     
     try {
+      const { email } = req.body || {};
+      
+      console.log(`[QA] ${requestId} | reset-user email=${email} status=STARTED`);
+      
+      if (!email || !email.includes('@thryvin.test')) {
+        return res.status(400).json({
+          ok: false,
+          error: 'Can only reset @thryvin.test accounts',
+          code: 'INVALID_EMAIL',
+          requestId,
+        });
+      }
+      
       const user = await storage.getUserByEmail(email);
       if (!user) {
         return res.status(404).json({
@@ -439,15 +440,25 @@ export function setupQARoutes(app: Express) {
         await storage.deleteWorkoutDay(workout.id);
       }
       
-      console.log(`[QA] Reset user data for ${email}`);
+      console.log(`[QA] ${requestId} | reset-user email=${email} status=SUCCESS deleted=${workouts.length}`);
       
-      res.json({
+      return res.json({
         ok: true,
         message: `Reset data for ${email}`,
         deletedWorkouts: workouts.length,
         requestId,
       });
+      
     } catch (error: any) {
+      console.error(`[QA] ${requestId} | reset-user status=ERROR error=${error.message}`);
+      return res.status(500).json({
+        ok: false,
+        error: error.message || 'Failed to reset user data',
+        code: 'QA_RESET_FAILED',
+        requestId,
+      });
+    }
+  });
       console.error(`[QA] Reset failed:`, error);
       res.status(500).json({
         ok: false,
