@@ -635,16 +635,29 @@ export function FloatingCoachButton({ contextMode = 'home' }: { contextMode?: 'i
       };
     }
     
-    // Stats inquiry
+    // Stats inquiry - brief with link suggestion
     if (lower.includes('my stats') || lower.includes('my progress') || lower.includes('how many workouts') || lower.includes('streak')) {
       // Compute stats from weekWorkouts
       const completedCount = weekWorkouts.filter(w => w.completed && !w.isRestDay).length;
       const totalWorkouts = weekWorkouts.filter(w => !w.isRestDay).length;
       const thisWeekCompleted = weekWorkouts.slice(0, 7).filter(w => w.completed && !w.isRestDay).length;
       
+      // Calculate streak
+      let streak = 0;
+      const sortedWorkouts = [...weekWorkouts].sort((a, b) => 
+        new Date(b.date).getTime() - new Date(a.date).getTime()
+      );
+      for (const workout of sortedWorkouts) {
+        if (workout.completed && !workout.isRestDay) {
+          streak++;
+        } else if (!workout.isRestDay) {
+          break;
+        }
+      }
+      
       return {
         handled: true,
-        response: `📊 Here's your progress:\n\n• This week: ${thisWeekCompleted}/5 workouts\n• Total completed: ${completedCount} workouts\n• Upcoming: ${totalWorkouts - completedCount} workouts scheduled\n\nKeep crushing it! 💪`
+        response: `📊 **Quick Stats**\n\n• This week: ${thisWeekCompleted} workouts ✅\n• Current streak: ${streak} days 🔥\n• Total completed: ${completedCount}\n\n👉 Check your Profile tab for detailed stats!\n\nKeep crushing it! 💪`
       };
     }
     
@@ -656,18 +669,18 @@ export function FloatingCoachButton({ contextMode = 'home' }: { contextMode?: 'i
       if (todayWorkout?.isRestDay) {
         return {
           handled: true,
-          response: "😴 Today is a rest day!\n\nTake time to recover, stretch, and rehydrate. Your body builds muscle during rest!"
+          response: "😴 Today is a rest day!\n\nTake time to recover. Your body builds muscle during rest!"
         };
       } else if (todayWorkout) {
         return {
           handled: true,
-          response: `🏋️ Today's workout: **${todayWorkout.title}**\n\n• Duration: ${todayWorkout.duration} minutes\n• Exercises: ${todayWorkout.exercises?.length || 0}\n• Focus: ${todayWorkout.targetMuscles || todayWorkout.type}\n\nReady to crush it?`
+          response: `🏋️ **Today: ${todayWorkout.title}**\n\n⏱️ ${todayWorkout.duration} min • ${todayWorkout.exercises?.length || 0} exercises\n💪 Focus: ${todayWorkout.targetMuscles || todayWorkout.type}\n\nReady to crush it? Head to Workouts tab!`
         };
       }
       return { handled: false };
     }
     
-    // Tomorrow's workout inquiry
+    // Tomorrow's workout inquiry - brief preview
     if (lower.includes("tomorrow") && (lower.includes('workout') || lower.includes('what'))) {
       const tomorrow = new Date();
       tomorrow.setDate(tomorrow.getDate() + 1);
@@ -677,7 +690,7 @@ export function FloatingCoachButton({ contextMode = 'home' }: { contextMode?: 'i
       if (tomorrowWorkout?.isRestDay) {
         return {
           handled: true,
-          response: "😴 Tomorrow is a rest day!\n\nEnjoy the recovery time."
+          response: "😴 Tomorrow is a **rest day**!\n\nEnjoy the recovery."
         };
       } else if (tomorrowWorkout) {
         return {
