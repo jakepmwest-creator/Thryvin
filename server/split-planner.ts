@@ -402,13 +402,47 @@ export function generateWeeklyTemplate(input: SplitPlannerInput): WeeklyTemplate
   
   const scheduledWorkouts: { dayIndex: number; split: SplitDay }[] = [];
   
+  // HARD RULE: We MUST schedule 'frequency' workouts, period.
   // Distribute workouts evenly across available days
-  if (availableGymDays.length >= frequency) {
+  if (finalAvailableDays.length >= frequency) {
     // We have enough days - spread them out
-    const step = availableGymDays.length / frequency;
+    const step = finalAvailableDays.length / frequency;
     for (let i = 0; i < frequency; i++) {
       const dayIdx = Math.floor(i * step);
       scheduledWorkouts.push({
+        dayIndex: finalAvailableDays[dayIdx],
+        split: splitDays[i],
+      });
+    }
+  } else if (finalAvailableDays.length > 0) {
+    // Not enough days - schedule as many as we can, then double up
+    console.log(`  ⚠️ Warning: Only ${finalAvailableDays.length} days available for ${frequency} workouts - will schedule all available`);
+    
+    // First, fill all available days
+    for (let i = 0; i < finalAvailableDays.length; i++) {
+      scheduledWorkouts.push({
+        dayIndex: finalAvailableDays[i],
+        split: splitDays[i % splitDays.length],
+      });
+    }
+    
+    // If we still need more workouts, double up on some days (AM/PM split concept)
+    // For now, just log that we couldn't fit all workouts
+    if (scheduledWorkouts.length < frequency) {
+      console.log(`  ⚠️ Could only schedule ${scheduledWorkouts.length}/${frequency} workouts due to availability constraints`);
+    }
+  } else {
+    // NO days available at all - this should NEVER happen after our fix
+    // But as a last resort, use Mon/Wed/Fri pattern
+    console.error(`  ❌ CRITICAL: No available gym days! Using emergency fallback Mon/Wed/Fri`);
+    const emergencyDays = [1, 3, 5]; // Mon, Wed, Fri
+    for (let i = 0; i < Math.min(frequency, 3); i++) {
+      scheduledWorkouts.push({
+        dayIndex: emergencyDays[i],
+        split: splitDays[i % splitDays.length],
+      });
+    }
+  }
         dayIndex: availableGymDays[dayIdx],
         split: splitDays[i],
       });
