@@ -150,9 +150,18 @@ export function EditWorkoutModal({
     setIsGenerating(true);
     
     try {
+      // Determine exercise category for filtering alternatives
+      const exerciseCategory = selectedExercise.category || 
+        (selectedExercise.name?.toLowerCase().includes('stretch') || 
+         selectedExercise.name?.toLowerCase().includes('foam') ? 'cooldown' :
+         selectedExercise.name?.toLowerCase().includes('warm') ||
+         selectedExercise.name?.toLowerCase().includes('jog') ||
+         selectedExercise.name?.toLowerCase().includes('jump') ? 'warmup' : 'main');
+      
       console.log('🔄 Calling AI to find alternatives...');
       console.log('   API URL:', `${API_BASE_URL}/api/workouts/swap-exercise`);
       console.log('   Exercise:', selectedExercise.name);
+      console.log('   Category:', exerciseCategory);
       console.log('   Reason:', selectedReason);
       
       const response = await fetch(`${API_BASE_URL}/api/workouts/swap-exercise`, {
@@ -166,6 +175,7 @@ export function EditWorkoutModal({
           reason: selectedReason,
           additionalNotes,
           userProfile: { experience: 'intermediate' },
+          exerciseCategory, // Pass category to get same-type alternatives
         }),
       });
       
