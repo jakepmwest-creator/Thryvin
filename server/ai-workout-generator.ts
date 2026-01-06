@@ -176,12 +176,20 @@ export async function generateAIWorkout(
     injuries: userProfile.injuries?.join(', ') || null,
     sessionDuration,
     weeklyActivities: userProfile.advancedQuestionnaire?.weeklyActivities || [],
-    gymDaysAvailable: userProfile.advancedQuestionnaire?.gymDaysAvailable || userProfile.preferredTrainingDays || [],
+    // CRITICAL FIX: Default to all days if no specific days selected
+    // Empty array [] means NO days available which causes REST-ONLY plans
+    gymDaysAvailable: (userProfile.advancedQuestionnaire?.gymDaysAvailable?.length > 0) 
+      ? userProfile.advancedQuestionnaire.gymDaysAvailable 
+      : (userProfile.preferredTrainingDays?.length > 0)
+        ? userProfile.preferredTrainingDays
+        : [0, 1, 2, 3, 4, 5, 6], // ALL DAYS AVAILABLE by default
     scheduleFlexibility: userProfile.advancedQuestionnaire?.scheduleFlexibility ?? true,
     preferredSplit: userProfile.advancedQuestionnaire?.preferredSplit,
     preferredSplitOther: userProfile.advancedQuestionnaire?.preferredSplitOther,
     weekNumber, // For weekly variety rotation
   };
+  
+  console.log(`  🗓️ Gym days available: ${splitPlannerInput.gymDaysAvailable.join(', ')} (${splitPlannerInput.gymDaysAvailable.length} days)`);
   
   // Generate full weekly template
   const weeklyTemplate = generateWeeklyTemplate(splitPlannerInput);
