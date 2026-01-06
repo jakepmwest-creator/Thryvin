@@ -82,9 +82,6 @@ export default function WorkoutHubScreen() {
   // Remove mode state (for tap-to-remove exercises)
   const [removeMode, setRemoveMode] = useState(false);
   
-  // Workout Coach Sheet state (Phase 8)
-  const [showCoachSheet, setShowCoachSheet] = useState(false);
-  
   // Finish stats for celebration popup
   const [finishStats, setFinishStats] = useState({
     completedExercises: 0,
