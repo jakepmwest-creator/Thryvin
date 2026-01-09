@@ -224,6 +224,14 @@ export default function LoginScreen() {
     
     try {
       await login({ email, password });
+      
+      // Save credentials if "Stay Logged In" is checked
+      if (stayLoggedIn) {
+        await SecureStore.setItemAsync('user_email', email);
+        await SecureStore.setItemAsync('user_password', password);
+        console.log('✅ Credentials saved for quick login');
+      }
+      
       router.replace('/(tabs)');
     } catch (error) {
       showAlert('error', 'Login Failed', error instanceof Error ? error.message : 'Invalid credentials');
