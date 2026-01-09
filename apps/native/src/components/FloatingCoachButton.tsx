@@ -307,6 +307,31 @@ export function FloatingCoachButton({
     const lower = message.toLowerCase();
     
     // ===========================================================================
+    // REDIRECT ACTION REQUESTS TO EDIT PLAN SECTION
+    // Coach is now conversational-only - direct users to Edit Plan for modifications
+    // ===========================================================================
+    const actionKeywords = [
+      'swap', 'switch', 'exchange', // swap days
+      'skip', 'cancel workout', 'take off', // skip day
+      'harder', 'more intense', 'challenge', 'difficult', // make harder
+      'easier', 'less intense', 'lighter', 'gentle', // make easier
+      'shorter', 'quick', 'less time', '20 min', '15 min', // make shorter
+      'longer', 'more time', 'extended', '60 min', '90 min', // make longer
+      'add workout', 'add a workout', 'extra workout', 'add day', // add workout
+      'regenerate', 'new workout', 'generate new', // regenerate
+      'reset program', 'start over', 'fresh start', // reset
+    ];
+    
+    const isActionRequest = actionKeywords.some(keyword => lower.includes(keyword));
+    
+    if (isActionRequest) {
+      return {
+        handled: true,
+        response: "I can help answer any questions about your workouts! 🧠\n\nFor plan modifications like swapping days, skipping workouts, or adjusting intensity, you have full control in the **Edit Plan** section.\n\n📍 Go to Home → Tap **Edit Plan** button\n\nThere you can:\n• Swap workout days\n• Skip or add workouts\n• Make workouts harder/easier\n• Adjust duration\n• And more!\n\nIs there anything else I can help explain about your fitness journey?"
+      };
+    }
+    
+    // ===========================================================================
     // CRITICAL: Check for user REJECTION/CORRECTION first
     // If user says "not cardio" or "no, arms", invalidate pendingAction and re-detect
     // ===========================================================================
