@@ -1302,7 +1302,7 @@ export function FloatingCoachButton({
                 role: 'assistant', 
                 text: `Done! ✅ I've swapped ${fromDayName.charAt(0).toUpperCase() + fromDayName.slice(1)}'s workout with ${toDayName.charAt(0).toUpperCase() + toDayName.slice(1)}'s. Check your schedule! 📅` 
               }]);
-              await useWorkoutStore.getState().fetchWeekWorkouts();
+              await useWorkoutStore.getState().syncFromBackend();
             } else {
               setMessages(prev => [...prev, { 
                 role: 'assistant', 
