@@ -2239,26 +2239,28 @@ Respond with JSON ONLY:
           targetDate.setDate(today.getDate() + diff);
           const dateStr = targetDate.toISOString().split('T')[0];
           
-          // Update workout in database to be a rest day
+          // Get workouts and find the one for this date
           const workouts = await storage.getWorkoutDays(userId);
-          const workoutIndex = workouts.findIndex(w => w.date === dateStr);
+          const workout = workouts.find(w => w.date === dateStr);
           
-          if (workoutIndex !== -1) {
-            // Update to rest day
-            await storage.updateWorkoutDay(userId, dateStr, {
-              title: 'Rest Day (Skipped)',
-              type: 'Rest',
-              isRestDay: true,
-              exercises: [],
-              duration: 0,
-              overview: action.reason || 'Skipped by user',
+          if (workout) {
+            // Update to rest day using the workout ID
+            await storage.updateWorkoutDay(workout.id, {
+              payloadJson: {
+                title: 'Rest Day (Skipped)',
+                type: 'Rest',
+                isRestDay: true,
+                exercises: [],
+                duration: 0,
+                overview: action.reason || 'Skipped by user',
+              }
             });
             
-            console.log('✅ [COACH-ACTION] Skipped day:', dateStr);
+            console.log('✅ [COACH-ACTION] Skipped day:', dateStr, 'workoutId:', workout.id);
             return res.json({ ok: true, message: `${dayOfWeek} skipped successfully` });
           } else {
             console.log('⚠️ [COACH-ACTION] No workout found for:', dateStr);
-            return res.json({ ok: true, message: `No workout found for ${dayOfWeek}, but marked as skipped` });
+            return res.json({ ok: true, message: `No workout found for ${dayOfWeek}` });
           }
         }
         
@@ -2299,9 +2301,12 @@ Respond with JSON ONLY:
           const toWorkout = workouts.find(w => w.date === toDateStr);
           
           if (fromWorkout && toWorkout) {
-            // Swap the workouts
-            await storage.updateWorkoutDay(userId, fromDateStr, toWorkout.payloadJson);
-            await storage.updateWorkoutDay(userId, toDateStr, fromWorkout.payloadJson);
+            // Swap the workout payloads
+            const fromPayload = fromWorkout.payloadJson;
+            const toPayload = toWorkout.payloadJson;
+            
+            await storage.updateWorkoutDay(fromWorkout.id, { payloadJson: toPayload });
+            await storage.updateWorkoutDay(toWorkout.id, { payloadJson: fromPayload });
             
             console.log('✅ [COACH-ACTION] Swapped:', fromDateStr, '<->', toDateStr);
             return res.json({ ok: true, message: `Swapped ${fromDay} and ${toDay}` });
