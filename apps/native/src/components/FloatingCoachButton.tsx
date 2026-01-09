@@ -1027,7 +1027,7 @@ export function FloatingCoachButton({
     if (lower.includes('what can you do') || lower.includes('help') || lower.includes('commands')) {
       return {
         handled: true,
-        response: "🤖 I'm your AI fitness coach! Here's what I can help with:\n\n❓ **Ask Me Anything:**\n• Exercise form & technique tips\n• Weight recommendations\n• Nutrition & recovery advice\n• Your workout schedule explained\n\n📍 **For Plan Changes:**\nTap the **Edit Plan** button on your home screen to:\n• Swap workout days\n• Skip or add workouts\n• Make workouts harder/easier/shorter/longer\n\nWhat questions can I answer for you?"
+        response: "🤖 I'm your AI fitness coach! Here's what I can help with:\n\n💬 **Ask Me Anything:**\n• Exercise form & technique tips\n• Weight recommendations\n• Nutrition & recovery advice\n• Your workout schedule\n\n🔧 **Modify Your Plan:**\n• \"Swap Monday and Wednesday\"\n• \"Skip Thursday's workout\"\n• \"Make today's workout harder\"\n• \"Generate a new workout\"\n\n📍 **Or use Edit Plan** on your home screen for direct manual control!\n\nWhat would you like to do?"
       };
     }
     
