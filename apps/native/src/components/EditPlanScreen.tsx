@@ -18,7 +18,7 @@ import {
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import * as SecureStore from 'expo-secure-store';
-import { useWorkoutStore } from '../stores/workout-store';
+import { useWorkoutStore, toLocalDateKey, getMondayOfWeek, findWorkoutByDate, findWorkoutIndexByDate } from '../stores/workout-store';
 import { COLORS as THEME_COLORS } from '../constants/colors';
 
 const COLORS = {
@@ -57,27 +57,55 @@ interface EditPlanScreenProps {
   onClose: () => void;
 }
 
-const getTodayDayIndex = (): number => {
-  const jsDay = new Date().getDay();
-  return jsDay === 0 ? 6 : jsDay - 1;
-};
+// Get today's date key for comparison
+const getTodayKey = (): string => toLocalDateKey(new Date());
 
 export const EditPlanScreen = ({ visible, onClose }: EditPlanScreenProps) => {
   const { weekWorkouts, completedWorkouts, updateWorkoutInWeek, swapWorkoutDays, fetchWeekWorkouts, syncFromBackend } = useWorkoutStore();
   
   const [selectedAction, setSelectedAction] = useState<EditAction | null>(null);
-  const [selectedDays, setSelectedDays] = useState<number[]>([]);
+  const [selectedDays, setSelectedDays] = useState<string[]>([]); // Store date keys, not indices
   const [selectedWeek, setSelectedWeek] = useState(1);
   const [isProcessing, setIsProcessing] = useState(false);
   const [addWorkoutInput, setAddWorkoutInput] = useState('');
 
-  // Organize workouts into weeks
+  // Organize workouts into weeks using DATE MATCHING
   const weeksData = useMemo(() => {
     const weeks: { weekNum: number; days: any[] }[] = [];
+    const today = new Date();
+    const monday = getMondayOfWeek(today);
+    const todayKey = getTodayKey();
     
     for (let week = 1; week <= 3; week++) {
-      const startDay = (week - 1) * 7;
       const weekDays = [];
+      
+      for (let dayOffset = 0; dayOffset < 7; dayOffset++) {
+        const dayIndex = (week - 1) * 7 + dayOffset;
+        const dayDate = new Date(monday);
+        dayDate.setDate(monday.getDate() + dayIndex);
+        const dateKey = toLocalDateKey(dayDate);
+        
+        // Find workout by DATE
+        const workout = findWorkoutByDate(weekWorkouts, dayDate);
+        const isCompleted = workout?.completed || completedWorkouts.some(cw => cw?.id === workout?.id);
+        
+        weekDays.push({
+          dayName: DAYS[dayOffset],
+          dayIndex: dayIndex,
+          date: dayDate,
+          dateKey: dateKey,
+          workout: workout || null,
+          isCompleted,
+          isToday: dateKey === todayKey,
+          isRest: workout?.isRestDay || workout?.title?.toLowerCase().includes('rest'),
+        });
+      }
+      
+      weeks.push({ weekNum: week, days: weekDays });
+    }
+    
+    return weeks;
+  }, [weekWorkouts, completedWorkouts]);
       
       for (let day = 0; day < 7; day++) {
         const dayIndex = startDay + day;
