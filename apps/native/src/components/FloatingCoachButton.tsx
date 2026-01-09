@@ -141,7 +141,7 @@ export function FloatingCoachButton({
     if (contextMode === 'in_workout') {
       return `Hey! I'm here to help with your ${workoutContext?.workoutTitle || 'workout'}! 💪\n\nTap an exercise to focus on it, or ask me anything!`;
     }
-    return "Hey! I'm your AI coach. 💪 I can help with workouts, swap your training days, adjust intensity, or answer fitness questions!";
+    return "Hey! I'm your AI fitness coach. 💪\n\nI can answer questions about:\n• Exercise form & technique\n• Weight recommendations\n• Nutrition & recovery\n• Your workout schedule\n\nWant to modify your plan? Tap **Edit Plan** on your home screen for full control!";
   };
   
   const [messages, setMessages] = useState<ChatMessage[]>([
