@@ -46,6 +46,7 @@ export default function LoginScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [stayLoggedIn, setStayLoggedIn] = useState(true); // Default to true
   const [biometricAvailable, setBiometricAvailable] = useState(false);
   const [biometricEnabled, setBiometricEnabled] = useState(false);
   const [pinEnabled, setPinEnabled] = useState(false);
