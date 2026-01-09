@@ -1,57 +1,65 @@
-# Thryvin - Coach Action System Fixes
+# Thryvin - Edit Plan Feature Implementation
 
 ## Test Summary
-**Date**: 2026-01-07
-**Focus**: Fix 401 auth errors, day detection, and UI button count
-**Status**: ✅ FIXES APPLIED - Ready for User Testing
+**Date**: 2026-01-09
+**Focus**: New Edit Plan Screen + Coach Simplification
+**Status**: 🟡 IMPLEMENTATION COMPLETE - Ready for Testing
 
 ---
 
-## Fixes Applied
+## Changes Implemented
 
-### 1. QuickActionsDrawer.tsx - 3 Primary Buttons Only
-- Changed from 4 primary buttons to 3 (Swap Days, Add Workout, Edit)
-- "Harder" moved to secondary/expanded view
-- All 13 total buttons available in expanded view
+### 1. NEW: EditPlanScreen.tsx
+- Full-screen modal for editing workout plan
+- Actions available:
+  - Swap Days (select 2 days to exchange)
+  - Skip Day (convert to rest day)
+  - Add Day (replace rest day with workout)
+  - Make Harder/Easier
+  - Make Shorter/Longer
+- Flow: Select action → Select day(s) → AI applies changes
+- Clean Thriven UI style with gradient buttons
 
-### 2. FloatingCoachButton.tsx - Auth Token & Day Detection
-- **Added auth token support**: Uses `SecureStore.getItemAsync('auth_token')` for all action API calls
-- **Fixed day detection**: When user types just "Thursday" after being asked "Which day?", it now correctly detects and sets up the action
-- **Fixed action API calls**: Using correct `REGENERATE_SESSION` and `SKIP_DAY` action types with proper payload format
+### 2. Updated index.tsx (Home Screen)
+- Added state variables: `showAllWeeks`, `showEditPlan`
+- Added modals: `ViewAllWeeksModal`, `EditPlanScreen`
+- Buttons in "Program" section now functional
 
-### 3. Date/Day Name Mismatch Fix
-- **index.tsx**: Fixed date comparison using YYYY-MM-DD format to avoid timezone issues
-- **ViewAllWeeksModal.tsx**: Fixed "isToday" calculation to correctly handle all days including Sunday
+### 3. Simplified FloatingCoachButton.tsx
+- **REMOVED**: QuickActionsDrawer (all action buttons)
+- **UPDATED**: Coach greeting to reflect new role (conversational only)
+- **UPDATED**: Action requests now redirect to Edit Plan section
+- **FIXED**: User message bubble color → Thriven gradient (purple #A22BF6 to pink #FF4EC7)
 
 ---
 
-## API Tests (All Passing ✅)
-
-```bash
-# Skip Thursday
-curl -X POST /api/coach/actions/execute -d '{"action":{"type":"SKIP_DAY","dayOfWeek":"thursday"}}'
-# Result: ✅ OK
-
-# Regenerate Wednesday
-curl -X POST /api/coach/actions/execute -d '{"action":{"type":"REGENERATE_SESSION","dayOfWeek":"wednesday"}}'
-# Result: ✅ OK
-
-# All actions now use Bearer token authentication
-```
+## Files Changed
+- `/app/apps/native/src/components/EditPlanScreen.tsx` (NEW)
+- `/app/apps/native/app/(tabs)/index.tsx`
+- `/app/apps/native/src/components/FloatingCoachButton.tsx`
 
 ---
 
 ## User Testing Needed
 
-1. **Quick Actions Drawer**: Verify only 3 buttons visible (Swap Days, Add Workout, Edit)
-2. **Skip Day Flow**: Type "skip day" → "Thursday" → Should work without 401 error
-3. **Harder/Easier/Shorter/Longer**: Should regenerate workout without auth errors
-4. **Day Names**: Verify today's workout shows correct day name
+1. **Edit Plan Button**: Tap "Edit Plan" on home screen → Opens full-screen edit view
+2. **View All Weeks Button**: Tap "View All Weeks" → Opens weeks modal  
+3. **Coach Chat**: Open coach → No action buttons visible, only text input
+4. **Action Redirect**: Ask coach "make my workout harder" → Coach suggests going to Edit Plan
+5. **User Bubble Color**: Send message → Should be purple-to-pink gradient
 
 ---
 
-## Files Changed
-- `/app/apps/native/src/components/QuickActionsDrawer.tsx`
-- `/app/apps/native/src/components/FloatingCoachButton.tsx`
-- `/app/apps/native/src/components/ViewAllWeeksModal.tsx`
-- `/app/apps/native/app/(tabs)/index.tsx`
+## API Endpoints Used
+- `POST /api/coach/actions/execute` - For skip day actions
+- `POST /api/workouts/update-in-place` - For harder/easier/shorter/longer
+- `POST /api/workouts/generate-for-day` - For adding new workouts
+
+---
+
+## Testing Protocol
+```
+Flow 1: Open app → Tap Edit Plan → Select "Make Harder" → Select days → Apply
+Flow 2: Open coach → Type "swap my days" → Should redirect to Edit Plan
+Flow 3: Open coach → Check user message bubble is purple-pink gradient
+```
