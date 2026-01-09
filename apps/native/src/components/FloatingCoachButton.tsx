@@ -151,7 +151,6 @@ export function FloatingCoachButton({
   const [isDragging, setIsDragging] = useState(false);
   const [pendingAction, setPendingAction] = useState<PendingActionDetails | null>(null);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
-  const [showQuickActionsDrawer, setShowQuickActionsDrawer] = useState(true);
   
   // Ref for auto-scrolling to bottom
   const scrollViewRef = useRef<ScrollView>(null);
