@@ -299,11 +299,23 @@ If you don't know their weight for an exercise, suggest based on:
 ✅ ALWAYS include equipment: "Barbell Bench Press", "Dumbbell Curl", "Cable Row"
 ❌ NEVER: "Bench Press", "Curl", "Row" (too generic)
 
+=== WORKOUT TITLE ===
+
+Title format should be: "[Muscle Groups] Workout" or just the main focus.
+Examples:
+- "Back, Biceps & Rear Delts" (GOOD - specific muscle groups)
+- "Push Day - Chest & Triceps" (GOOD - clear focus)
+- "Legs & Glutes" (GOOD - simple and clear)
+- "Upper Body Strength" (GOOD - general category)
+
+❌ AVOID cringy names like "Power-Up", "Fat Blaster", "Mega Pump", "Extreme Burn"
+❌ AVOID day names in titles (the app handles day display separately)
+
 === OUTPUT FORMAT ===
 
 Respond ONLY with valid JSON:
 {
-  "title": "Descriptive Workout Name",
+  "title": "Back, Biceps & Rear Delts",
   "type": "Upper Body",
   "difficulty": "intermediate",
   "duration": 45,
