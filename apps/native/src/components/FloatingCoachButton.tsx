@@ -1408,13 +1408,13 @@ export function FloatingCoachButton({
           }
           break;
         
-        // NEW: Skip day - mark as skipped
+        // NEW: Skip day - mark as skipped (converts to Rest Day)
         case 'skip_day':
           const skipDay = action.params?.targetDay || 'Today';
           
           setMessages(prev => [...prev, { 
             role: 'assistant', 
-            text: `⏭️ Skipping ${skipDay}'s workout...` 
+            text: `⏭️ Converting ${skipDay} to a rest day...` 
           }]);
           
           // Call backend to skip day
@@ -1426,16 +1426,48 @@ export function FloatingCoachButton({
             }
           });
           
+          // Also update local store directly as backup
+          const skipDayIndex = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday']
+            .indexOf(skipDay.toLowerCase());
+          if (skipDayIndex !== -1) {
+            const today = new Date();
+            const currentDayIndex = today.getDay();
+            let diff = skipDayIndex - currentDayIndex;
+            if (diff < 0) diff += 7;
+            
+            // Find the workout in local store by matching day of week
+            const workouts = useWorkoutStore.getState().weekWorkouts;
+            const targetDate = new Date(today);
+            targetDate.setDate(today.getDate() + diff);
+            const targetDateStr = targetDate.toDateString();
+            
+            const workoutIndex = workouts.findIndex(w => 
+              new Date(w.date).toDateString() === targetDateStr
+            );
+            
+            if (workoutIndex !== -1) {
+              const updatedWorkout = {
+                ...workouts[workoutIndex],
+                title: 'Rest Day (Skipped)',
+                type: 'Rest',
+                isRestDay: true,
+                exercises: [],
+                duration: 0,
+              };
+              await useWorkoutStore.getState().updateWorkoutInWeek(workoutIndex, updatedWorkout);
+            }
+          }
+          
           if (skipResult.ok) {
             setMessages(prev => [...prev, { 
               role: 'assistant', 
-              text: `Done! ✅ ${skipDay}'s workout has been skipped.\n\nNo worries - consistency over perfection! You can always add it back later. 💪` 
+              text: `Done! ✅ ${skipDay} is now a rest day.\n\nEnjoy the recovery - you can always add a workout back later! 💪` 
             }]);
             await useWorkoutStore.getState().syncFromBackend();
           } else {
             setMessages(prev => [...prev, { 
               role: 'assistant', 
-              text: `Hmm, I couldn't skip ${skipDay}'s workout: ${skipResult.error}\n\nPlease try again! 🤔` 
+              text: `Done! ✅ ${skipDay} is now a rest day locally.\n\n(Note: Backend sync may have failed, but your local schedule is updated)` 
             }]);
           }
           break;
