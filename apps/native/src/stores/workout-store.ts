@@ -358,11 +358,16 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
         // Update cache
         await setStorageItem('week_workouts', JSON.stringify(data.workouts));
         
-        // Also update today's workout if it's in the list
-        const todayIndex = new Date().getDay() === 0 ? 6 : new Date().getDay() - 1;
-        if (data.workouts[todayIndex]) {
-          set({ todayWorkout: data.workouts[todayIndex], currentWorkout: data.workouts[todayIndex] });
-          await setStorageItem('today_workout', JSON.stringify(data.workouts[todayIndex]));
+        // Find today's workout by DATE match, not index
+        const todayStr = new Date().toDateString();
+        const todaysWorkout = data.workouts.find((w: any) => 
+          new Date(w.date).toDateString() === todayStr
+        );
+        
+        if (todaysWorkout) {
+          set({ todayWorkout: todaysWorkout, currentWorkout: todaysWorkout });
+          await setStorageItem('today_workout', JSON.stringify(todaysWorkout));
+          console.log('✅ [SYNC] Updated today\'s workout:', todaysWorkout.title);
         }
         
         console.log('✅ [SYNC] Frontend state updated from backend');
