@@ -63,7 +63,7 @@ const getTodayDayIndex = (): number => {
 };
 
 export const EditPlanScreen = ({ visible, onClose }: EditPlanScreenProps) => {
-  const { weekWorkouts, completedWorkouts, updateWorkoutInWeek, swapWorkoutDays, fetchWeekWorkouts } = useWorkoutStore();
+  const { weekWorkouts, completedWorkouts, updateWorkoutInWeek, swapWorkoutDays, fetchWeekWorkouts, syncFromBackend } = useWorkoutStore();
   
   const [selectedAction, setSelectedAction] = useState<EditAction | null>(null);
   const [selectedDays, setSelectedDays] = useState<number[]>([]);
