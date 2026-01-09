@@ -989,6 +989,18 @@ export default function HomeScreen() {
         weekStartDate={new Date()}
         suggestedDays={user?.selectedDays || []}
       />
+      
+      {/* View All Weeks Modal */}
+      <ViewAllWeeksModal
+        visible={showAllWeeks}
+        onClose={() => setShowAllWeeks(false)}
+      />
+      
+      {/* Edit Plan Screen */}
+      <EditPlanScreen
+        visible={showEditPlan}
+        onClose={() => setShowEditPlan(false)}
+      />
     </SafeAreaView>
   );
 }
