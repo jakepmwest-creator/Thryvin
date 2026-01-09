@@ -18,6 +18,8 @@ import { ExploreWorkoutsModal } from '../../src/components/ExploreWorkoutsModal'
 import { useWorkoutStore } from '../../src/stores/workout-store';
 import { useCoachStore } from '../../src/stores/coach-store';
 import { LikedDislikedModal } from '../../src/components/LikedDislikedModal';
+import { ViewAllWeeksModal } from '../../src/components/ViewAllWeeksModal';
+import { EditPlanScreen } from '../../src/components/EditPlanScreen';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
