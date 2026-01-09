@@ -1140,12 +1140,13 @@ export function FloatingCoachButton({
             }]);
             
             // Create a workout entry
+            const workoutDate = action.params.date ? new Date(action.params.date) : new Date();
             const loggedWorkout = {
               id: `logged_${Date.now()}`,
               title: `${action.params.type.charAt(0).toUpperCase() + action.params.type.slice(1)} Workout`,
               type: action.params.type,
               duration: action.params.duration,
-              date: action.params.date,
+              date: workoutDate.toISOString(),
               completedAt: new Date().toISOString(),
               completed: true,
               caloriesBurn: Math.round(action.params.duration * 6),
@@ -1163,17 +1164,27 @@ export function FloatingCoachButton({
               difficulty: 'Custom',
               targetMuscles: 'Various',
               isRestDay: false,
+              isLogged: true, // Mark as manually logged
             };
             
-            // Add to completed workouts and save
+            // Add to completed workouts and save locally
             const currentCompleted = useWorkoutStore.getState().completedWorkouts;
             const updatedCompleted = [loggedWorkout, ...currentCompleted];
             
             // Update store
             useWorkoutStore.setState({ completedWorkouts: updatedCompleted });
             
-            // Save to storage
+            // Save to local storage
             await AsyncStorage.setItem('completed_workouts', JSON.stringify(updatedCompleted));
+            
+            // Also send to backend for AI context
+            try {
+              await makeAuthenticatedRequest('/api/workouts/log-extra', 'POST', {
+                workout: loggedWorkout
+              });
+            } catch (e) {
+              console.log('⚠️ Could not sync logged workout to backend');
+            }
             
             // Force refresh all workout data and stats
             await useWorkoutStore.getState().fetchCompletedWorkouts();
