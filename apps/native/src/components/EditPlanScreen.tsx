@@ -152,10 +152,10 @@ export const EditPlanScreen = ({ visible, onClose }: EditPlanScreenProps) => {
     }
     
     // Toggle selection for single or multi-select
-    if (selectedDays.includes(dayIndex)) {
-      setSelectedDays(selectedDays.filter(d => d !== dayIndex));
+    if (selectedDays.includes(dateKey)) {
+      setSelectedDays(selectedDays.filter(d => d !== dateKey));
     } else {
-      setSelectedDays([...selectedDays, dayIndex]);
+      setSelectedDays([...selectedDays, dateKey]);
     }
   };
 
@@ -173,27 +173,40 @@ export const EditPlanScreen = ({ visible, onClose }: EditPlanScreenProps) => {
       
       switch (selectedAction.id) {
         case 'swap':
-          await swapWorkoutDays(selectedDays[0], selectedDays[1]);
-          Alert.alert('Done!', 'Days swapped successfully.');
+          // Find actual array indices from date keys
+          const fromIdx = findWorkoutIndexByDate(weekWorkouts, selectedDays[0]);
+          const toIdx = findWorkoutIndexByDate(weekWorkouts, selectedDays[1]);
+          if (fromIdx >= 0 && toIdx >= 0) {
+            await swapWorkoutDays(fromIdx, toIdx);
+            Alert.alert('Done!', 'Days swapped successfully.');
+          } else {
+            Alert.alert('Error', 'Could not find workouts for selected days.');
+          }
           break;
           
         case 'skip':
-          for (const idx of selectedDays) {
+          for (const dateKey of selectedDays) {
+            const idx = findWorkoutIndexByDate(weekWorkouts, dateKey);
             const workout = weekWorkouts[idx];
-            if (workout) {
+            if (workout && idx >= 0) {
+              // CONVERT TO REST DAY - not remove
               await updateWorkoutInWeek(idx, {
                 ...workout,
                 isRestDay: true,
-                title: 'Rest Day (Skipped)',
+                title: 'Rest Day',
+                type: 'Rest',
                 exercises: [],
+                duration: 0,
+                skippedAt: new Date().toISOString(),
               });
             }
           }
-          Alert.alert('Done!', 'Day(s) skipped.');
+          Alert.alert('Done!', 'Day(s) converted to rest.');
           break;
           
         case 'add':
-          const idx = selectedDays[0];
+          const addDateKey = selectedDays[0];
+          const addIdx = findWorkoutIndexByDate(weekWorkouts, addDateKey);
           const request = addWorkoutInput.trim() || 'moderate full body workout';
           
           try {
@@ -203,16 +216,16 @@ export const EditPlanScreen = ({ visible, onClose }: EditPlanScreenProps) => {
                 'Content-Type': 'application/json',
                 'Authorization': token ? `Bearer ${token}` : '',
               },
-              body: JSON.stringify({ dayIndex: idx, request }),
+              body: JSON.stringify({ dayIndex: addIdx, dateKey: addDateKey, request }),
             });
             
             if (res.ok) {
               const data = await res.json();
-              await updateWorkoutInWeek(idx, data);
+              await updateWorkoutInWeek(addIdx, data);
             } else {
               // Fallback
-              const workout = weekWorkouts[idx];
-              await updateWorkoutInWeek(idx, {
+              const workout = weekWorkouts[addIdx];
+              await updateWorkoutInWeek(addIdx, {
                 ...workout,
                 isRestDay: false,
                 title: 'Custom Workout',
