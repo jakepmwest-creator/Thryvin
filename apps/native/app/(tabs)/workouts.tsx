@@ -713,4 +713,12 @@ const styles = StyleSheet.create({
   generatingTitle: { fontSize: 18, fontWeight: '700', color: COLORS.text, marginTop: 16, marginBottom: 8 },
   generatingSubtitle: { fontSize: 14, color: COLORS.mediumGray, textAlign: 'center', lineHeight: 20, paddingHorizontal: 16 },
   generatingNotice: { fontSize: 13, color: COLORS.gradientStart, textAlign: 'center', marginTop: 12, fontWeight: '500' },
+  // Program Buttons
+  programButtonsRow: { flexDirection: 'row', gap: 12 },
+  programButtonLarge: { flex: 2, borderRadius: 16, overflow: 'hidden' },
+  programButtonSmall: { flex: 1, borderRadius: 16, overflow: 'hidden' },
+  programButtonGradient: { padding: 16, alignItems: 'center', justifyContent: 'center', minHeight: 100 },
+  programButtonTitle: { fontSize: 15, fontWeight: '700', color: COLORS.white, marginTop: 8 },
+  programButtonTitleSmall: { fontSize: 14, fontWeight: '600', color: COLORS.white, marginTop: 6 },
+  programButtonSubtitle: { fontSize: 11, color: 'rgba(255,255,255,0.8)', marginTop: 4 },
 });
