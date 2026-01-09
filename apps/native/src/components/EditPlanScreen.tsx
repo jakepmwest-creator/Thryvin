@@ -305,6 +305,10 @@ export const EditPlanScreen = ({ visible, onClose }: EditPlanScreenProps) => {
                 );
               })}
             </ScrollView>
+            {/* Swipe indicator */}
+            <View style={styles.swipeIndicator}>
+              <Ionicons name="chevron-forward" size={16} color={COLORS.mediumGray} />
+            </View>
           </View>
 
           {/* Instruction */}
