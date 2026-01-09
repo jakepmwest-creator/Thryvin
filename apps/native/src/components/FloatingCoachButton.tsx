@@ -1683,7 +1683,7 @@ export function FloatingCoachButton({
                   >
                     {msg.role === 'user' ? (
                       <LinearGradient
-                        colors={['#9333EA', '#EC4899', '#F472B6']}
+                        colors={[COLORS.accent, COLORS.accentSecondary]}
                         style={styles.userBubbleGradient}
                         start={{ x: 0, y: 0 }}
                         end={{ x: 1, y: 1 }}
