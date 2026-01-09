@@ -1779,14 +1779,6 @@ export function FloatingCoachButton({
                 </ScrollView>
               </View>
             )}
-            
-            {/* Swipe-Up Quick Actions Drawer (hidden in workout mode - use chips above instead) */}
-            {contextMode !== 'in_workout' && (
-              <QuickActionsDrawer
-                onSelectAction={handleQuickActionFromDrawer}
-                visible={showQuickActionsDrawer && !isLoading}
-              />
-            )}
 
             <View style={styles.inputContainer}>
               <View style={styles.inputWrapper}>
