@@ -1742,7 +1742,7 @@ export function FloatingCoachButton({
                       {pendingAction.type === 'reset' && 'Reset Program'}
                       {pendingAction.type === 'update_workout' && `Make It ${pendingAction.params?.modification?.charAt(0).toUpperCase()}${pendingAction.params?.modification?.slice(1) || ''}`}
                       {pendingAction.type === 'regenerate_day' && `Regenerate ${pendingAction.params?.targetDay || 'Day'}`}
-                      {pendingAction.type === 'skip_day' && `Skip ${pendingAction.params?.targetDay || 'Day'}`}
+                      {pendingAction.type === 'skip_day' && `Skip ${pendingAction.params?.targetDay}${pendingAction.params?.date ? ` (${new Date(pendingAction.params.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })})` : ''}`}
                       {pendingAction.type === 'rest_day' && `Make ${pendingAction.params?.targetDay || 'Day'} Rest Day`}
                     </Text>
                   </LinearGradient>
