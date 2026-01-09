@@ -1272,10 +1272,44 @@ export function FloatingCoachButton({
           break;
         case 'swap':
           if (action.params?.from !== undefined && action.params?.to !== undefined) {
-            await swapWorkoutDays(action.params.from, action.params.to);
+            const fromDayIndex = action.params.from;
+            const toDayIndex = action.params.to;
+            const daysOfWeek = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+            const fromDayName = daysOfWeek[fromDayIndex] || 'monday';
+            const toDayName = daysOfWeek[toDayIndex] || 'wednesday';
+            
             setMessages(prev => [...prev, { 
               role: 'assistant', 
-              text: "Done! ✅ I've swapped your workout days. Check your schedule to see the changes!" 
+              text: `🔄 Swapping ${fromDayName} and ${toDayName}...` 
+            }]);
+            
+            // Call backend to swap days
+            const swapResult = await makeAuthenticatedRequest('/api/coach/actions/execute', 'POST', {
+              action: {
+                type: 'SWAP_DAY',
+                fromDay: fromDayName,
+                toDay: toDayName,
+              }
+            });
+            
+            if (swapResult.ok) {
+              // Also update local store
+              await swapWorkoutDays(fromDayIndex, toDayIndex);
+              setMessages(prev => [...prev, { 
+                role: 'assistant', 
+                text: `Done! ✅ I've swapped ${fromDayName.charAt(0).toUpperCase() + fromDayName.slice(1)}'s workout with ${toDayName.charAt(0).toUpperCase() + toDayName.slice(1)}'s. Check your schedule! 📅` 
+              }]);
+              await useWorkoutStore.getState().fetchWeekWorkouts();
+            } else {
+              setMessages(prev => [...prev, { 
+                role: 'assistant', 
+                text: `Hmm, I couldn't swap those days: ${swapResult.error}\n\nPlease try again! 🤔` 
+              }]);
+            }
+          } else {
+            setMessages(prev => [...prev, { 
+              role: 'assistant', 
+              text: "I need to know which two days you want to swap. Try saying 'Swap Monday with Wednesday' 📅" 
             }]);
           }
           break;
