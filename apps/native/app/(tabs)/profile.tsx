@@ -623,18 +623,6 @@ export default function ProfileScreen() {
               subtitle={`Current: ${COACH_PERSONALITIES.find(p => p.id === coachPersonality)?.name || 'Friendly'}`}
               onPress={() => setShowCoachPersonality(true)}
             />
-            <MenuButton
-              icon="refresh"
-              title="Reset Program"
-              subtitle="Chat with AI to customize your plan"
-              onPress={() => setShowResetProgram(true)}
-            />
-            <MenuButton
-              icon="calendar"
-              title="View All Weeks"
-              subtitle="See your 21-day workout schedule"
-              onPress={() => setShowAllWeeks(true)}
-            />
           </View>
         </View>
 
