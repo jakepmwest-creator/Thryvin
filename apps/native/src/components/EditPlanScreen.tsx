@@ -243,8 +243,8 @@ export const EditPlanScreen = ({ visible, onClose }: EditPlanScreenProps) => {
               body: JSON.stringify({ dayIndex: idx, modification: selectedAction.id }),
             });
           }
-          // Refresh workouts from storage
-          await fetchWeekWorkouts();
+          // Sync from backend to get latest changes
+          await syncFromBackend();
           Alert.alert('Done!', `Workout(s) updated to be ${selectedAction.id}.`);
           break;
       }
