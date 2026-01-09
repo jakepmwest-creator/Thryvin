@@ -140,7 +140,14 @@ export function FloatingCoachButton({
     if (contextMode === 'in_workout') {
       return `Hey! I'm here to help with your ${workoutContext?.workoutTitle || 'workout'}! 💪\n\nTap an exercise to focus on it, or ask me anything!`;
     }
-    return "Hey! I'm your AI fitness coach. 💪\n\nI can help you with:\n• Swap/skip workout days\n• Make workouts harder or easier\n• Answer fitness questions\n\nOr use **Edit Plan** on your home screen for direct control!";
+    // Friendly greeting without listing capabilities
+    const greetings = [
+      "Hey! Ready to crush your goals today? 💪",
+      "What's up! How can I help you today? 🏋️",
+      "Hey there! Let's make today count! 🔥",
+      "Hi! I'm your fitness coach. What's on your mind? 💬",
+    ];
+    return greetings[Math.floor(Math.random() * greetings.length)];
   };
   
   const [messages, setMessages] = useState<ChatMessage[]>([
