@@ -355,7 +355,8 @@ Respond ONLY with valid JSON:
   ]
 }`;
 
-  const dayNames = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+  // Day names aligned with JavaScript's getDay() where 0=Sunday, 1=Monday, etc.
+  const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
   const userGoals = userProfile.fitnessGoals?.join(', ') || userProfile.goal || 'general fitness';
   
   // Build context from advanced questionnaire - AI uses ALL of this
