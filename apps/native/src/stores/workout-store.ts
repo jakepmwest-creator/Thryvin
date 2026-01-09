@@ -319,6 +319,59 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
     }
   },
 
+  // Sync workouts from backend after changes (e.g., coach actions)
+  syncFromBackend: async () => {
+    try {
+      console.log('🔄 [SYNC] Fetching latest workouts from backend...');
+      
+      const storedUser = await getStorageItem('auth_user');
+      if (!storedUser) {
+        console.log('⚠️ [SYNC] No user found, skipping sync');
+        return;
+      }
+      
+      const user = JSON.parse(storedUser);
+      const token = await getStorageItem('thryvin_access_token');
+      
+      // Try to fetch from backend
+      const response = await fetch(`${API_BASE_URL}/api/workouts/week?userId=${user.id}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': token ? `Bearer ${token}` : '',
+        },
+      });
+      
+      if (!response.ok) {
+        console.log('⚠️ [SYNC] Backend fetch failed:', response.status);
+        return;
+      }
+      
+      const data = await response.json();
+      
+      if (data.workouts && Array.isArray(data.workouts)) {
+        console.log('✅ [SYNC] Got', data.workouts.length, 'workouts from backend');
+        
+        // Update state with backend data
+        set({ weekWorkouts: data.workouts });
+        
+        // Update cache
+        await setStorageItem('week_workouts', JSON.stringify(data.workouts));
+        
+        // Also update today's workout if it's in the list
+        const todayIndex = new Date().getDay() === 0 ? 6 : new Date().getDay() - 1;
+        if (data.workouts[todayIndex]) {
+          set({ todayWorkout: data.workouts[todayIndex], currentWorkout: data.workouts[todayIndex] });
+          await setStorageItem('today_workout', JSON.stringify(data.workouts[todayIndex]));
+        }
+        
+        console.log('✅ [SYNC] Frontend state updated from backend');
+      }
+    } catch (error) {
+      console.error('❌ [SYNC] Error syncing from backend:', error);
+    }
+  },
+
   // Fetch 3 weeks of workouts (21 days, AI-generated with caching)
   fetchWeekWorkouts: async () => {
     // Prevent double generation with timeout-based lock (5 minute timeout)
