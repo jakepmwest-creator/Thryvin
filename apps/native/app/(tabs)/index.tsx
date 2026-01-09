@@ -800,6 +800,45 @@ export default function HomeScreen() {
           </Animated.ScrollView>
         </View>
 
+        {/* Program Management Section */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Program</Text>
+          
+          {/* View All Weeks */}
+          <TouchableOpacity 
+            style={styles.programCard}
+            onPress={() => setShowAllWeeks(true)}
+          >
+            <View style={styles.programCardContent}>
+              <View style={[styles.programCardIcon, { backgroundColor: `${COLORS.gradientStart}15` }]}>
+                <Ionicons name="calendar" size={24} color={COLORS.gradientStart} />
+              </View>
+              <View style={styles.programCardText}>
+                <Text style={styles.programCardTitle}>View All Weeks</Text>
+                <Text style={styles.programCardSubtitle}>See your 21-day workout schedule</Text>
+              </View>
+              <Ionicons name="chevron-forward" size={20} color={COLORS.mediumGray} />
+            </View>
+          </TouchableOpacity>
+          
+          {/* Edit Plan */}
+          <TouchableOpacity 
+            style={styles.programCard}
+            onPress={() => setShowEditPlan(true)}
+          >
+            <View style={styles.programCardContent}>
+              <View style={[styles.programCardIcon, { backgroundColor: `${COLORS.accentSecondary}15` }]}>
+                <Ionicons name="create" size={24} color={COLORS.accentSecondary} />
+              </View>
+              <View style={styles.programCardText}>
+                <Text style={styles.programCardTitle}>Edit Plan</Text>
+                <Text style={styles.programCardSubtitle}>Swap days, skip workouts, adjust intensity</Text>
+              </View>
+              <Ionicons name="chevron-forward" size={20} color={COLORS.mediumGray} />
+            </View>
+          </TouchableOpacity>
+        </View>
+
         {/* Log Unexpected Workout */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Log Unexpected Workout</Text>
