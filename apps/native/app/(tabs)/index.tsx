@@ -118,6 +118,8 @@ export default function HomeScreen() {
   const [showAdvancedQuestionnaire, setShowAdvancedQuestionnaire] = useState(false);
   const [showWeeklyScheduleCheck, setShowWeeklyScheduleCheck] = useState(false);
   const [hasCheckedQuestionnaire, setHasCheckedQuestionnaire] = useState(false);
+  const [showAllWeeks, setShowAllWeeks] = useState(false);
+  const [showEditPlan, setShowEditPlan] = useState(false);
   
   // Tour refs for highlighting
   const todayWorkoutRef = useRef(null);
