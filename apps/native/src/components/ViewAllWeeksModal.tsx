@@ -89,7 +89,13 @@ export const ViewAllWeeksModal = ({ visible, onClose, onEditPress }: ViewAllWeek
               <Ionicons name="close" size={24} color={COLORS.mediumGray} />
             </TouchableOpacity>
             <Text style={styles.title}>Your 21-Day Program</Text>
-            <View style={{ width: 32 }} />
+            {onEditPress ? (
+              <TouchableOpacity onPress={onEditPress} style={styles.editButton}>
+                <Ionicons name="create-outline" size={22} color={COLORS.accent} />
+              </TouchableOpacity>
+            ) : (
+              <View style={{ width: 32 }} />
+            )}
           </View>
 
           {/* Week Tabs */}
