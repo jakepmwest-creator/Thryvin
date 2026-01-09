@@ -24,6 +24,7 @@ const COLORS = {
 interface ViewAllWeeksModalProps {
   visible: boolean;
   onClose: () => void;
+  onEditPress?: () => void;
 }
 
 const DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
@@ -34,7 +35,7 @@ const getTodayDayIndex = (): number => {
   return jsDay === 0 ? 6 : jsDay - 1; // Convert to 0=Mon, ..., 6=Sun
 };
 
-export const ViewAllWeeksModal = ({ visible, onClose }: ViewAllWeeksModalProps) => {
+export const ViewAllWeeksModal = ({ visible, onClose, onEditPress }: ViewAllWeeksModalProps) => {
   const { weekWorkouts, completedWorkouts } = useWorkoutStore();
   const [selectedWeek, setSelectedWeek] = useState(1);
 
