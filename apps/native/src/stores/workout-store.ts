@@ -1419,41 +1419,49 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
     }
   },
   
-  // Remove a workout from a specific date (AI Coach can remove workouts)
+  // Skip/Remove a workout - CONVERTS TO REST DAY (never removes the entry)
   removeWorkoutFromDate: async (targetDate: Date) => {
     const { weekWorkouts } = get();
-    console.log('➖ [REMOVE] Removing workout for', targetDate.toDateString());
+    const targetKey = toLocalDateKey(targetDate);
+    console.log('➖ [SKIP] Converting to rest day:', targetKey);
     
-    const dateStr = targetDate.toDateString();
-    const updatedWorkouts = weekWorkouts.filter(w => {
-      const workoutDate = new Date(w.date);
-      return workoutDate.toDateString() !== dateStr;
-    });
+    const workoutIndex = findWorkoutIndexByDate(weekWorkouts, targetDate);
     
-    if (updatedWorkouts.length === weekWorkouts.length) {
-      console.log('⚠️ [REMOVE] No workout found for this date');
+    if (workoutIndex === -1) {
+      console.log('⚠️ [SKIP] No workout found for this date');
       return false;
     }
+    
+    // CONVERT TO REST DAY - DO NOT REMOVE FROM ARRAY
+    const updatedWorkouts = [...weekWorkouts];
+    updatedWorkouts[workoutIndex] = {
+      ...updatedWorkouts[workoutIndex],
+      title: 'Rest Day',
+      type: 'Rest',
+      isRestDay: true,
+      exercises: [],
+      duration: 0,
+      overview: 'Skipped - Rest day',
+      skippedAt: new Date().toISOString(),
+    };
     
     set({ weekWorkouts: updatedWorkouts });
     await setStorageItem('week_workouts', JSON.stringify(updatedWorkouts));
     
-    console.log('✅ [REMOVE] Workout removed successfully');
+    console.log('✅ [SKIP] Converted to rest day successfully');
     return true;
   },
   
   // Replace a rest day with a workout (AI Coach power)
   replaceRestDayWithWorkout: async (restDayDate: Date, workoutType: string, duration: number = 30) => {
     const { weekWorkouts } = get();
-    console.log('🔄 [REPLACE] Replacing rest day with workout:', restDayDate.toDateString());
+    const targetKey = toLocalDateKey(restDayDate);
+    console.log('🔄 [REPLACE] Replacing rest day with workout:', targetKey);
     
-    const dateStr = restDayDate.toDateString();
-    const restDayIndex = weekWorkouts.findIndex(w => {
-      const workoutDate = new Date(w.date);
-      return workoutDate.toDateString() === dateStr && w.isRestDay;
-    });
+    const restDayIndex = findWorkoutIndexByDate(weekWorkouts, restDayDate);
+    const workout = restDayIndex >= 0 ? weekWorkouts[restDayIndex] : null;
     
-    if (restDayIndex === -1) {
+    if (restDayIndex === -1 || !workout?.isRestDay) {
       console.log('⚠️ [REPLACE] No rest day found for this date');
       return await get().addWorkoutToDate(restDayDate, workoutType, duration);
     }
