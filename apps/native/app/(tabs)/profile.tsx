@@ -538,12 +538,15 @@ export default function ProfileScreen() {
               subtitle="Update your photo, name & bio"
               onPress={() => setShowEditProfile(true)}
             />
-            <MenuButton
-              icon="sparkles"
-              title="Advanced Questionnaire"
-              subtitle={hasCompletedQuestionnaire ? 'Edit your preferences' : 'Personalize your workouts'}
-              onPress={() => setShowAdvancedQuestionnaire(true)}
-            />
+            {/* Only show Advanced Questionnaire if not completed */}
+            {!hasCompletedQuestionnaire && (
+              <MenuButton
+                icon="sparkles"
+                title="Advanced Questionnaire"
+                subtitle="Personalize your workouts"
+                onPress={() => setShowAdvancedQuestionnaire(true)}
+              />
+            )}
           </View>
         </View>
 
