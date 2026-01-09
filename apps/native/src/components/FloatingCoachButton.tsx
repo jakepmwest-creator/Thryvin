@@ -1547,33 +1547,6 @@ export function FloatingCoachButton({
     setIsLoading(false);
   };
 
-  // Handle quick action from drawer
-  const handleQuickActionFromDrawer = (action: QuickActionItem) => {
-    setInputText(action.prompt);
-    // Auto-send after selecting quick action
-    setTimeout(() => {
-      if (action.prompt) {
-        setMessages(prev => [...prev, { role: 'user', text: action.prompt }]);
-        setIsLoading(true);
-        
-        const intentResult = detectWorkoutIntent(action.prompt);
-        if (intentResult.handled && intentResult.response) {
-          setMessages(prev => [...prev, { 
-            role: 'assistant', 
-            text: intentResult.response!,
-            showSuggestions: intentResult.showSuggestions,
-            suggestionType: intentResult.suggestionType,
-          }]);
-          if (intentResult.action) {
-            setPendingAction(intentResult.action);
-          }
-        }
-        setIsLoading(false);
-        setInputText('');
-      }
-    }, 100);
-  };
-
   // Handle inline suggestion selection
   const handleInlineSuggestion = (suggestion: SuggestedAction) => {
     setMessages(prev => [...prev, { role: 'user', text: suggestion.prompt }]);
