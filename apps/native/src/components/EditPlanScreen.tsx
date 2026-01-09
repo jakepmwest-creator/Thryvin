@@ -386,21 +386,21 @@ export const EditPlanScreen = ({ visible, onClose }: EditPlanScreenProps) => {
           {/* Days List */}
           <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
             {weeksData[selectedWeek - 1]?.days.map((day, index) => {
-              const isSelected = selectedDays.includes(day.globalIndex);
+              const isSelected = selectedDays.includes(day.dateKey);
               const canSelect = selectedAction && !day.isCompleted && 
                 (selectedAction.id !== 'add' || day.isRest) &&
                 (selectedAction.id !== 'skip' || !day.isRest);
               
               return (
                 <TouchableOpacity
-                  key={index}
+                  key={day.dateKey}
                   style={[
                     styles.dayCard,
                     day.isToday && styles.dayCardToday,
                     day.isCompleted && styles.dayCardCompleted,
                     isSelected && styles.dayCardSelected,
                   ]}
-                  onPress={() => handleDaySelect(day.globalIndex)}
+                  onPress={() => handleDaySelect(day.dateKey)}
                   disabled={!selectedAction || day.isCompleted}
                   activeOpacity={canSelect ? 0.7 : 1}
                 >
@@ -409,14 +409,14 @@ export const EditPlanScreen = ({ visible, onClose }: EditPlanScreenProps) => {
                       <Text style={[styles.dayName, day.isToday && styles.dayNameToday]}>
                         {day.dayName}
                       </Text>
-                      <Text style={styles.dayNum}>Day {(selectedWeek - 1) * 7 + index + 1}</Text>
+                      <Text style={styles.dayNum}>{day.dateKey.slice(5)}</Text>
                     </View>
                     
                     {day.isToday && (
                       <View style={styles.todayBadge}>
                         <Text style={styles.todayBadgeText}>TODAY</Text>
                       </View>
-                    )}
+                    )}}
                     
                     {day.isCompleted && (
                       <Ionicons name="checkmark-circle" size={22} color={COLORS.success} />
