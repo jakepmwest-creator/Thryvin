@@ -630,6 +630,20 @@ export default function WorkoutsScreen() {
         visible={likedDislikedModalVisible}
         onClose={() => setLikedDislikedModalVisible(false)}
       />
+      
+      <ViewAllWeeksModal
+        visible={showAllWeeks}
+        onClose={() => setShowAllWeeks(false)}
+        onEditPress={() => {
+          setShowAllWeeks(false);
+          setShowEditPlan(true);
+        }}
+      />
+      
+      <EditPlanScreen
+        visible={showEditPlan}
+        onClose={() => setShowEditPlan(false)}
+      />
     </SafeAreaView>
   );
 }
