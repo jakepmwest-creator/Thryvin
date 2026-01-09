@@ -685,9 +685,19 @@ export function FloatingCoachButton({
       };
       
       let targetDay: string | null = null;
+      let targetDate: Date | null = null;
+      
       for (const [key, dayName] of Object.entries(dayMap)) {
         if (lower.includes(key)) {
           targetDay = dayName;
+          // Calculate the actual date for this day
+          const today = new Date();
+          const todayDayIndex = today.getDay();
+          const dayNameIndex = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'].indexOf(dayName.toLowerCase());
+          let diff = dayNameIndex - todayDayIndex;
+          if (diff < 0) diff += 7; // Next week
+          targetDate = new Date(today);
+          targetDate.setDate(today.getDate() + diff);
           break;
         }
       }
@@ -695,28 +705,33 @@ export function FloatingCoachButton({
       // Check for today/tomorrow
       if (lower.includes('today')) {
         targetDay = new Date().toLocaleDateString('en-US', { weekday: 'long' });
+        targetDate = new Date();
       } else if (lower.includes('tomorrow')) {
         const tomorrow = new Date();
         tomorrow.setDate(tomorrow.getDate() + 1);
         targetDay = tomorrow.toLocaleDateString('en-US', { weekday: 'long' });
+        targetDate = tomorrow;
       }
       
       // If no day specified, ask which day
       if (!targetDay) {
         return {
           handled: true,
-          response: "Which day would you like to skip? 📅\n\n• Today\n• Tomorrow\n• Or pick a specific day\n\nYour workout will be marked as skipped and you can reschedule if needed."
+          response: "Which day would you like to skip? 📅\n\n• Today\n• Tomorrow\n• Or pick a specific day (e.g., \"Skip Friday\")\n\nYour workout will be marked as skipped."
         };
       }
       
+      // Format the date nicely
+      const dateStr = targetDate ? targetDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '';
+      
       return {
         handled: true,
-        response: `Got it! I'll skip ${targetDay}'s workout. ⏭️\n\nDon't worry - you can always add it back later.\n\nPress confirm to skip this day!`,
+        response: `Skip ${targetDay}'s workout${dateStr ? ` (${dateStr})` : ''}? ⏭️\n\nTap the button below to confirm!`,
         action: { 
           type: 'skip_day', 
           params: { 
             targetDay,
-            date: new Date()
+            date: targetDate?.toISOString() || new Date().toISOString()
           } 
         }
       };
