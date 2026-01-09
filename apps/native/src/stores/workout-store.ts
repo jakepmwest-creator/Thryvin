@@ -4,6 +4,52 @@ import { useAwardsStore } from './awards-store';
 
 const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL || 'https://trainee-assist.preview.emergentagent.com';
 
+// ========================================================================
+// CANONICAL DATE UTILITIES - Use these EVERYWHERE for consistency
+// ========================================================================
+
+/**
+ * Convert any date to local YYYY-MM-DD string (the ONLY format for schedule keys)
+ * This avoids timezone issues between UTC and local time
+ */
+export const toLocalDateKey = (date: Date | string): string => {
+  const d = typeof date === 'string' ? new Date(date) : date;
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
+
+/**
+ * Get Monday of the week containing the given date (week starts Monday)
+ */
+export const getMondayOfWeek = (date: Date): Date => {
+  const d = new Date(date);
+  const dayOfWeek = d.getDay(); // 0=Sun, 1=Mon, ..., 6=Sat
+  const mondayOffset = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
+  d.setDate(d.getDate() + mondayOffset);
+  d.setHours(0, 0, 0, 0);
+  return d;
+};
+
+/**
+ * Find workout in array by date key match
+ */
+export const findWorkoutByDate = (workouts: Workout[], targetDate: Date | string): Workout | undefined => {
+  const targetKey = toLocalDateKey(targetDate);
+  return workouts.find(w => w.date && toLocalDateKey(w.date) === targetKey);
+};
+
+/**
+ * Find workout index in array by date key match
+ */
+export const findWorkoutIndexByDate = (workouts: Workout[], targetDate: Date | string): number => {
+  const targetKey = toLocalDateKey(targetDate);
+  return workouts.findIndex(w => w.date && toLocalDateKey(w.date) === targetKey);
+};
+
+// ========================================================================
+
 // Storage helpers - Use AsyncStorage for large data (workout plans are >2KB)
 const getStorageItem = async (key: string): Promise<string | null> => {
   try {
