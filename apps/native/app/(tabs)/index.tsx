@@ -994,6 +994,10 @@ export default function HomeScreen() {
       <ViewAllWeeksModal
         visible={showAllWeeks}
         onClose={() => setShowAllWeeks(false)}
+        onEditPress={() => {
+          setShowAllWeeks(false);
+          setShowEditPlan(true);
+        }}
       />
       
       {/* Edit Plan Screen */}
