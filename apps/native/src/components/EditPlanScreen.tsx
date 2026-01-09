@@ -106,27 +106,6 @@ export const EditPlanScreen = ({ visible, onClose }: EditPlanScreenProps) => {
     
     return weeks;
   }, [weekWorkouts, completedWorkouts]);
-      
-      for (let day = 0; day < 7; day++) {
-        const dayIndex = startDay + day;
-        const workout = weekWorkouts[dayIndex];
-        const isCompleted = workout?.completed || completedWorkouts.some(cw => cw?.id === workout?.id);
-        
-        weekDays.push({
-          dayName: DAYS[day],
-          globalIndex: dayIndex,
-          workout: workout || null,
-          isCompleted,
-          isToday: day === getTodayDayIndex() && week === 1,
-          isRest: workout?.isRestDay || workout?.title?.toLowerCase().includes('rest'),
-        });
-      }
-      
-      weeks.push({ weekNum: week, days: weekDays });
-    }
-    
-    return weeks;
-  }, [weekWorkouts, completedWorkouts]);
 
   const getWeekStats = (week: { days: any[] }) => {
     const completed = week.days.filter(d => d.isCompleted).length;
@@ -140,10 +119,10 @@ export const EditPlanScreen = ({ visible, onClose }: EditPlanScreenProps) => {
     setAddWorkoutInput('');
   };
 
-  const handleDaySelect = (dayIndex: number) => {
+  const handleDaySelect = (dateKey: string) => {
     if (!selectedAction) return;
     
-    const day = weeksData.flatMap(w => w.days).find(d => d.globalIndex === dayIndex);
+    const day = weeksData.flatMap(w => w.days).find(d => d.dateKey === dateKey);
     
     if (day?.isCompleted) {
       Alert.alert('Completed', 'Cannot edit completed workouts.');
@@ -152,10 +131,10 @@ export const EditPlanScreen = ({ visible, onClose }: EditPlanScreenProps) => {
     
     // Swap needs exactly 2 days
     if (selectedAction.requiresTwoDays) {
-      if (selectedDays.includes(dayIndex)) {
-        setSelectedDays(selectedDays.filter(d => d !== dayIndex));
+      if (selectedDays.includes(dateKey)) {
+        setSelectedDays(selectedDays.filter(d => d !== dateKey));
       } else if (selectedDays.length < 2) {
-        setSelectedDays([...selectedDays, dayIndex]);
+        setSelectedDays([...selectedDays, dateKey]);
       }
       return;
     }
@@ -166,7 +145,7 @@ export const EditPlanScreen = ({ visible, onClose }: EditPlanScreenProps) => {
       return;
     }
     
-    // Skip doesn't work on rest days
+    // Skip doesn't work on rest days - but CONVERTS to rest, so allow it
     if (selectedAction.id === 'skip' && day?.isRest) {
       Alert.alert('Already Rest', 'This is already a rest day.');
       return;
