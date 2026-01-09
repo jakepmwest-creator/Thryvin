@@ -97,6 +97,8 @@ export default function WorkoutsScreen() {
   const [selectedCategoryGradient, setSelectedCategoryGradient] = useState<string[]>(COLORS.strength);
   const [likedDislikedModalVisible, setLikedDislikedModalVisible] = useState(false);
   const [workoutCategories, setWorkoutCategories] = useState(DEFAULT_CATEGORIES);
+  const [showAllWeeks, setShowAllWeeks] = useState(false);
+  const [showEditPlan, setShowEditPlan] = useState(false);
   
   const { currentWorkout, todayWorkout, weekWorkouts, completedWorkouts, isLoading, fetchTodayWorkout, fetchWeekWorkouts } = useWorkoutStore();
   
