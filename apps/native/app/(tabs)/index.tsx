@@ -843,6 +843,45 @@ export default function HomeScreen() {
           </View>
         </View>
 
+        {/* Quick Actions Section - Program Management */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Quick Actions</Text>
+          <View style={styles.programButtonsRow}>
+            {/* View All Weeks - Larger */}
+            <TouchableOpacity 
+              style={styles.programButtonLarge}
+              onPress={() => setShowAllWeeks(true)}
+            >
+              <LinearGradient
+                colors={[COLORS.gradientStart, COLORS.gradientEnd]}
+                style={styles.programButtonGradient}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+              >
+                <Ionicons name="calendar" size={24} color={COLORS.white} />
+                <Text style={styles.programButtonTitle}>View All Weeks</Text>
+                <Text style={styles.programButtonSubtitle}>21-day schedule</Text>
+              </LinearGradient>
+            </TouchableOpacity>
+            
+            {/* Edit Plan - Smaller */}
+            <TouchableOpacity 
+              style={styles.programButtonSmall}
+              onPress={() => setShowEditPlan(true)}
+            >
+              <LinearGradient
+                colors={[COLORS.gradientEnd, COLORS.gradientStart]}
+                style={styles.programButtonGradient}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+              >
+                <Ionicons name="create" size={22} color={COLORS.white} />
+                <Text style={styles.programButtonTitleSmall}>Edit Plan</Text>
+              </LinearGradient>
+            </TouchableOpacity>
+          </View>
+        </View>
+
         {/* Log Unexpected Workout */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Log Unexpected Workout</Text>
