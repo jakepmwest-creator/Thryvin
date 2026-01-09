@@ -1441,7 +1441,7 @@ export function FloatingCoachButton({
               role: 'assistant', 
               text: `Done! ✅ ${restDay} is now a rest day.\n\nRest is when your muscles grow! Enjoy the recovery. 😴` 
             }]);
-            await useWorkoutStore.getState().fetchWeekWorkouts();
+            await useWorkoutStore.getState().syncFromBackend();
           } else {
             setMessages(prev => [...prev, { 
               role: 'assistant', 
