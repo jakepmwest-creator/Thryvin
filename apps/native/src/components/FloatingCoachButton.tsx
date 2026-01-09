@@ -1377,7 +1377,7 @@ export function FloatingCoachButton({
               role: 'assistant', 
               text: `Done! ✅ ${targetDay}'s workout has been regenerated with fresh exercises.\n\nYour other days remain unchanged. Go crush it! 💪` 
             }]);
-            await useWorkoutStore.getState().fetchWeekWorkouts();
+            await useWorkoutStore.getState().syncFromBackend();
           } else {
             setMessages(prev => [...prev, { 
               role: 'assistant', 
