@@ -154,6 +154,16 @@ export function FloatingCoachButton({
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [showQuickActionsDrawer, setShowQuickActionsDrawer] = useState(true);
   
+  // Ref for auto-scrolling to bottom
+  const scrollViewRef = useRef<ScrollView>(null);
+  
+  // Auto-scroll when messages change
+  useEffect(() => {
+    setTimeout(() => {
+      scrollViewRef.current?.scrollToEnd({ animated: true });
+    }, 100);
+  }, [messages]);
+  
   // Update greeting when exercise changes (but not too frequently)
   const currentExerciseName = workoutContext?.currentExercise?.name;
   useEffect(() => {
