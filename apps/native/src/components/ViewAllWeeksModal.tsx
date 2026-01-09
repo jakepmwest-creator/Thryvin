@@ -9,7 +9,7 @@ import {
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
-import { useWorkoutStore } from '../stores/workout-store';
+import { useWorkoutStore, toLocalDateKey, getMondayOfWeek, findWorkoutByDate } from '../stores/workout-store';
 
 const COLORS = {
   accent: '#A22BF6',
@@ -29,40 +29,51 @@ interface ViewAllWeeksModalProps {
 
 const DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
-// Get today's day index in our week array (0=Mon, 1=Tue, ..., 6=Sun)
-const getTodayDayIndex = (): number => {
-  const jsDay = new Date().getDay(); // 0=Sun, 1=Mon, ..., 6=Sat
-  return jsDay === 0 ? 6 : jsDay - 1; // Convert to 0=Mon, ..., 6=Sun
-};
+// Get today's date key for comparison
+const getTodayKey = (): string => toLocalDateKey(new Date());
 
 export const ViewAllWeeksModal = ({ visible, onClose, onEditPress }: ViewAllWeeksModalProps) => {
   const { weekWorkouts, completedWorkouts } = useWorkoutStore();
   const [selectedWeek, setSelectedWeek] = useState(1);
 
-  // Organize workouts into weeks
+  // Organize workouts into weeks using DATE MATCHING (not array index)
   const weeksData = useMemo(() => {
     const weeks: { weekNum: number; days: any[] }[] = [];
+    const today = new Date();
+    const monday = getMondayOfWeek(today);
+    const todayKey = getTodayKey();
     
-    // Create 3 weeks of data
+    // Create 3 weeks of data based on actual dates
     for (let week = 1; week <= 3; week++) {
-      const startDay = (week - 1) * 7;
       const weekDays = [];
       
-      for (let day = 0; day < 7; day++) {
-        const dayIndex = startDay + day;
-        const workout = weekWorkouts[dayIndex];
-        const workoutId = workout?.id || `workout-${dayIndex}`;
-        const isCompleted = workout && completedWorkouts.some(cw => 
-          typeof cw === 'string' ? cw === workoutId : cw?.id === workoutId
+      for (let dayOffset = 0; dayOffset < 7; dayOffset++) {
+        // Calculate the actual date for this day
+        const dayIndex = (week - 1) * 7 + dayOffset;
+        const dayDate = new Date(monday);
+        dayDate.setDate(monday.getDate() + dayIndex);
+        const dateKey = toLocalDateKey(dayDate);
+        
+        // Find workout by DATE, not by array index
+        const workout = findWorkoutByDate(weekWorkouts, dayDate);
+        const workoutId = workout?.id || `workout-${dateKey}`;
+        
+        const isCompleted = workout && (
+          workout.completed || 
+          completedWorkouts.some(cw => 
+            typeof cw === 'string' ? cw === workoutId : cw?.id === workoutId
+          )
         );
         
         weekDays.push({
-          dayName: DAYS[day],
+          dayName: DAYS[dayOffset],
           dayNum: dayIndex + 1,
+          date: dayDate,
+          dateKey: dateKey,
           workout: workout || null,
           isCompleted,
-          isToday: day === getTodayDayIndex() && week === 1,
-          isRest: workout?.title?.toLowerCase().includes('rest'),
+          isToday: dateKey === todayKey,
+          isRest: workout?.isRestDay || workout?.title?.toLowerCase().includes('rest'),
         });
       }
       
