@@ -236,8 +236,8 @@ export const EditPlanScreen = ({ visible, onClose }: EditPlanScreenProps) => {
               });
             }
           } catch {
-            const workout = weekWorkouts[idx];
-            await updateWorkoutInWeek(idx, {
+            const workout = weekWorkouts[addIdx];
+            await updateWorkoutInWeek(addIdx, {
               ...workout,
               isRestDay: false,
               title: 'Custom Workout',
@@ -253,14 +253,15 @@ export const EditPlanScreen = ({ visible, onClose }: EditPlanScreenProps) => {
         case 'easier':
         case 'shorter':
         case 'longer':
-          for (const idx of selectedDays) {
+          for (const dateKey of selectedDays) {
+            const idx = findWorkoutIndexByDate(weekWorkouts, dateKey);
             await fetch(`${API_BASE_URL}/api/workouts/update-in-place`, {
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json',
                 'Authorization': token ? `Bearer ${token}` : '',
               },
-              body: JSON.stringify({ dayIndex: idx, modification: selectedAction.id }),
+              body: JSON.stringify({ dayIndex: idx, dateKey: dateKey, modification: selectedAction.id }),
             });
           }
           // Sync from backend to get latest changes
