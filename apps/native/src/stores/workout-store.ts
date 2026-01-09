@@ -154,6 +154,7 @@ interface WorkoutStore {
   generateTodayWorkout: () => Promise<void>;
   fetchTodayWorkout: () => Promise<void>;
   fetchWeekWorkouts: () => Promise<void>;
+  syncFromBackend: () => Promise<void>; // Sync workouts from backend after changes
   fetchCompletedWorkouts: () => Promise<void>;
   fetchStats: () => Promise<void>;
   fetchPersonalBests: () => Promise<void>;
