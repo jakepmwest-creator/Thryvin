@@ -395,19 +395,42 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
       
       const data = await response.json();
       
-      if (data.workouts && Array.isArray(data.workouts)) {
-        console.log('✅ [SYNC] Got', data.workouts.length, 'workouts from backend');
+      // Backend may return object keyed by day name or array
+      let workoutsArray: any[] = [];
+      
+      if (Array.isArray(data.workouts)) {
+        workoutsArray = data.workouts;
+      } else if (data.workouts && typeof data.workouts === 'object') {
+        // Convert object keyed by day name to array with proper dates
+        const today = new Date();
+        const monday = getMondayOfWeek(today);
+        const dayOrder = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+        
+        workoutsArray = dayOrder.map((dayName, index) => {
+          const dayDate = new Date(monday);
+          dayDate.setDate(monday.getDate() + index);
+          const workout = data.workouts[dayName];
+          return {
+            ...workout,
+            date: dayDate.toISOString(),
+            dateKey: toLocalDateKey(dayDate),
+          };
+        });
+      }
+      
+      if (workoutsArray.length > 0) {
+        console.log('✅ [SYNC] Got', workoutsArray.length, 'workouts from backend');
         
         // Update state with backend data
-        set({ weekWorkouts: data.workouts });
+        set({ weekWorkouts: workoutsArray });
         
         // Update cache
-        await setStorageItem('week_workouts', JSON.stringify(data.workouts));
+        await setStorageItem('week_workouts', JSON.stringify(workoutsArray));
         
-        // Find today's workout by DATE match, not index
-        const todayStr = new Date().toDateString();
-        const todaysWorkout = data.workouts.find((w: any) => 
-          new Date(w.date).toDateString() === todayStr
+        // Find today's workout by DATE match using canonical date key
+        const todayKey = toLocalDateKey(new Date());
+        const todaysWorkout = workoutsArray.find((w: any) => 
+          w.date && toLocalDateKey(w.date) === todayKey
         );
         
         if (todaysWorkout) {
