@@ -1346,7 +1346,7 @@ export function FloatingCoachButton({
               text: `Done! ✅ ${summary}\n\nYour exercises have been adjusted - check your Workouts tab! 💪` 
             }]);
             // Refresh workouts to show updated exercises
-            await useWorkoutStore.getState().fetchWeekWorkouts();
+            await useWorkoutStore.getState().syncFromBackend();
           } else {
             setMessages(prev => [...prev, { 
               role: 'assistant', 
