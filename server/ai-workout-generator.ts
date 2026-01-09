@@ -307,9 +307,20 @@ Examples:
 - "Push Day - Chest & Triceps" (GOOD - clear focus)
 - "Legs & Glutes" (GOOD - simple and clear)
 - "Upper Body Strength" (GOOD - general category)
+- "Core & Abs" (GOOD - simple)
+- "Full Body Circuit" (GOOD - describes format)
+- "Lower Body Power" (GOOD - clear)
+- "Arms & Shoulders" (GOOD - specific)
 
-❌ AVOID cringy names like "Power-Up", "Fat Blaster", "Mega Pump", "Extreme Burn"
-❌ AVOID day names in titles (the app handles day display separately)
+❌ AVOID cringy/corny names like:
+- "Power-Up", "Fat Blaster", "Mega Pump", "Extreme Burn"
+- "Shred Session", "Muscle Mayhem", "Beast Mode"
+- "Push Power-Up", "Pull Power", "Leg Destroyer"
+- Anything with exclamation marks or hype words
+
+❌ AVOID including day names in titles (the app handles day display separately)
+
+⚠️ IMPORTANT: Keep titles simple, descriptive, and professional. The user is an adult who wants clear information, not marketing hype.
 
 === OUTPUT FORMAT ===
 
