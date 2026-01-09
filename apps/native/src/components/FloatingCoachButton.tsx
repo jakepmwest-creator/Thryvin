@@ -1624,8 +1624,10 @@ export function FloatingCoachButton({
             </LinearGradient>
 
             <ScrollView
+              ref={scrollViewRef}
               style={styles.messagesContainer}
               contentContainerStyle={styles.messagesContent}
+              onContentSizeChange={() => scrollViewRef.current?.scrollToEnd({ animated: true })}
             >
               {messages.map((msg, i) => (
                 <React.Fragment key={i}>
@@ -1637,7 +1639,7 @@ export function FloatingCoachButton({
                   >
                     {msg.role === 'user' ? (
                       <LinearGradient
-                        colors={['#6366F1', '#8B5CF6', '#A855F7']}
+                        colors={['#9333EA', '#EC4899', '#F472B6']}
                         style={styles.userBubbleGradient}
                         start={{ x: 0, y: 0 }}
                         end={{ x: 1, y: 1 }}
