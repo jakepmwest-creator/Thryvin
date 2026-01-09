@@ -235,6 +235,9 @@ const styles = StyleSheet.create({
   closeButton: {
     padding: 4,
   },
+  editButton: {
+    padding: 4,
+  },
   title: {
     fontSize: 18,
     fontWeight: '700',
