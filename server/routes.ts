@@ -1101,6 +1101,54 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // LOG EXTRA/UNEXPECTED WORKOUT - Track workouts done outside the plan
+  app.post("/api/workouts/log-extra", authenticateToken, async (req: AuthenticatedRequest, res) => {
+    try {
+      const userId = req.user?.id;
+      if (!userId) {
+        return res.status(401).json({ ok: false, error: 'Authentication required' });
+      }
+      
+      const { workout } = req.body;
+      
+      if (!workout || !workout.type || !workout.duration) {
+        return res.status(400).json({ ok: false, error: 'Workout with type and duration required' });
+      }
+      
+      console.log('📝 [LOG-EXTRA] Logging extra workout for user:', userId, workout.type, workout.duration + 'min');
+      
+      // Save to completed workouts in database
+      const loggedWorkout = {
+        id: workout.id || `logged_${Date.now()}`,
+        title: workout.title || `${workout.type} Workout`,
+        type: workout.type,
+        duration: workout.duration,
+        date: workout.date || new Date().toISOString(),
+        completedAt: workout.completedAt || new Date().toISOString(),
+        completed: true,
+        isLogged: true,
+        caloriesBurn: workout.caloriesBurn || Math.round(workout.duration * 6),
+        exercises: workout.exercises || [],
+        overview: workout.overview || 'Logged manually',
+      };
+      
+      // Store in user's workout history for AI context
+      const user = await storage.getUser(userId);
+      if (user) {
+        const currentHistory = user.workoutHistory || [];
+        await storage.updateUser(userId, {
+          workoutHistory: [...currentHistory, loggedWorkout]
+        });
+        console.log('✅ [LOG-EXTRA] Saved to user history');
+      }
+      
+      return res.json({ ok: true, message: 'Workout logged successfully', workout: loggedWorkout });
+    } catch (error: any) {
+      console.error('❌ [LOG-EXTRA] Error:', error);
+      return res.status(500).json({ ok: false, error: error.message || 'Server error' });
+    }
+  });
+
   // UPDATE WORKOUT IN PLACE - modify exercises without regenerating
   // This endpoint takes user feedback and intelligently adjusts the workout
   app.post("/api/workouts/update-in-place", authenticateToken, async (req: AuthenticatedRequest, res) => {
