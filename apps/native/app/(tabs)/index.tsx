@@ -804,43 +804,43 @@ export default function HomeScreen() {
           </Animated.ScrollView>
         </View>
 
-        {/* Program Management Section */}
+        {/* Program Management Section - Side by Side Buttons */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Program</Text>
-          
-          {/* View All Weeks */}
-          <TouchableOpacity 
-            style={styles.programCard}
-            onPress={() => setShowAllWeeks(true)}
-          >
-            <View style={styles.programCardContent}>
-              <View style={[styles.programCardIcon, { backgroundColor: `${COLORS.gradientStart}15` }]}>
-                <Ionicons name="calendar" size={24} color={COLORS.gradientStart} />
-              </View>
-              <View style={styles.programCardText}>
-                <Text style={styles.programCardTitle}>View All Weeks</Text>
-                <Text style={styles.programCardSubtitle}>See your 21-day workout schedule</Text>
-              </View>
-              <Ionicons name="chevron-forward" size={20} color={COLORS.mediumGray} />
-            </View>
-          </TouchableOpacity>
-          
-          {/* Edit Plan */}
-          <TouchableOpacity 
-            style={styles.programCard}
-            onPress={() => setShowEditPlan(true)}
-          >
-            <View style={styles.programCardContent}>
-              <View style={[styles.programCardIcon, { backgroundColor: `${COLORS.accentSecondary}15` }]}>
-                <Ionicons name="create" size={24} color={COLORS.accentSecondary} />
-              </View>
-              <View style={styles.programCardText}>
-                <Text style={styles.programCardTitle}>Edit Plan</Text>
-                <Text style={styles.programCardSubtitle}>Swap days, skip workouts, adjust intensity</Text>
-              </View>
-              <Ionicons name="chevron-forward" size={20} color={COLORS.mediumGray} />
-            </View>
-          </TouchableOpacity>
+          <View style={styles.programButtonsRow}>
+            {/* View All Weeks - Larger */}
+            <TouchableOpacity 
+              style={styles.programButtonLarge}
+              onPress={() => setShowAllWeeks(true)}
+            >
+              <LinearGradient
+                colors={[COLORS.gradientStart, COLORS.gradientEnd]}
+                style={styles.programButtonGradient}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+              >
+                <Ionicons name="calendar" size={24} color={COLORS.white} />
+                <Text style={styles.programButtonTitle}>View All Weeks</Text>
+                <Text style={styles.programButtonSubtitle}>21-day schedule</Text>
+              </LinearGradient>
+            </TouchableOpacity>
+            
+            {/* Edit Plan - Smaller */}
+            <TouchableOpacity 
+              style={styles.programButtonSmall}
+              onPress={() => setShowEditPlan(true)}
+            >
+              <LinearGradient
+                colors={[COLORS.gradientEnd, COLORS.gradientStart]}
+                style={styles.programButtonGradient}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+              >
+                <Ionicons name="create" size={22} color={COLORS.white} />
+                <Text style={styles.programButtonTitleSmall}>Edit Plan</Text>
+              </LinearGradient>
+            </TouchableOpacity>
+          </View>
         </View>
 
         {/* Log Unexpected Workout */}
