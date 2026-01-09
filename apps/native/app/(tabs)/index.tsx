@@ -34,6 +34,8 @@ import { useTour } from '../../src/hooks/useTour';
 import { WelcomeBannerWithInsight } from '../../src/components/WelcomeBannerWithInsight';
 import { CoachNudgeCard } from '../../src/components/CoachNudgeCard';
 import { useCoachNudges } from '../../src/hooks/useCoachNudges';
+import { ViewAllWeeksModal } from '../../src/components/ViewAllWeeksModal';
+import { EditPlanScreen } from '../../src/components/EditPlanScreen';
 
 // Activity cards with vibrant gradients
 const ACTIVITY_CARDS = [
