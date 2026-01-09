@@ -1409,7 +1409,7 @@ export function FloatingCoachButton({
               role: 'assistant', 
               text: `Done! ✅ ${skipDay}'s workout has been skipped.\n\nNo worries - consistency over perfection! You can always add it back later. 💪` 
             }]);
-            await useWorkoutStore.getState().fetchWeekWorkouts();
+            await useWorkoutStore.getState().syncFromBackend();
           } else {
             setMessages(prev => [...prev, { 
               role: 'assistant', 
