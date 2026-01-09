@@ -2198,6 +2198,132 @@ Respond with JSON ONLY:
   });
 
   // AI Coach Chat endpoint
+  // COACH ACTIONS ENDPOINT - Execute coach actions (skip day, swap, etc.)
+  app.post("/api/coach/actions/execute", authenticateToken, async (req: AuthenticatedRequest, res) => {
+    try {
+      const userId = req.user?.id;
+      if (!userId) {
+        return res.status(401).json({ ok: false, error: 'Authentication required' });
+      }
+      
+      const { action } = req.body;
+      
+      if (!action || !action.type) {
+        return res.status(400).json({ ok: false, error: 'Action type required' });
+      }
+      
+      console.log('🎯 [COACH-ACTION] Executing:', action.type, 'for user:', userId);
+      
+      switch (action.type) {
+        case 'SKIP_DAY': {
+          const dayOfWeek = action.dayOfWeek?.toLowerCase();
+          if (!dayOfWeek) {
+            return res.status(400).json({ ok: false, error: 'dayOfWeek required' });
+          }
+          
+          // Calculate the date for this day
+          const today = new Date();
+          const days = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+          const targetDayIndex = days.indexOf(dayOfWeek);
+          
+          if (targetDayIndex === -1) {
+            return res.status(400).json({ ok: false, error: 'Invalid day of week' });
+          }
+          
+          // Find the date
+          const currentDayIndex = today.getDay();
+          let diff = targetDayIndex - currentDayIndex;
+          if (diff < 0) diff += 7;
+          
+          const targetDate = new Date(today);
+          targetDate.setDate(today.getDate() + diff);
+          const dateStr = targetDate.toISOString().split('T')[0];
+          
+          // Update workout in database to be a rest day
+          const workouts = await storage.getWorkoutDays(userId);
+          const workoutIndex = workouts.findIndex(w => w.date === dateStr);
+          
+          if (workoutIndex !== -1) {
+            // Update to rest day
+            await storage.updateWorkoutDay(userId, dateStr, {
+              title: 'Rest Day (Skipped)',
+              type: 'Rest',
+              isRestDay: true,
+              exercises: [],
+              duration: 0,
+              overview: action.reason || 'Skipped by user',
+            });
+            
+            console.log('✅ [COACH-ACTION] Skipped day:', dateStr);
+            return res.json({ ok: true, message: `${dayOfWeek} skipped successfully` });
+          } else {
+            console.log('⚠️ [COACH-ACTION] No workout found for:', dateStr);
+            return res.json({ ok: true, message: `No workout found for ${dayOfWeek}, but marked as skipped` });
+          }
+        }
+        
+        case 'SWAP_DAY': {
+          const { fromDay, toDay } = action;
+          if (!fromDay || !toDay) {
+            return res.status(400).json({ ok: false, error: 'fromDay and toDay required' });
+          }
+          
+          // Get workouts for both days and swap
+          const workouts = await storage.getWorkoutDays(userId);
+          
+          // Calculate dates for both days
+          const today = new Date();
+          const days = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+          const fromDayIndex = days.indexOf(fromDay.toLowerCase());
+          const toDayIndex = days.indexOf(toDay.toLowerCase());
+          
+          if (fromDayIndex === -1 || toDayIndex === -1) {
+            return res.status(400).json({ ok: false, error: 'Invalid day names' });
+          }
+          
+          const currentDayIndex = today.getDay();
+          
+          let fromDiff = fromDayIndex - currentDayIndex;
+          if (fromDiff < 0) fromDiff += 7;
+          const fromDate = new Date(today);
+          fromDate.setDate(today.getDate() + fromDiff);
+          const fromDateStr = fromDate.toISOString().split('T')[0];
+          
+          let toDiff = toDayIndex - currentDayIndex;
+          if (toDiff < 0) toDiff += 7;
+          const toDate = new Date(today);
+          toDate.setDate(today.getDate() + toDiff);
+          const toDateStr = toDate.toISOString().split('T')[0];
+          
+          const fromWorkout = workouts.find(w => w.date === fromDateStr);
+          const toWorkout = workouts.find(w => w.date === toDateStr);
+          
+          if (fromWorkout && toWorkout) {
+            // Swap the workouts
+            await storage.updateWorkoutDay(userId, fromDateStr, toWorkout.payloadJson);
+            await storage.updateWorkoutDay(userId, toDateStr, fromWorkout.payloadJson);
+            
+            console.log('✅ [COACH-ACTION] Swapped:', fromDateStr, '<->', toDateStr);
+            return res.json({ ok: true, message: `Swapped ${fromDay} and ${toDay}` });
+          } else {
+            return res.status(400).json({ ok: false, error: 'Could not find workouts for specified days' });
+          }
+        }
+        
+        case 'REGENERATE_SESSION': {
+          // Handle regenerate - this would call the AI generator
+          return res.json({ ok: true, message: 'Regeneration not yet implemented' });
+        }
+        
+        default:
+          return res.status(400).json({ ok: false, error: `Unknown action type: ${action.type}` });
+      }
+    } catch (error: any) {
+      console.error('❌ [COACH-ACTION] Error:', error);
+      return res.status(500).json({ ok: false, error: error.message || 'Server error' });
+    }
+  });
+
   // UNIFIED COACH CHAT ENDPOINT - Primary endpoint for all coach interactions
   // Uses ai-coach-service.ts for consistent behavior
   // UNIFIED COACH CHAT ENDPOINT - Primary endpoint for all coach interactions
