@@ -233,7 +233,7 @@ export const EditPlanScreen = ({ visible, onClose }: EditPlanScreenProps) => {
         name: 'recording.m4a',
       } as any);
       
-      const response = await fetch(`${API_BASE_URL}/api/ai/transcribe`, {
+      const response = await fetch(`${API_BASE_URL}/api/transcribe`, {
         method: 'POST',
         headers: {
           'Authorization': token ? `Bearer ${token}` : '',
