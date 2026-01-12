@@ -585,11 +585,15 @@ export const EditPlanScreen = ({ visible, onClose }: EditPlanScreenProps) => {
             'Authorization': token ? `Bearer ${token}` : '',
           },
           body: JSON.stringify({
-            type: generatedWorkout.type || workoutType,
-            duration: generatedWorkout.duration,
-            date: dayInfo.date.toISOString(),
-            notes: generatedWorkout.notes || workoutDetails,
-            title: generatedWorkout.title,
+            workout: {
+              type: generatedWorkout.type || workoutType,
+              duration: generatedWorkout.duration,
+              date: dayInfo.date.toISOString(),
+              notes: generatedWorkout.notes || workoutDetails,
+              title: generatedWorkout.title,
+              id: `logged_${Date.now()}`,
+              completedAt: new Date().toISOString(),
+            }
           }),
         });
         
