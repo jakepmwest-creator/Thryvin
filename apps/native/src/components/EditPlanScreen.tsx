@@ -445,24 +445,28 @@ export const EditPlanScreen = ({ visible, onClose }: EditPlanScreenProps) => {
       const dayInfo = getSelectedDayInfo();
       const isHarder = selectedAction?.id === 'harder';
       
-      const response = await fetch(`${API_BASE_URL}/api/workouts/update`, {
+      // Get the day name for the target day
+      const dayNames = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+      const targetDay = dayNames[dayInfo?.date.getDay() || 0];
+      
+      const response = await fetch(`${API_BASE_URL}/api/workouts/update-in-place`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': token ? `Bearer ${token}` : '',
         },
         body: JSON.stringify({
-          workoutData: dayInfo?.workout,
           modification: isHarder ? 'harder' : 'easier',
           userFeedback: reason,
+          targetDay: targetDay,
         }),
       });
       
-      if (!response.ok) {
-        throw new Error('Failed to update workout');
-      }
-      
       const result = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(result.error || 'Failed to update workout');
+      }
       
       // Apply the changes to the workout
       if (dayInfo) {
@@ -481,16 +485,16 @@ export const EditPlanScreen = ({ visible, onClose }: EditPlanScreenProps) => {
       
       Alert.alert(
         'Done! ✅',
-        isHarder 
+        result.message || (isHarder 
           ? 'Your workout has been made more challenging!' 
-          : 'Your workout has been adjusted to be easier.'
+          : 'Your workout has been adjusted to be easier.')
       );
       
       resetFlow();
       
     } catch (err: any) {
       console.error('Adjustment error:', err);
-      Alert.alert('Error', 'Failed to update workout. Please try again.');
+      Alert.alert('Error', err.message || 'Failed to update workout. Please try again.');
       setCurrentStep('conversation');
     } finally {
       setIsProcessing(false);
