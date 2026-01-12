@@ -472,31 +472,63 @@ export function setupAuth(app: Express) {
     }
   });
 
-  app.post("/api/auth/login", (req, res, next) => {
-    passport.authenticate("local", (err: any, user: SelectUser | false, info: any) => {
-      const requestId = (req as ApiRequest).requestId || 'unknown';
-      if (err) {
-        console.error("Login authentication error:", err);
-        return res.status(500).json({ ok: false, error: "Login failed", code: "LOGIN_ERROR", requestId });
-      }
-      if (!user) {
-        return res.status(401).json({ ok: false, error: "Invalid email or password", code: "INVALID_CREDENTIALS", requestId });
-      }
-      req.logIn(user, (err: any) => {
-        if (err) {
-          return next(err);
+  app.post("/api/auth/login", async (req, res, next) => {
+    const requestId = (req as ApiRequest).requestId || 'unknown';
+    
+    // Timeout wrapper for DB operations
+    const loginTimeout = new Promise<never>((_, reject) => {
+      setTimeout(() => reject(new Error('DB_TIMEOUT')), 10000); // 10 second timeout
+    });
+    
+    try {
+      // Test DB connection first
+      const dbCheck = storage.getUser(1).catch(() => null);
+      await Promise.race([dbCheck, loginTimeout]).catch(err => {
+        if (err.message === 'DB_TIMEOUT') {
+          throw new Error('DB_UNAVAILABLE');
         }
-        // Save session before responding to prevent race condition
-        req.session.save((saveErr: any) => {
-          if (saveErr) return next(saveErr);
-          // Remove password from response for security
-          const { password, ...safeUser } = user;
-          // Generate JWT access token for mobile
-          const accessToken = generateAccessToken(user);
-          return res.status(200).json({ ok: true, user: safeUser, accessToken, requestId });
-        });
+        throw err;
       });
-    })(req, res, next);
+      
+      // Proceed with passport authentication
+      passport.authenticate("local", (err: any, user: SelectUser | false, info: any) => {
+        if (err) {
+          console.error("Login authentication error:", err);
+          // Check if it's a DB error
+          if (err.code === 'ECONNREFUSED' || err.message?.includes('connect') || err.message?.includes('database')) {
+            return res.status(503).json({ ok: false, error: "Database unavailable", code: "DB_UNAVAILABLE", requestId });
+          }
+          return res.status(500).json({ ok: false, error: "Login failed", code: "LOGIN_ERROR", requestId });
+        }
+        if (!user) {
+          return res.status(401).json({ ok: false, error: "Invalid email or password", code: "INVALID_CREDENTIALS", requestId });
+        }
+        req.logIn(user, (err: any) => {
+          if (err) {
+            console.error("Session login error:", err);
+            return res.status(500).json({ ok: false, error: "Session error", code: "SESSION_ERROR", requestId });
+          }
+          // Save session before responding to prevent race condition
+          req.session.save((saveErr: any) => {
+            if (saveErr) {
+              console.error("Session save error:", saveErr);
+              return res.status(500).json({ ok: false, error: "Session save failed", code: "SESSION_ERROR", requestId });
+            }
+            // Remove password from response for security
+            const { password, ...safeUser } = user;
+            // Generate JWT access token for mobile
+            const accessToken = generateAccessToken(user);
+            return res.status(200).json({ ok: true, user: safeUser, accessToken, requestId });
+          });
+        });
+      })(req, res, next);
+    } catch (error: any) {
+      console.error("Login route error:", error);
+      if (error.message === 'DB_UNAVAILABLE' || error.code === 'ECONNREFUSED') {
+        return res.status(503).json({ ok: false, error: "Database temporarily unavailable", code: "DB_UNAVAILABLE", requestId });
+      }
+      return res.status(500).json({ ok: false, error: "Login service error", code: "LOGIN_ERROR", requestId });
+    }
   });
 
   // A2: GET /api/auth/me - Verify token and return user
