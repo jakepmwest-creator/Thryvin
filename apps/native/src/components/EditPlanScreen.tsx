@@ -1,9 +1,9 @@
 /**
- * EditPlanScreen - Slide-up modal for editing workout plan
- * Features conversational flows for Add Workout and Harder/Easier
+ * EditPlanScreen - Beautiful conversational AI flow for editing workout plan
+ * Features stunning purple-to-pink gradient UI with chat-like interactions
  */
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useRef, useEffect } from 'react';
 import {
   View,
   Text,
@@ -16,6 +16,8 @@ import {
   Alert,
   KeyboardAvoidingView,
   Platform,
+  Animated,
+  Keyboard,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
@@ -46,11 +48,10 @@ interface EditAction {
   requiresTwoDays?: boolean;
 }
 
-// Removed Shorter and Longer as requested
 const EDIT_ACTIONS: EditAction[] = [
   { id: 'swap', icon: 'swap-horizontal', label: 'Swap Days', description: 'Exchange two workout days', color: '#5B8DEF', requiresTwoDays: true },
   { id: 'skip', icon: 'close-circle', label: 'Skip Day', description: 'Convert to rest day', color: '#FF9500' },
-  { id: 'add', icon: 'add-circle', label: 'Add Workout', description: 'Log a workout you did', color: '#34C759' },
+  { id: 'add', icon: 'add-circle', label: 'Add Workout', description: 'Add a new workout', color: '#34C759' },
   { id: 'harder', icon: 'flame', label: 'Make Harder', description: 'Increase intensity', color: '#FF3B30' },
   { id: 'easier', icon: 'leaf', label: 'Make Easier', description: 'Reduce intensity', color: '#00C7BE' },
 ];
@@ -60,7 +61,14 @@ interface EditPlanScreenProps {
   onClose: () => void;
 }
 
-type FlowStep = 'select_action' | 'select_day' | 'add_details' | 'confirm' | 'adjust_feedback';
+type FlowStep = 'select_action' | 'select_day' | 'conversation' | 'generating' | 'confirm';
+
+interface ChatMessage {
+  id: string;
+  type: 'ai' | 'user';
+  text: string;
+  isTyping?: boolean;
+}
 
 const getTodayKey = (): string => toLocalDateKey(new Date());
 
@@ -74,13 +82,23 @@ export const EditPlanScreen = ({ visible, onClose }: EditPlanScreenProps) => {
   const [selectedWeek, setSelectedWeek] = useState(1);
   const [isProcessing, setIsProcessing] = useState(false);
   
-  // Add Workout form state
+  // Conversation state for Add Workout
+  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
+  const [userInput, setUserInput] = useState('');
+  const [conversationPhase, setConversationPhase] = useState<'type' | 'duration' | 'details' | 'confirm'>('type');
+  
+  // Collected data from conversation
   const [workoutType, setWorkoutType] = useState('');
   const [workoutDuration, setWorkoutDuration] = useState('');
-  const [workoutDescription, setWorkoutDescription] = useState('');
+  const [workoutDetails, setWorkoutDetails] = useState('');
+  const [adjustmentReason, setAdjustmentReason] = useState('');
   
-  // Harder/Easier feedback state
-  const [adjustmentFeedback, setAdjustmentFeedback] = useState('');
+  // Generated workout
+  const [generatedWorkout, setGeneratedWorkout] = useState<any>(null);
+  
+  // Refs
+  const scrollViewRef = useRef<ScrollView>(null);
+  const fadeAnim = useRef(new Animated.Value(0)).current;
 
   // Organize workouts into weeks using DATE MATCHING
   const weeksData = useMemo(() => {
@@ -130,10 +148,14 @@ export const EditPlanScreen = ({ visible, onClose }: EditPlanScreenProps) => {
     setCurrentStep('select_action');
     setSelectedAction(null);
     setSelectedDays([]);
+    setChatMessages([]);
+    setUserInput('');
+    setConversationPhase('type');
     setWorkoutType('');
     setWorkoutDuration('');
-    setWorkoutDescription('');
-    setAdjustmentFeedback('');
+    setWorkoutDetails('');
+    setAdjustmentReason('');
+    setGeneratedWorkout(null);
   };
 
   const handleClose = () => {
@@ -145,6 +167,58 @@ export const EditPlanScreen = ({ visible, onClose }: EditPlanScreenProps) => {
     setSelectedAction(action);
     setSelectedDays([]);
     setCurrentStep('select_day');
+  };
+
+  // Add AI message with typing effect
+  const addAIMessage = (text: string) => {
+    const newMsg: ChatMessage = {
+      id: `ai-${Date.now()}`,
+      type: 'ai',
+      text,
+    };
+    setChatMessages(prev => [...prev, newMsg]);
+    
+    // Auto scroll to bottom
+    setTimeout(() => {
+      scrollViewRef.current?.scrollToEnd({ animated: true });
+    }, 100);
+  };
+
+  // Add user message
+  const addUserMessage = (text: string) => {
+    const newMsg: ChatMessage = {
+      id: `user-${Date.now()}`,
+      type: 'user',
+      text,
+    };
+    setChatMessages(prev => [...prev, newMsg]);
+    
+    setTimeout(() => {
+      scrollViewRef.current?.scrollToEnd({ animated: true });
+    }, 100);
+  };
+
+  // Start Add Workout conversation
+  const startAddWorkoutConversation = (dayInfo: any) => {
+    setChatMessages([]);
+    setConversationPhase('type');
+    
+    const greeting = `Hey! I'm excited to help you add a workout to ${dayInfo.dayNameFull}! 💪\n\nWhat type of workout would you like to add?\n\nFor example: "chest workout", "leg day", "30 min cardio", "yoga session", etc.`;
+    
+    setTimeout(() => addAIMessage(greeting), 300);
+  };
+
+  // Start Make Harder/Easier conversation
+  const startAdjustmentConversation = (dayInfo: any, isHarder: boolean) => {
+    setChatMessages([]);
+    setConversationPhase('type');
+    
+    const workoutName = dayInfo.workout?.title || 'this workout';
+    const greeting = isHarder 
+      ? `I can make ${workoutName} more challenging for you! 🔥\n\nTell me what you're looking for - more sets? Heavier weights? Less rest time? Extra exercises?\n\nJust tell me what you need!`
+      : `No worries, let's dial back ${workoutName} a bit! 🌿\n\nWhat's making it too tough? Too many reps? Weights too heavy? Need more rest time?\n\nLet me know how I can help!`;
+    
+    setTimeout(() => addAIMessage(greeting), 300);
   };
 
   const handleDaySelect = (dateKey: string) => {
@@ -165,7 +239,6 @@ export const EditPlanScreen = ({ visible, onClose }: EditPlanScreenProps) => {
         const newSelection = [...selectedDays, dateKey];
         setSelectedDays(newSelection);
         if (newSelection.length === 2) {
-          // Auto-proceed to confirm for swap
           handleSwapConfirm(newSelection);
         }
       }
@@ -188,9 +261,11 @@ export const EditPlanScreen = ({ visible, onClose }: EditPlanScreenProps) => {
     
     // Move to next step based on action
     if (selectedAction.id === 'add') {
-      setCurrentStep('add_details');
+      setCurrentStep('conversation');
+      startAddWorkoutConversation(day);
     } else if (selectedAction.id === 'harder' || selectedAction.id === 'easier') {
-      setCurrentStep('adjust_feedback');
+      setCurrentStep('conversation');
+      startAdjustmentConversation(day, selectedAction.id === 'harder');
     } else if (selectedAction.id === 'skip') {
       handleSkipConfirm(dateKey);
     }
@@ -237,437 +312,545 @@ export const EditPlanScreen = ({ visible, onClose }: EditPlanScreenProps) => {
     }
   };
 
-  const handleAddWorkoutSubmit = () => {
-    if (!workoutType.trim()) {
-      Alert.alert('Missing Info', 'Please enter the type of workout you did.');
-      return;
+  // Handle user sending a message in conversation
+  const handleSendMessage = async () => {
+    if (!userInput.trim()) return;
+    
+    const input = userInput.trim();
+    addUserMessage(input);
+    setUserInput('');
+    Keyboard.dismiss();
+    
+    if (selectedAction?.id === 'add') {
+      await handleAddWorkoutConversation(input);
+    } else if (selectedAction?.id === 'harder' || selectedAction?.id === 'easier') {
+      await handleAdjustmentConversation(input);
     }
-    setCurrentStep('confirm');
   };
 
-  const handleAddWorkoutConfirm = async () => {
+  // Handle Add Workout conversation flow
+  const handleAddWorkoutConversation = async (input: string) => {
+    if (conversationPhase === 'type') {
+      setWorkoutType(input);
+      setConversationPhase('duration');
+      
+      setTimeout(() => {
+        addAIMessage(`Perfect! A ${input} sounds great! 🎯\n\nHow long do you want this workout to be?\n\nJust tell me something like "30 minutes", "45 min", "1 hour", etc.`);
+      }, 500);
+      
+    } else if (conversationPhase === 'duration') {
+      setWorkoutDuration(input);
+      setConversationPhase('details');
+      
+      setTimeout(() => {
+        addAIMessage(`Got it - ${input}! ⏱️\n\nIs there anything specific you want in this workout?\n\nFor example: "heavy bench press", "lots of core work", "focus on glutes", or just say "no" if you want me to design it for you!`);
+      }, 500);
+      
+    } else if (conversationPhase === 'details') {
+      const hasDetails = !['no', 'nope', 'nothing', 'n', 'none'].includes(input.toLowerCase());
+      if (hasDetails) {
+        setWorkoutDetails(input);
+      }
+      setConversationPhase('confirm');
+      
+      setTimeout(() => {
+        addAIMessage(`Awesome! Let me create this workout for you... 🏋️`);
+      }, 300);
+      
+      // Generate the workout
+      await generateWorkout(workoutType, workoutDuration, hasDetails ? input : '');
+    }
+  };
+
+  // Handle Make Harder/Easier conversation flow
+  const handleAdjustmentConversation = async (input: string) => {
+    setAdjustmentReason(input);
+    
+    setTimeout(() => {
+      addAIMessage(`Got it! Let me ${selectedAction?.id === 'harder' ? 'amp up' : 'adjust'} your workout... 💪`);
+    }, 300);
+    
+    // Apply the adjustment
+    await applyWorkoutAdjustment(input);
+  };
+
+  // Generate workout via API
+  const generateWorkout = async (type: string, duration: string, details: string) => {
+    setCurrentStep('generating');
     setIsProcessing(true);
+    
     try {
       const token = await SecureStore.getItemAsync('thryvin_access_token');
-      const dateKey = selectedDays[0];
-      const idx = findWorkoutIndexByDate(weekWorkouts, dateKey);
       const dayInfo = getSelectedDayInfo();
       
-      const duration = parseInt(workoutDuration) || 30;
+      // Parse duration to minutes
+      const durationMatch = duration.match(/(\d+)/);
+      const durationMinutes = durationMatch ? parseInt(durationMatch[1]) : 45;
       
-      // Create logged workout
-      const loggedWorkout = {
-        id: `logged_${Date.now()}`,
-        title: workoutType.trim(),
-        type: workoutType.trim(),
-        duration,
-        date: dayInfo?.date?.toISOString() || new Date().toISOString(),
-        completedAt: new Date().toISOString(),
-        completed: true,
-        isRestDay: false,
-        isLogged: true,
-        caloriesBurn: Math.round(duration * 6),
-        exercises: workoutDescription ? [
-          { id: 'logged1', name: workoutDescription, sets: 0, reps: '0', category: 'main' }
-        ] : [],
-        overview: workoutDescription || `${workoutType} workout logged manually`,
-      };
-      
-      // Update local store
-      if (idx >= 0) {
-        await updateWorkoutInWeek(idx, loggedWorkout);
-      }
-      
-      // Send to backend for AI context
-      try {
-        await fetch(`${API_BASE_URL}/api/workouts/log-extra`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': token ? `Bearer ${token}` : '',
-          },
-          body: JSON.stringify({ workout: loggedWorkout }),
-        });
-      } catch (e) {
-        console.log('Could not sync to backend');
-      }
-      
-      Alert.alert('Workout Logged! 💪', `Your ${workoutType} workout has been recorded.`);
-      resetFlow();
-    } catch (err: any) {
-      Alert.alert('Error', err.message || 'Failed to add workout.');
-    } finally {
-      setIsProcessing(false);
-    }
-  };
-
-  const handleAdjustmentSubmit = async () => {
-    if (!adjustmentFeedback.trim()) {
-      Alert.alert('Missing Info', `Please tell us what you'd like to change.`);
-      return;
-    }
-    
-    setIsProcessing(true);
-    try {
-      const token = await SecureStore.getItemAsync('thryvin_access_token');
-      const dateKey = selectedDays[0];
-      const idx = findWorkoutIndexByDate(weekWorkouts, dateKey);
-      
-      // Call AI to adjust workout
-      const response = await fetch(`${API_BASE_URL}/api/workouts/adjust`, {
+      // Call the AI generate endpoint
+      const response = await fetch(`${API_BASE_URL}/api/workouts/generate`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': token ? `Bearer ${token}` : '',
         },
         body: JSON.stringify({
-          dayIndex: idx,
-          dateKey,
-          adjustment: selectedAction?.id, // 'harder' or 'easier'
-          feedback: adjustmentFeedback,
+          userProfile: {
+            trainingType: type,
+            sessionDuration: durationMinutes,
+            customRequest: details,
+          },
+          dayOfWeek: dayInfo?.date.getDay() || 0,
+          customWorkoutRequest: {
+            type,
+            duration: durationMinutes,
+            details,
+          },
         }),
       });
       
-      if (response.ok) {
-        const data = await response.json();
-        if (data.workout) {
-          await updateWorkoutInWeek(idx, data.workout);
-        }
-        await syncFromBackend();
-        Alert.alert('Updated! ✅', `Workout has been made ${selectedAction?.id}.`);
-      } else {
-        // Fallback: simple local adjustment
-        const workout = weekWorkouts[idx];
-        if (workout && workout.exercises) {
-          const adjustedExercises = workout.exercises.map((ex: any) => ({
-            ...ex,
-            sets: selectedAction?.id === 'harder' 
-              ? Math.min((ex.sets || 3) + 1, 6)
-              : Math.max((ex.sets || 3) - 1, 1),
-            note: adjustmentFeedback,
-          }));
-          await updateWorkoutInWeek(idx, {
-            ...workout,
-            exercises: adjustedExercises,
-            adjustedAt: new Date().toISOString(),
-            adjustmentNote: adjustmentFeedback,
-          });
-          Alert.alert('Updated! ✅', `Workout has been adjusted based on your feedback.`);
-        }
+      if (!response.ok) {
+        throw new Error('Failed to generate workout');
       }
       
-      resetFlow();
+      const workout = await response.json();
+      setGeneratedWorkout({
+        ...workout,
+        date: dayInfo?.dateKey,
+        duration: durationMinutes,
+      });
+      
+      setCurrentStep('confirm');
+      
+      setTimeout(() => {
+        addAIMessage(`Here's what I've created for you:\n\n**${workout.title}**\n⏱️ ${durationMinutes} minutes\n🎯 ${workout.targetMuscles || type}\n💪 ${workout.exercises?.length || 0} exercises\n\nReady to add this to your plan?`);
+      }, 500);
+      
     } catch (err: any) {
-      Alert.alert('Error', err.message || 'Failed to adjust workout.');
+      console.error('Generate workout error:', err);
+      Alert.alert('Error', 'Failed to generate workout. Please try again.');
+      setCurrentStep('conversation');
     } finally {
       setIsProcessing(false);
     }
   };
 
-  // Render different steps
+  // Apply workout adjustment (harder/easier)
+  const applyWorkoutAdjustment = async (reason: string) => {
+    setCurrentStep('generating');
+    setIsProcessing(true);
+    
+    try {
+      const token = await SecureStore.getItemAsync('thryvin_access_token');
+      const dayInfo = getSelectedDayInfo();
+      const isHarder = selectedAction?.id === 'harder';
+      
+      const response = await fetch(`${API_BASE_URL}/api/workouts/update`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': token ? `Bearer ${token}` : '',
+        },
+        body: JSON.stringify({
+          workoutData: dayInfo?.workout,
+          modification: isHarder ? 'harder' : 'easier',
+          userFeedback: reason,
+        }),
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to update workout');
+      }
+      
+      const result = await response.json();
+      
+      // Apply the changes to the workout
+      if (dayInfo) {
+        const idx = findWorkoutIndexByDate(weekWorkouts, dayInfo.dateKey);
+        if (idx >= 0 && dayInfo.workout) {
+          const updatedWorkout = {
+            ...dayInfo.workout,
+            ...result.updatedWorkout,
+            title: result.updatedWorkout?.title || dayInfo.workout.title,
+          };
+          await updateWorkoutInWeek(idx, updatedWorkout);
+        }
+      }
+      
+      await syncFromBackend();
+      
+      Alert.alert(
+        'Done! ✅',
+        isHarder 
+          ? 'Your workout has been made more challenging!' 
+          : 'Your workout has been adjusted to be easier.'
+      );
+      
+      resetFlow();
+      
+    } catch (err: any) {
+      console.error('Adjustment error:', err);
+      Alert.alert('Error', 'Failed to update workout. Please try again.');
+      setCurrentStep('conversation');
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  // Confirm and save the generated workout
+  const handleConfirmWorkout = async () => {
+    if (!generatedWorkout) return;
+    
+    setIsProcessing(true);
+    
+    try {
+      const dayInfo = getSelectedDayInfo();
+      if (!dayInfo) throw new Error('No day selected');
+      
+      const idx = findWorkoutIndexByDate(weekWorkouts, dayInfo.dateKey);
+      
+      const newWorkout = {
+        id: `added_${Date.now()}`,
+        title: generatedWorkout.title,
+        type: generatedWorkout.type || workoutType,
+        difficulty: generatedWorkout.difficulty || 'moderate',
+        duration: generatedWorkout.duration,
+        date: dayInfo.date.toISOString(),
+        exercises: generatedWorkout.exercises || [],
+        overview: generatedWorkout.overview,
+        targetMuscles: generatedWorkout.targetMuscles,
+        caloriesBurn: generatedWorkout.caloriesBurn,
+        isRestDay: false,
+        completed: false,
+      };
+      
+      if (idx >= 0) {
+        await updateWorkoutInWeek(idx, newWorkout);
+      }
+      
+      await syncFromBackend();
+      
+      Alert.alert('Added! 🎉', `${newWorkout.title} has been added to ${dayInfo.dayNameFull}!`);
+      resetFlow();
+      
+    } catch (err: any) {
+      console.error('Save workout error:', err);
+      Alert.alert('Error', err.message || 'Failed to save workout.');
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  // ============================================
+  // RENDER FUNCTIONS
+  // ============================================
+
   const renderActionSelection = () => (
     <View style={styles.stepContainer}>
       <Text style={styles.stepTitle}>What would you like to do?</Text>
+      <Text style={styles.stepSubtitle}>Choose an action to modify your plan</Text>
+      
       <View style={styles.actionsGrid}>
-        {EDIT_ACTIONS.map((action) => (
+        {EDIT_ACTIONS.map(action => (
           <TouchableOpacity
             key={action.id}
             style={styles.actionCard}
             onPress={() => handleSelectAction(action)}
+            activeOpacity={0.7}
           >
-            <View style={[styles.actionIconBg, { backgroundColor: `${action.color}15` }]}>
+            <LinearGradient
+              colors={[`${action.color}20`, `${action.color}10`]}
+              style={styles.actionIconBg}
+            >
               <Ionicons name={action.icon as any} size={26} color={action.color} />
-            </View>
+            </LinearGradient>
             <Text style={styles.actionLabel}>{action.label}</Text>
             <Text style={styles.actionDesc}>{action.description}</Text>
           </TouchableOpacity>
         ))}
       </View>
-    </View>
-  );
-
-  const renderDaySelection = () => (
-    <View style={styles.stepContainer}>
-      <TouchableOpacity onPress={() => setCurrentStep('select_action')} style={styles.backButton}>
-        <Ionicons name="arrow-back" size={20} color={COLORS.accent} />
-        <Text style={styles.backText}>Back</Text>
-      </TouchableOpacity>
       
-      <Text style={styles.stepTitle}>
-        {selectedAction?.requiresTwoDays 
-          ? `Select 2 days to ${selectedAction.label.toLowerCase()}`
-          : selectedAction?.id === 'add'
-            ? 'Which day did you work out?'
-            : `Select a day to make ${selectedAction?.label.toLowerCase()}`
-        }
-      </Text>
-      
-      {/* Week Tabs */}
-      <View style={styles.weekTabs}>
-        {[1, 2, 3].map(week => (
-          <TouchableOpacity
-            key={week}
-            style={[styles.weekTab, selectedWeek === week && styles.weekTabSelected]}
-            onPress={() => setSelectedWeek(week)}
-          >
-            <Text style={[styles.weekTabText, selectedWeek === week && styles.weekTabTextSelected]}>
-              Week {week}
-            </Text>
-          </TouchableOpacity>
-        ))}
+      {/* Scroll indicator */}
+      <View style={styles.scrollIndicator}>
+        <Ionicons name="chevron-down" size={20} color={COLORS.mediumGray} />
+        <Text style={styles.scrollText}>Scroll for more options</Text>
       </View>
-      
-      {/* Days */}
-      <ScrollView style={styles.daysScroll} showsVerticalScrollIndicator={false}>
-        {weeksData[selectedWeek - 1]?.days.map((day) => {
-          const isSelected = selectedDays.includes(day.dateKey);
-          const canSelect = (selectedAction?.id !== 'add' || day.isRest) &&
-                           (selectedAction?.id !== 'skip' || !day.isRest);
-          
-          return (
-            <TouchableOpacity
-              key={day.dateKey}
-              style={[
-                styles.dayRow,
-                day.isToday && styles.dayRowToday,
-                isSelected && styles.dayRowSelected,
-                !canSelect && styles.dayRowDisabled,
-              ]}
-              onPress={() => handleDaySelect(day.dateKey)}
-              disabled={!canSelect}
-            >
-              <View style={styles.dayInfo}>
-                <Text style={[styles.dayName, isSelected && styles.dayNameSelected]}>
-                  {day.dayNameFull}
-                </Text>
-                <Text style={styles.dayDate}>{day.dateKey.slice(5)}</Text>
-              </View>
-              
-              <View style={styles.dayWorkout}>
-                {day.isRest ? (
-                  <Text style={styles.restLabel}>Rest Day</Text>
-                ) : (
-                  <Text style={styles.workoutLabel} numberOfLines={1}>
-                    {day.workout?.title || 'Workout'}
-                  </Text>
-                )}
-              </View>
-              
-              {isSelected && (
-                <View style={styles.checkCircle}>
-                  <Ionicons name="checkmark" size={16} color={COLORS.white} />
-                </View>
-              )}
-            </TouchableOpacity>
-          );
-        })}
-      </ScrollView>
     </View>
   );
 
-  const renderAddDetails = () => {
-    const dayInfo = getSelectedDayInfo();
-    return (
-      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={styles.stepContainer}>
-        <TouchableOpacity onPress={() => setCurrentStep('select_day')} style={styles.backButton}>
-          <Ionicons name="arrow-back" size={20} color={COLORS.accent} />
-          <Text style={styles.backText}>Back</Text>
-        </TouchableOpacity>
-        
-        <Text style={styles.stepTitle}>What workout did you do?</Text>
-        <Text style={styles.stepSubtitle}>on {dayInfo?.dayNameFull}</Text>
-        
-        <View style={styles.formGroup}>
-          <Text style={styles.formLabel}>Type of workout</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="e.g., Chest & Triceps, Cardio, Yoga"
-            placeholderTextColor={COLORS.mediumGray}
-            value={workoutType}
-            onChangeText={setWorkoutType}
-          />
-        </View>
-        
-        <View style={styles.formGroup}>
-          <Text style={styles.formLabel}>How long? (minutes)</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="e.g., 30"
-            placeholderTextColor={COLORS.mediumGray}
-            value={workoutDuration}
-            onChangeText={setWorkoutDuration}
-            keyboardType="number-pad"
-          />
-        </View>
-        
-        <View style={styles.formGroup}>
-          <Text style={styles.formLabel}>Brief description (optional)</Text>
-          <TextInput
-            style={[styles.input, styles.inputMultiline]}
-            placeholder="e.g., Bench press, incline dumbbell, cable flys..."
-            placeholderTextColor={COLORS.mediumGray}
-            value={workoutDescription}
-            onChangeText={setWorkoutDescription}
-            multiline
-            numberOfLines={3}
-          />
-        </View>
-        
-        <TouchableOpacity style={styles.primaryButton} onPress={handleAddWorkoutSubmit}>
-          <LinearGradient
-            colors={[COLORS.accent, COLORS.accentSecondary]}
-            style={styles.primaryButtonGradient}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-          >
-            <Text style={styles.primaryButtonText}>Continue</Text>
-            <Ionicons name="arrow-forward" size={20} color={COLORS.white} />
-          </LinearGradient>
-        </TouchableOpacity>
-      </KeyboardAvoidingView>
-    );
-  };
-
-  const renderConfirm = () => {
-    const dayInfo = getSelectedDayInfo();
+  const renderDaySelection = () => {
+    const currentWeekData = weeksData.find(w => w.weekNum === selectedWeek);
+    
     return (
       <View style={styles.stepContainer}>
-        <TouchableOpacity onPress={() => setCurrentStep('add_details')} style={styles.backButton}>
-          <Ionicons name="arrow-back" size={20} color={COLORS.accent} />
+        <TouchableOpacity style={styles.backButton} onPress={() => setCurrentStep('select_action')}>
+          <Ionicons name="chevron-back" size={20} color={COLORS.accent} />
           <Text style={styles.backText}>Back</Text>
         </TouchableOpacity>
         
-        <Text style={styles.stepTitle}>Confirm your workout</Text>
+        <Text style={styles.stepTitle}>
+          {selectedAction?.requiresTwoDays 
+            ? `Select 2 days to ${selectedAction.label.toLowerCase()}`
+            : `Select a day to ${selectedAction?.label.toLowerCase()}`}
+        </Text>
+        <Text style={styles.stepSubtitle}>
+          {selectedAction?.id === 'add' ? 'Choose a rest day' : 'Tap to select'}
+        </Text>
         
-        <View style={styles.confirmCard}>
-          <View style={styles.confirmRow}>
-            <Ionicons name="calendar" size={20} color={COLORS.accent} />
-            <Text style={styles.confirmLabel}>Day</Text>
-            <Text style={styles.confirmValue}>{dayInfo?.dayNameFull}</Text>
-          </View>
-          
-          <View style={styles.confirmRow}>
-            <Ionicons name="barbell" size={20} color={COLORS.accent} />
-            <Text style={styles.confirmLabel}>Workout</Text>
-            <Text style={styles.confirmValue}>{workoutType}</Text>
-          </View>
-          
-          <View style={styles.confirmRow}>
-            <Ionicons name="time" size={20} color={COLORS.accent} />
-            <Text style={styles.confirmLabel}>Duration</Text>
-            <Text style={styles.confirmValue}>{workoutDuration || '30'} minutes</Text>
-          </View>
-          
-          {workoutDescription ? (
-            <View style={styles.confirmDescRow}>
-              <Text style={styles.confirmDescLabel}>Description</Text>
-              <Text style={styles.confirmDescValue}>{workoutDescription}</Text>
-            </View>
-          ) : null}
-        </View>
-        
-        <Text style={styles.confirmQuestion}>Is this correct?</Text>
-        
-        <View style={styles.confirmButtons}>
-          <TouchableOpacity 
-            style={styles.secondaryButton} 
-            onPress={() => setCurrentStep('add_details')}
-          >
-            <Text style={styles.secondaryButtonText}>Edit</Text>
-          </TouchableOpacity>
-          
-          <TouchableOpacity 
-            style={styles.primaryButton} 
-            onPress={handleAddWorkoutConfirm}
-            disabled={isProcessing}
-          >
-            <LinearGradient
-              colors={[COLORS.accent, COLORS.accentSecondary]}
-              style={styles.primaryButtonGradient}
+        {/* Week Tabs */}
+        <View style={styles.weekTabs}>
+          {[1, 2, 3].map(weekNum => (
+            <TouchableOpacity
+              key={weekNum}
+              style={[styles.weekTab, selectedWeek === weekNum && styles.weekTabSelected]}
+              onPress={() => setSelectedWeek(weekNum)}
             >
-              {isProcessing ? (
-                <ActivityIndicator color={COLORS.white} />
-              ) : (
-                <>
-                  <Ionicons name="checkmark-circle" size={20} color={COLORS.white} />
-                  <Text style={styles.primaryButtonText}>Yes, Log It!</Text>
-                </>
-              )}
-            </LinearGradient>
-          </TouchableOpacity>
+              <Text style={[styles.weekTabText, selectedWeek === weekNum && styles.weekTabTextSelected]}>
+                Week {weekNum}
+              </Text>
+            </TouchableOpacity>
+          ))}
         </View>
+        
+        {/* Days List */}
+        <ScrollView style={styles.daysScroll} showsVerticalScrollIndicator={false}>
+          {currentWeekData?.days.map(day => {
+            const isSelected = selectedDays.includes(day.dateKey);
+            const isDisabled = day.isCompleted && selectedAction?.id !== 'add';
+            const showAsRest = day.isRest;
+            
+            // For "add", only show rest days as selectable
+            if (selectedAction?.id === 'add' && !showAsRest) {
+              return (
+                <View key={day.dateKey} style={[styles.dayRow, styles.dayRowDisabled]}>
+                  <View style={styles.dayInfo}>
+                    <Text style={styles.dayName}>{day.dayNameFull}</Text>
+                    <Text style={styles.dayDate}>{day.date.toLocaleDateString()}</Text>
+                  </View>
+                  <View style={styles.dayWorkout}>
+                    <Text style={styles.workoutLabel} numberOfLines={1}>
+                      {day.workout?.title || 'Workout'}
+                    </Text>
+                  </View>
+                </View>
+              );
+            }
+            
+            return (
+              <TouchableOpacity
+                key={day.dateKey}
+                style={[
+                  styles.dayRow,
+                  day.isToday && styles.dayRowToday,
+                  isSelected && styles.dayRowSelected,
+                  isDisabled && styles.dayRowDisabled,
+                ]}
+                onPress={() => !isDisabled && handleDaySelect(day.dateKey)}
+                disabled={isDisabled}
+              >
+                <View style={styles.dayInfo}>
+                  <Text style={[styles.dayName, isSelected && styles.dayNameSelected]}>
+                    {day.dayNameFull}
+                    {day.isToday && ' (Today)'}
+                  </Text>
+                  <Text style={styles.dayDate}>{day.date.toLocaleDateString()}</Text>
+                </View>
+                <View style={styles.dayWorkout}>
+                  {showAsRest ? (
+                    <Text style={styles.restLabel}>Rest Day</Text>
+                  ) : (
+                    <Text style={styles.workoutLabel} numberOfLines={1}>
+                      {day.workout?.title || 'Workout'}
+                    </Text>
+                  )}
+                </View>
+                {isSelected && (
+                  <View style={styles.checkCircle}>
+                    <Ionicons name="checkmark" size={16} color={COLORS.white} />
+                  </View>
+                )}
+              </TouchableOpacity>
+            );
+          })}
+        </ScrollView>
       </View>
     );
   };
 
-  const renderAdjustFeedback = () => {
+  const renderConversation = () => {
     const dayInfo = getSelectedDayInfo();
+    const isAddWorkout = selectedAction?.id === 'add';
     const isHarder = selectedAction?.id === 'harder';
     
     return (
-      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={styles.stepContainer}>
-        <TouchableOpacity onPress={() => setCurrentStep('select_day')} style={styles.backButton}>
-          <Ionicons name="arrow-back" size={20} color={COLORS.accent} />
-          <Text style={styles.backText}>Back</Text>
-        </TouchableOpacity>
-        
-        <View style={styles.adjustHeader}>
-          <View style={[styles.adjustIconBg, { backgroundColor: isHarder ? '#FF3B3015' : '#00C7BE15' }]}>
-            <Ionicons 
-              name={isHarder ? 'flame' : 'leaf'} 
-              size={32} 
-              color={isHarder ? '#FF3B30' : '#00C7BE'} 
-            />
+      <KeyboardAvoidingView 
+        style={styles.conversationContainer}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={100}
+      >
+        {/* Header */}
+        <View style={styles.conversationHeader}>
+          <TouchableOpacity style={styles.backButton} onPress={() => setCurrentStep('select_day')}>
+            <Ionicons name="chevron-back" size={20} color={COLORS.accent} />
+            <Text style={styles.backText}>Back</Text>
+          </TouchableOpacity>
+          
+          <View style={styles.conversationTitleRow}>
+            <LinearGradient
+              colors={[COLORS.accent, COLORS.accentSecondary]}
+              style={styles.conversationIcon}
+            >
+              <Ionicons 
+                name={isAddWorkout ? 'add' : (isHarder ? 'flame' : 'leaf')} 
+                size={18} 
+                color={COLORS.white} 
+              />
+            </LinearGradient>
+            <View>
+              <Text style={styles.conversationTitle}>
+                {isAddWorkout ? 'Add Workout' : (isHarder ? 'Make Harder' : 'Make Easier')}
+              </Text>
+              <Text style={styles.conversationSubtitle}>{dayInfo?.dayNameFull}</Text>
+            </View>
           </View>
-          <Text style={styles.stepTitle}>
-            Make {dayInfo?.dayNameFull} {isHarder ? 'Harder' : 'Easier'}
-          </Text>
         </View>
         
-        <Text style={styles.adjustPrompt}>
-          {isHarder 
-            ? "What would you like to make harder? More reps, heavier weights, extra sets?"
-            : "What's making it too difficult? Too many reps, too intense, need more rest?"
-          }
-        </Text>
-        
-        <TextInput
-          style={[styles.input, styles.inputMultiline, styles.feedbackInput]}
-          placeholder={isHarder 
-            ? "e.g., Add more sets, increase weights, less rest time..."
-            : "e.g., Less reps, lighter weights, more rest between sets..."
-          }
-          placeholderTextColor={COLORS.mediumGray}
-          value={adjustmentFeedback}
-          onChangeText={setAdjustmentFeedback}
-          multiline
-          numberOfLines={4}
-        />
-        
-        <TouchableOpacity 
-          style={styles.primaryButton} 
-          onPress={handleAdjustmentSubmit}
-          disabled={isProcessing}
+        {/* Chat Messages */}
+        <ScrollView 
+          ref={scrollViewRef}
+          style={styles.chatContainer}
+          contentContainerStyle={styles.chatContent}
+          showsVerticalScrollIndicator={false}
         >
-          <LinearGradient
-            colors={isHarder ? ['#FF3B30', '#FF6B35'] : ['#00C7BE', '#34C759']}
-            style={styles.primaryButtonGradient}
-          >
-            {isProcessing ? (
-              <ActivityIndicator color={COLORS.white} />
-            ) : (
-              <>
-                <Ionicons name={isHarder ? 'flame' : 'leaf'} size={20} color={COLORS.white} />
-                <Text style={styles.primaryButtonText}>
-                  Update Workout
-                </Text>
-              </>
-            )}
-          </LinearGradient>
-        </TouchableOpacity>
+          {chatMessages.map(msg => (
+            <View 
+              key={msg.id} 
+              style={[
+                styles.messageBubble,
+                msg.type === 'user' ? styles.userBubble : styles.aiBubble,
+              ]}
+            >
+              {msg.type === 'ai' && (
+                <LinearGradient
+                  colors={[COLORS.accent, COLORS.accentSecondary]}
+                  style={styles.aiAvatar}
+                >
+                  <Ionicons name="fitness" size={14} color={COLORS.white} />
+                </LinearGradient>
+              )}
+              <View style={[
+                styles.messageContent,
+                msg.type === 'user' ? styles.userMessageContent : styles.aiMessageContent,
+              ]}>
+                {msg.type === 'user' ? (
+                  <LinearGradient
+                    colors={[COLORS.accent, COLORS.accentSecondary]}
+                    style={styles.userMessageGradient}
+                  >
+                    <Text style={styles.userMessageText}>{msg.text}</Text>
+                  </LinearGradient>
+                ) : (
+                  <Text style={styles.aiMessageText}>{msg.text}</Text>
+                )}
+              </View>
+            </View>
+          ))}
+          
+          {isProcessing && currentStep === 'generating' && (
+            <View style={styles.loadingContainer}>
+              <ActivityIndicator size="small" color={COLORS.accent} />
+              <Text style={styles.loadingText}>Creating your workout...</Text>
+            </View>
+          )}
+        </ScrollView>
+        
+        {/* Input Area */}
+        {currentStep === 'conversation' && (
+          <View style={styles.inputContainer}>
+            <TextInput
+              style={styles.chatInput}
+              placeholder="Type your response..."
+              placeholderTextColor={COLORS.mediumGray}
+              value={userInput}
+              onChangeText={setUserInput}
+              multiline
+              maxLength={500}
+              onSubmitEditing={handleSendMessage}
+              returnKeyType="send"
+            />
+            <TouchableOpacity 
+              style={[styles.sendButton, !userInput.trim() && styles.sendButtonDisabled]}
+              onPress={handleSendMessage}
+              disabled={!userInput.trim() || isProcessing}
+            >
+              <LinearGradient
+                colors={userInput.trim() ? [COLORS.accent, COLORS.accentSecondary] : [COLORS.lightGray, COLORS.lightGray]}
+                style={styles.sendButtonGradient}
+              >
+                <Ionicons 
+                  name="send" 
+                  size={18} 
+                  color={userInput.trim() ? COLORS.white : COLORS.mediumGray} 
+                />
+              </LinearGradient>
+            </TouchableOpacity>
+          </View>
+        )}
+        
+        {/* Confirm Buttons for Add Workout */}
+        {currentStep === 'confirm' && selectedAction?.id === 'add' && generatedWorkout && (
+          <View style={styles.confirmButtons}>
+            <TouchableOpacity 
+              style={styles.secondaryButton}
+              onPress={() => {
+                setCurrentStep('conversation');
+                setConversationPhase('type');
+                setChatMessages([]);
+                startAddWorkoutConversation(dayInfo);
+              }}
+            >
+              <Text style={styles.secondaryButtonText}>Start Over</Text>
+            </TouchableOpacity>
+            
+            <TouchableOpacity 
+              style={styles.confirmButton}
+              onPress={handleConfirmWorkout}
+              disabled={isProcessing}
+            >
+              <LinearGradient
+                colors={[COLORS.accent, COLORS.accentSecondary]}
+                style={styles.confirmButtonGradient}
+              >
+                {isProcessing ? (
+                  <ActivityIndicator color={COLORS.white} size="small" />
+                ) : (
+                  <>
+                    <Ionicons name="checkmark-circle" size={20} color={COLORS.white} />
+                    <Text style={styles.confirmButtonText}>Add to Plan</Text>
+                  </>
+                )}
+              </LinearGradient>
+            </TouchableOpacity>
+          </View>
+        )}
       </KeyboardAvoidingView>
     );
   };
+
+  const renderGenerating = () => (
+    <View style={styles.generatingContainer}>
+      <LinearGradient
+        colors={[COLORS.accent, COLORS.accentSecondary]}
+        style={styles.generatingIcon}
+      >
+        <ActivityIndicator size="large" color={COLORS.white} />
+      </LinearGradient>
+      <Text style={styles.generatingTitle}>Creating Your Workout</Text>
+      <Text style={styles.generatingSubtitle}>
+        Our AI is designing the perfect workout for you...
+      </Text>
+    </View>
+  );
 
   return (
     <Modal visible={visible} animationType="slide" transparent onRequestClose={handleClose}>
@@ -683,17 +866,12 @@ export const EditPlanScreen = ({ visible, onClose }: EditPlanScreenProps) => {
           </View>
 
           {/* Content based on step */}
-          <ScrollView 
-            style={styles.content} 
-            showsVerticalScrollIndicator={false}
-            keyboardShouldPersistTaps="handled"
-          >
+          <View style={styles.content}>
             {currentStep === 'select_action' && renderActionSelection()}
             {currentStep === 'select_day' && renderDaySelection()}
-            {currentStep === 'add_details' && renderAddDetails()}
-            {currentStep === 'confirm' && renderConfirm()}
-            {currentStep === 'adjust_feedback' && renderAdjustFeedback()}
-          </ScrollView>
+            {(currentStep === 'conversation' || currentStep === 'confirm') && renderConversation()}
+            {currentStep === 'generating' && renderGenerating()}
+          </View>
         </View>
       </View>
     </Modal>
@@ -710,8 +888,9 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.white,
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
-    maxHeight: '90%',
-    minHeight: '70%',
+    maxHeight: '92%',
+    minHeight: '75%',
+    flex: 1,
   },
   header: {
     flexDirection: 'row',
@@ -723,15 +902,15 @@ const styles = StyleSheet.create({
   },
   closeButton: { padding: 4 },
   headerTitle: { fontSize: 18, fontWeight: '700', color: COLORS.text },
-  content: { flex: 1, padding: 20 },
+  content: { flex: 1 },
   
   // Step Container
-  stepContainer: { flex: 1 },
-  stepTitle: { fontSize: 22, fontWeight: '700', color: COLORS.text, marginBottom: 8 },
-  stepSubtitle: { fontSize: 16, color: COLORS.mediumGray, marginBottom: 20 },
+  stepContainer: { flex: 1, padding: 20 },
+  stepTitle: { fontSize: 24, fontWeight: '700', color: COLORS.text, marginBottom: 8 },
+  stepSubtitle: { fontSize: 16, color: COLORS.mediumGray, marginBottom: 24 },
   
   // Back Button
-  backButton: { flexDirection: 'row', alignItems: 'center', marginBottom: 20, gap: 6 },
+  backButton: { flexDirection: 'row', alignItems: 'center', marginBottom: 16, gap: 4 },
   backText: { fontSize: 16, color: COLORS.accent, fontWeight: '600' },
   
   // Actions Grid
@@ -744,15 +923,25 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   actionIconBg: {
-    width: 52,
-    height: 52,
-    borderRadius: 26,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 12,
   },
   actionLabel: { fontSize: 15, fontWeight: '600', color: COLORS.text, marginBottom: 4 },
   actionDesc: { fontSize: 12, color: COLORS.mediumGray, textAlign: 'center' },
+  
+  // Scroll Indicator
+  scrollIndicator: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 20,
+    gap: 6,
+  },
+  scrollText: { fontSize: 13, color: COLORS.mediumGray },
   
   // Week Tabs
   weekTabs: { flexDirection: 'row', gap: 10, marginBottom: 16 },
@@ -785,7 +974,7 @@ const styles = StyleSheet.create({
   dayNameSelected: { color: COLORS.accent },
   dayDate: { fontSize: 12, color: COLORS.mediumGray, marginTop: 2 },
   dayWorkout: { flex: 1, alignItems: 'flex-end' },
-  restLabel: { fontSize: 14, color: COLORS.mediumGray },
+  restLabel: { fontSize: 14, color: COLORS.mediumGray, fontStyle: 'italic' },
   workoutLabel: { fontSize: 14, color: COLORS.text },
   checkCircle: {
     width: 24,
@@ -797,69 +986,184 @@ const styles = StyleSheet.create({
     marginLeft: 12,
   },
   
-  // Form
-  formGroup: { marginBottom: 20 },
-  formLabel: { fontSize: 14, fontWeight: '600', color: COLORS.text, marginBottom: 8 },
-  input: {
-    backgroundColor: COLORS.lightGray,
-    borderRadius: 12,
-    padding: 14,
-    fontSize: 16,
-    color: COLORS.text,
+  // Conversation Container
+  conversationContainer: { flex: 1 },
+  conversationHeader: {
+    padding: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.lightGray,
   },
-  inputMultiline: { minHeight: 80, textAlignVertical: 'top' },
-  feedbackInput: { minHeight: 120 },
+  conversationTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  conversationIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  conversationTitle: { fontSize: 18, fontWeight: '700', color: COLORS.text },
+  conversationSubtitle: { fontSize: 14, color: COLORS.mediumGray },
   
-  // Buttons
-  primaryButton: { borderRadius: 14, overflow: 'hidden', marginTop: 20 },
-  primaryButtonGradient: {
+  // Chat Container
+  chatContainer: { flex: 1 },
+  chatContent: { padding: 16, paddingBottom: 24 },
+  
+  // Message Bubbles
+  messageBubble: {
+    flexDirection: 'row',
+    marginBottom: 16,
+    alignItems: 'flex-end',
+  },
+  userBubble: {
+    justifyContent: 'flex-end',
+  },
+  aiBubble: {
+    justifyContent: 'flex-start',
+  },
+  aiAvatar: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 8,
+  },
+  messageContent: {
+    maxWidth: '80%',
+  },
+  userMessageContent: {
+    marginLeft: 'auto',
+  },
+  aiMessageContent: {
+    backgroundColor: COLORS.lightGray,
+    borderRadius: 18,
+    borderBottomLeftRadius: 4,
+    padding: 14,
+  },
+  userMessageGradient: {
+    borderRadius: 18,
+    borderBottomRightRadius: 4,
+    padding: 14,
+  },
+  aiMessageText: {
+    fontSize: 15,
+    color: COLORS.text,
+    lineHeight: 22,
+  },
+  userMessageText: {
+    fontSize: 15,
+    color: COLORS.white,
+    lineHeight: 22,
+  },
+  
+  // Loading
+  loadingContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 16,
-    gap: 8,
+    padding: 20,
+    gap: 10,
   },
-  primaryButtonText: { fontSize: 16, fontWeight: '600', color: COLORS.white },
+  loadingText: {
+    fontSize: 14,
+    color: COLORS.mediumGray,
+  },
+  
+  // Input Container
+  inputContainer: {
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    padding: 12,
+    paddingBottom: Platform.OS === 'ios' ? 28 : 12,
+    borderTopWidth: 1,
+    borderTopColor: COLORS.lightGray,
+    backgroundColor: COLORS.white,
+    gap: 10,
+  },
+  chatInput: {
+    flex: 1,
+    backgroundColor: COLORS.lightGray,
+    borderRadius: 20,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    fontSize: 15,
+    color: COLORS.text,
+    maxHeight: 100,
+  },
+  sendButton: {
+    width: 44,
+    height: 44,
+  },
+  sendButtonDisabled: {
+    opacity: 0.6,
+  },
+  sendButtonGradient: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  
+  // Confirm Buttons
+  confirmButtons: {
+    flexDirection: 'row',
+    padding: 16,
+    paddingBottom: Platform.OS === 'ios' ? 32 : 16,
+    gap: 12,
+    borderTopWidth: 1,
+    borderTopColor: COLORS.lightGray,
+  },
   secondaryButton: {
     flex: 1,
     backgroundColor: COLORS.lightGray,
     borderRadius: 14,
-    paddingVertical: 16,
+    paddingVertical: 14,
     alignItems: 'center',
   },
-  secondaryButtonText: { fontSize: 16, fontWeight: '600', color: COLORS.text },
-  confirmButtons: { flexDirection: 'row', gap: 12, marginTop: 20 },
-  
-  // Confirm Card
-  confirmCard: {
-    backgroundColor: COLORS.lightGray,
-    borderRadius: 16,
-    padding: 20,
-    marginVertical: 20,
+  secondaryButtonText: { fontSize: 15, fontWeight: '600', color: COLORS.text },
+  confirmButton: {
+    flex: 2,
+    borderRadius: 14,
+    overflow: 'hidden',
   },
-  confirmRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 16, gap: 12 },
-  confirmLabel: { fontSize: 14, color: COLORS.mediumGray, width: 80 },
-  confirmValue: { fontSize: 16, fontWeight: '600', color: COLORS.text, flex: 1 },
-  confirmDescRow: { marginTop: 8, paddingTop: 16, borderTopWidth: 1, borderTopColor: COLORS.white },
-  confirmDescLabel: { fontSize: 14, color: COLORS.mediumGray, marginBottom: 8 },
-  confirmDescValue: { fontSize: 15, color: COLORS.text, lineHeight: 22 },
-  confirmQuestion: { fontSize: 18, fontWeight: '600', color: COLORS.text, textAlign: 'center' },
-  
-  // Adjust Header
-  adjustHeader: { alignItems: 'center', marginBottom: 20 },
-  adjustIconBg: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
+  confirmButtonGradient: {
+    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 16,
+    paddingVertical: 14,
+    gap: 8,
   },
-  adjustPrompt: {
-    fontSize: 16,
+  confirmButtonText: { fontSize: 15, fontWeight: '600', color: COLORS.white },
+  
+  // Generating
+  generatingContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 40,
+  },
+  generatingIcon: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 24,
+  },
+  generatingTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: COLORS.text,
+    marginBottom: 8,
+  },
+  generatingSubtitle: {
+    fontSize: 15,
     color: COLORS.mediumGray,
     textAlign: 'center',
-    marginBottom: 20,
-    lineHeight: 24,
   },
 });
