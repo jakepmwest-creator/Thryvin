@@ -942,8 +942,8 @@ export const EditPlanScreen = ({ visible, onClose }: EditPlanScreenProps) => {
           </View>
         )}
         
-        {/* Confirm Buttons for Add Workout */}
-        {currentStep === 'confirm' && selectedAction?.id === 'add' && generatedWorkout && (
+        {/* Confirm Buttons for Add Workout or Log Activity */}
+        {currentStep === 'confirm' && (selectedAction?.id === 'add' || selectedAction?.id === 'log') && generatedWorkout && (
           <View style={styles.confirmButtons}>
             <TouchableOpacity 
               style={styles.secondaryButton}
@@ -951,7 +951,11 @@ export const EditPlanScreen = ({ visible, onClose }: EditPlanScreenProps) => {
                 setCurrentStep('conversation');
                 setConversationPhase('type');
                 setChatMessages([]);
-                startAddWorkoutConversation(dayInfo);
+                if (selectedAction?.id === 'log') {
+                  startTrackActivityConversation(dayInfo);
+                } else {
+                  startAddWorkoutConversation(dayInfo);
+                }
               }}
             >
               <Text style={styles.secondaryButtonText}>Start Over</Text>
@@ -970,8 +974,14 @@ export const EditPlanScreen = ({ visible, onClose }: EditPlanScreenProps) => {
                   <ActivityIndicator color={COLORS.white} size="small" />
                 ) : (
                   <>
-                    <Ionicons name="checkmark-circle" size={20} color={COLORS.white} />
-                    <Text style={styles.confirmButtonText}>Add to Plan</Text>
+                    <Ionicons 
+                      name={selectedAction?.id === 'log' ? 'checkmark-done' : 'checkmark-circle'} 
+                      size={20} 
+                      color={COLORS.white} 
+                    />
+                    <Text style={styles.confirmButtonText}>
+                      {selectedAction?.id === 'log' ? 'Log Activity' : 'Add to Plan'}
+                    </Text>
                   </>
                 )}
               </LinearGradient>
