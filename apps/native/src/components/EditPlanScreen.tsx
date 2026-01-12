@@ -573,6 +573,66 @@ export const EditPlanScreen = ({ visible, onClose }: EditPlanScreenProps) => {
       const dayInfo = getSelectedDayInfo();
       if (!dayInfo) throw new Error('No day selected');
       
+      const token = await SecureStore.getItemAsync('thryvin_access_token');
+      
+      // Handle logging extra activity differently
+      if (selectedAction?.id === 'log' || generatedWorkout.isLogged) {
+        // Log to the extra workouts endpoint
+        const logResponse = await fetch(`${API_BASE_URL}/api/workouts/log-extra`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': token ? `Bearer ${token}` : '',
+          },
+          body: JSON.stringify({
+            type: generatedWorkout.type || workoutType,
+            duration: generatedWorkout.duration,
+            date: dayInfo.date.toISOString(),
+            notes: generatedWorkout.notes || workoutDetails,
+            title: generatedWorkout.title,
+          }),
+        });
+        
+        if (!logResponse.ok) {
+          console.warn('Backend log failed, saving locally');
+        }
+        
+        // Also save locally for immediate UI update
+        const loggedWorkout = {
+          id: `logged_${Date.now()}`,
+          title: generatedWorkout.title,
+          type: generatedWorkout.type || workoutType,
+          difficulty: 'moderate',
+          duration: generatedWorkout.duration,
+          date: dayInfo.date.toISOString(),
+          exercises: [],
+          notes: generatedWorkout.notes || workoutDetails,
+          isRestDay: false,
+          completed: true, // Mark as completed since it's already done
+          completedAt: new Date().toISOString(),
+          isExtraActivity: true,
+        };
+        
+        // Update or add to the week workouts
+        const idx = findWorkoutIndexByDate(weekWorkouts, dayInfo.dateKey);
+        if (idx >= 0) {
+          // If there's already a workout on this day, we could either replace or mark as extra
+          // For now, let's just mark the day as having extra activity
+          const existingWorkout = weekWorkouts[idx];
+          await updateWorkoutInWeek(idx, {
+            ...existingWorkout,
+            extraActivity: loggedWorkout,
+          });
+        }
+        
+        await syncFromBackend();
+        
+        Alert.alert('Logged! 🏆', `${generatedWorkout.title} has been logged for ${dayInfo.dayNameFull}!`);
+        resetFlow();
+        return;
+      }
+      
+      // Standard add workout flow
       const idx = findWorkoutIndexByDate(weekWorkouts, dayInfo.dateKey);
       
       const newWorkout = {
