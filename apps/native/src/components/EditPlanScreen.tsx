@@ -237,7 +237,8 @@ export const EditPlanScreen = ({ visible, onClose }: EditPlanScreenProps) => {
     
     const day = weeksData.flatMap(w => w.days).find(d => d.dateKey === dateKey);
     
-    if (day?.isCompleted && selectedAction.id !== 'add') {
+    // For logging, allow any day (including completed ones)
+    if (day?.isCompleted && selectedAction.id !== 'add' && selectedAction.id !== 'log') {
       Alert.alert('Completed', 'Cannot edit completed workouts.');
       return;
     }
@@ -274,6 +275,9 @@ export const EditPlanScreen = ({ visible, onClose }: EditPlanScreenProps) => {
     if (selectedAction.id === 'add') {
       setCurrentStep('conversation');
       startAddWorkoutConversation(day);
+    } else if (selectedAction.id === 'log') {
+      setCurrentStep('conversation');
+      startTrackActivityConversation(day);
     } else if (selectedAction.id === 'harder' || selectedAction.id === 'easier') {
       setCurrentStep('conversation');
       startAdjustmentConversation(day, selectedAction.id === 'harder');
