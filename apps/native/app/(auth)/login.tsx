@@ -368,39 +368,16 @@ export default function LoginScreen() {
                     </TouchableOpacity>
                   </View>
 
-                  {/* Stay Logged In Toggle - Styled as a nice card */}
+                  {/* Stay Logged In - Simple checkbox */}
                   <TouchableOpacity 
                     style={styles.stayLoggedInRow}
                     onPress={() => setStayLoggedIn(!stayLoggedIn)}
-                    activeOpacity={0.8}
+                    activeOpacity={0.7}
                   >
-                    <View style={styles.stayLoggedInContent}>
-                      <View style={[styles.stayLoggedInIconBg, stayLoggedIn && styles.stayLoggedInIconBgActive]}>
-                        <Ionicons 
-                          name={stayLoggedIn ? "shield-checkmark" : "shield-outline"} 
-                          size={18} 
-                          color={stayLoggedIn ? COLORS.white : COLORS.accent} 
-                        />
-                      </View>
-                      <View style={styles.stayLoggedInTextContainer}>
-                        <Text style={styles.stayLoggedInTitle}>Stay Logged In</Text>
-                        <Text style={styles.stayLoggedInSubtitle}>Skip login on next visit</Text>
-                      </View>
+                    <View style={[styles.checkbox, stayLoggedIn && styles.checkboxChecked]}>
+                      {stayLoggedIn && <Ionicons name="checkmark" size={12} color={COLORS.white} />}
                     </View>
-                    {stayLoggedIn ? (
-                      <LinearGradient
-                        colors={[COLORS.accent, COLORS.accentSecondary]}
-                        style={styles.stayLoggedInToggle}
-                        start={{ x: 0, y: 0 }}
-                        end={{ x: 1, y: 0 }}
-                      >
-                        <Ionicons name="checkmark" size={16} color={COLORS.white} />
-                      </LinearGradient>
-                    ) : (
-                      <View style={styles.stayLoggedInToggleOff}>
-                        <View style={styles.stayLoggedInToggleInner} />
-                      </View>
-                    )}
+                    <Text style={styles.stayLoggedInText}>Stay logged in</Text>
                   </TouchableOpacity>
 
                   {/* Login Button */}
