@@ -338,8 +338,55 @@ export const EditPlanScreen = ({ visible, onClose }: EditPlanScreenProps) => {
     
     if (selectedAction?.id === 'add') {
       await handleAddWorkoutConversation(input);
+    } else if (selectedAction?.id === 'log') {
+      await handleLogActivityConversation(input);
     } else if (selectedAction?.id === 'harder' || selectedAction?.id === 'easier') {
       await handleAdjustmentConversation(input);
+    }
+  };
+
+  // Handle Track Activity (Log) conversation flow
+  const handleLogActivityConversation = async (input: string) => {
+    if (conversationPhase === 'type') {
+      setWorkoutType(input);
+      setConversationPhase('duration');
+      
+      setTimeout(() => {
+        addAIMessage(`Awesome, ${input}! 💪\n\nHow long was your workout?\n\nJust tell me something like "30 minutes", "45 min", "about an hour", etc.`);
+      }, 500);
+      
+    } else if (conversationPhase === 'duration') {
+      setWorkoutDuration(input);
+      setConversationPhase('details');
+      
+      setTimeout(() => {
+        addAIMessage(`Nice, ${input} of work! 🔥\n\nAnything specific you want to note about this workout?\n\nFor example: "felt great", "did 3x10 bench press at 135lbs", "legs were tired", or just say "no" to skip.`);
+      }, 500);
+      
+    } else if (conversationPhase === 'details') {
+      const hasDetails = !['no', 'nope', 'nothing', 'n', 'none', 'skip'].includes(input.toLowerCase());
+      if (hasDetails) {
+        setWorkoutDetails(input);
+      }
+      setConversationPhase('confirm');
+      
+      // Parse duration to minutes
+      const durationMatch = workoutDuration.match(/(\d+)/);
+      const durationMinutes = durationMatch ? parseInt(durationMatch[1]) : 30;
+      
+      setTimeout(() => {
+        addAIMessage(`Perfect! Here's what I'll log:\n\n🏋️ **${workoutType.charAt(0).toUpperCase() + workoutType.slice(1)}**\n⏱️ ${durationMinutes} minutes\n${hasDetails ? `📝 ${input}` : ''}\n\nReady to save this to your activity log?`);
+      }, 500);
+      
+      // Set up the generated workout for confirmation
+      setGeneratedWorkout({
+        title: `${workoutType.charAt(0).toUpperCase() + workoutType.slice(1)} Session`,
+        type: workoutType,
+        duration: durationMinutes,
+        notes: hasDetails ? input : '',
+        isLogged: true,
+      });
+      setCurrentStep('confirm');
     }
   };
 
