@@ -677,10 +677,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // MILESTONE 1: FOUNDATIONS - Health & Config Endpoints
   // =============================================================================
 
+  // Version endpoint - returns commit/env info (for debugging 520s)
+  app.get("/api/version", (req, res) => {
+    res.json({
+      version: process.env.npm_package_version || "1.0.0",
+      environment: process.env.NODE_ENV || "development",
+      port: process.env.PORT || 8001,
+      uptime: process.uptime(),
+      timestamp: new Date().toISOString(),
+      node: process.version,
+    });
+  });
+
   // Health endpoint - returns app status and feature flags (no sensitive data)
+  // Must respond fast (<300ms) - no heavy DB operations
   app.get("/api/health", async (req, res) => {
+    const startTime = Date.now();
     try {
       const secrets = validateSecrets();
+      
+      // Quick DB ping with timeout (don't block health check)
+      let dbOk = true;
+      try {
+        const dbTimeout = new Promise<boolean>((_, reject) => 
+          setTimeout(() => reject(new Error('timeout')), 2000)
+        );
+        const dbCheck = storage.getUser(1).then(() => true).catch(() => false);
+        dbOk = await Promise.race([dbCheck, dbTimeout]).catch(() => false);
+      } catch {
+        dbOk = false;
+      }
+      
       const health = {
         ok: secrets.required && secrets.aiReady,
         timestamp: new Date().toISOString(),
@@ -688,6 +715,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         environment: process.env.NODE_ENV || "development",
         features: FEATURE_FLAGS,
         aiReady: secrets.aiReady,
+        dbOk,
+        latencyMs: Date.now() - startTime,
       };
 
       const statusCode = health.ok ? 200 : 503;
@@ -698,6 +727,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         ok: false,
         error: "Health check failed",
         timestamp: new Date().toISOString(),
+        latencyMs: Date.now() - startTime,
       });
     }
   });
