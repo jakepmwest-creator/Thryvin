@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useAwardsStore } from './awards-store';
 
-const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL || 'https://trainee-assist.preview.emergentagent.com';
+const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL || 'https://ai-trainer-upgrade.preview.emergentagent.com';
 
 // ========================================================================
 // CANONICAL DATE UTILITIES - Use these EVERYWHERE for consistency

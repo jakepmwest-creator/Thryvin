@@ -15,7 +15,7 @@ import { PreviewVideoPlayer } from './ExerciseVideoPlayer';
 import { usePreferencesStore } from '../stores/preferences-store';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
-const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL || 'https://trainee-assist.preview.emergentagent.com';
+const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL || 'https://ai-trainer-upgrade.preview.emergentagent.com';
 
 const COLORS = {
   accent: '#A22BF6',
