@@ -1999,6 +1999,176 @@ Respond with JSON ONLY:
     }
   });
 
+  // Custom workout generation endpoint - RESPECTS user's specific request
+  app.post("/api/workouts/generate-custom", async (req, res) => {
+    try {
+      const { workoutType, duration, customRequest, equipment } = req.body;
+      
+      console.log('🎯 [CUSTOM-WORKOUT] Generating custom workout:', { workoutType, duration, customRequest });
+      
+      if (!workoutType) {
+        return res.status(400).json({ error: 'workoutType is required' });
+      }
+      
+      const durationMinutes = parseInt(duration) || 45;
+      const userEquipment = equipment || ['full_gym', 'dumbbells', 'barbells', 'cables', 'machines'];
+      
+      // Use OpenAI to generate a CUSTOM workout
+      const openai = (await import('openai')).default;
+      const client = new openai({ apiKey: process.env.OPENAI_API_KEY });
+      
+      const prompt = `Generate a ${durationMinutes}-minute ${workoutType} workout.
+
+${customRequest ? `USER'S SPECIFIC REQUEST: "${customRequest}" - Make sure to include exercises related to this request!` : ''}
+
+Available equipment: ${userEquipment.join(', ')}
+
+Requirements:
+- Duration: ${durationMinutes} minutes
+- Focus: ${workoutType}
+- Include 5-8 exercises appropriate for this type of workout
+- Each exercise should have sets, reps, and rest time
+- Make it challenging but achievable for an intermediate lifter
+
+Respond with ONLY a JSON object (no markdown, no explanation):
+{
+  "title": "Creative workout name related to ${workoutType}",
+  "type": "${workoutType}",
+  "duration": ${durationMinutes},
+  "overview": "Brief description of the workout focus",
+  "targetMuscles": "Primary muscle groups targeted",
+  "exercises": [
+    {
+      "name": "Exercise name",
+      "sets": 3,
+      "reps": "10-12",
+      "restSeconds": 60,
+      "targetMuscles": ["Muscle1", "Muscle2"],
+      "notes": "Brief tip or note"
+    }
+  ],
+  "caloriesBurn": estimated calories burned
+}`;
+
+      const response = await client.chat.completions.create({
+        model: 'gpt-4o',
+        messages: [
+          { role: 'system', content: 'You are an expert personal trainer. Generate workout plans in valid JSON format only.' },
+          { role: 'user', content: prompt }
+        ],
+        temperature: 0.7,
+        max_tokens: 2000,
+      });
+      
+      const content = response.choices[0]?.message?.content || '';
+      console.log('📦 [CUSTOM-WORKOUT] AI Response:', content.substring(0, 500));
+      
+      // Parse the JSON response
+      let workout;
+      try {
+        // Try to extract JSON from the response
+        const jsonMatch = content.match(/\{[\s\S]*\}/);
+        if (jsonMatch) {
+          workout = JSON.parse(jsonMatch[0]);
+        } else {
+          throw new Error('No JSON found in response');
+        }
+      } catch (parseError) {
+        console.error('❌ [CUSTOM-WORKOUT] JSON parse error:', parseError);
+        // Fallback workout
+        workout = {
+          title: `${workoutType.charAt(0).toUpperCase() + workoutType.slice(1)} Workout`,
+          type: workoutType,
+          duration: durationMinutes,
+          overview: `A ${durationMinutes} minute ${workoutType} workout`,
+          targetMuscles: workoutType,
+          exercises: generateCustomFallbackExercises(workoutType, durationMinutes),
+          caloriesBurn: Math.round(durationMinutes * 8),
+        };
+      }
+      
+      // Ensure all exercises have proper structure
+      if (workout.exercises && Array.isArray(workout.exercises)) {
+        workout.exercises = workout.exercises.map((ex: any, idx: number) => ({
+          id: `custom_${Date.now()}_${idx}`,
+          name: ex.name || 'Exercise',
+          sets: ex.sets || 3,
+          reps: ex.reps || '10',
+          restSeconds: ex.restSeconds || ex.restTime || 60,
+          targetMuscles: ex.targetMuscles || [workoutType],
+          notes: ex.notes || '',
+        }));
+      }
+      
+      console.log('✅ [CUSTOM-WORKOUT] Generated:', workout.title, `(${workout.exercises?.length || 0} exercises)`);
+      
+      res.json(workout);
+      
+    } catch (error: any) {
+      console.error('❌ [CUSTOM-WORKOUT] Error:', error);
+      res.status(500).json({ 
+        error: 'Failed to generate custom workout',
+        details: error.message 
+      });
+    }
+  });
+
+  // Helper function for custom workout fallback
+  function generateCustomFallbackExercises(type: string, duration: number): any[] {
+    const exercisesByType: Record<string, any[]> = {
+      'chest': [
+        { name: 'Barbell Bench Press', sets: 4, reps: '8-10', restSeconds: 90, targetMuscles: ['Chest', 'Triceps'] },
+        { name: 'Incline Dumbbell Press', sets: 3, reps: '10-12', restSeconds: 75, targetMuscles: ['Upper Chest', 'Shoulders'] },
+        { name: 'Cable Flyes', sets: 3, reps: '12-15', restSeconds: 60, targetMuscles: ['Chest'] },
+        { name: 'Dumbbell Flyes', sets: 3, reps: '12', restSeconds: 60, targetMuscles: ['Chest'] },
+        { name: 'Push-ups', sets: 3, reps: '15-20', restSeconds: 45, targetMuscles: ['Chest', 'Triceps'] },
+        { name: 'Dips (Chest Focus)', sets: 3, reps: '10-12', restSeconds: 60, targetMuscles: ['Lower Chest', 'Triceps'] },
+      ],
+      'back': [
+        { name: 'Deadlift', sets: 4, reps: '6-8', restSeconds: 120, targetMuscles: ['Back', 'Hamstrings'] },
+        { name: 'Pull-ups', sets: 4, reps: '8-10', restSeconds: 90, targetMuscles: ['Lats', 'Biceps'] },
+        { name: 'Barbell Row', sets: 4, reps: '8-10', restSeconds: 90, targetMuscles: ['Back', 'Biceps'] },
+        { name: 'Lat Pulldown', sets: 3, reps: '10-12', restSeconds: 60, targetMuscles: ['Lats'] },
+        { name: 'Cable Row', sets: 3, reps: '12', restSeconds: 60, targetMuscles: ['Mid Back'] },
+        { name: 'Face Pulls', sets: 3, reps: '15', restSeconds: 45, targetMuscles: ['Rear Delts', 'Traps'] },
+      ],
+      'legs': [
+        { name: 'Barbell Squat', sets: 4, reps: '8-10', restSeconds: 120, targetMuscles: ['Quads', 'Glutes'] },
+        { name: 'Romanian Deadlift', sets: 4, reps: '10-12', restSeconds: 90, targetMuscles: ['Hamstrings', 'Glutes'] },
+        { name: 'Leg Press', sets: 3, reps: '12-15', restSeconds: 90, targetMuscles: ['Quads'] },
+        { name: 'Leg Curls', sets: 3, reps: '12', restSeconds: 60, targetMuscles: ['Hamstrings'] },
+        { name: 'Calf Raises', sets: 4, reps: '15-20', restSeconds: 45, targetMuscles: ['Calves'] },
+        { name: 'Walking Lunges', sets: 3, reps: '12 each leg', restSeconds: 60, targetMuscles: ['Quads', 'Glutes'] },
+      ],
+      'shoulders': [
+        { name: 'Overhead Press', sets: 4, reps: '8-10', restSeconds: 90, targetMuscles: ['Shoulders', 'Triceps'] },
+        { name: 'Lateral Raises', sets: 4, reps: '12-15', restSeconds: 60, targetMuscles: ['Side Delts'] },
+        { name: 'Front Raises', sets: 3, reps: '12', restSeconds: 60, targetMuscles: ['Front Delts'] },
+        { name: 'Rear Delt Flyes', sets: 3, reps: '15', restSeconds: 45, targetMuscles: ['Rear Delts'] },
+        { name: 'Arnold Press', sets: 3, reps: '10-12', restSeconds: 75, targetMuscles: ['Shoulders'] },
+        { name: 'Shrugs', sets: 3, reps: '12-15', restSeconds: 60, targetMuscles: ['Traps'] },
+      ],
+      'arms': [
+        { name: 'Barbell Curl', sets: 4, reps: '10-12', restSeconds: 60, targetMuscles: ['Biceps'] },
+        { name: 'Tricep Dips', sets: 4, reps: '10-12', restSeconds: 60, targetMuscles: ['Triceps'] },
+        { name: 'Hammer Curls', sets: 3, reps: '12', restSeconds: 60, targetMuscles: ['Biceps', 'Forearms'] },
+        { name: 'Skull Crushers', sets: 3, reps: '12', restSeconds: 60, targetMuscles: ['Triceps'] },
+        { name: 'Cable Curls', sets: 3, reps: '15', restSeconds: 45, targetMuscles: ['Biceps'] },
+        { name: 'Tricep Pushdowns', sets: 3, reps: '15', restSeconds: 45, targetMuscles: ['Triceps'] },
+      ],
+    };
+    
+    // Find matching exercises or use general full body
+    const typeKey = Object.keys(exercisesByType).find(key => 
+      type.toLowerCase().includes(key)
+    ) || 'chest';
+    
+    return exercisesByType[typeKey].map((ex, idx) => ({
+      id: `fallback_${Date.now()}_${idx}`,
+      ...ex,
+    }));
+  }
+
 
   // Exercise swap endpoint for Edit Workout feature
   app.post("/api/workouts/swap-exercise", async (req, res) => {
