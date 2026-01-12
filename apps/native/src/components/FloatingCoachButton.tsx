@@ -312,9 +312,55 @@ export function FloatingCoachButton({
     const lower = message.toLowerCase();
     
     // ===========================================================================
-    // COACH CAN HELP WITH ACTIONS - But also mention Edit Plan for direct control
-    // The coach handles actions conversationally, Edit Plan is for direct manual control
+    // DIRECTIVE-ONLY: Redirect ALL plan modifications to Edit Plan
+    // Coach should NOT perform actions itself - just guide users to the right place
     // ===========================================================================
+    
+    // Check for plan modification intents and redirect to Edit Plan
+    const planModificationKeywords = [
+      'swap', 'switch', 'move', 'change day', 'change the day',
+      'skip', 'skip day', 'skip workout', 
+      'remove', 'delete', 'cancel',
+      'add workout', 'add a workout', 'add exercise', 'add an exercise',
+      'harder', 'more intense', 'more challenging', 'increase intensity',
+      'easier', 'less intense', 'tone down', 'decrease intensity',
+      'make it harder', 'make it easier', 'make workout',
+      'edit workout', 'edit plan', 'modify workout', 'modify plan',
+      'regenerate', 'new workout', 'different workout',
+      'reset', 'start over', 'new program',
+    ];
+    
+    const isPlanModification = planModificationKeywords.some(keyword => lower.includes(keyword));
+    
+    if (isPlanModification) {
+      // Determine which feature to recommend
+      let recommendation = '';
+      
+      if (lower.includes('swap') || lower.includes('switch') || lower.includes('move')) {
+        recommendation = '**Swap Days** in Edit Plan';
+      } else if (lower.includes('skip')) {
+        recommendation = '**Skip Day** in Edit Plan';
+      } else if (lower.includes('remove') || lower.includes('delete') || lower.includes('cancel')) {
+        recommendation = '**Skip Day** in Edit Plan to convert it to a rest day';
+      } else if (lower.includes('add workout') || lower.includes('add a workout')) {
+        recommendation = '**Add Workout** in Edit Plan';
+      } else if (lower.includes('harder') || lower.includes('more intense') || lower.includes('increase')) {
+        recommendation = '**Make Harder** in Edit Plan';
+      } else if (lower.includes('easier') || lower.includes('less intense') || lower.includes('tone')) {
+        recommendation = '**Make Easier** in Edit Plan';
+      } else if (lower.includes('regenerate') || lower.includes('new workout') || lower.includes('different workout')) {
+        recommendation = '**Add Workout** in Edit Plan to create a new one';
+      } else if (lower.includes('reset') || lower.includes('start over')) {
+        recommendation = 'the **Edit Plan** section for workout modifications';
+      } else {
+        recommendation = 'the **Edit Plan** section';
+      }
+      
+      return {
+        handled: true,
+        response: `I'd love to help with that! 🎯\n\nFor workout modifications, head to ${recommendation}.\n\n📍 **How to get there:**\nGo to your Workout tab → Tap "Edit Plan" button\n\nYou'll find all the tools you need there to customize your program exactly how you want it! 💪\n\nIs there anything else I can help you with - like exercise tips, form advice, or nutrition questions?`
+      };
+    }
     
     // ===========================================================================
     // CRITICAL: Check for user REJECTION/CORRECTION first
