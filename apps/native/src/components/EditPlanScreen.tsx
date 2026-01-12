@@ -52,6 +52,7 @@ const EDIT_ACTIONS: EditAction[] = [
   { id: 'swap', icon: 'swap-horizontal', label: 'Swap Days', description: 'Exchange two workout days', color: '#5B8DEF', requiresTwoDays: true },
   { id: 'skip', icon: 'close-circle', label: 'Skip Day', description: 'Convert to rest day', color: '#FF9500' },
   { id: 'add', icon: 'add-circle', label: 'Add Workout', description: 'Add a new workout', color: '#34C759' },
+  { id: 'log', icon: 'fitness', label: 'Track Activity', description: 'Log a workout you did', color: '#A22BF6' },
   { id: 'harder', icon: 'flame', label: 'Make Harder', description: 'Increase intensity', color: '#FF3B30' },
   { id: 'easier', icon: 'leaf', label: 'Make Easier', description: 'Reduce intensity', color: '#00C7BE' },
 ];
