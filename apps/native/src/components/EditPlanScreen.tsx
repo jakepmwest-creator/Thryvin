@@ -209,6 +209,16 @@ export const EditPlanScreen = ({ visible, onClose }: EditPlanScreenProps) => {
     setTimeout(() => addAIMessage(greeting), 300);
   };
 
+  // Start Track Activity conversation (log unexpected workout)
+  const startTrackActivityConversation = (dayInfo: any) => {
+    setChatMessages([]);
+    setConversationPhase('type');
+    
+    const greeting = `Nice! Let's log that workout you did! 🏆\n\nWhat type of workout was it?\n\nFor example: "chest and triceps", "5k run", "yoga class", "swimming", "basketball game", etc.`;
+    
+    setTimeout(() => addAIMessage(greeting), 300);
+  };
+
   // Start Make Harder/Easier conversation
   const startAdjustmentConversation = (dayInfo: any, isHarder: boolean) => {
     setChatMessages([]);
