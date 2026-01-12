@@ -806,7 +806,26 @@ export const EditPlanScreen = ({ visible, onClose }: EditPlanScreenProps) => {
   const renderConversation = () => {
     const dayInfo = getSelectedDayInfo();
     const isAddWorkout = selectedAction?.id === 'add';
+    const isLogActivity = selectedAction?.id === 'log';
     const isHarder = selectedAction?.id === 'harder';
+    const isEasier = selectedAction?.id === 'easier';
+    
+    // Determine icon and title based on action
+    const getActionIcon = () => {
+      if (isAddWorkout) return 'add';
+      if (isLogActivity) return 'fitness';
+      if (isHarder) return 'flame';
+      if (isEasier) return 'leaf';
+      return 'create';
+    };
+    
+    const getActionTitle = () => {
+      if (isAddWorkout) return 'Add Workout';
+      if (isLogActivity) return 'Track Activity';
+      if (isHarder) return 'Make Harder';
+      if (isEasier) return 'Make Easier';
+      return 'Edit';
+    };
     
     return (
       <KeyboardAvoidingView 
@@ -827,14 +846,14 @@ export const EditPlanScreen = ({ visible, onClose }: EditPlanScreenProps) => {
               style={styles.conversationIcon}
             >
               <Ionicons 
-                name={isAddWorkout ? 'add' : (isHarder ? 'flame' : 'leaf')} 
+                name={getActionIcon() as any} 
                 size={18} 
                 color={COLORS.white} 
               />
             </LinearGradient>
             <View>
               <Text style={styles.conversationTitle}>
-                {isAddWorkout ? 'Add Workout' : (isHarder ? 'Make Harder' : 'Make Easier')}
+                {getActionTitle()}
               </Text>
               <Text style={styles.conversationSubtitle}>{dayInfo?.dayNameFull}</Text>
             </View>
