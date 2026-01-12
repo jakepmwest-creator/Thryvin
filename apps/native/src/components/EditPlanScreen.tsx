@@ -720,7 +720,7 @@ export const EditPlanScreen = ({ visible, onClose }: EditPlanScreenProps) => {
             : `Select a day to ${selectedAction?.label.toLowerCase()}`}
         </Text>
         <Text style={styles.stepSubtitle}>
-          {selectedAction?.id === 'add' ? 'Choose a rest day' : 'Tap to select'}
+          {selectedAction?.id === 'add' ? 'Choose a rest day' : (selectedAction?.id === 'log' ? 'When did you workout?' : 'Tap to select')}
         </Text>
         
         {/* Week Tabs */}
@@ -742,7 +742,8 @@ export const EditPlanScreen = ({ visible, onClose }: EditPlanScreenProps) => {
         <ScrollView style={styles.daysScroll} showsVerticalScrollIndicator={false}>
           {currentWeekData?.days.map(day => {
             const isSelected = selectedDays.includes(day.dateKey);
-            const isDisabled = day.isCompleted && selectedAction?.id !== 'add';
+            // For "log", allow all days; for others, check completion status
+            const isDisabled = day.isCompleted && selectedAction?.id !== 'add' && selectedAction?.id !== 'log';
             const showAsRest = day.isRest;
             
             // For "add", only show rest days as selectable
