@@ -421,35 +421,22 @@ export const ExerciseStatsModal = ({ visible, onClose, initialExerciseId }: Exer
     }
   };
 
-  // Get exercises for current view
+  // Get exercises for current view using smart category detection
   const getFilteredExercises = (): { done: Exercise[]; notDone: Exercise[] } => {
     const userExerciseIds = new Set(userExercises.map(e => e.exerciseId));
     
     let filtered = allExercises;
     
-    // Filter by main category if selected
+    // Filter by main category using smart detection
     if (selectedCategory) {
-      const config = EXERCISE_CATEGORIES[selectedCategory as keyof typeof EXERCISE_CATEGORIES];
-      if (config) {
-        // If it's bodyweight, filter by equipment
-        if (config.equipmentFilter) {
-          filtered = filtered.filter(e => 
-            e.equipment?.includes(config.equipmentFilter) || 
-            e.equipment?.some((eq: string) => eq?.toLowerCase().includes(config.equipmentFilter || ''))
-          );
-        } else {
-          // Filter by database categories
-          filtered = filtered.filter(e => config.dbCategories.includes(e.category || ''));
-        }
-      }
+      filtered = filtered.filter(e => detectExerciseCategory(e) === selectedCategory);
     }
     
-    // Filter by subcategory if selected
-    if (selectedSubcategory) {
+    // Filter by subcategory (body part) if selected
+    if (selectedSubcategory && selectedSubcategory !== 'all') {
       filtered = filtered.filter(e => 
-        e.category === selectedSubcategory || 
-        e.equipment?.includes(selectedSubcategory) || 
-        e.subcategory === selectedSubcategory
+        (e.category || '').toLowerCase().includes(selectedSubcategory) ||
+        e.category === selectedSubcategory
       );
     }
     
@@ -475,9 +462,10 @@ export const ExerciseStatsModal = ({ visible, onClose, initialExerciseId }: Exer
     return { done, notDone };
   };
 
-  // Get exercise count for a category using the new structure
+  // Get exercise count for a category using smart detection
   const getCategoryCount = (categoryKey: string): number => {
-    const config = EXERCISE_CATEGORIES[categoryKey as keyof typeof EXERCISE_CATEGORIES];
+    return allExercises.filter(e => detectExerciseCategory(e) === categoryKey).length;
+  };
     if (!config) return 0;
     
     // If it has equipmentFilter (like bodyweight), filter by equipment
