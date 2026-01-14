@@ -984,6 +984,9 @@ const styles = StyleSheet.create({
   closeButton: { padding: 4 },
   contentContainer: { flex: 1 },
   content: { flex: 1, padding: 20 },
+  
+  // Global Search Container
+  globalSearchContainer: { flexDirection: 'row', alignItems: 'center', backgroundColor: COLORS.lightGray, borderRadius: 12, paddingHorizontal: 14, paddingVertical: 10, gap: 10, marginBottom: 20 },
 
   // View Titles
   viewTitle: { fontSize: 24, fontWeight: '700', color: COLORS.text, marginBottom: 4 },
