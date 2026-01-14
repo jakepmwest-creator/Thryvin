@@ -417,13 +417,15 @@ export const ExerciseStatsModal = ({ visible, onClose, initialExerciseId }: Exer
       filtered = filtered.filter(e => e.category === selectedCategory);
     }
     if (selectedSubcategory) {
-      // Filter by equipment type
+      // Filter by equipment (for bodyweight category)
       filtered = filtered.filter(e => 
-        e.equipment?.includes(selectedSubcategory) || e.subcategory === selectedSubcategory
+        e.category === selectedSubcategory || 
+        e.equipment?.includes(selectedSubcategory) || 
+        e.subcategory === selectedSubcategory
       );
     }
     
-    // Filter by search
+    // Filter by search - always apply if query exists
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
       filtered = filtered.filter(e => 
@@ -445,14 +447,52 @@ export const ExerciseStatsModal = ({ visible, onClose, initialExerciseId }: Exer
     return { done, notDone };
   };
 
-  // Get exercise count for a category
+  // Get exercise count for a category using the new structure
   const getCategoryCount = (categoryKey: string): number => {
-    return allExercises.filter(e => e.category === categoryKey).length;
+    const config = EXERCISE_CATEGORIES[categoryKey as keyof typeof EXERCISE_CATEGORIES];
+    if (!config) return 0;
+    
+    // If it has equipmentFilter (like bodyweight), filter by equipment
+    if (config.equipmentFilter) {
+      return allExercises.filter(e => 
+        e.equipment?.includes(config.equipmentFilter) || 
+        e.equipment?.some((eq: string) => eq?.toLowerCase().includes(config.equipmentFilter || ''))
+      ).length;
+    }
+    
+    // Otherwise filter by dbCategories
+    return allExercises.filter(e => 
+      config.dbCategories.includes(e.category || '')
+    ).length;
   };
 
-  // Render category selection
+  // Render category selection with search at top
   const renderCategories = () => (
     <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+      {/* Global Search Bar */}
+      <View style={styles.globalSearchContainer}>
+        <Ionicons name="search" size={20} color={COLORS.mediumGray} />
+        <TextInput
+          style={styles.searchInput}
+          placeholder="Search all exercises..."
+          placeholderTextColor={COLORS.mediumGray}
+          value={searchQuery}
+          onChangeText={(text) => {
+            setSearchQuery(text);
+            if (text.length > 0) {
+              setView('list');
+              setSelectedCategory(null);
+              setSelectedSubcategory(null);
+            }
+          }}
+        />
+        {searchQuery.length > 0 && (
+          <TouchableOpacity onPress={() => setSearchQuery('')}>
+            <Ionicons name="close-circle" size={20} color={COLORS.mediumGray} />
+          </TouchableOpacity>
+        )}
+      </View>
+      
       <Text style={styles.viewTitle}>Browse Exercises</Text>
       <Text style={styles.viewSubtitle}>Select a category to explore</Text>
       
