@@ -27,6 +27,9 @@ const COLORS = {
   secondary: '#FF4EC7',
   gradientStart: '#A22BF6',
   gradientEnd: '#FF4EC7',
+  // Green gradient for completed workouts
+  completedGradientStart: '#34C759',
+  completedGradientEnd: '#2ECC71',
   background: '#FFFFFF',
   cardBg: '#F5F5F7',
   text: '#1C1C1E',
