@@ -635,7 +635,7 @@ export function WorkoutDetailsModal({
               </View>
             )}
             
-            {mainExercises.length > 0 && (
+            {!currentWorkout?.completed && mainExercises.length > 0 && (
               <View style={styles.section}>
                 <View style={styles.sectionHeader}>
                   <View style={styles.categoryBadge}>
@@ -656,7 +656,7 @@ export function WorkoutDetailsModal({
               </View>
             )}
             
-            {cooldownExercises.length > 0 && (
+            {!currentWorkout?.completed && cooldownExercises.length > 0 && (
               <View style={styles.section}>
                 <View style={styles.sectionHeader}>
                   <View style={styles.categoryBadge}>
