@@ -411,13 +411,27 @@ export const ExerciseStatsModal = ({ visible, onClose, initialExerciseId }: Exer
   const getFilteredExercises = (): { done: Exercise[]; notDone: Exercise[] } => {
     const userExerciseIds = new Set(userExercises.map(e => e.exerciseId));
     
-    // Filter by category if selected
     let filtered = allExercises;
+    
+    // Filter by main category if selected
     if (selectedCategory) {
-      filtered = filtered.filter(e => e.category === selectedCategory);
+      const config = EXERCISE_CATEGORIES[selectedCategory as keyof typeof EXERCISE_CATEGORIES];
+      if (config) {
+        // If it's bodyweight, filter by equipment
+        if (config.equipmentFilter) {
+          filtered = filtered.filter(e => 
+            e.equipment?.includes(config.equipmentFilter) || 
+            e.equipment?.some((eq: string) => eq?.toLowerCase().includes(config.equipmentFilter || ''))
+          );
+        } else {
+          // Filter by database categories
+          filtered = filtered.filter(e => config.dbCategories.includes(e.category || ''));
+        }
+      }
     }
+    
+    // Filter by subcategory if selected
     if (selectedSubcategory) {
-      // Filter by equipment (for bodyweight category)
       filtered = filtered.filter(e => 
         e.category === selectedSubcategory || 
         e.equipment?.includes(selectedSubcategory) || 
