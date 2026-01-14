@@ -302,7 +302,7 @@ export const ExploreWorkoutsModal = ({ visible, onClose, category, categoryGradi
           {/* Equipment Filter - COMPACT */}
           <View style={styles.filterContainer}>
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filterScroll}>
-              {(EQUIPMENT_FILTERS[category] || EQUIPMENT_FILTERS['Strength']).map(equip => (
+              {(EQUIPMENT_FILTERS[category] || EQUIPMENT_FILTERS['Weights']).map(equip => (
                 <TouchableOpacity
                   key={equip.id}
                   style={[styles.filterChip, filterEquipment === equip.id && styles.filterChipActiveWrapper]}
