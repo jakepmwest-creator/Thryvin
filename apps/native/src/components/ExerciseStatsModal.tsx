@@ -544,20 +544,43 @@ export const ExerciseStatsModal = ({ visible, onClose, initialExerciseId }: Exer
             key={key}
             style={styles.subcategoryCard}
             onPress={() => {
-              setSelectedSubcategory(subcategory);
+              setSelectedSubcategory(key);
               setView('list');
             }}
             activeOpacity={0.7}
           >
             <View style={styles.subcategoryContent}>
               <View style={[styles.subcategoryDot, { backgroundColor: categoryConfig.gradient[0] }]} />
-              <Text style={styles.subcategoryName}>{subcategory}</Text>
+              <Text style={styles.subcategoryName}>{displayName}</Text>
             </View>
             <Ionicons name="chevron-forward" size={20} color={COLORS.mediumGray} />
           </TouchableOpacity>
         ))}
       </ScrollView>
     );
+  };
+
+  // Get header title based on view
+  const getHeaderTitle = () => {
+    switch (view) {
+      case 'categories': return 'Exercise Stats';
+      case 'subcategories': 
+        const cat = EXERCISE_CATEGORIES[selectedCategory as keyof typeof EXERCISE_CATEGORIES];
+        return cat?.displayName || 'Exercises';
+      case 'list': 
+        if (selectedSubcategory && selectedCategory) {
+          const catConfig = EXERCISE_CATEGORIES[selectedCategory as keyof typeof EXERCISE_CATEGORIES];
+          const subName = catConfig?.subcategories?.[selectedSubcategory as keyof typeof catConfig.subcategories];
+          return subName || selectedCategory;
+        }
+        if (selectedCategory) {
+          const cat = EXERCISE_CATEGORIES[selectedCategory as keyof typeof EXERCISE_CATEGORIES];
+          return cat?.displayName || 'All Exercises';
+        }
+        return 'Your Exercises';
+      case 'detail': return 'Exercise Detail';
+      default: return 'Exercise Stats';
+    }
   };
 
   // Render exercise list
@@ -571,7 +594,7 @@ export const ExerciseStatsModal = ({ visible, onClose, initialExerciseId }: Exer
           <Ionicons name="search" size={20} color={COLORS.mediumGray} />
           <TextInput
             style={styles.searchInput}
-            placeholder={`Search ${selectedSubcategory || selectedCategory || 'exercises'}...`}
+            placeholder={`Search ${getHeaderTitle().toLowerCase()}...`}
             placeholderTextColor={COLORS.mediumGray}
             value={searchQuery}
             onChangeText={setSearchQuery}
