@@ -535,6 +535,8 @@ export const ExerciseStatsModal = ({ visible, onClose, initialExerciseId, curren
     setSelectedExercise(null);
     setUnperformedExercise(null);
     setSearchQuery('');
+    setSelectedTimeRange('all');
+    setFilteredHistory([]);
     onClose();
   };
 
