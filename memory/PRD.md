@@ -19,52 +19,81 @@ Build an AI-powered fitness coaching app with personalized workout generation, p
 
 ## What's Been Implemented
 
+### Jan 14, 2025 (Current Session)
+- ✅ **CRITICAL FIX: Workout Data Logging** - Fixed authentication mismatch
+  - All `/api/workout/log-set` and `/api/stats/*` endpoints now use JWT auth
+  - Workout sets correctly saved to `performance_logs` table
+  - Summary endpoint returns accurate exercise data, volumes, and sets
+  
+- ✅ **WorkoutDetailsModal Green Gradient Header**
+  - Completed workouts now show GREEN gradient header (not purple)
+  - Modal has rounded top corners (24px radius)
+  - Transparent overlay behind modal
+  - Clean separation between completed vs in-progress workouts
+  
+- ✅ **Enhanced ExerciseStatsModal** - Categorized Exercise Browser
+  - Category view: Weights, Bodyweight, Cardio, Flexibility
+  - Subcategory view: Free Weights, Machines, Cables, etc.
+  - Exercise list with done exercises at top, undone with lock icon below
+  - Pin up to 3 favorites functionality
+  - Coach tips based on performance trend
+  - Detailed stats with Epley 1RM calculations
+  - Line graph for strength over time
+
 ### Jan 12, 2025
 - ✅ **Edit Plan Conversational UI**: Complete rewrite of EditPlanScreen.tsx
-  - Chat-based "Add Workout" flow with multi-step AI conversation
-  - Chat-based "Make Harder/Easier" flow with user feedback
-  - Beautiful purple-to-pink gradient styling
-  - Week tabs for 3-week day selection
-  - Swap Days, Skip Day functionality maintained
-
-### Previous Sessions (from handoff)
 - ✅ Backend stability fixes (520 errors resolved)
-- ✅ Calendar/Program data sync fixed (syncFromBackend function)
-- ✅ QA login enabled for testing
+- ✅ Calendar/Program data sync fixed
+
+### Previous Sessions
 - ✅ AI Coach simplified to directive-only role
-- ✅ Skip Day converts to Rest Day (not delete)
+- ✅ Skip Day converts to Rest Day
 - ✅ Stay Logged In checkbox added
-- ✅ Improved AI workout naming prompts
 - ✅ GitHub remote connection restored
 
-## Pending Testing (P0-P2)
-1. **P0**: New Edit Plan conversational flows need full testing
-2. **P1**: Track Extra Activity (/api/workouts/log-extra) e2e verification
-3. **P2**: Stay Logged In persistence flow
+## In Progress / Pending Tasks
+
+### P0 - Critical
+- [ ] Verify workout summary displays correctly in mobile app (backend verified working)
+- [ ] Test complete workout flow end-to-end on device
+
+### P1 - High Priority
+- [ ] Homepage Favorites - Add same FavoriteExercisesCard to homepage index.tsx (replace "Coming Soon" section)
+- [ ] Full exercise database categorization - Add category/subcategory fields to exercises table
+
+### P2 - Medium Priority
+- [ ] Refactor FloatingCoachButton.tsx (2000+ lines needs breakdown)
+- [ ] "Add to future workout" option in exercise browser
 
 ## Backlog / Future Tasks
-- [ ] Refactor FloatingCoachButton.tsx (2000+ lines, needs breakdown)
 - [ ] Fix un-editable completed exercises issue
 - [ ] Verify badge system fixes
 - [ ] Create foolproof exercise video mapping system
 
 ## Key API Endpoints
+- `POST /api/workout/log-set` - Log workout set (FIXED - now saves to performance_logs)
+- `GET /api/stats/workout-summary/:workoutId` - Get workout summary
+- `GET /api/stats/exercises` - Get user's logged exercises
+- `GET /api/stats/exercise/:exerciseId` - Get exercise detail with PBs
+- `GET /api/exercises` - Get all exercises from database
 - `POST /api/workouts/generate` - AI workout generation
 - `POST /api/workouts/update-in-place` - Make workout harder/easier
-- `GET /api/workouts/week` - Fetch weekly workout plan
-- `POST /api/coach/actions/execute` - Execute coach actions
-- `POST /api/workouts/log-extra` - Log unexpected workouts
 
 ## Architecture Notes
 - Backend runs on port 8001 (managed by supervisor via yarn start)
 - Frontend is React Native Expo app (runs via Expo Go on device)
 - API_BASE_URL: https://fitness-stats-7.preview.emergentagent.com
-- Date-based mapping using YYYY-MM-DD format for consistency
-- syncFromBackend() must be called after any workout mutations
+- All endpoints using `req.isAuthenticated()` have been converted to `authenticateToken` middleware for JWT support
+- `performance_logs` table is the source of truth for exercise stats
 
-## Key Files
-- `/app/apps/native/src/components/EditPlanScreen.tsx` - Edit plan UI (NEW)
-- `/app/apps/native/src/stores/workout-store.ts` - State management
-- `/app/apps/native/src/components/FloatingCoachButton.tsx` - AI Coach
-- `/app/server/routes.ts` - Backend API routes
-- `/app/server/ai-workout-generator.ts` - AI workout generation
+## Key Files Modified This Session
+- `/app/server/routes.ts` - Fixed JWT auth on all stats/performance endpoints
+- `/app/apps/native/src/components/WorkoutDetailsModal.tsx` - Green gradient for completed workouts, rounded corners
+- `/app/apps/native/src/components/ExerciseStatsModal.tsx` - Complete rewrite with categories
+
+## Data Flow
+```
+Mobile App → POST /api/workout/log-set → performance_logs table
+           → GET /api/stats/workout-summary/:id → Summary with exercises, volumes, PBs
+           → GET /api/stats/exercise/:id → Detailed stats, history, trends
+```
