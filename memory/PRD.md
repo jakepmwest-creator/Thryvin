@@ -2,9 +2,26 @@
 
 ## What's Been Implemented
 
-### Jan 14, 2025 - Critical Fixes
+### Jan 14, 2025 - P1 Critical Fixes (HARD AUDIT Results)
 
-#### 🔴 CRITICAL FIX: Workout Tracking Auth Token
+#### ✅ CRITICAL FIX 1: WorkoutId Mismatch (P0 - VERIFIED)
+- **Issue**: `logSetToBackend` in `workout-hub.tsx` was generating NEW workoutId per set call instead of using `activeSession.workoutId`
+- **Root Cause**: Fallback logic `currentWorkout?.id || workout_${Date.now()}` was orphaning set data
+- **Fix**: Modified `logSetToBackend` to use `activeSession?.workoutId` as the single source of truth
+- **Acceptance Test**: Log 3 sets → All share same workoutId → Summary shows volume=2150, exerciseCount=2, totalSets=3 ✅
+
+#### ✅ CRITICAL FIX 2: Favorites Pinning Broken (P0 - VERIFIED)
+- **Issue**: `PUT /api/stats/favorites` was failing with SQL syntax error
+- **Root Cause**: `favoriteExercises` column didn't exist in users table + JSON serialization was wrong
+- **Fix**: 
+  - Added `favoriteExercises: text("favorite_exercises")` to schema
+  - Ran DB migration to add column
+  - Fixed PUT/GET to properly serialize/deserialize JSON array
+- **Acceptance Test**: PUT 3 favorites → GET returns persisted data ✅
+
+### Jan 14, 2025 - Earlier Fixes
+
+#### Auth Token Key Fix
 - **Issue**: workout-hub.tsx was using `auth_token` but app uses `thryvin_access_token`
 - **Fix**: Changed to `thryvin_access_token` - sets now properly save to `performance_logs`
 - **Result**: Summary now correctly shows exercises count, sets, and volume
