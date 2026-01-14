@@ -563,7 +563,7 @@ export function WorkoutDetailsModal({
                       <View style={styles.summaryStatsRow}>
                         <View style={styles.summaryStatCard}>
                           <Ionicons name="time-outline" size={22} color={COLORS.accent} />
-                          <Text style={styles.summaryStatValue}>{currentWorkout.duration || 45}</Text>
+                          <Text style={styles.summaryStatValue}>{actualDuration}</Text>
                           <Text style={styles.summaryStatLabel}>minutes</Text>
                         </View>
                         <View style={styles.summaryStatCard}>
@@ -573,8 +573,8 @@ export function WorkoutDetailsModal({
                         </View>
                         <View style={styles.summaryStatCard}>
                           <Ionicons name="trending-up-outline" size={22} color={COLORS.accent} />
-                          <Text style={styles.summaryStatValue}>{workoutSummary?.stats?.totalVolume ? Math.round(workoutSummary.stats.totalVolume / 1000) + 'k' : currentWorkout.caloriesBurn || 0}</Text>
-                          <Text style={styles.summaryStatLabel}>volume</Text>
+                          <Text style={styles.summaryStatValue}>{workoutSummary?.stats?.totalVolume ? (workoutSummary.stats.totalVolume >= 1000 ? Math.round(workoutSummary.stats.totalVolume / 1000) + 'k' : workoutSummary.stats.totalVolume) : 0}</Text>
+                          <Text style={styles.summaryStatLabel}>volume (kg)</Text>
                         </View>
                       </View>
                     </View>
