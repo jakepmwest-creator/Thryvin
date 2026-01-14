@@ -41,27 +41,28 @@ const COLORS = {
 
 const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL || 'https://fitness-stats-7.preview.emergentagent.com';
 
-// Exercise Categories - User requested structure: Weights, Bodyweight, Cardio, Flexibility
-// With Weights having sub-categories: Upper Body, Lower Body, Full Body
+// Keywords for smart category detection (same as ExploreWorkoutsModal)
+const EQUIPMENT_KEYWORDS = ['dumbbell', 'barbell', 'cable', 'machine', 'kettlebell', 'smith', 'ez bar', 'ez-bar', 'resistance band', 'band', 'bench press', 'lat pull', 'pulldown', 'leg press', 'chest press', 'shoulder press', 'weight'];
+const CARDIO_KEYWORDS = ['cardio', 'running', 'cycling', 'rowing', 'swimming', 'jump rope', 'treadmill', 'elliptical', 'stair', 'hiit', 'jumping jack', 'burpee', 'mountain climber', 'sprint'];
+const FLEX_KEYWORDS = ['stretch', 'yoga', 'mobility', 'warmup', 'warm-up', 'recovery', 'foam roll', 'flexibility'];
+
+// Exercise Categories - Matching Explore Workouts structure
+// Weights (with equipment), Calisthenics (bodyweight), Cardio, Flexibility
 const EXERCISE_CATEGORIES = {
   'weights': {
     displayName: 'Weights',
     icon: 'barbell',
     gradient: [THEME_COLORS.gradientStart, THEME_COLORS.gradientEnd],
-    // Maps to database categories
-    dbCategories: ['upper-body', 'lower-body', 'full-body'],
     subcategories: {
       'upper-body': 'Upper Body',
       'lower-body': 'Lower Body',
       'full-body': 'Full Body',
     }
   },
-  'bodyweight': {
-    displayName: 'Bodyweight',
+  'calisthenics': {
+    displayName: 'Calisthenics',
     icon: 'body',
     gradient: ['#FF4EC7', '#FF6B9D'],
-    dbCategories: ['upper-body', 'lower-body', 'core', 'full-body'],
-    equipmentFilter: 'bodyweight', // Filter by equipment
     subcategories: {
       'upper-body': 'Upper Body',
       'lower-body': 'Lower Body',
@@ -73,25 +74,38 @@ const EXERCISE_CATEGORIES = {
     displayName: 'Cardio',
     icon: 'heart',
     gradient: ['#FF3B30', '#FF6B35'],
-    dbCategories: ['cardio'],
     subcategories: {
-      'running': 'Running',
-      'cycling': 'Cycling',
-      'rowing': 'Rowing',
-      'hiit': 'HIIT',
+      'all': 'All Cardio',
     }
   },
   'flexibility': {
     displayName: 'Flexibility',
     icon: 'fitness',
     gradient: ['#34C759', '#5BD678'],
-    dbCategories: ['flexibility', 'mobility', 'stretching'],
     subcategories: {
       'stretching': 'Stretching',
       'yoga': 'Yoga',
       'mobility': 'Mobility',
     }
   },
+};
+
+// Smart category detection function
+const detectExerciseCategory = (exercise: any): 'weights' | 'calisthenics' | 'cardio' | 'flexibility' => {
+  const exName = (exercise.name || exercise.exerciseName || '').toLowerCase();
+  const exCategory = (exercise.category || '').toLowerCase();
+  const equipmentArr = Array.isArray(exercise.equipment) ? exercise.equipment : [];
+  const equipmentStr = equipmentArr.map((e: any) => String(e).toLowerCase()).join(' ');
+  
+  const nameHasEquipment = EQUIPMENT_KEYWORDS.some(kw => exName.includes(kw));
+  const fieldHasEquipment = equipmentArr.length > 0 && !equipmentStr.includes('bodyweight');
+  const isCardio = CARDIO_KEYWORDS.some(kw => exCategory.includes(kw) || exName.includes(kw));
+  const isFlex = FLEX_KEYWORDS.some(kw => exCategory.includes(kw) || exName.includes(kw));
+  
+  if (isCardio) return 'cardio';
+  if (isFlex) return 'flexibility';
+  if (nameHasEquipment || fieldHasEquipment) return 'weights';
+  return 'calisthenics';
 };
 
 interface ExerciseStatsModalProps {
