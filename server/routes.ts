@@ -2356,7 +2356,7 @@ Respond with ONLY a JSON object (no markdown, no explanation):
     try {
       const userId = req.user?.id;
       if (!userId) {
-        return res.status(401).json({ error: "Authentication required" });
+        return res.status(401).json({ ok: false, error: "Authentication required" });
       }
       const { exerciseId } = req.params;
       console.log(`📊 [STATS] Getting stats for exercise ${exerciseId}, user ${userId}`);
@@ -2365,10 +2365,12 @@ Respond with ONLY a JSON object (no markdown, no explanation):
       
       if (!performanceHistory || performanceHistory.length === 0) {
         return res.json({
+          ok: true,
           exerciseId,
-          exerciseName: 'Unknown',
+          name: 'Unknown',
           history: [],
-          personalBests: null,
+          pbs: null,
+          lastSession: null,
           trend: 'neutral',
         });
       }
@@ -2378,14 +2380,24 @@ Respond with ONLY a JSON object (no markdown, no explanation):
       let maxReps = 0;
       let maxVolume = 0; // weight x reps
       let bestSet: any = null;
+      let bestVolumeSet: any = null;
 
-      // History for charting (grouped by date)
+      // History for charting (grouped by date, ordered by loggedAt for session grouping)
       const historyByDate = new Map<string, {
         date: string;
         maxWeight: number;
         totalReps: number;
         totalSets: number;
+        totalVolume: number;
         estimatedOneRM: number;
+        sets: Array<{ weight: number; reps: number; volume: number }>;
+      }>();
+
+      // Also group by workoutId to find the most recent session
+      const sessionsByWorkoutId = new Map<string, {
+        workoutId: string;
+        date: string;
+        sets: Array<{ setNumber: number; weight: number; reps: number; volume: number; rpe?: number }>;
       }>();
 
       for (const log of performanceHistory) {
@@ -2393,6 +2405,7 @@ Respond with ONLY a JSON object (no markdown, no explanation):
         const reps = log.actualReps || 0;
         const volume = weight * reps;
         const dateKey = new Date(log.loggedAt).toISOString().split('T')[0];
+        const workoutId = log.workoutId || dateKey;
 
         // Update max values
         if (weight > maxWeight) {
@@ -2400,9 +2413,12 @@ Respond with ONLY a JSON object (no markdown, no explanation):
           bestSet = log;
         }
         if (reps > maxReps) maxReps = reps;
-        if (volume > maxVolume) maxVolume = volume;
+        if (volume > maxVolume) {
+          maxVolume = volume;
+          bestVolumeSet = log;
+        }
 
-        // Group by date
+        // Group by date for history chart
         const existing = historyByDate.get(dateKey);
         const estimatedOneRM = weight > 0 && reps > 0 ? calculateOneRM(weight, reps) : 0;
         
@@ -2410,21 +2426,55 @@ Respond with ONLY a JSON object (no markdown, no explanation):
           existing.maxWeight = Math.max(existing.maxWeight, weight);
           existing.totalReps += reps;
           existing.totalSets += 1;
+          existing.totalVolume += volume;
           existing.estimatedOneRM = Math.max(existing.estimatedOneRM, estimatedOneRM);
+          existing.sets.push({ weight, reps, volume });
         } else {
           historyByDate.set(dateKey, {
             date: dateKey,
             maxWeight: weight,
             totalReps: reps,
             totalSets: 1,
+            totalVolume: volume,
             estimatedOneRM,
+            sets: [{ weight, reps, volume }],
+          });
+        }
+
+        // Group by workoutId for session tracking
+        const existingSession = sessionsByWorkoutId.get(workoutId);
+        if (existingSession) {
+          existingSession.sets.push({
+            setNumber: existingSession.sets.length + 1,
+            weight,
+            reps,
+            volume,
+            rpe: log.rpe || undefined,
+          });
+        } else {
+          sessionsByWorkoutId.set(workoutId, {
+            workoutId,
+            date: dateKey,
+            sets: [{
+              setNumber: 1,
+              weight,
+              reps,
+              volume,
+              rpe: log.rpe || undefined,
+            }],
           });
         }
       }
 
       // Convert to array and sort by date
       const history = Array.from(historyByDate.values())
-        .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+        .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+        .slice(-5); // Last 5 sessions for the history list
+
+      // Get the most recent session (last workoutId by date)
+      const sessions = Array.from(sessionsByWorkoutId.values())
+        .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+      const lastSessionData = sessions[0] || null;
 
       // Calculate estimated 1RM using Epley formula: 1RM = weight × (1 + reps/30)
       const estimatedOneRM = bestSet && bestSet.actualWeight && bestSet.actualReps
@@ -2434,53 +2484,53 @@ Respond with ONLY a JSON object (no markdown, no explanation):
       // Calculate other rep maxes
       const estimated3RM = estimatedOneRM * 0.93; // ~93% of 1RM
       const estimated5RM = estimatedOneRM * 0.87; // ~87% of 1RM
-      const estimated6RM = estimatedOneRM * 0.85; // ~85% of 1RM
       const estimated10RM = estimatedOneRM * 0.75; // ~75% of 1RM
 
-      // Calculate trend (comparing last 5 sessions to previous 5)
+      // Calculate trend (comparing last 2 sessions to previous 2)
       let trend: 'up' | 'down' | 'neutral' = 'neutral';
-      if (history.length >= 4) {
-        const recent = history.slice(-2);
-        const older = history.slice(-4, -2);
+      const allHistory = Array.from(historyByDate.values())
+        .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+      if (allHistory.length >= 4) {
+        const recent = allHistory.slice(-2);
+        const older = allHistory.slice(-4, -2);
         const recentAvg = recent.reduce((sum, h) => sum + h.maxWeight, 0) / recent.length;
         const olderAvg = older.reduce((sum, h) => sum + h.maxWeight, 0) / older.length;
         if (recentAvg > olderAvg * 1.05) trend = 'up';
         else if (recentAvg < olderAvg * 0.95) trend = 'down';
       }
 
-      // Find strongest and weakest sessions
-      const strongest = history.reduce((max, h) => h.maxWeight > max.maxWeight ? h : max, history[0]);
-      const weakest = history.reduce((min, h) => h.maxWeight < min.maxWeight ? h : min, history[0]);
-
       res.json({
+        ok: true,
         exerciseId,
-        exerciseName: performanceHistory[0].exerciseName,
+        name: performanceHistory[0].exerciseName,
         history,
-        personalBests: {
-          actualPB: maxWeight,
+        pbs: {
+          maxWeight,
+          maxReps,
+          maxVolume,
           estimatedOneRM: Math.round(estimatedOneRM),
           estimated3RM: Math.round(estimated3RM),
           estimated5RM: Math.round(estimated5RM),
-          estimated6RM: Math.round(estimated6RM),
           estimated10RM: Math.round(estimated10RM),
-          maxReps,
-          maxVolume,
-          bestSet: {
-            weight: bestSet?.actualWeight,
-            reps: bestSet?.actualReps,
-            date: bestSet?.loggedAt,
-          },
+          bestWeightSet: bestSet ? {
+            weight: bestSet.actualWeight,
+            reps: bestSet.actualReps,
+            date: bestSet.loggedAt,
+          } : null,
+          bestVolumeSet: bestVolumeSet ? {
+            weight: bestVolumeSet.actualWeight,
+            reps: bestVolumeSet.actualReps,
+            volume: (bestVolumeSet.actualWeight || 0) * (bestVolumeSet.actualReps || 0),
+            date: bestVolumeSet.loggedAt,
+          } : null,
         },
+        lastSession: lastSessionData,
         trend,
-        strongest: { date: strongest?.date, weight: strongest?.maxWeight },
-        weakest: { date: weakest?.date, weight: weakest?.maxWeight },
-        totalSessions: history.length,
-        firstSession: history[0]?.date,
-        lastSession: history[history.length - 1]?.date,
+        totalSessions: allHistory.length,
       });
     } catch (error: any) {
       console.log(`❌ [STATS] Error:`, error);
-      res.status(500).json({ error: "Failed to get exercise stats" });
+      res.status(500).json({ ok: false, error: "Failed to get exercise stats" });
     }
   });
 
