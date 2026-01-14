@@ -20,80 +20,97 @@ Build an AI-powered fitness coaching app with personalized workout generation, p
 ## What's Been Implemented
 
 ### Jan 14, 2025 (Current Session)
-- ✅ **CRITICAL FIX: Workout Data Logging** - Fixed authentication mismatch
-  - All `/api/workout/log-set` and `/api/stats/*` endpoints now use JWT auth
+- ✅ **CRITICAL FIX: Workout Data Logging** - Fixed JWT authentication mismatch
+  - All `/api/workout/log-set` and `/api/stats/*` endpoints now use JWT auth middleware
   - Workout sets correctly saved to `performance_logs` table
   - Summary endpoint returns accurate exercise data, volumes, and sets
   
-- ✅ **WorkoutDetailsModal Green Gradient Header**
-  - Completed workouts now show GREEN gradient header (not purple)
+- ✅ **WorkoutDetailsModal Summary UI Overhaul**
+  - Completed workouts now show GREEN gradient header
   - Modal has rounded top corners (24px radius)
-  - Transparent overlay behind modal
-  - Clean separation between completed vs in-progress workouts
+  - Beautiful new summary view with:
+    - "Great Job!" header with completion date
+    - Stats cards (minutes, sets, volume)
+    - Exercise list with per-exercise stats and volume
+    - PR badges for new personal records
+  - Exercises sections hidden for completed workouts (shows summary instead)
+  
+- ✅ **Today's Workout Card (workouts.tsx)** - Fixed ugly green box
+  - Now matches homepage style: clean white card
+  - Shows "COMPLETED ✓" badge with green checkmark
+  - "Tap to view summary" hint at bottom
   
 - ✅ **Enhanced ExerciseStatsModal** - Categorized Exercise Browser
-  - Category view: Weights, Bodyweight, Cardio, Flexibility
-  - Subcategory view: Free Weights, Machines, Cables, etc.
-  - Exercise list with done exercises at top, undone with lock icon below
+  - Categories match database: Upper Body, Lower Body, Core, Cardio, Full Body
+  - Subcategories by equipment: Barbell, Dumbbell, Cable, Machine, Bodyweight
+  - "View All" option within each category
+  - Search bar refined by current selection
+  - Done exercises at top, undone with lock icon below
   - Pin up to 3 favorites functionality
   - Coach tips based on performance trend
   - Detailed stats with Epley 1RM calculations
   - Line graph for strength over time
-
-### Jan 12, 2025
-- ✅ **Edit Plan Conversational UI**: Complete rewrite of EditPlanScreen.tsx
-- ✅ Backend stability fixes (520 errors resolved)
-- ✅ Calendar/Program data sync fixed
+  
+- ✅ **Homepage Favorites** - Replaced "Coming Soon" section
+  - Added FavoriteExercisesCard to homepage
+  - Same component as stats page for consistency
+  - Full exercise stats modal accessible from homepage
+  
+- ✅ **Stats Page Cleanup** - Removed ugly "All Exercise Stats" button
 
 ### Previous Sessions
-- ✅ AI Coach simplified to directive-only role
-- ✅ Skip Day converts to Rest Day
-- ✅ Stay Logged In checkbox added
-- ✅ GitHub remote connection restored
+- ✅ Edit Plan Conversational UI
+- ✅ Backend stability fixes
+- ✅ Calendar/Program data sync
+- ✅ AI Coach directive-only role
+- ✅ Voice-to-text in chat
 
 ## In Progress / Pending Tasks
 
-### P0 - Critical
-- [ ] Verify workout summary displays correctly in mobile app (backend verified working)
-- [ ] Test complete workout flow end-to-end on device
-
 ### P1 - High Priority
-- [ ] Homepage Favorites - Add same FavoriteExercisesCard to homepage index.tsx (replace "Coming Soon" section)
-- [ ] Full exercise database categorization - Add category/subcategory fields to exercises table
+- [ ] Test complete workout flow end-to-end on device
+- [ ] Verify exercises from database show correctly in ExerciseStatsModal
+- [ ] Ensure workout completion triggers proper data save
 
 ### P2 - Medium Priority
 - [ ] Refactor FloatingCoachButton.tsx (2000+ lines needs breakdown)
 - [ ] "Add to future workout" option in exercise browser
+- [ ] Fix un-editable completed exercises issue
 
 ## Backlog / Future Tasks
-- [ ] Fix un-editable completed exercises issue
 - [ ] Verify badge system fixes
 - [ ] Create foolproof exercise video mapping system
+- [ ] Add more exercise categories/subcategories to database
 
 ## Key API Endpoints
-- `POST /api/workout/log-set` - Log workout set (FIXED - now saves to performance_logs)
+- `POST /api/workout/log-set` - Log workout set (USES JWT AUTH)
 - `GET /api/stats/workout-summary/:workoutId` - Get workout summary
-- `GET /api/stats/exercises` - Get user's logged exercises
-- `GET /api/stats/exercise/:exerciseId` - Get exercise detail with PBs
+- `GET /api/stats/exercises` - Get user's logged exercises with stats
+- `GET /api/stats/exercise/:exerciseId` - Get detailed exercise stats
+- `GET /api/stats/favorites` - Get user's pinned favorite exercises
+- `PUT /api/stats/favorites` - Update pinned favorites
 - `GET /api/exercises` - Get all exercises from database
 - `POST /api/workouts/generate` - AI workout generation
-- `POST /api/workouts/update-in-place` - Make workout harder/easier
 
 ## Architecture Notes
-- Backend runs on port 8001 (managed by supervisor via yarn start)
+- Backend runs on port 8001 (managed by supervisor)
 - Frontend is React Native Expo app (runs via Expo Go on device)
 - API_BASE_URL: https://fitness-stats-7.preview.emergentagent.com
-- All endpoints using `req.isAuthenticated()` have been converted to `authenticateToken` middleware for JWT support
-- `performance_logs` table is the source of truth for exercise stats
+- All stats/performance endpoints use `authenticateToken` middleware for JWT support
+- `performance_logs` table is source of truth for exercise stats
 
 ## Key Files Modified This Session
 - `/app/server/routes.ts` - Fixed JWT auth on all stats/performance endpoints
-- `/app/apps/native/src/components/WorkoutDetailsModal.tsx` - Green gradient for completed workouts, rounded corners
+- `/app/apps/native/src/components/WorkoutDetailsModal.tsx` - Beautiful summary UI, green gradient
 - `/app/apps/native/src/components/ExerciseStatsModal.tsx` - Complete rewrite with categories
+- `/app/apps/native/app/(tabs)/workouts.tsx` - Clean completed workout card
+- `/app/apps/native/app/(tabs)/stats.tsx` - Removed ugly button
+- `/app/apps/native/app/(tabs)/index.tsx` - Added FavoriteExercisesCard
 
 ## Data Flow
 ```
 Mobile App → POST /api/workout/log-set → performance_logs table
-           → GET /api/stats/workout-summary/:id → Summary with exercises, volumes, PBs
+           → GET /api/stats/workout-summary/:id → Summary with exercises, volumes
            → GET /api/stats/exercise/:id → Detailed stats, history, trends
+           → GET /api/exercises → All exercises from database
 ```
