@@ -16,6 +16,8 @@ import Svg, { Circle } from 'react-native-svg';
 import { AppHeader } from '../../src/components/AppHeader';
 import { useAuthStore } from '../../src/stores/auth-store';
 import { useWorkoutStore } from '../../src/stores/workout-store';
+import { FavoriteExercisesCard } from '../../src/components/FavoriteExercisesCard';
+import { ExerciseStatsModal } from '../../src/components/ExerciseStatsModal';
 
 const { width } = Dimensions.get('window');
 
