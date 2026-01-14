@@ -1451,4 +1451,29 @@ const styles = StyleSheet.create({
   bestVolumeCard: { flexDirection: 'row', alignItems: 'center', backgroundColor: `${COLORS.success}15`, borderRadius: 10, padding: 12, marginBottom: 16, gap: 8 },
   bestVolumeLabel: { fontSize: 14, color: COLORS.text, flex: 1 },
   bestVolumeValue: { fontSize: 16, fontWeight: '700', color: COLORS.success },
+  
+  // This Workout Section (shown when opened from Summary)
+  thisWorkoutCard: { backgroundColor: `${COLORS.green}10`, borderRadius: 16, padding: 16, marginBottom: 20, borderWidth: 1, borderColor: `${COLORS.green}30` },
+  thisWorkoutHeader: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 12 },
+  thisWorkoutTitle: { fontSize: 16, fontWeight: '700', color: COLORS.green, flex: 1 },
+  prBadgeSmall: { backgroundColor: COLORS.warning, paddingHorizontal: 8, paddingVertical: 4, borderRadius: 12 },
+  prBadgeSmallText: { fontSize: 11, fontWeight: '700', color: COLORS.white },
+  thisWorkoutSets: { gap: 8 },
+  thisWorkoutSet: { flexDirection: 'row', alignItems: 'center', backgroundColor: COLORS.white, borderRadius: 10, padding: 12 },
+  thisWorkoutSetNum: { fontSize: 13, fontWeight: '600', color: COLORS.mediumGray, width: 50 },
+  thisWorkoutSetData: { fontSize: 15, fontWeight: '700', color: COLORS.text, flex: 1 },
+  thisWorkoutSetVolume: { fontSize: 13, color: COLORS.mediumGray },
+  thisWorkoutTotal: { flexDirection: 'row', marginTop: 12, paddingTop: 12, borderTopWidth: 1, borderTopColor: `${COLORS.green}20`, gap: 16 },
+  thisWorkoutStat: { flex: 1 },
+  thisWorkoutStatLabel: { fontSize: 12, color: COLORS.mediumGray },
+  thisWorkoutStatValue: { fontSize: 18, fontWeight: '700', color: COLORS.green, marginTop: 2 },
+  
+  // Time Range Filters
+  timeRangeSection: { marginBottom: 20 },
+  timeRangeLabel: { fontSize: 14, fontWeight: '600', color: COLORS.text, marginBottom: 10 },
+  timeRangeButtons: { flexDirection: 'row', gap: 8 },
+  timeRangeButton: { flex: 1, paddingVertical: 10, borderRadius: 10, backgroundColor: COLORS.lightGray, alignItems: 'center' },
+  timeRangeButtonActive: { backgroundColor: COLORS.accent },
+  timeRangeButtonText: { fontSize: 13, fontWeight: '600', color: COLORS.mediumGray },
+  timeRangeButtonTextActive: { color: COLORS.white },
 });
