@@ -942,14 +942,28 @@ export const ExerciseStatsModal = ({ visible, onClose, initialExerciseId, curren
     if (!selectedExercise) return null;
 
     // Support both old (personalBests) and new (pbs) API format
-    const pbs = selectedExercise.pbs || selectedExercise.personalBests;
-    const { history, trend, strongest, weakest, lastSession } = selectedExercise;
+    // Use filtered PBs when time range is not 'all'
+    const pbs = selectedTimeRange === 'all' 
+      ? (selectedExercise.pbs || selectedExercise.personalBests)
+      : getFilteredPBs();
+    const { trend, strongest, weakest, lastSession } = selectedExercise;
+    // Use filteredHistory instead of raw history for comparison
+    const history = selectedTimeRange === 'all' ? selectedExercise.history : filteredHistory;
     const exerciseName = selectedExercise.name || selectedExercise.exerciseName || 'Exercise';
     const chartData = history?.map((h: any) => h.maxWeight) || [];
     const coachTip = getCoachTip(selectedExercise);
     
     const TrendIcon = trend === 'up' ? 'trending-up' : trend === 'down' ? 'trending-down' : 'remove';
     const trendColor = trend === 'up' ? COLORS.success : trend === 'down' ? '#FF3B30' : COLORS.mediumGray;
+
+    // Time range filter options
+    const timeRanges: { key: TimeRange; label: string }[] = [
+      { key: 'today', label: 'Today' },
+      { key: '1w', label: '1W' },
+      { key: '1m', label: '1M' },
+      { key: '1y', label: '1Y' },
+      { key: 'all', label: 'All' },
+    ];
 
     return (
       <ScrollView style={styles.detailContent} showsVerticalScrollIndicator={false}>
@@ -978,6 +992,66 @@ export const ExerciseStatsModal = ({ visible, onClose, initialExerciseId, curren
             {favorites.includes(selectedExercise.exerciseId) ? 'Pinned' : 'Pin to Favorites'}
           </Text>
         </TouchableOpacity>
+        
+        {/* THIS WORKOUT Section - Only show if opened from summary with workout context */}
+        {thisWorkoutData && (
+          <View style={styles.thisWorkoutCard}>
+            <View style={styles.thisWorkoutHeader}>
+              <Ionicons name="fitness" size={18} color={COLORS.green} />
+              <Text style={styles.thisWorkoutTitle}>This Workout</Text>
+              {thisWorkoutData.isPR && (
+                <View style={styles.prBadgeSmall}>
+                  <Text style={styles.prBadgeSmallText}>PR! 🎉</Text>
+                </View>
+              )}
+            </View>
+            <View style={styles.thisWorkoutSets}>
+              {thisWorkoutData.sets?.map((set: any, idx: number) => (
+                <View key={idx} style={styles.thisWorkoutSet}>
+                  <Text style={styles.thisWorkoutSetNum}>Set {set.setNumber || idx + 1}</Text>
+                  <Text style={styles.thisWorkoutSetData}>{set.weight}kg × {set.reps}</Text>
+                  <Text style={styles.thisWorkoutSetVolume}>{set.volume || set.weight * set.reps}kg</Text>
+                </View>
+              ))}
+            </View>
+            <View style={styles.thisWorkoutTotal}>
+              <View style={styles.thisWorkoutStat}>
+                <Text style={styles.thisWorkoutStatLabel}>Total Volume</Text>
+                <Text style={styles.thisWorkoutStatValue}>{thisWorkoutData.totalVolume}kg</Text>
+              </View>
+              {thisWorkoutData.todayMax && (
+                <View style={styles.thisWorkoutStat}>
+                  <Text style={styles.thisWorkoutStatLabel}>Best Set</Text>
+                  <Text style={styles.thisWorkoutStatValue}>{thisWorkoutData.todayMax}kg</Text>
+                </View>
+              )}
+            </View>
+          </View>
+        )}
+        
+        {/* Time Range Filters for Comparison Section */}
+        <View style={styles.timeRangeSection}>
+          <Text style={styles.timeRangeLabel}>Compare to Previous</Text>
+          <View style={styles.timeRangeButtons}>
+            {timeRanges.map((range) => (
+              <TouchableOpacity
+                key={range.key}
+                style={[
+                  styles.timeRangeButton,
+                  selectedTimeRange === range.key && styles.timeRangeButtonActive,
+                ]}
+                onPress={() => setSelectedTimeRange(range.key)}
+              >
+                <Text style={[
+                  styles.timeRangeButtonText,
+                  selectedTimeRange === range.key && styles.timeRangeButtonTextActive,
+                ]}>
+                  {range.label}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        </View>
         
         {/* Last Session Summary - NEW */}
         {lastSession && lastSession.sets && lastSession.sets.length > 0 && (
