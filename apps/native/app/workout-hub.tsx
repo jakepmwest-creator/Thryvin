@@ -305,10 +305,13 @@ export default function WorkoutHubScreen() {
   };
 
   // Log set to backend for AI learning
-  const logSetToBackend = async (exerciseName: string, setNumber: number, weight: number | undefined, reps: number, note?: string, difficulty?: string) => {
+  const logSetToBackend = async (exerciseName: string, setNumber: number, weight: number | undefined, reps: number, note?: string, difficulty?: string, exerciseId?: string) => {
     try {
       const authToken = await SecureStore.getItemAsync('auth_token');
       if (!authToken) return;
+      
+      // Generate exerciseId from name if not provided
+      const finalExerciseId = exerciseId || exerciseName.toLowerCase().replace(/[^a-z0-9]/g, '_');
       
       await fetch(`${API_BASE_URL}/api/workout/log-set`, {
         method: 'POST',
@@ -319,11 +322,13 @@ export default function WorkoutHubScreen() {
         },
         body: JSON.stringify({
           exerciseName,
+          exerciseId: finalExerciseId,
           setNumber,
           weight,
           reps,
           note,
           difficulty,
+          workoutId: currentWorkout?.id || `workout_${new Date().toISOString().split('T')[0]}`,
         }),
       });
       console.log(`✅ Logged set to AI: ${exerciseName} Set ${setNumber}`);
