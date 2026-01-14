@@ -2315,6 +2315,7 @@ Respond with ONLY a JSON object (no markdown, no explanation):
         maxWeight: number;
         lastPerformed: Date;
         sessionCount: number;
+        hasPerformed: boolean;
       }>();
 
       for (const log of performanceHistory) {
@@ -2336,6 +2337,7 @@ Respond with ONLY a JSON object (no markdown, no explanation):
             maxWeight: log.actualWeight || 0,
             lastPerformed: new Date(log.loggedAt),
             sessionCount: 1,
+            hasPerformed: true, // All exercises here are performed
           });
         }
       }
@@ -2344,6 +2346,7 @@ Respond with ONLY a JSON object (no markdown, no explanation):
         b.lastPerformed.getTime() - a.lastPerformed.getTime()
       );
 
+      console.log(`✅ [STATS] Found ${exercises.length} exercises for user ${userId}`);
       res.json({ exercises, total: exercises.length });
     } catch (error: any) {
       console.log(`❌ [STATS] Error:`, error);
