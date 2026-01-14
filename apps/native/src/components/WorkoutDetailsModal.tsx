@@ -20,6 +20,7 @@ import { EditWorkoutModal } from './EditWorkoutModal';
 import { CustomAlert } from './CustomAlert';
 import { useCoachStore } from '../stores/coach-store';
 import { ExternalActivityModal, ExternalActivityLog } from './ExternalActivityModal';
+import { ExerciseStatsModal } from './ExerciseStatsModal';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL || 'https://fitness-stats-7.preview.emergentagent.com';
