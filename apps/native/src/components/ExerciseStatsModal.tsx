@@ -41,27 +41,60 @@ const COLORS = {
 
 const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL || 'https://fitness-stats-7.preview.emergentagent.com';
 
-// Exercise Categories and Sub-Categories
+// Exercise Categories and Sub-Categories - matching database structure
 const EXERCISE_CATEGORIES = {
-  'Weights': {
-    icon: 'barbell',
-    gradient: [THEME_COLORS.gradientStart, THEME_COLORS.gradientEnd],
-    subcategories: ['Free Weights', 'Machines', 'Cables', 'Smith Machine']
-  },
-  'Bodyweight': {
+  'upper-body': {
+    displayName: 'Upper Body',
     icon: 'body',
-    gradient: ['#FF4EC7', '#FF6B9D'],
-    subcategories: ['Push', 'Pull', 'Core', 'Full Body']
+    gradient: [THEME_COLORS.gradientStart, THEME_COLORS.gradientEnd],
+    subcategories: {
+      'barbell': 'Barbell',
+      'dumbbell': 'Dumbbell', 
+      'cable': 'Cable',
+      'machine': 'Machine',
+      'bodyweight': 'Bodyweight',
+    }
   },
-  'Cardio': {
+  'lower-body': {
+    displayName: 'Lower Body',
+    icon: 'walk',
+    gradient: ['#FF4EC7', '#FF6B9D'],
+    subcategories: {
+      'barbell': 'Barbell',
+      'dumbbell': 'Dumbbell',
+      'machine': 'Machine',
+      'bodyweight': 'Bodyweight',
+    }
+  },
+  'core': {
+    displayName: 'Core',
+    icon: 'fitness',
+    gradient: ['#FF9500', '#FFAB40'],
+    subcategories: {
+      'bodyweight': 'Bodyweight',
+      'weighted': 'Weighted',
+      'machine': 'Machine',
+    }
+  },
+  'cardio': {
+    displayName: 'Cardio',
     icon: 'heart',
     gradient: ['#FF3B30', '#FF6B35'],
-    subcategories: ['Running', 'Cycling', 'Rowing', 'HIIT', 'Other']
+    subcategories: {
+      'treadmill': 'Treadmill',
+      'cycling': 'Cycling',
+      'rowing': 'Rowing',
+      'jump-rope': 'Jump Rope',
+    }
   },
-  'Flexibility': {
-    icon: 'fitness',
+  'full-body': {
+    displayName: 'Full Body',
+    icon: 'flash',
     gradient: ['#34C759', '#5BD678'],
-    subcategories: ['Static Stretching', 'Dynamic Stretching', 'Yoga', 'Mobility']
+    subcategories: {
+      'compound': 'Compound',
+      'bodyweight': 'Bodyweight',
+    }
   },
 };
 
