@@ -431,6 +431,7 @@ export const ExerciseStatsModal = ({ visible, onClose, initialExerciseId }: Exer
     setSelectedCategory(null);
     setSelectedSubcategory(null);
     setSelectedExercise(null);
+    setUnperformedExercise(null);
     setSearchQuery('');
     onClose();
   };
@@ -439,6 +440,7 @@ export const ExerciseStatsModal = ({ visible, onClose, initialExerciseId }: Exer
     if (view === 'detail') {
       setView('list');
       setSelectedExercise(null);
+      setUnperformedExercise(null);
     } else if (view === 'list') {
       setView('subcategories');
       setSelectedSubcategory(null);
