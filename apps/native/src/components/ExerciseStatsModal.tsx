@@ -260,14 +260,25 @@ export const ExerciseStatsModal = ({ visible, onClose, initialExerciseId }: Exer
     try {
       const token = await SecureStore.getItemAsync('thryvin_access_token');
       
-      // Fetch all exercises from the database
-      const response = await fetch(`${API_BASE_URL}/api/exercises`, {
+      // Fetch all exercises from the database with a larger limit
+      const response = await fetch(`${API_BASE_URL}/api/exercises?limit=200`, {
         headers: { 'Authorization': token ? `Bearer ${token}` : '' },
       });
       
       if (response.ok) {
         const data = await response.json();
-        setAllExercises(data.exercises || []);
+        // Map the API response to our Exercise interface
+        const mappedExercises = (data.exercises || []).map((ex: any) => ({
+          id: ex.id,
+          exerciseId: ex.slug || ex.id?.toString() || ex.name?.toLowerCase().replace(/\s+/g, '_'),
+          name: ex.name,
+          exerciseName: ex.name,
+          category: ex.category,
+          equipment: ex.equipment || [],
+          videoUrl: ex.videoUrl,
+          subcategory: ex.equipment?.[0] || 'bodyweight', // Use first equipment as subcategory
+        }));
+        setAllExercises(mappedExercises);
       }
     } catch (err) {
       console.error('Error fetching all exercises:', err);
