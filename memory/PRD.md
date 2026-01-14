@@ -2,6 +2,36 @@
 
 ## What's Been Implemented
 
+### Jan 14, 2025 - P2 Exercise Detail & Stats List (VERIFIED)
+
+#### ✅ P2.1: Exercise Click-Through & Detail View
+- **Backend**: Enhanced `GET /api/stats/exercise/:exerciseId` endpoint
+  - Returns `lastSession` with individual sets (setNumber, weight, reps, volume, rpe)
+  - Returns `pbs` with maxWeight, maxReps, maxVolume, estimatedOneRM (Epley formula)
+  - Returns `history` array (last 5 sessions) with date, maxWeight, totalVolume
+  - Returns `trend` (up/down/neutral) based on recent performance
+- **Frontend**: Updated `ExerciseStatsModal.tsx`
+  - New "Last Session" card showing all sets from most recent workout
+  - Updated PB section to show Max Weight, Max Volume, Est. 1RM
+  - Exercises in summary modal are clickable (already implemented)
+- **Acceptance Test**: Exercise detail returns lastSession + pbs + history ✅
+
+#### ✅ P2.2: Stats List Correctness  
+- **Backend**: Enhanced `GET /api/stats/exercises` endpoint
+  - Returns `hasPerformed: true` for all exercises user has logged
+  - Groups by exerciseId (not name) to avoid duplicates
+  - Returns exerciseId, exerciseName, maxWeight, totalSets, lastPerformed
+- **Acceptance Test**: Stats list shows user's exercises with hasPerformed flag ✅
+
+#### All P2 Acceptance Tests Passed (11/11):
+1. ✅ Complete workout with 2 exercises + 3 sets
+2. ✅ Summary shows volume > 0 (2280kg)
+3. ✅ Exercise Detail returns lastSession + pbs + history
+4. ✅ Stats list returns hasPerformed=true for all exercises
+5. ✅ Pin from Exercise Detail persists correctly
+
+---
+
 ### Jan 14, 2025 - P1 Critical Fixes (HARD AUDIT Results)
 
 #### ✅ CRITICAL FIX 1: WorkoutId Mismatch (P0 - VERIFIED)
