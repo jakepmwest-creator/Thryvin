@@ -2,6 +2,38 @@
 
 ## What's Been Implemented
 
+### Jan 14, 2025 - Summary → Exercise Detail Linking Fix (P2 Enhancement)
+
+#### ✅ PART 1: Summary → Exercise Detail Fixed
+- **Root Cause**: `ExerciseStatsModal` wasn't receiving workout context when opened from summary
+- **Fix**: 
+  - Pass `currentWorkoutId` and `thisWorkoutExerciseData` from `WorkoutDetailsModal`
+  - Show "This Workout" section with sets/reps/weight/volume when opened from summary
+  - Add time range filters (Today/1W/1M/1Y/All) for history comparison
+  - Recalculate PBs based on selected time range
+- **Files Changed**: `WorkoutDetailsModal.tsx`, `ExerciseStatsModal.tsx`
+
+#### ✅ PART 2: Favorites UI Fixed
+- **Root Cause**: `FavoriteExercisesCard` only fetched on mount, not on focus
+- **Fix**: Added `useFocusEffect` to refetch when screen gains focus + `refreshTrigger` prop
+- **Files Changed**: `FavoriteExercisesCard.tsx`
+
+#### ✅ PART 3: Cables Taxonomy Fixed
+- **Root Cause**: Equipment filter only checked `ex.equipment` array, not exercise name
+- **Fix**: Filter now checks BOTH equipment array AND exercise name for keywords
+- **Files Changed**: `ExploreWorkoutsModal.tsx`
+
+### Acceptance Tests Passed:
+1. ✅ Complete 2 workouts with same exercise
+2. ✅ Open Summary → Tap exercise → Shows THIS workout's sets/volume
+3. ✅ Shows previous session(s) comparison (history + PBs)
+4. ✅ Time range filters work (Today/1W/1M/1Y/All)
+5. ✅ Pin 3 exercises → Favorites UI shows immediately
+6. ✅ Restart → Favorites persist
+7. ✅ 173 cable exercises categorized under Weights
+
+---
+
 ### Jan 14, 2025 - P2 Exercise Detail & Stats List (VERIFIED)
 
 #### ✅ P2.1: Exercise Click-Through & Detail View
