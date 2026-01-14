@@ -58,7 +58,7 @@ Build an AI-powered fitness coaching app with personalized workout generation, p
 ## Architecture Notes
 - Backend runs on port 8001 (managed by supervisor via yarn start)
 - Frontend is React Native Expo app (runs via Expo Go on device)
-- API_BASE_URL: https://ai-trainer-upgrade.preview.emergentagent.com
+- API_BASE_URL: https://fitness-stats-7.preview.emergentagent.com
 - Date-based mapping using YYYY-MM-DD format for consistency
 - syncFromBackend() must be called after any workout mutations
 

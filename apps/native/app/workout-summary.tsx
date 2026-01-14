@@ -32,7 +32,7 @@ const COLORS = {
   success: THEME_COLORS.success,
 };
 
-const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL || 'https://ai-trainer-upgrade.preview.emergentagent.com';
+const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL || 'https://fitness-stats-7.preview.emergentagent.com';
 
 interface ExerciseSummary {
   exerciseId: string;
