@@ -764,8 +764,16 @@ function ExerciseCard({ exercise, index, isExpanded, onToggle }: any) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: COLORS.background },
-  header: { paddingTop: 60, paddingBottom: 24, paddingHorizontal: 20, borderBottomLeftRadius: 30, borderBottomRightRadius: 30 },
+  container: { flex: 1, backgroundColor: 'rgba(0, 0, 0, 0.5)', justifyContent: 'flex-end' },
+  modalWrapper: { 
+    flex: 1, 
+    backgroundColor: COLORS.background, 
+    borderTopLeftRadius: 24, 
+    borderTopRightRadius: 24, 
+    marginTop: 50, // Leave some space at top
+    overflow: 'hidden',
+  },
+  header: { paddingTop: 24, paddingBottom: 24, paddingHorizontal: 20, borderBottomLeftRadius: 30, borderBottomRightRadius: 30 },
   headerTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 },
   closeButton: { width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(255, 255, 255, 0.2)', justifyContent: 'center', alignItems: 'center' },
   headerLabel: { fontSize: 16, fontWeight: '600', color: '#FFFFFF' },
