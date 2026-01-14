@@ -28,7 +28,7 @@ import time
 from typing import Dict, List, Any, Optional
 
 # Configuration - Use production URL from environment
-BASE_URL = "https://fitness-stats-7.preview.emergentagent.com"
+BASE_URL = "https://fitness-stats-8.preview.emergentagent.com"
 API_BASE = f"{BASE_URL}/api"
 
 class ThryvinUrgentFixesTester:

@@ -72,7 +72,7 @@ const getCurrentMonthData = () => {
 
 const MONTH_DATA = getCurrentMonthData();
 
-const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL || 'https://fitness-stats-7.preview.emergentagent.com';
+const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL || 'https://fitness-stats-8.preview.emergentagent.com';
 
 // Updated categories: Weights, Calisthenics, Cardio, Flexibility
 const DEFAULT_CATEGORIES = [

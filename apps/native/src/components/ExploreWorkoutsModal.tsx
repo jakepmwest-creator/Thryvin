@@ -15,7 +15,7 @@ import { PreviewVideoPlayer } from './ExerciseVideoPlayer';
 import { usePreferencesStore } from '../stores/preferences-store';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
-const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL || 'https://fitness-stats-7.preview.emergentagent.com';
+const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL || 'https://fitness-stats-8.preview.emergentagent.com';
 
 const COLORS = {
   accent: '#A22BF6',
