@@ -763,84 +763,35 @@ export default function StatsScreen() {
           </View>
         </View>
 
-        {/* Personal Bests Section - Coming Soon */}
+        {/* Favorite Exercises & Personal Bests - NOW LIVE! */}
         <View style={styles.section}>
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Personal Bests</Text>
-            <View style={styles.comingSoonBadge}>
-              <Ionicons name="time-outline" size={12} color={COLORS.mediumGray} />
-              <Text style={styles.comingSoonText}>Coming Soon</Text>
-            </View>
-          </View>
+          <FavoriteExercisesCard
+            onViewAll={() => openExerciseStats()}
+            onExercisePress={(exerciseId) => openExerciseStats(exerciseId)}
+          />
           
-          <View style={[styles.pbCard, { opacity: 0.6 }]}>
-            {/* Bench Press - Locked */}
-            <View style={styles.pbRow}>
-              <View style={styles.pbIconContainer}>
-                <LinearGradient
-                  colors={['#BDBDBD', '#9E9E9E']}
-                  style={styles.pbIconGradient}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 1 }}
-                >
-                  <Ionicons name="barbell" size={24} color={COLORS.white} />
-                </LinearGradient>
+          {/* View All Exercises Button */}
+          <TouchableOpacity 
+            style={styles.viewAllExercisesButton}
+            onPress={() => openExerciseStats()}
+            activeOpacity={0.7}
+          >
+            <LinearGradient
+              colors={[COLORS.lightGray, COLORS.lightGray]}
+              style={styles.viewAllExercisesGradient}
+            >
+              <View style={styles.viewAllExercisesContent}>
+                <View style={styles.viewAllExercisesIcon}>
+                  <Ionicons name="barbell" size={20} color={COLORS.accent} />
+                </View>
+                <View style={styles.viewAllExercisesText}>
+                  <Text style={styles.viewAllExercisesTitle}>All Exercise Stats</Text>
+                  <Text style={styles.viewAllExercisesSubtitle}>View PBs, history & progress for every exercise</Text>
+                </View>
               </View>
-              <View style={styles.pbContent}>
-                <Text style={styles.pbExercise}>Bench Press</Text>
-                <Text style={styles.pbMeta}>Track your best lifts</Text>
-              </View>
-              <View style={styles.pbValue}>
-                <Ionicons name="lock-closed" size={20} color={COLORS.mediumGray} />
-              </View>
-            </View>
-
-            <View style={styles.pbDivider} />
-
-            {/* 5K Run - Locked */}
-            <View style={styles.pbRow}>
-              <View style={styles.pbIconContainer}>
-                <LinearGradient
-                  colors={['#BDBDBD', '#9E9E9E']}
-                  style={styles.pbIconGradient}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 1 }}
-                >
-                  <Ionicons name="fitness" size={24} color={COLORS.white} />
-                </LinearGradient>
-              </View>
-              <View style={styles.pbContent}>
-                <Text style={styles.pbExercise}>5K Run</Text>
-                <Text style={styles.pbMeta}>Coming in next update</Text>
-              </View>
-              <View style={styles.pbValue}>
-                <Ionicons name="lock-closed" size={20} color={COLORS.mediumGray} />
-              </View>
-            </View>
-
-            <View style={styles.pbDivider} />
-
-            {/* Squat - Locked */}
-            <View style={styles.pbRow}>
-              <View style={styles.pbIconContainer}>
-                <LinearGradient
-                  colors={['#BDBDBD', '#9E9E9E']}
-                  style={styles.pbIconGradient}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 1 }}
-                >
-                  <Ionicons name="body" size={24} color={COLORS.white} />
-                </LinearGradient>
-              </View>
-              <View style={styles.pbContent}>
-                <Text style={styles.pbExercise}>Squat</Text>
-                <Text style={styles.pbMeta}>Coming in next update</Text>
-              </View>
-              <View style={styles.pbValue}>
-                <Ionicons name="lock-closed" size={20} color={COLORS.mediumGray} />
-              </View>
-            </View>
-          </View>
+              <Ionicons name="chevron-forward" size={20} color={COLORS.mediumGray} />
+            </LinearGradient>
+          </TouchableOpacity>
         </View>
 
         {/* All-Time Stats */}
