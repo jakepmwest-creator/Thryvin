@@ -8272,11 +8272,11 @@ Respond with a complete workout in JSON format:
   // GET /api/exercises - Fetch exercises with video URLs
   app.get("/api/exercises", async (req, res) => {
     try {
-      const { category, difficulty, equipment, search, limit = 500 } = req.query;
+      const { category, difficulty, equipment, search, limit = 2000 } = req.query;
       
       console.log('📚 Fetching exercises from database...');
       
-      // Query all exercises from database
+      // Query all exercises from database - increased limit to 2000
       const allExercises = await db
         .select({
           id: exercises.id,
@@ -8294,7 +8294,7 @@ Respond with a complete workout in JSON format:
           tips: exercises.tips,
         })
         .from(exercises)
-        .limit(Number(limit) || 500);
+        .limit(Number(limit) || 2000);
       
       let filteredExercises = allExercises;
       
