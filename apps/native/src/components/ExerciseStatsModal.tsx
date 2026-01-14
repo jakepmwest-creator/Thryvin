@@ -480,9 +480,9 @@ export const ExerciseStatsModal = ({ visible, onClose, initialExerciseId }: Exer
               <View style={styles.categoryIconCircle}>
                 <Ionicons name={config.icon as any} size={28} color={COLORS.white} />
               </View>
-              <Text style={styles.categoryName}>{name}</Text>
+              <Text style={styles.categoryName}>{config.displayName}</Text>
               <Text style={styles.categoryCount}>
-                {config.subcategories.length} subcategories
+                {getCategoryCount(key)} exercises
               </Text>
             </LinearGradient>
           </TouchableOpacity>
@@ -517,15 +517,31 @@ export const ExerciseStatsModal = ({ visible, onClose, initialExerciseId }: Exer
   const renderSubcategories = () => {
     if (!selectedCategory) return null;
     const categoryConfig = EXERCISE_CATEGORIES[selectedCategory as keyof typeof EXERCISE_CATEGORIES];
+    if (!categoryConfig) return null;
     
     return (
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-        <Text style={styles.viewTitle}>{selectedCategory}</Text>
-        <Text style={styles.viewSubtitle}>Select a subcategory</Text>
+        <Text style={styles.viewTitle}>{categoryConfig.displayName}</Text>
+        <Text style={styles.viewSubtitle}>Select equipment type or view all</Text>
         
-        {categoryConfig.subcategories.map((subcategory) => (
+        {/* View All button */}
+        <TouchableOpacity
+          style={[styles.subcategoryCard, { backgroundColor: `${COLORS.accent}15` }]}
+          onPress={() => {
+            setSelectedSubcategory(null);
+            setView('list');
+          }}
+        >
+          <View style={styles.subcategoryContent}>
+            <View style={[styles.subcategoryDot, { backgroundColor: COLORS.accent }]} />
+            <Text style={[styles.subcategoryName, { color: COLORS.accent }]}>View All {categoryConfig.displayName}</Text>
+          </View>
+          <Ionicons name="chevron-forward" size={20} color={COLORS.accent} />
+        </TouchableOpacity>
+        
+        {Object.entries(categoryConfig.subcategories).map(([key, displayName]) => (
           <TouchableOpacity
-            key={subcategory}
+            key={key}
             style={styles.subcategoryCard}
             onPress={() => {
               setSelectedSubcategory(subcategory);
