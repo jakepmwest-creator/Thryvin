@@ -162,6 +162,15 @@ export default function HomeScreen() {
   const fetchPersonalBests = useWorkoutStore(state => state.fetchPersonalBests);
   const fetchCompletedWorkouts = useWorkoutStore(state => state.fetchCompletedWorkouts);
   const forceRegenerateWeek = useWorkoutStore(state => state.forceRegenerateWeek);
+  
+  // Exercise stats modal state
+  const [showExerciseStats, setShowExerciseStats] = useState(false);
+  const [selectedExerciseId, setSelectedExerciseId] = useState<string | undefined>(undefined);
+  
+  const openExerciseStats = (exerciseId?: string) => {
+    setSelectedExerciseId(exerciseId);
+    setShowExerciseStats(true);
+  };
 
   // Check if user should see Advanced Questionnaire - MUST show for new users BEFORE workouts
   const checkAdvancedQuestionnaire = useCallback(async () => {
