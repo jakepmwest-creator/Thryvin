@@ -1330,7 +1330,28 @@ export default function WorkoutHubScreen() {
                   <Text style={styles.celebrationStatLabel}>Calories</Text>
                 </View>
               </View>
-              <Text style={styles.celebrationTip}>Tap anywhere to continue</Text>
+              
+              {/* View Summary Button */}
+              <TouchableOpacity 
+                style={styles.viewSummaryButton}
+                onPress={() => {
+                  setShowCelebration(false);
+                  router.push({
+                    pathname: '/workout-summary',
+                    params: {
+                      workoutId: currentWorkout?.id || `workout_${Date.now()}`,
+                      workoutTitle: currentWorkout?.title || 'Workout',
+                      duration: String(finishStats.durationMinutes),
+                      caloriesBurned: String(finishStats.caloriesBurned),
+                    },
+                  });
+                }}
+              >
+                <Text style={styles.viewSummaryText}>View Full Summary</Text>
+                <Ionicons name="arrow-forward" size={18} color={COLORS.white} />
+              </TouchableOpacity>
+              
+              <Text style={styles.celebrationTip}>Tap anywhere to close</Text>
             </LinearGradient>
           </Animated.View>
           </TouchableOpacity>
