@@ -525,25 +525,84 @@ export function WorkoutDetailsModal({
             ) : (
               <>
                 {currentWorkout?.completed ? (
-                  <View style={styles.section}>
-                    <Text style={styles.summaryTitle}>WORKOUT SUMMARY</Text>
-                    <Text style={styles.summarySubtitle}>
-                      Completed on {new Date(currentWorkout.completedAt || currentWorkout.date).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
-                    </Text>
-                    <View style={styles.summaryStatsRow}>
-                      <View style={styles.summaryStat}>
-                        <Text style={styles.summaryStatValue}>{currentWorkout.duration || 45}</Text>
-                        <Text style={styles.summaryStatLabel}>minutes</Text>
+                  <View style={styles.summaryContainer}>
+                    {/* Summary Header Card */}
+                    <View style={styles.summaryHeaderCard}>
+                      <View style={styles.summaryHeaderTop}>
+                        <View style={styles.summaryIconCircle}>
+                          <Ionicons name="checkmark" size={28} color={COLORS.success} />
+                        </View>
+                        <View style={styles.summaryHeaderText}>
+                          <Text style={styles.summaryGreatJob}>Great Job! 💪</Text>
+                          <Text style={styles.summaryCompletedDate}>
+                            Completed {new Date(currentWorkout.completedAt || currentWorkout.date).toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })}
+                          </Text>
+                        </View>
                       </View>
-                      <View style={styles.summaryStat}>
-                        <Text style={styles.summaryStatValue}>{currentWorkout.exercises?.length || 0}</Text>
-                        <Text style={styles.summaryStatLabel}>exercises</Text>
-                      </View>
-                      <View style={styles.summaryStat}>
-                        <Text style={styles.summaryStatValue}>{currentWorkout.caloriesBurn || 300}</Text>
-                        <Text style={styles.summaryStatLabel}>calories</Text>
+                      
+                      {/* Stats Row */}
+                      <View style={styles.summaryStatsRow}>
+                        <View style={styles.summaryStatCard}>
+                          <Ionicons name="time-outline" size={22} color={COLORS.accent} />
+                          <Text style={styles.summaryStatValue}>{currentWorkout.duration || 45}</Text>
+                          <Text style={styles.summaryStatLabel}>minutes</Text>
+                        </View>
+                        <View style={styles.summaryStatCard}>
+                          <Ionicons name="barbell-outline" size={22} color={COLORS.accent} />
+                          <Text style={styles.summaryStatValue}>{workoutSummary?.stats?.totalSets || currentWorkout.exercises?.length || 0}</Text>
+                          <Text style={styles.summaryStatLabel}>sets</Text>
+                        </View>
+                        <View style={styles.summaryStatCard}>
+                          <Ionicons name="trending-up-outline" size={22} color={COLORS.accent} />
+                          <Text style={styles.summaryStatValue}>{workoutSummary?.stats?.totalVolume ? Math.round(workoutSummary.stats.totalVolume / 1000) + 'k' : currentWorkout.caloriesBurn || 0}</Text>
+                          <Text style={styles.summaryStatLabel}>volume</Text>
+                        </View>
                       </View>
                     </View>
+                    
+                    {/* Exercise Summary List */}
+                    <Text style={styles.exerciseSummaryTitle}>Exercises Completed</Text>
+                    
+                    {summaryLoading ? (
+                      <ActivityIndicator size="small" color={COLORS.accent} style={{ marginTop: 20 }} />
+                    ) : workoutSummary?.exercises?.length > 0 ? (
+                      workoutSummary.exercises.map((ex: any, idx: number) => (
+                        <TouchableOpacity 
+                          key={ex.exerciseId + idx} 
+                          style={styles.exerciseSummaryCard}
+                          activeOpacity={0.7}
+                        >
+                          <View style={styles.exerciseSummaryLeft}>
+                            <Text style={styles.exerciseSummaryName}>{ex.exerciseName}</Text>
+                            <Text style={styles.exerciseSummaryMeta}>
+                              {ex.sets?.length || 0} sets • Best: {ex.todayMax || 0}kg
+                            </Text>
+                          </View>
+                          <View style={styles.exerciseSummaryRight}>
+                            {ex.isPR && (
+                              <View style={styles.prBadge}>
+                                <Text style={styles.prBadgeText}>PR! 🎉</Text>
+                              </View>
+                            )}
+                            <Text style={styles.exerciseVolume}>{ex.totalVolume}kg</Text>
+                            <Text style={styles.exerciseVolumeLabel}>volume</Text>
+                          </View>
+                        </TouchableOpacity>
+                      ))
+                    ) : (
+                      // Fall back to showing exercises from workout data
+                      currentWorkout.exercises?.map((ex: any, idx: number) => (
+                        <View key={idx} style={styles.exerciseSummaryCard}>
+                          <View style={styles.exerciseSummaryLeft}>
+                            <Text style={styles.exerciseSummaryName}>{ex.name}</Text>
+                            <Text style={styles.exerciseSummaryMeta}>
+                              {ex.sets} sets × {ex.reps} reps
+                            </Text>
+                          </View>
+                          <Ionicons name="checkmark-circle" size={24} color={COLORS.success} />
+                        </View>
+                      ))
+                    )}
                   </View>
                 ) : (
                   <View style={styles.section}>
@@ -554,7 +613,8 @@ export function WorkoutDetailsModal({
                   </View>
                 )}
             
-            {warmupExercises.length > 0 && (
+            {/* Only show exercise sections for non-completed workouts */}
+            {!currentWorkout?.completed && warmupExercises.length > 0 && (
               <View style={styles.section}>
                 <View style={styles.sectionHeader}>
                   <View style={styles.categoryBadge}>
