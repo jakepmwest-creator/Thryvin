@@ -208,13 +208,21 @@ export const ExploreWorkoutsModal = ({ visible, onClose, category, categoryGradi
       );
     }
     
-    // Filter by equipment
+    // Filter by equipment - check both equipment array AND exercise name
     if (filterEquipment !== 'all') {
       filtered = filtered.filter(ex => {
         const exEquipment = Array.isArray(ex.equipment) ? ex.equipment : [];
-        return exEquipment.some((eq: string) => 
+        const exName = (ex.name || '').toLowerCase();
+        
+        // Check equipment array
+        const hasInEquipment = exEquipment.some((eq: string) => 
           eq?.toLowerCase().includes(filterEquipment.toLowerCase())
         );
+        
+        // Also check exercise name for equipment keyword
+        const hasInName = exName.includes(filterEquipment.toLowerCase());
+        
+        return hasInEquipment || hasInName;
       });
     }
     
