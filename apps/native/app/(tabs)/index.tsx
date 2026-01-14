@@ -908,63 +908,24 @@ export default function HomeScreen() {
         </View>
         */}
 
-        {/* Personal Bests - Coming Soon */}
+        {/* Favorite Exercises - Pin your top exercises */}
         <View style={[styles.section, { paddingBottom: 100 }]}>
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Personal Bests</Text>
-            <View style={styles.comingSoonBadge}>
-              <Ionicons name="time-outline" size={12} color={COLORS.mediumGray} />
-              <Text style={styles.comingSoonText}>Coming Soon</Text>
-            </View>
-          </View>
-          
-          <View style={[styles.pbCard, { opacity: 0.6 }]}>
-            {/* Bench Press - Coming Soon */}
-            <View style={styles.pbRow}>
-              <View style={styles.pbIconContainer}>
-                <LinearGradient
-                  colors={['#BDBDBD', '#9E9E9E']}
-                  style={styles.pbIconGradient}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 1 }}
-                >
-                  <Ionicons name="barbell" size={24} color={COLORS.white} />
-                </LinearGradient>
-              </View>
-              <View style={styles.pbContent}>
-                <Text style={styles.pbExercise}>Bench Press</Text>
-                <Text style={styles.pbMeta}>Track your best lifts</Text>
-              </View>
-              <View style={styles.pbValue}>
-                <Ionicons name="lock-closed" size={20} color={COLORS.mediumGray} />
-              </View>
-            </View>
-
-            <View style={styles.pbDivider} />
-
-            {/* Squat - Coming Soon */}
-            <View style={styles.pbRow}>
-              <View style={styles.pbIconContainer}>
-                <LinearGradient
-                  colors={['#BDBDBD', '#9E9E9E']}
-                  style={styles.pbIconGradient}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 1 }}
-                >
-                  <Ionicons name="fitness" size={24} color={COLORS.white} />
-                </LinearGradient>
-              </View>
-              <View style={styles.pbContent}>
-                <Text style={styles.pbExercise}>Squat</Text>
-                <Text style={styles.pbMeta}>Coming in next update</Text>
-              </View>
-              <View style={styles.pbValue}>
-                <Ionicons name="lock-closed" size={20} color={COLORS.mediumGray} />
-              </View>
-            </View>
-          </View>
+          <FavoriteExercisesCard
+            onViewAll={() => openExerciseStats()}
+            onExercisePress={(exerciseId) => openExerciseStats(exerciseId)}
+          />
         </View>
       </ScrollView>
+      
+      {/* Exercise Stats Modal */}
+      <ExerciseStatsModal
+        visible={showExerciseStats}
+        onClose={() => {
+          setShowExerciseStats(false);
+          setSelectedExerciseId(undefined);
+        }}
+        initialExerciseId={selectedExerciseId}
+      />
       
       {/* Onboarding Tour */}
       <OnboardingTour
