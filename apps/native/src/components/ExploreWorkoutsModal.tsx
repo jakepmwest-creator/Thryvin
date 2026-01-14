@@ -152,8 +152,8 @@ export const ExploreWorkoutsModal = ({ visible, onClose, category, categoryGradi
     
     let filtered = exercises;
     
-    // Equipment keywords to detect in exercise names
-    const equipmentKeywords = ['dumbbell', 'barbell', 'cable', 'machine', 'kettlebell', 'smith', 'ez bar', 'ez-bar', 'resistance band', 'band', 'bench press', 'lat pull', 'pulldown', 'leg press', 'chest press', 'shoulder press'];
+    // Equipment keywords to detect in exercise names - includes weight, cables, etc.
+    const equipmentKeywords = ['dumbbell', 'barbell', 'cable', 'machine', 'kettlebell', 'smith', 'ez bar', 'ez-bar', 'resistance band', 'band', 'bench press', 'lat pull', 'pulldown', 'leg press', 'chest press', 'shoulder press', 'weight', 'weighted', 'rack', 'bar', 'press', 'curl', 'fly', 'row', 'pullover', 'extension', 'raise'];
     const cardioKeywords = ['cardio', 'running', 'cycling', 'rowing', 'swimming', 'jump rope', 'treadmill', 'elliptical', 'stair', 'hiit', 'jumping jack', 'burpee', 'mountain climber'];
     const flexKeywords = ['stretch', 'yoga', 'mobility', 'warmup', 'warm-up', 'recovery', 'foam roll', 'flexibility'];
     
