@@ -450,6 +450,64 @@ export const ExerciseStatsModal = ({ visible, onClose, initialExerciseId, curren
     }
   };
 
+  // Filter history by time range
+  const filterHistoryByRange = useCallback((history: ExerciseDetail['history'], range: TimeRange) => {
+    if (!history || range === 'all') return history;
+    
+    const now = new Date();
+    const cutoffDate = new Date();
+    
+    switch (range) {
+      case 'today':
+        cutoffDate.setHours(0, 0, 0, 0);
+        break;
+      case '1w':
+        cutoffDate.setDate(now.getDate() - 7);
+        break;
+      case '1m':
+        cutoffDate.setMonth(now.getMonth() - 1);
+        break;
+      case '1y':
+        cutoffDate.setFullYear(now.getFullYear() - 1);
+        break;
+    }
+    
+    return history.filter(h => new Date(h.date) >= cutoffDate);
+  }, []);
+
+  // Update filtered history when selection changes
+  useEffect(() => {
+    if (selectedExercise?.history) {
+      const filtered = filterHistoryByRange(selectedExercise.history, selectedTimeRange);
+      setFilteredHistory(filtered);
+    }
+  }, [selectedExercise, selectedTimeRange, filterHistoryByRange]);
+
+  // Calculate filtered PBs based on time range
+  const getFilteredPBs = useCallback(() => {
+    if (!filteredHistory || filteredHistory.length === 0 || selectedTimeRange === 'all') {
+      return selectedExercise?.pbs || selectedExercise?.personalBests;
+    }
+    
+    let maxWeight = 0;
+    let maxReps = 0;
+    let maxVolume = 0;
+    
+    for (const session of filteredHistory) {
+      if (session.maxWeight > maxWeight) maxWeight = session.maxWeight;
+      if (session.totalReps > maxReps) maxReps = session.totalReps;
+      const sessionVolume = session.totalVolume || (session.maxWeight * session.totalReps);
+      if (sessionVolume > maxVolume) maxVolume = sessionVolume;
+    }
+    
+    return {
+      maxWeight,
+      maxReps,
+      maxVolume,
+      estimatedOneRM: Math.round(maxWeight * (1 + maxReps / 30)),
+    };
+  }, [filteredHistory, selectedTimeRange, selectedExercise]);
+
   useEffect(() => {
     if (visible) {
       fetchAllExercises();
@@ -458,9 +516,17 @@ export const ExerciseStatsModal = ({ visible, onClose, initialExerciseId, curren
       
       if (initialExerciseId) {
         fetchExerciseDetail(initialExerciseId);
+        // Debug logging
+        if (__DEV__) {
+          console.log('📊 [ExerciseStatsModal] Opening with:', {
+            exerciseId: initialExerciseId,
+            workoutId: currentWorkoutId,
+            hasThisWorkoutData: !!thisWorkoutData,
+          });
+        }
       }
     }
-  }, [visible, initialExerciseId, fetchAllExercises, fetchUserExercises, fetchFavorites, fetchExerciseDetail]);
+  }, [visible, initialExerciseId, fetchAllExercises, fetchUserExercises, fetchFavorites, fetchExerciseDetail, currentWorkoutId, thisWorkoutData]);
 
   const handleClose = () => {
     setView('categories');
