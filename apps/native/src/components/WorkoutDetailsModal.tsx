@@ -88,10 +88,28 @@ export function WorkoutDetailsModal({
   
   const swipeX = useRef(new Animated.Value(0)).current;
   
-  // Open exercise stats detail
+  // Open exercise stats detail with workout context
   const openExerciseDetail = (exerciseId: string) => {
+    // Find exercise data from summary for "this workout" context
+    const exerciseFromSummary = workoutSummary?.exercises?.find((ex: any) => ex.exerciseId === exerciseId);
+    if (exerciseFromSummary) {
+      setThisWorkoutExerciseData(exerciseFromSummary);
+    }
+    // Get workoutId from current workout or summary
+    const workoutId = workoutSummary?.workoutId || currentWorkout?.id;
+    setCurrentWorkoutId(workoutId);
     setSelectedExerciseId(exerciseId);
     setExerciseStatsVisible(true);
+    
+    // Debug logging
+    if (__DEV__) {
+      console.log('📊 [Summary→Detail] Opening exercise detail:', {
+        exerciseId,
+        workoutId,
+        hasThisWorkoutData: !!exerciseFromSummary,
+        thisWorkoutSets: exerciseFromSummary?.sets?.length || 0,
+      });
+    }
   };
   
   // Fetch workout summary data from API
