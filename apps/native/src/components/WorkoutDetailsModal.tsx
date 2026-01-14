@@ -293,20 +293,27 @@ export function WorkoutDetailsModal({
   
   if (!visible) return null;
   
+  // Determine header gradient colors based on workout status
+  const isCompleted = currentWorkout?.completed;
+  const headerGradientColors = isCompleted 
+    ? [COLORS.completedGradientStart, COLORS.completedGradientEnd] as const
+    : [COLORS.gradientStart, COLORS.gradientEnd] as const;
+  
   return (
     <Modal
       visible={visible}
       animationType="slide"
-      transparent={false}
+      transparent={true}
       onRequestClose={onClose}
     >
       <View style={styles.container}>
-        <LinearGradient
-          colors={[COLORS.gradientStart, COLORS.gradientEnd]}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          style={styles.header}
-        >
+        <View style={styles.modalWrapper}>
+          <LinearGradient
+            colors={headerGradientColors}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={styles.header}
+          >
           <View style={styles.headerTop}>
             <TouchableOpacity style={styles.closeButton} onPress={onClose}>
               <Ionicons name="close" size={28} color="#FFFFFF" />
