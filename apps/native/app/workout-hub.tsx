@@ -2008,11 +2008,27 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
     letterSpacing: 0.5,
   },
+  viewSummaryButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    paddingVertical: 14,
+    paddingHorizontal: 24,
+    borderRadius: 12,
+    marginTop: 20,
+    gap: 8,
+  },
+  viewSummaryText: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: COLORS.white,
+  },
   celebrationTip: {
     fontSize: 13,
     color: COLORS.white,
     opacity: 0.7,
-    marginTop: 20,
+    marginTop: 16,
     textAlign: 'center',
   },
   // Duration Confirmation Modal
