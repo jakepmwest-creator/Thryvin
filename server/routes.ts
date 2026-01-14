@@ -3226,14 +3226,14 @@ Respond with ONLY a JSON object (no markdown, no explanation):
   });
   
   // Log workout set for AI learning (tracks weights, reps, and notes)
-  app.post("/api/workout/log-set", async (req, res) => {
-    if (!req.isAuthenticated()) {
-      return res.sendStatus(401);
-    }
-    
+  app.post("/api/workout/log-set", authenticateToken, async (req: AuthenticatedRequest, res) => {
     try {
+      const userId = req.user?.id;
+      if (!userId) {
+        return res.status(401).json({ error: "Authentication required" });
+      }
+      
       const { exerciseName, exerciseId, setNumber, weight, reps, note, difficulty, workoutId } = req.body;
-      const userId = req.user!.id;
       
       console.log(`📝 Logging set for user ${userId}: ${exerciseName} - Set ${setNumber}: ${weight}kg x ${reps}`);
       
