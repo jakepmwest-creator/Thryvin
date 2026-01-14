@@ -466,21 +466,6 @@ export const ExerciseStatsModal = ({ visible, onClose, initialExerciseId }: Exer
   const getCategoryCount = (categoryKey: string): number => {
     return allExercises.filter(e => detectExerciseCategory(e) === categoryKey).length;
   };
-    if (!config) return 0;
-    
-    // If it has equipmentFilter (like bodyweight), filter by equipment
-    if (config.equipmentFilter) {
-      return allExercises.filter(e => 
-        e.equipment?.includes(config.equipmentFilter) || 
-        e.equipment?.some((eq: string) => eq?.toLowerCase().includes(config.equipmentFilter || ''))
-      ).length;
-    }
-    
-    // Otherwise filter by dbCategories
-    return allExercises.filter(e => 
-      config.dbCategories.includes(e.category || '')
-    ).length;
-  };
 
   // Render category selection with search at top
   const renderCategories = () => (
