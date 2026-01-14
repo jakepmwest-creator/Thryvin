@@ -1204,4 +1204,14 @@ const styles = StyleSheet.create({
   historyDateText: { fontSize: 14, fontWeight: '600', color: COLORS.text },
   historyStats: { flex: 1, flexDirection: 'row', gap: 16 },
   historyStat: { fontSize: 13, color: COLORS.mediumGray },
+  
+  // Unperformed Exercise Actions
+  unperformedActions: { marginTop: 24, gap: 12 },
+  addToFutureButton: { borderRadius: 14, overflow: 'hidden' },
+  addToFutureGradient: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingVertical: 16, gap: 8 },
+  addToFutureText: { fontSize: 16, fontWeight: '700', color: COLORS.white },
+  pinButton: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: COLORS.lightGray, borderRadius: 14, paddingVertical: 14, gap: 8 },
+  pinButtonText: { fontSize: 15, fontWeight: '600', color: COLORS.mediumGray },
+  pinButtonInline: { flexDirection: 'row', alignItems: 'center', backgroundColor: COLORS.lightGray, alignSelf: 'flex-start', borderRadius: 20, paddingHorizontal: 12, paddingVertical: 6, gap: 6, marginBottom: 16 },
+  pinButtonTextSmall: { fontSize: 13, fontWeight: '600', color: COLORS.mediumGray },
 });
