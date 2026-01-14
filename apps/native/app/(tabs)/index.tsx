@@ -21,6 +21,8 @@ import { WorkoutDetailsModal } from '../../src/components/WorkoutDetailsModal';
 import { PersonalBestChart } from '../../src/components/PersonalBestChart';
 import { AdvancedQuestionnaireModal, AdvancedQuestionnaireData } from '../../src/components/AdvancedQuestionnaireModal';
 import { WeeklyScheduleCheckModal } from '../../src/components/WeeklyScheduleCheckModal';
+import { FavoriteExercisesCard } from '../../src/components/FavoriteExercisesCard';
+import { ExerciseStatsModal } from '../../src/components/ExerciseStatsModal';
 import { useWorkoutStore } from '../../src/stores/workout-store';
 import { useAuthStore } from '../../src/stores/auth-store';
 import { useCoachStore } from '../../src/stores/coach-store';
