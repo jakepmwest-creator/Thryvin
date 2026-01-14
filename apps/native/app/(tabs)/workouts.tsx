@@ -724,6 +724,8 @@ const styles = StyleSheet.create({
   logWorkoutTitle: { fontSize: 16, fontWeight: '700', color: COLORS.text, marginBottom: 4 },
   logWorkoutSubtitle: { fontSize: 13, color: COLORS.mediumGray },
   completedBadge: { marginLeft: 8 },
+  completedBadgeIcon: { marginLeft: 8 },
+  workoutHeader: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between' },
   viewSummaryHint: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginTop: 16, gap: 4 },
   viewSummaryText: { fontSize: 14, color: COLORS.mediumGray, fontWeight: '500' },
   // Generating state styles
