@@ -700,11 +700,11 @@ export const ExerciseStatsModal = ({ visible, onClose, initialExerciseId }: Exer
                   <ExerciseListItem
                     key={exercise.exerciseId}
                     exercise={exercise}
-                    onPress={() => {}} // Can't view details for exercises not done
-                    onToggleFavorite={() => {}}
-                    isFavorite={false}
+                    onPress={() => showUnperformedExerciseDetail(exercise)}
+                    onToggleFavorite={() => toggleFavorite(exercise.exerciseId)}
+                    isFavorite={favorites.includes(exercise.exerciseId)}
                     hasPerformed={false}
-                    disabled={true}
+                    disabled={false}
                   />
                 ))}
               </View>
