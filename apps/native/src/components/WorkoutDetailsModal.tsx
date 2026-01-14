@@ -907,7 +907,7 @@ const styles = StyleSheet.create({
     marginTop: 16,
     fontStyle: 'italic',
   },
-  content: { flex: 1 },
+  content: { flex: 1, backgroundColor: COLORS.background },
   scrollView: { flex: 1 },
   section: { paddingHorizontal: 20, marginTop: 24 },
   sectionTitle: { fontSize: 20, fontWeight: '700', color: COLORS.text, marginBottom: 12 },
