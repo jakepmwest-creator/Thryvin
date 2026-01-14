@@ -170,7 +170,7 @@ export const ExploreWorkoutsModal = ({ visible, onClose, category, categoryGradi
         const isCardio = cardioKeywords.some(kw => exCategory.includes(kw) || exName.includes(kw));
         const isFlex = flexKeywords.some(kw => exCategory.includes(kw) || exName.includes(kw));
         
-        if (category === 'Strength') {
+        if (category === 'Weights') {
           return (nameHasEquipment || fieldHasEquipment) && !isCardio && !isFlex;
         }
         
