@@ -108,10 +108,22 @@ const detectExerciseCategory = (exercise: any): 'weights' | 'calisthenics' | 'ca
   return 'calisthenics';
 };
 
+// Time range filter options
+type TimeRange = 'today' | '1w' | '1m' | '1y' | 'all';
+
 interface ExerciseStatsModalProps {
   visible: boolean;
   onClose: () => void;
   initialExerciseId?: string;
+  currentWorkoutId?: string;
+  thisWorkoutData?: {
+    exerciseId: string;
+    exerciseName: string;
+    sets: Array<{ setNumber: number; weight: number; reps: number; volume?: number }>;
+    totalVolume: number;
+    todayMax?: number;
+    isPR?: boolean;
+  };
 }
 
 interface Exercise {
