@@ -389,10 +389,12 @@ export const ExerciseStatsModal = ({ visible, onClose, initialExerciseId }: Exer
       let newFavorites: string[];
       
       if (favorites.includes(exerciseId)) {
+        // Remove from favorites
         newFavorites = favorites.filter(id => id !== exerciseId);
       } else {
         if (favorites.length >= 3) {
-          // Remove oldest, add new
+          // Max 3 favorites - show alert and replace oldest
+          alert('You can only pin 3 exercises. The oldest one will be replaced.');
           newFavorites = [...favorites.slice(1), exerciseId];
         } else {
           newFavorites = [...favorites, exerciseId];
