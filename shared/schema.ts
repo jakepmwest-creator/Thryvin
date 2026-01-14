@@ -52,6 +52,9 @@ export const users = pgTable("users", {
   // Workout Profile (Pre-workout questionnaire data)
   workoutProfile: text("workout_profile"), // JSON string of UserWorkoutProfile data
   
+  // Favorite exercises (up to 3 exercise IDs)
+  favoriteExercises: text("favorite_exercises"), // JSON array of up to 3 exercise IDs
+  
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 

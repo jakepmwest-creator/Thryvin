@@ -305,6 +305,7 @@ export default function WorkoutHubScreen() {
   };
 
   // Log set to backend for AI learning and stats tracking
+  // CRITICAL FIX: Must use activeSession.workoutId to ensure all sets are linked to the same workout
   const logSetToBackend = async (exerciseName: string, setNumber: number, weight: number | undefined, reps: number, note?: string, difficulty?: string, exerciseId?: string) => {
     try {
       // Use the correct token key that's used throughout the app
@@ -314,8 +315,20 @@ export default function WorkoutHubScreen() {
         return;
       }
       
+      // CRITICAL: Use activeSession.workoutId as the single source of truth
+      // This ensures all sets from a workout session share the same workoutId
+      const sessionWorkoutId = activeSession?.workoutId;
+      const workoutIdToUse = sessionWorkoutId || currentWorkout?.id;
+      
+      if (!workoutIdToUse) {
+        console.warn('⚠️ No workoutId available, cannot log set properly');
+        return;
+      }
+      
       // Generate exerciseId from name if not provided
       const finalExerciseId = exerciseId || exerciseName.toLowerCase().replace(/[^a-z0-9]/g, '_');
+      
+      console.log(`📊 Logging set with workoutId: ${workoutIdToUse}`);
       
       const response = await fetch(`${API_BASE_URL}/api/workout/log-set`, {
         method: 'POST',
@@ -332,12 +345,12 @@ export default function WorkoutHubScreen() {
           reps,
           note,
           difficulty,
-          workoutId: currentWorkout?.id || `workout_${new Date().toISOString().split('T')[0]}`,
+          workoutId: workoutIdToUse,
         }),
       });
       
       if (response.ok) {
-        console.log(`✅ Logged set to backend: ${exerciseName} Set ${setNumber} - ${weight}kg x ${reps}`);
+        console.log(`✅ Logged set to backend: ${exerciseName} Set ${setNumber} - ${weight}kg x ${reps} (workoutId: ${workoutIdToUse})`);
       } else {
         console.error(`❌ Failed to log set: ${response.status}`);
       }
