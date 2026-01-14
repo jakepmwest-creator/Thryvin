@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -13,6 +13,7 @@ import {
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
+import * as SecureStore from 'expo-secure-store';
 import { PreviewVideoPlayer } from './ExerciseVideoPlayer';
 import { useWorkoutStore } from '../stores/workout-store';
 import { EditWorkoutModal } from './EditWorkoutModal';
@@ -21,6 +22,7 @@ import { useCoachStore } from '../stores/coach-store';
 import { ExternalActivityModal, ExternalActivityLog } from './ExternalActivityModal';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
+const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL || 'https://fitness-stats-7.preview.emergentagent.com';
 
 const COLORS = {
   primary: '#A22BF6',
@@ -37,6 +39,7 @@ const COLORS = {
   lightGray: '#E5E5EA',
   mediumGray: '#8E8E93',
   success: '#34C759',
+  warning: '#FF9500',
   shadow: 'rgba(162, 43, 246, 0.3)',
 };
 
