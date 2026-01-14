@@ -822,8 +822,12 @@ export function WorkoutDetailsModal({
         onClose={() => {
           setExerciseStatsVisible(false);
           setSelectedExerciseId(undefined);
+          setCurrentWorkoutId(undefined);
+          setThisWorkoutExerciseData(null);
         }}
         initialExerciseId={selectedExerciseId}
+        currentWorkoutId={currentWorkoutId}
+        thisWorkoutData={thisWorkoutExerciseData}
       />
     </Modal>
   );
