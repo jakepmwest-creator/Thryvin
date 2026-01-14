@@ -636,6 +636,7 @@ export function WorkoutDetailsModal({
           )}
         </View>
         )}
+        </View>
       </View>
       
       <EditWorkoutModal
