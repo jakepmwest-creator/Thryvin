@@ -338,6 +338,33 @@ export const ExerciseStatsModal = ({ visible, onClose, initialExerciseId }: Exer
     }
   }, []);
 
+  // Show detail for unperformed exercise (grayed out UI with "Add to future workout")
+  const [unperformedExercise, setUnperformedExercise] = useState<Exercise | null>(null);
+  
+  const showUnperformedExerciseDetail = (exercise: Exercise) => {
+    setUnperformedExercise(exercise);
+    setView('detail');
+  };
+
+  // Request to add exercise to future workout
+  const requestFutureWorkout = async (exerciseName: string) => {
+    try {
+      const token = await SecureStore.getItemAsync('thryvin_access_token');
+      await fetch(`${API_BASE_URL}/api/user/exercise-requests`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': token ? `Bearer ${token}` : '',
+        },
+        body: JSON.stringify({ exerciseName, requestType: 'future_workout' }),
+      });
+      // Show success - the AI will consider this exercise
+      alert(`"${exerciseName}" added to your wishlist! The AI may include it in future workouts.`);
+    } catch (err) {
+      console.error('Error requesting exercise:', err);
+    }
+  };
+
   // Fetch favorites
   const fetchFavorites = useCallback(async () => {
     try {
