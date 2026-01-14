@@ -796,17 +796,6 @@ export const ExerciseStatsModal = ({ visible, onClose, initialExerciseId }: Exer
     );
   };
 
-  // Get header title based on view
-  const getHeaderTitle = () => {
-    switch (view) {
-      case 'categories': return 'Exercise Stats';
-      case 'subcategories': return selectedCategory || 'Exercises';
-      case 'list': return selectedSubcategory || selectedCategory || 'All Exercises';
-      case 'detail': return 'Exercise Detail';
-      default: return 'Exercise Stats';
-    }
-  };
-
   return (
     <Modal visible={visible} animationType="slide" transparent onRequestClose={handleClose}>
       <View style={styles.overlay}>
