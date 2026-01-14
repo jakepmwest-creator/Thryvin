@@ -71,6 +71,8 @@ export function WorkoutDetailsModal({
   const [expandedExerciseIndex, setExpandedExerciseIndex] = useState<number | null>(null);
   const [editModalVisible, setEditModalVisible] = useState(false);
   const [externalActivityModalVisible, setExternalActivityModalVisible] = useState(false);
+  const [workoutSummary, setWorkoutSummary] = useState<any>(null);
+  const [summaryLoading, setSummaryLoading] = useState(false);
   const [alertConfig, setAlertConfig] = useState<{
     visible: boolean;
     type: 'success' | 'error' | 'warning' | 'info';
@@ -80,6 +82,25 @@ export function WorkoutDetailsModal({
   }>({ visible: false, type: 'info', title: '', message: '' });
   
   const swipeX = useRef(new Animated.Value(0)).current;
+  
+  // Fetch workout summary data from API
+  const fetchWorkoutSummary = useCallback(async (workoutId: string) => {
+    try {
+      setSummaryLoading(true);
+      const token = await SecureStore.getItemAsync('thryvin_access_token');
+      const response = await fetch(`${API_BASE_URL}/api/stats/workout-summary/${workoutId}`, {
+        headers: { 'Authorization': token ? `Bearer ${token}` : '' },
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setWorkoutSummary(data);
+      }
+    } catch (err) {
+      console.error('Error fetching workout summary:', err);
+    } finally {
+      setSummaryLoading(false);
+    }
+  }, []);
   
   // Helper functions
   const findWorkoutByDate = (date: Date) => {
