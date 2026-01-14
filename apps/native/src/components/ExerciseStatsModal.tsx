@@ -859,7 +859,10 @@ export const ExerciseStatsModal = ({ visible, onClose, initialExerciseId }: Exer
     
     if (!selectedExercise) return null;
 
-    const { personalBests, history, trend, strongest, weakest } = selectedExercise;
+    // Support both old (personalBests) and new (pbs) API format
+    const pbs = selectedExercise.pbs || selectedExercise.personalBests;
+    const { history, trend, strongest, weakest, lastSession } = selectedExercise;
+    const exerciseName = selectedExercise.name || selectedExercise.exerciseName || 'Exercise';
     const chartData = history?.map((h: any) => h.maxWeight) || [];
     const coachTip = getCoachTip(selectedExercise);
     
@@ -870,7 +873,7 @@ export const ExerciseStatsModal = ({ visible, onClose, initialExerciseId }: Exer
       <ScrollView style={styles.detailContent} showsVerticalScrollIndicator={false}>
         {/* Header */}
         <View style={styles.detailHeader}>
-          <Text style={styles.detailTitle}>{selectedExercise.exerciseName}</Text>
+          <Text style={styles.detailTitle}>{exerciseName}</Text>
           <View style={styles.trendBadge}>
             <Ionicons name={TrendIcon as any} size={16} color={trendColor} />
             <Text style={[styles.trendText, { color: trendColor }]}>
@@ -893,6 +896,32 @@ export const ExerciseStatsModal = ({ visible, onClose, initialExerciseId }: Exer
             {favorites.includes(selectedExercise.exerciseId) ? 'Pinned' : 'Pin to Favorites'}
           </Text>
         </TouchableOpacity>
+        
+        {/* Last Session Summary - NEW */}
+        {lastSession && lastSession.sets && lastSession.sets.length > 0 && (
+          <View style={styles.lastSessionCard}>
+            <View style={styles.lastSessionHeader}>
+              <Ionicons name="time-outline" size={18} color={COLORS.accent} />
+              <Text style={styles.lastSessionTitle}>Last Session</Text>
+              <Text style={styles.lastSessionDate}>{lastSession.date}</Text>
+            </View>
+            <View style={styles.lastSessionSets}>
+              {lastSession.sets.map((set, idx) => (
+                <View key={idx} style={styles.lastSessionSet}>
+                  <Text style={styles.lastSessionSetNum}>Set {set.setNumber}</Text>
+                  <Text style={styles.lastSessionSetData}>{set.weight}kg × {set.reps}</Text>
+                  {set.rpe && <Text style={styles.lastSessionRpe}>RPE {set.rpe}</Text>}
+                </View>
+              ))}
+            </View>
+            <View style={styles.lastSessionTotal}>
+              <Text style={styles.lastSessionTotalLabel}>Total Volume:</Text>
+              <Text style={styles.lastSessionTotalValue}>
+                {lastSession.sets.reduce((sum, s) => sum + s.volume, 0)}kg
+              </Text>
+            </View>
+          </View>
+        )}
 
         {/* Coach Tip */}
         <View style={styles.coachTipCard}>
