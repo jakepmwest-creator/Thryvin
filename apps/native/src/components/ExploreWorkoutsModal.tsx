@@ -90,7 +90,7 @@ const ExerciseCard = ({ exercise, onPress }: { exercise: any; onPress: () => voi
 
 // Equipment filter options
 const EQUIPMENT_FILTERS: { [key: string]: { id: string; label: string }[] } = {
-  'Strength': [
+  'Weights': [
     { id: 'all', label: 'All' },
     { id: 'dumbbell', label: 'Dumbbells' },
     { id: 'barbell', label: 'Barbells' },
