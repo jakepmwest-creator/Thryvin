@@ -2264,16 +2264,16 @@ Respond with ONLY a JSON object (no markdown, no explanation):
   });
 
   // Get performance history for AI learning and user progress
-  app.get("/api/performance/history", async (req, res) => {
-    if (!req.isAuthenticated()) {
-      return res.sendStatus(401);
-    }
-
+  app.get("/api/performance/history", authenticateToken, async (req: AuthenticatedRequest, res) => {
     try {
+      const userId = req.user?.id;
+      if (!userId) {
+        return res.status(401).json({ error: "Authentication required" });
+      }
+
       console.log(`📈 [${req.method}] ${req.url}`);
 
       const { exerciseId, limit = 50 } = req.query;
-      const userId = req.user!.id;
 
       const performanceHistory = await storage.getPerformanceHistory(
         userId,
