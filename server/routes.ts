@@ -2556,13 +2556,12 @@ Respond with ONLY a JSON object (no markdown, no explanation):
   });
 
   // Search exercises
-  app.get("/api/stats/exercises/search", async (req, res) => {
-    if (!req.isAuthenticated()) {
-      return res.sendStatus(401);
-    }
-
+  app.get("/api/stats/exercises/search", authenticateToken, async (req: AuthenticatedRequest, res) => {
     try {
-      const userId = req.user!.id;
+      const userId = req.user?.id;
+      if (!userId) {
+        return res.status(401).json({ error: "Authentication required" });
+      }
       const { q } = req.query;
       const query = (q as string || '').toLowerCase();
       
