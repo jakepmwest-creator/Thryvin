@@ -2290,6 +2290,395 @@ Respond with ONLY a JSON object (no markdown, no explanation):
     }
   });
 
+  // ============================================================================
+  // 🏋️ EXERCISE STATS & PERSONAL BESTS - Detailed Exercise Performance Tracking
+  // ============================================================================
+
+  // Get all unique exercises the user has logged
+  app.get("/api/stats/exercises", async (req, res) => {
+    if (!req.isAuthenticated()) {
+      return res.sendStatus(401);
+    }
+
+    try {
+      const userId = req.user!.id;
+      console.log(`📊 [STATS] Getting all exercises for user ${userId}`);
+
+      const performanceHistory = await storage.getPerformanceHistory(userId, undefined, 1000);
+      
+      // Group by exerciseId and get unique exercises with their stats
+      const exerciseMap = new Map<string, {
+        exerciseId: string;
+        exerciseName: string;
+        totalSets: number;
+        totalReps: number;
+        maxWeight: number;
+        lastPerformed: Date;
+        sessionCount: number;
+      }>();
+
+      for (const log of performanceHistory) {
+        const existing = exerciseMap.get(log.exerciseId);
+        if (existing) {
+          existing.totalSets += log.actualSets || 1;
+          existing.totalReps += log.actualReps || 0;
+          existing.maxWeight = Math.max(existing.maxWeight, log.actualWeight || 0);
+          existing.sessionCount++;
+          if (new Date(log.loggedAt) > existing.lastPerformed) {
+            existing.lastPerformed = new Date(log.loggedAt);
+          }
+        } else {
+          exerciseMap.set(log.exerciseId, {
+            exerciseId: log.exerciseId,
+            exerciseName: log.exerciseName,
+            totalSets: log.actualSets || 1,
+            totalReps: log.actualReps || 0,
+            maxWeight: log.actualWeight || 0,
+            lastPerformed: new Date(log.loggedAt),
+            sessionCount: 1,
+          });
+        }
+      }
+
+      const exercises = Array.from(exerciseMap.values()).sort((a, b) => 
+        b.lastPerformed.getTime() - a.lastPerformed.getTime()
+      );
+
+      res.json({ exercises, total: exercises.length });
+    } catch (error: any) {
+      console.log(`❌ [STATS] Error:`, error);
+      res.status(500).json({ error: "Failed to get exercises" });
+    }
+  });
+
+  // Get detailed stats for a specific exercise
+  app.get("/api/stats/exercise/:exerciseId", async (req, res) => {
+    if (!req.isAuthenticated()) {
+      return res.sendStatus(401);
+    }
+
+    try {
+      const userId = req.user!.id;
+      const { exerciseId } = req.params;
+      console.log(`📊 [STATS] Getting stats for exercise ${exerciseId}, user ${userId}`);
+
+      const performanceHistory = await storage.getPerformanceHistory(userId, exerciseId, 500);
+      
+      if (!performanceHistory || performanceHistory.length === 0) {
+        return res.json({
+          exerciseId,
+          exerciseName: 'Unknown',
+          history: [],
+          personalBests: null,
+          trend: 'neutral',
+        });
+      }
+
+      // Calculate Personal Bests
+      let maxWeight = 0;
+      let maxReps = 0;
+      let maxVolume = 0; // weight x reps
+      let bestSet: any = null;
+
+      // History for charting (grouped by date)
+      const historyByDate = new Map<string, {
+        date: string;
+        maxWeight: number;
+        totalReps: number;
+        totalSets: number;
+        estimatedOneRM: number;
+      }>();
+
+      for (const log of performanceHistory) {
+        const weight = log.actualWeight || 0;
+        const reps = log.actualReps || 0;
+        const volume = weight * reps;
+        const dateKey = new Date(log.loggedAt).toISOString().split('T')[0];
+
+        // Update max values
+        if (weight > maxWeight) {
+          maxWeight = weight;
+          bestSet = log;
+        }
+        if (reps > maxReps) maxReps = reps;
+        if (volume > maxVolume) maxVolume = volume;
+
+        // Group by date
+        const existing = historyByDate.get(dateKey);
+        const estimatedOneRM = weight > 0 && reps > 0 ? calculateOneRM(weight, reps) : 0;
+        
+        if (existing) {
+          existing.maxWeight = Math.max(existing.maxWeight, weight);
+          existing.totalReps += reps;
+          existing.totalSets += 1;
+          existing.estimatedOneRM = Math.max(existing.estimatedOneRM, estimatedOneRM);
+        } else {
+          historyByDate.set(dateKey, {
+            date: dateKey,
+            maxWeight: weight,
+            totalReps: reps,
+            totalSets: 1,
+            estimatedOneRM,
+          });
+        }
+      }
+
+      // Convert to array and sort by date
+      const history = Array.from(historyByDate.values())
+        .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+
+      // Calculate estimated 1RM using Epley formula: 1RM = weight × (1 + reps/30)
+      const estimatedOneRM = bestSet && bestSet.actualWeight && bestSet.actualReps
+        ? calculateOneRM(bestSet.actualWeight, bestSet.actualReps)
+        : 0;
+
+      // Calculate other rep maxes
+      const estimated3RM = estimatedOneRM * 0.93; // ~93% of 1RM
+      const estimated5RM = estimatedOneRM * 0.87; // ~87% of 1RM
+      const estimated6RM = estimatedOneRM * 0.85; // ~85% of 1RM
+      const estimated10RM = estimatedOneRM * 0.75; // ~75% of 1RM
+
+      // Calculate trend (comparing last 5 sessions to previous 5)
+      let trend: 'up' | 'down' | 'neutral' = 'neutral';
+      if (history.length >= 4) {
+        const recent = history.slice(-2);
+        const older = history.slice(-4, -2);
+        const recentAvg = recent.reduce((sum, h) => sum + h.maxWeight, 0) / recent.length;
+        const olderAvg = older.reduce((sum, h) => sum + h.maxWeight, 0) / older.length;
+        if (recentAvg > olderAvg * 1.05) trend = 'up';
+        else if (recentAvg < olderAvg * 0.95) trend = 'down';
+      }
+
+      // Find strongest and weakest sessions
+      const strongest = history.reduce((max, h) => h.maxWeight > max.maxWeight ? h : max, history[0]);
+      const weakest = history.reduce((min, h) => h.maxWeight < min.maxWeight ? h : min, history[0]);
+
+      res.json({
+        exerciseId,
+        exerciseName: performanceHistory[0].exerciseName,
+        history,
+        personalBests: {
+          actualPB: maxWeight,
+          estimatedOneRM: Math.round(estimatedOneRM),
+          estimated3RM: Math.round(estimated3RM),
+          estimated5RM: Math.round(estimated5RM),
+          estimated6RM: Math.round(estimated6RM),
+          estimated10RM: Math.round(estimated10RM),
+          maxReps,
+          maxVolume,
+          bestSet: {
+            weight: bestSet?.actualWeight,
+            reps: bestSet?.actualReps,
+            date: bestSet?.loggedAt,
+          },
+        },
+        trend,
+        strongest: { date: strongest?.date, weight: strongest?.maxWeight },
+        weakest: { date: weakest?.date, weight: weakest?.maxWeight },
+        totalSessions: history.length,
+        firstSession: history[0]?.date,
+        lastSession: history[history.length - 1]?.date,
+      });
+    } catch (error: any) {
+      console.log(`❌ [STATS] Error:`, error);
+      res.status(500).json({ error: "Failed to get exercise stats" });
+    }
+  });
+
+  // Helper: Calculate 1RM using Epley formula
+  function calculateOneRM(weight: number, reps: number): number {
+    if (reps === 1) return weight;
+    if (reps <= 0 || weight <= 0) return 0;
+    // Epley formula: 1RM = weight × (1 + reps/30)
+    return weight * (1 + reps / 30);
+  }
+
+  // Get/Set favorite exercises
+  app.get("/api/stats/favorites", async (req, res) => {
+    if (!req.isAuthenticated()) {
+      return res.sendStatus(401);
+    }
+
+    try {
+      const userId = req.user!.id;
+      const user = await storage.getUser(userId);
+      
+      // Get favorites from user profile or default to empty
+      const favoriteIds: string[] = (user as any)?.favoriteExercises || [];
+      
+      // Get stats for each favorite
+      const favorites = [];
+      for (const exerciseId of favoriteIds.slice(0, 3)) {
+        const history = await storage.getPerformanceHistory(userId, exerciseId, 20);
+        if (history && history.length > 0) {
+          const maxWeight = Math.max(...history.map(h => h.actualWeight || 0));
+          const recentHistory = history.slice(-5);
+          const trend = recentHistory.length >= 2 
+            ? (recentHistory[recentHistory.length - 1].actualWeight || 0) > (recentHistory[0].actualWeight || 0) ? 'up' : 'down'
+            : 'neutral';
+          
+          favorites.push({
+            exerciseId,
+            exerciseName: history[0].exerciseName,
+            actualPB: maxWeight,
+            estimatedOneRM: Math.round(calculateOneRM(maxWeight, history.find(h => h.actualWeight === maxWeight)?.actualReps || 1)),
+            trend,
+            lastWeight: recentHistory[recentHistory.length - 1]?.actualWeight || 0,
+          });
+        }
+      }
+      
+      res.json({ favorites });
+    } catch (error: any) {
+      console.log(`❌ [STATS] Error:`, error);
+      res.status(500).json({ error: "Failed to get favorites" });
+    }
+  });
+
+  app.put("/api/stats/favorites", async (req, res) => {
+    if (!req.isAuthenticated()) {
+      return res.sendStatus(401);
+    }
+
+    try {
+      const userId = req.user!.id;
+      const { exerciseIds } = req.body;
+      
+      if (!Array.isArray(exerciseIds) || exerciseIds.length > 3) {
+        return res.status(400).json({ error: "Maximum 3 favorite exercises allowed" });
+      }
+
+      // Update user's favorite exercises
+      await storage.updateUser(userId, { favoriteExercises: exerciseIds } as any);
+      
+      res.json({ success: true, favorites: exerciseIds });
+    } catch (error: any) {
+      console.log(`❌ [STATS] Error:`, error);
+      res.status(500).json({ error: "Failed to update favorites" });
+    }
+  });
+
+  // Search exercises
+  app.get("/api/stats/exercises/search", async (req, res) => {
+    if (!req.isAuthenticated()) {
+      return res.sendStatus(401);
+    }
+
+    try {
+      const userId = req.user!.id;
+      const { q } = req.query;
+      const query = (q as string || '').toLowerCase();
+      
+      const performanceHistory = await storage.getPerformanceHistory(userId, undefined, 1000);
+      
+      // Get unique exercises and filter by search query
+      const exerciseMap = new Map<string, { exerciseId: string; exerciseName: string; maxWeight: number }>();
+      
+      for (const log of performanceHistory) {
+        if (log.exerciseName.toLowerCase().includes(query)) {
+          const existing = exerciseMap.get(log.exerciseId);
+          if (!existing || (log.actualWeight || 0) > existing.maxWeight) {
+            exerciseMap.set(log.exerciseId, {
+              exerciseId: log.exerciseId,
+              exerciseName: log.exerciseName,
+              maxWeight: log.actualWeight || 0,
+            });
+          }
+        }
+      }
+
+      res.json({ results: Array.from(exerciseMap.values()) });
+    } catch (error: any) {
+      console.log(`❌ [STATS] Error:`, error);
+      res.status(500).json({ error: "Failed to search exercises" });
+    }
+  });
+
+  // Get workout summary (for completed workout page)
+  app.get("/api/stats/workout-summary/:workoutId", async (req, res) => {
+    if (!req.isAuthenticated()) {
+      return res.sendStatus(401);
+    }
+
+    try {
+      const userId = req.user!.id;
+      const { workoutId } = req.params;
+      console.log(`📊 [SUMMARY] Getting summary for workout ${workoutId}, user ${userId}`);
+
+      // Get all performance logs for this workout
+      const allHistory = await storage.getPerformanceHistory(userId, undefined, 1000);
+      const workoutLogs = allHistory.filter(log => log.workoutId === workoutId);
+      
+      if (!workoutLogs || workoutLogs.length === 0) {
+        return res.json({ exercises: [], stats: null });
+      }
+
+      // Group by exercise
+      const exerciseMap = new Map<string, any>();
+      
+      for (const log of workoutLogs) {
+        const existing = exerciseMap.get(log.exerciseId);
+        if (existing) {
+          existing.sets.push({
+            setNumber: existing.sets.length + 1,
+            weight: log.actualWeight,
+            reps: log.actualReps,
+            rpe: log.rpe,
+          });
+          existing.totalVolume += (log.actualWeight || 0) * (log.actualReps || 0);
+        } else {
+          exerciseMap.set(log.exerciseId, {
+            exerciseId: log.exerciseId,
+            exerciseName: log.exerciseName,
+            sets: [{
+              setNumber: 1,
+              weight: log.actualWeight,
+              reps: log.actualReps,
+              rpe: log.rpe,
+            }],
+            totalVolume: (log.actualWeight || 0) * (log.actualReps || 0),
+          });
+        }
+      }
+
+      // Get historical comparison for each exercise
+      const exercisesWithComparison = [];
+      for (const [exerciseId, data] of exerciseMap) {
+        const exerciseHistory = allHistory.filter(h => h.exerciseId === exerciseId && h.workoutId !== workoutId);
+        const previousMaxWeight = exerciseHistory.length > 0 
+          ? Math.max(...exerciseHistory.map(h => h.actualWeight || 0))
+          : 0;
+        const todayMaxWeight = Math.max(...data.sets.map((s: any) => s.weight || 0));
+        
+        exercisesWithComparison.push({
+          ...data,
+          todayMax: todayMaxWeight,
+          previousMax: previousMaxWeight,
+          isPR: todayMaxWeight > previousMaxWeight && previousMaxWeight > 0,
+          improvement: previousMaxWeight > 0 ? ((todayMaxWeight - previousMaxWeight) / previousMaxWeight * 100).toFixed(1) : null,
+        });
+      }
+
+      // Calculate overall stats
+      const totalVolume = exercisesWithComparison.reduce((sum, e) => sum + e.totalVolume, 0);
+      const totalSets = exercisesWithComparison.reduce((sum, e) => sum + e.sets.length, 0);
+      const prsHit = exercisesWithComparison.filter(e => e.isPR).length;
+
+      res.json({
+        exercises: exercisesWithComparison,
+        stats: {
+          totalVolume,
+          totalSets,
+          exerciseCount: exercisesWithComparison.length,
+          prsHit,
+        },
+      });
+    } catch (error: any) {
+      console.log(`❌ [SUMMARY] Error:`, error);
+      res.status(500).json({ error: "Failed to get workout summary" });
+    }
+  });
+
   // 🧠 INTELLIGENT REST DAY ANALYSIS - AI-Powered Recovery Planning
   app.get("/api/rest-analysis", async (req, res) => {
     if (!req.isAuthenticated()) {
