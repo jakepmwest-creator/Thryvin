@@ -284,7 +284,7 @@ const getCoachTip = (detail: ExerciseDetail): string => {
   return "✅ Consistent performance! Try progressive overload to keep improving.";
 };
 
-export const ExerciseStatsModal = ({ visible, onClose, initialExerciseId }: ExerciseStatsModalProps) => {
+export const ExerciseStatsModal = ({ visible, onClose, initialExerciseId, currentWorkoutId, thisWorkoutData }: ExerciseStatsModalProps) => {
   const [view, setView] = useState<'categories' | 'subcategories' | 'list' | 'detail'>('categories');
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [selectedSubcategory, setSelectedSubcategory] = useState<string | null>(null);
@@ -294,6 +294,8 @@ export const ExerciseStatsModal = ({ visible, onClose, initialExerciseId }: Exer
   const [searchQuery, setSearchQuery] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [favorites, setFavorites] = useState<string[]>([]);
+  const [selectedTimeRange, setSelectedTimeRange] = useState<TimeRange>('all');
+  const [filteredHistory, setFilteredHistory] = useState<ExerciseDetail['history']>([]);
 
   // Fetch all exercises from database
   const fetchAllExercises = useCallback(async () => {
