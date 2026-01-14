@@ -406,6 +406,15 @@ export default function StatsScreen() {
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [activeChart, setActiveChart] = useState<'minutes' | 'calories'>('minutes');
+  
+  // Exercise Stats Modal
+  const [showExerciseStats, setShowExerciseStats] = useState(false);
+  const [selectedExerciseId, setSelectedExerciseId] = useState<string | undefined>(undefined);
+
+  const openExerciseStats = (exerciseId?: string) => {
+    setSelectedExerciseId(exerciseId);
+    setShowExerciseStats(true);
+  };
 
   // Calculate stats from LOCAL data (completedWorkouts from workout-store)
   const calculateLocalStats = useCallback(() => {
