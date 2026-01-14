@@ -14,6 +14,7 @@ import {
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import * as SecureStore from 'expo-secure-store';
+import { useFocusEffect } from '@react-navigation/native';
 import { COLORS as THEME_COLORS } from '../constants/colors';
 
 const COLORS = {
@@ -40,22 +41,34 @@ interface FavoriteExercise {
 interface Props {
   onViewAll: () => void;
   onExercisePress: (exerciseId: string) => void;
+  refreshTrigger?: number; // Increment this to force refresh
 }
 
-export const FavoriteExercisesCard = ({ onViewAll, onExercisePress }: Props) => {
+export const FavoriteExercisesCard = ({ onViewAll, onExercisePress, refreshTrigger }: Props) => {
   const [favorites, setFavorites] = useState<FavoriteExercise[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   const fetchFavorites = useCallback(async () => {
     try {
       const token = await SecureStore.getItemAsync('thryvin_access_token');
+      if (!token) {
+        console.warn('No auth token, skipping favorites fetch');
+        setIsLoading(false);
+        return;
+      }
+      
       const response = await fetch(`${API_BASE_URL}/api/stats/favorites`, {
-        headers: { 'Authorization': token ? `Bearer ${token}` : '' },
+        headers: { 'Authorization': `Bearer ${token}` },
       });
       
       if (response.ok) {
         const data = await response.json();
         setFavorites(data.favorites || []);
+        if (__DEV__) {
+          console.log('📊 [FavoriteExercisesCard] Fetched favorites:', data.favorites?.length || 0);
+        }
+      } else if (response.status === 401) {
+        console.warn('Auth token expired or invalid');
       }
     } catch (err) {
       console.error('Error fetching favorites:', err);
@@ -64,9 +77,17 @@ export const FavoriteExercisesCard = ({ onViewAll, onExercisePress }: Props) => 
     }
   }, []);
 
+  // Fetch on mount and when refresh trigger changes
   useEffect(() => {
     fetchFavorites();
-  }, [fetchFavorites]);
+  }, [fetchFavorites, refreshTrigger]);
+  
+  // Also fetch when screen comes into focus
+  useFocusEffect(
+    useCallback(() => {
+      fetchFavorites();
+    }, [fetchFavorites])
+  );
 
   if (isLoading) {
     return (
