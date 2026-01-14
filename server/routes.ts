@@ -2296,13 +2296,12 @@ Respond with ONLY a JSON object (no markdown, no explanation):
   // ============================================================================
 
   // Get all unique exercises the user has logged
-  app.get("/api/stats/exercises", async (req, res) => {
-    if (!req.isAuthenticated()) {
-      return res.sendStatus(401);
-    }
-
+  app.get("/api/stats/exercises", authenticateToken, async (req: AuthenticatedRequest, res) => {
     try {
-      const userId = req.user!.id;
+      const userId = req.user?.id;
+      if (!userId) {
+        return res.status(401).json({ error: "Authentication required" });
+      }
       console.log(`📊 [STATS] Getting all exercises for user ${userId}`);
 
       const performanceHistory = await storage.getPerformanceHistory(userId, undefined, 1000);
