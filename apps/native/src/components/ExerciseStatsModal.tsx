@@ -754,10 +754,89 @@ export const ExerciseStatsModal = ({ visible, onClose, initialExerciseId }: Exer
 
   // Render exercise detail
   const renderExerciseDetail = () => {
+    // Check if viewing unperformed exercise
+    if (unperformedExercise && !selectedExercise) {
+      return (
+        <ScrollView style={styles.detailContent} showsVerticalScrollIndicator={false}>
+          {/* Header for unperformed */}
+          <View style={styles.detailHeader}>
+            <Text style={[styles.detailTitle, { color: COLORS.mediumGray }]}>
+              {unperformedExercise.exerciseName || unperformedExercise.name}
+            </Text>
+            <View style={[styles.trendBadge, { backgroundColor: `${COLORS.mediumGray}20` }]}>
+              <Ionicons name="lock-closed" size={16} color={COLORS.mediumGray} />
+              <Text style={[styles.trendText, { color: COLORS.mediumGray }]}>Not Performed</Text>
+            </View>
+          </View>
+
+          {/* Locked Stats Message */}
+          <View style={[styles.coachTipCard, { backgroundColor: `${COLORS.mediumGray}15` }]}>
+            <View style={styles.coachTipHeader}>
+              <Ionicons name="lock-closed" size={20} color={COLORS.mediumGray} />
+              <Text style={[styles.coachTipTitle, { color: COLORS.mediumGray }]}>Stats Locked</Text>
+            </View>
+            <Text style={[styles.coachTipText, { color: COLORS.mediumGray }]}>
+              Complete this exercise in a workout to unlock your personal bests, progress charts, and detailed stats!
+            </Text>
+          </View>
+
+          {/* Grayed out PB section */}
+          <View style={[styles.pbSection, { opacity: 0.4 }]}>
+            <Text style={styles.sectionTitle}>Personal Bests</Text>
+            <View style={styles.pbGrid}>
+              <View style={[styles.pbMainCard, { backgroundColor: COLORS.mediumGray }]}>
+                <Text style={styles.pbMainLabel}>Actual PB</Text>
+                <Text style={styles.pbMainValue}>--</Text>
+                <Text style={styles.pbMainSub}>Not recorded yet</Text>
+              </View>
+              <View style={styles.pbEstimatedCard}>
+                <Text style={styles.pbEstLabel}>Est. 1RM</Text>
+                <Text style={styles.pbEstValue}>--</Text>
+              </View>
+            </View>
+          </View>
+
+          {/* Action Buttons */}
+          <View style={styles.unperformedActions}>
+            <TouchableOpacity
+              style={styles.addToFutureButton}
+              onPress={() => requestFutureWorkout(unperformedExercise.exerciseName || unperformedExercise.name || '')}
+            >
+              <LinearGradient
+                colors={[COLORS.accent, COLORS.accentSecondary]}
+                style={styles.addToFutureGradient}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+              >
+                <Ionicons name="add-circle" size={20} color={COLORS.white} />
+                <Text style={styles.addToFutureText}>Add to Future Workout</Text>
+              </LinearGradient>
+            </TouchableOpacity>
+            
+            <TouchableOpacity
+              style={styles.pinButton}
+              onPress={() => toggleFavorite(unperformedExercise.exerciseId)}
+            >
+              <Ionicons
+                name={favorites.includes(unperformedExercise.exerciseId) ? 'star' : 'star-outline'}
+                size={20}
+                color={favorites.includes(unperformedExercise.exerciseId) ? COLORS.warning : COLORS.mediumGray}
+              />
+              <Text style={[styles.pinButtonText, favorites.includes(unperformedExercise.exerciseId) && { color: COLORS.warning }]}>
+                {favorites.includes(unperformedExercise.exerciseId) ? 'Pinned to Favorites' : 'Pin to Favorites'}
+              </Text>
+            </TouchableOpacity>
+          </View>
+
+          <View style={{ height: 40 }} />
+        </ScrollView>
+      );
+    }
+    
     if (!selectedExercise) return null;
 
     const { personalBests, history, trend, strongest, weakest } = selectedExercise;
-    const chartData = history?.map(h => h.maxWeight) || [];
+    const chartData = history?.map((h: any) => h.maxWeight) || [];
     const coachTip = getCoachTip(selectedExercise);
     
     const TrendIcon = trend === 'up' ? 'trending-up' : trend === 'down' ? 'trending-down' : 'remove';
@@ -775,6 +854,21 @@ export const ExerciseStatsModal = ({ visible, onClose, initialExerciseId }: Exer
             </Text>
           </View>
         </View>
+        
+        {/* Pin Button for performed exercises */}
+        <TouchableOpacity
+          style={styles.pinButtonInline}
+          onPress={() => toggleFavorite(selectedExercise.exerciseId)}
+        >
+          <Ionicons
+            name={favorites.includes(selectedExercise.exerciseId) ? 'star' : 'star-outline'}
+            size={18}
+            color={favorites.includes(selectedExercise.exerciseId) ? COLORS.warning : COLORS.mediumGray}
+          />
+          <Text style={[styles.pinButtonTextSmall, favorites.includes(selectedExercise.exerciseId) && { color: COLORS.warning }]}>
+            {favorites.includes(selectedExercise.exerciseId) ? 'Pinned' : 'Pin to Favorites'}
+          </Text>
+        </TouchableOpacity>
 
         {/* Coach Tip */}
         <View style={styles.coachTipCard}>
