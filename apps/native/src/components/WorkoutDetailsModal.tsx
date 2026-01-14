@@ -151,9 +151,19 @@ export function WorkoutDetailsModal({
     return compareDate > today;
   };
   
+  // Get completed workouts to check for actual duration
+  const completedWorkouts = useWorkoutStore(state => state.completedWorkouts);
+  
   const currentWorkout = weekWorkouts[currentWorkoutIndex] || workout;
   const currentWorkoutDate = currentWorkout?.date ? new Date(currentWorkout.date) : new Date();
   const dayName = DAYS[currentWorkoutDate.getDay() === 0 ? 6 : currentWorkoutDate.getDay() - 1];
+  
+  // Find the completed workout to get actual duration
+  const completedWorkout = completedWorkouts.find(
+    (cw: any) => cw.id === currentWorkout?.id || 
+    (cw.date && currentWorkout?.date && new Date(cw.date).toDateString() === new Date(currentWorkout.date).toDateString())
+  );
+  const actualDuration = completedWorkout?.duration || currentWorkout?.duration || 45;
   
   const isPast = currentWorkout ? isPastWorkout(currentWorkoutDate) : false;
   const isFuture = currentWorkout ? isFutureWorkout(currentWorkoutDate) : false;
