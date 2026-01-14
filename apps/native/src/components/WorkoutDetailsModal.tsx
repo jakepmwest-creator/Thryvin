@@ -74,6 +74,8 @@ export function WorkoutDetailsModal({
   const [externalActivityModalVisible, setExternalActivityModalVisible] = useState(false);
   const [workoutSummary, setWorkoutSummary] = useState<any>(null);
   const [summaryLoading, setSummaryLoading] = useState(false);
+  const [exerciseStatsVisible, setExerciseStatsVisible] = useState(false);
+  const [selectedExerciseId, setSelectedExerciseId] = useState<string | undefined>(undefined);
   const [alertConfig, setAlertConfig] = useState<{
     visible: boolean;
     type: 'success' | 'error' | 'warning' | 'info';
@@ -83,6 +85,12 @@ export function WorkoutDetailsModal({
   }>({ visible: false, type: 'info', title: '', message: '' });
   
   const swipeX = useRef(new Animated.Value(0)).current;
+  
+  // Open exercise stats detail
+  const openExerciseDetail = (exerciseId: string) => {
+    setSelectedExerciseId(exerciseId);
+    setExerciseStatsVisible(true);
+  };
   
   // Fetch workout summary data from API
   const fetchWorkoutSummary = useCallback(async (workoutId: string) => {
