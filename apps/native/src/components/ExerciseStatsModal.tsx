@@ -563,7 +563,7 @@ export const ExerciseStatsModal = ({ visible, onClose, initialExerciseId }: Exer
     </ScrollView>
   );
 
-  // Render subcategories
+  // Render subcategories with search bar
   const renderSubcategories = () => {
     if (!selectedCategory) return null;
     const categoryConfig = EXERCISE_CATEGORIES[selectedCategory as keyof typeof EXERCISE_CATEGORIES];
@@ -571,8 +571,30 @@ export const ExerciseStatsModal = ({ visible, onClose, initialExerciseId }: Exer
     
     return (
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+        {/* Search Bar for this category */}
+        <View style={styles.globalSearchContainer}>
+          <Ionicons name="search" size={20} color={COLORS.mediumGray} />
+          <TextInput
+            style={styles.searchInput}
+            placeholder={`Search ${categoryConfig.displayName.toLowerCase()}...`}
+            placeholderTextColor={COLORS.mediumGray}
+            value={searchQuery}
+            onChangeText={(text) => {
+              setSearchQuery(text);
+              if (text.length > 0) {
+                setView('list');
+              }
+            }}
+          />
+          {searchQuery.length > 0 && (
+            <TouchableOpacity onPress={() => setSearchQuery('')}>
+              <Ionicons name="close-circle" size={20} color={COLORS.mediumGray} />
+            </TouchableOpacity>
+          )}
+        </View>
+        
         <Text style={styles.viewTitle}>{categoryConfig.displayName}</Text>
-        <Text style={styles.viewSubtitle}>Select equipment type or view all</Text>
+        <Text style={styles.viewSubtitle}>Select a subcategory or view all</Text>
         
         {/* View All button */}
         <TouchableOpacity
