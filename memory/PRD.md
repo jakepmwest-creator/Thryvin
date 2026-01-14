@@ -3,73 +3,76 @@
 ## Original Problem Statement
 Build an AI-powered fitness coaching app with personalized workout generation, progress tracking, and an intelligent coach assistant.
 
-## Tech Stack
-- **Frontend**: React Native / Expo
-- **Backend**: Node.js / TypeScript / Express
-- **Database**: PostgreSQL (Neon) + local MongoDB
-- **AI**: OpenAI GPT-4o
-
 ## What's Been Implemented
 
 ### Jan 14, 2025 (Current Session)
-- ✅ **Data Logging Fix** - All stats/performance endpoints use JWT auth, workout sets save correctly
-- ✅ **Summary Page Beautified** 
-  - Green gradient header for completed workouts
-  - "Great Job! 💪" header with completion date
-  - Stats cards: minutes, sets, volume (kg)
-  - Exercise list with set breakdown (Set 1: 60kg × 10, etc.)
-  - Click exercise to view full history/stats
-- ✅ **Today's Workout Card** - Clean white card matching homepage style
-- ✅ **Exercise Browser Categories Updated**
-  - Now: Weights (→ Upper/Lower/Full Body), Bodyweight, Cardio, Flexibility
-  - Search bar at EVERY level (categories, subcategories, list)
-  - Done exercises at top, undone with lock icon
-  - Pin favorites functionality
-- ✅ **Exercise Count** - Now returns 1819 exercises (was limited to 500)
-- ✅ **Homepage Favorites** - Replaced "Coming Soon" with FavoriteExercisesCard
-- ✅ **Stats Page** - Removed "All Exercise Stats" button
-- ✅ **Duration Fix** - Summary shows actual duration from completed workouts
+
+#### Data Flow & Backend
+- ✅ **Data Logging** - JWT auth on all stats endpoints, workout sets save correctly
+- ✅ **Exercise Count** - Returns 1819 exercises (limit increased from 500)
+
+#### Exercise Stats Modal - Complete Rewrite
+- ✅ **Smart Category Detection** - Matches Explore Workouts logic
+  - Weights: 897 exercises (anything with equipment)
+  - Calisthenics: 767 exercises (bodyweight)
+  - Cardio: 28 exercises
+  - Flexibility: 127 exercises (warmup, recovery, stretch, yoga)
+- ✅ **Search Bar at Every Level** - Categories, subcategories, exercise list
+- ✅ **Done vs Undone** - Done exercises at top with stats, undone below with lock
+- ✅ **Unperformed Exercise View**
+  - Click unlocked exercises to see grayed-out detail view
+  - "Add to Future Workout" button
+  - Pin to favorites button
+- ✅ **Performed Exercise View**
+  - Full stats with PBs, history, graphs
+  - Inline pin button
+  - Coach tips
+
+#### Category Naming Standardized
+- ✅ Explore Workouts: Changed "Strength" → "Weights"
+- ✅ Exercise Stats: Changed "Bodyweight" → "Calisthenics"
+- ✅ Both now use: Weights, Calisthenics, Cardio, Flexibility
+
+#### Summary Page
+- ✅ Green gradient header for completed workouts
+- ✅ Shows actual duration from completed workout
+- ✅ Per-exercise set breakdown (Set 1: 60kg × 10)
+- ✅ Click exercise → opens detailed stats view
 
 ### Previous Sessions
 - ✅ Edit Plan Conversational UI
-- ✅ AI Coach directive-only role
+- ✅ AI Coach directive-only
 - ✅ Voice-to-text in chat
-- ✅ Calendar/Program data sync
 
-## Pending / In Progress
+## Pending / Still To Fix
+
+### P0 - Critical
+- [ ] **Summary sets count wrong** - Shows 6 sets but user did more
+- [ ] **Summary volume showing zero** - Need to debug why volume calc returns 0
+- [ ] **Exercise click in summary not working** - Need to verify the click handler triggers
 
 ### P1 - High Priority
-- [ ] **PR Celebration Animation** - Detect when user beats personal best during workout
-- [ ] Test complete workout flow end-to-end on device
-- [ ] Verify exercises show correctly in browser
+- [ ] **PR Celebration Animation** - Detect and celebrate when user beats PB
+- [ ] **Explore Workout IDs showing** - Fix display of exercise IDs with names
 
 ### P2 - Medium Priority
-- [ ] Refactor FloatingCoachButton.tsx (2000+ lines)
-- [ ] "Add to future workout" option in exercise browser
+- [ ] Refactor FloatingCoachButton.tsx
 
 ## Key API Endpoints
-- `POST /api/workout/log-set` - Log workout set (JWT auth)
-- `GET /api/stats/workout-summary/:workoutId` - Get workout summary with exercises
-- `GET /api/exercises?limit=2000` - Get ALL exercises from database
-- `GET /api/stats/exercises` - Get user's logged exercises
-- `GET /api/stats/exercise/:exerciseId` - Get exercise detail
+- `POST /api/workout/log-set` - Log workout set
+- `GET /api/stats/workout-summary/:workoutId` - Get workout summary
+- `GET /api/exercises?limit=2000` - Get ALL exercises
+- `GET /api/stats/exercises` - User's logged exercises
+- `POST /api/user/exercise-requests` - Request exercise for future workout
 
 ## Architecture Notes
 - Backend: port 8001, supervisor-managed
-- Exercises API limit increased from 500 to 2000
+- Smart category detection using keyword matching
 - `performance_logs` table stores all workout data
-- Summary fetches from performance_logs, calculates volume
 
 ## Key Files Modified This Session
-- `/app/server/routes.ts` - JWT auth, exercise limit to 2000
-- `/app/apps/native/src/components/WorkoutDetailsModal.tsx` - Summary UI, click exercise to view stats
-- `/app/apps/native/src/components/ExerciseStatsModal.tsx` - New categories, search at all levels
-- `/app/apps/native/app/(tabs)/workouts.tsx` - Clean completed card
-- `/app/apps/native/app/(tabs)/index.tsx` - FavoriteExercisesCard
-
-## Data Flow
-```
-Mobile App → POST /api/workout/log-set → performance_logs table
-           → GET /api/stats/workout-summary/:id → Summary with per-exercise sets breakdown
-           → Click exercise → ExerciseStatsModal with full history
-```
+- `/app/server/routes.ts` - JWT auth, exercise limit
+- `/app/apps/native/src/components/ExerciseStatsModal.tsx` - Complete rewrite
+- `/app/apps/native/src/components/ExploreWorkoutsModal.tsx` - Strength→Weights
+- `/app/apps/native/app/(tabs)/workouts.tsx` - Category naming
+- `/app/apps/native/src/components/WorkoutDetailsModal.tsx` - Summary UI
