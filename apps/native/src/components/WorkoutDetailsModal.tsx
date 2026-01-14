@@ -785,6 +785,16 @@ export function WorkoutDetailsModal({
         buttons={alertConfig.buttons}
         onClose={() => setAlertConfig(prev => ({ ...prev, visible: false }))}
       />
+      
+      {/* Exercise Stats Detail Modal */}
+      <ExerciseStatsModal
+        visible={exerciseStatsVisible}
+        onClose={() => {
+          setExerciseStatsVisible(false);
+          setSelectedExerciseId(undefined);
+        }}
+        initialExerciseId={selectedExerciseId}
+      />
     </Modal>
   );
 }
