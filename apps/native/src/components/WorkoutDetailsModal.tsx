@@ -568,8 +568,8 @@ export function WorkoutDetailsModal({
                         </View>
                         <View style={styles.summaryStatCard}>
                           <Ionicons name="barbell-outline" size={22} color={COLORS.accent} />
-                          <Text style={styles.summaryStatValue}>{workoutSummary?.stats?.totalSets || currentWorkout.exercises?.length || 0}</Text>
-                          <Text style={styles.summaryStatLabel}>sets</Text>
+                          <Text style={styles.summaryStatValue}>{workoutSummary?.stats?.exerciseCount || workoutSummary?.exercises?.length || currentWorkout.exercises?.length || 0}</Text>
+                          <Text style={styles.summaryStatLabel}>exercises</Text>
                         </View>
                         <View style={styles.summaryStatCard}>
                           <Ionicons name="trending-up-outline" size={22} color={COLORS.accent} />
