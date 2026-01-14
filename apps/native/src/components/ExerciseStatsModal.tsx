@@ -132,16 +132,30 @@ interface Exercise {
 }
 
 interface ExerciseDetail {
+  ok?: boolean;
   exerciseId: string;
-  exerciseName: string;
+  name?: string;
+  exerciseName?: string;
   history: Array<{
     date: string;
     maxWeight: number;
     totalReps: number;
     totalSets: number;
+    totalVolume?: number;
     estimatedOneRM: number;
   }>;
-  personalBests: {
+  pbs?: {
+    maxWeight: number;
+    maxReps: number;
+    maxVolume: number;
+    estimatedOneRM: number;
+    estimated3RM: number;
+    estimated5RM: number;
+    estimated10RM: number;
+    bestWeightSet?: { weight: number; reps: number; date: string };
+    bestVolumeSet?: { weight: number; reps: number; volume: number; date: string };
+  };
+  personalBests?: {
     actualPB: number;
     estimatedOneRM: number;
     estimated3RM: number;
@@ -152,12 +166,16 @@ interface ExerciseDetail {
     maxVolume: number;
     bestSet: { weight: number; reps: number; date: string };
   };
+  lastSession?: {
+    workoutId: string;
+    date: string;
+    sets: Array<{ setNumber: number; weight: number; reps: number; volume: number; rpe?: number }>;
+  };
   trend: 'up' | 'down' | 'neutral';
-  strongest: { date: string; weight: number };
-  weakest: { date: string; weight: number };
+  strongest?: { date: string; weight: number };
+  weakest?: { date: string; weight: number };
   totalSessions: number;
-  firstSession: string;
-  lastSession: string;
+  firstSession?: string;
   coachTip?: string;
 }
 
