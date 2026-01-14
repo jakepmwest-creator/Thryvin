@@ -2352,13 +2352,12 @@ Respond with ONLY a JSON object (no markdown, no explanation):
   });
 
   // Get detailed stats for a specific exercise
-  app.get("/api/stats/exercise/:exerciseId", async (req, res) => {
-    if (!req.isAuthenticated()) {
-      return res.sendStatus(401);
-    }
-
+  app.get("/api/stats/exercise/:exerciseId", authenticateToken, async (req: AuthenticatedRequest, res) => {
     try {
-      const userId = req.user!.id;
+      const userId = req.user?.id;
+      if (!userId) {
+        return res.status(401).json({ error: "Authentication required" });
+      }
       const { exerciseId } = req.params;
       console.log(`📊 [STATS] Getting stats for exercise ${exerciseId}, user ${userId}`);
 
