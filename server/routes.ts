@@ -2493,13 +2493,12 @@ Respond with ONLY a JSON object (no markdown, no explanation):
   }
 
   // Get/Set favorite exercises
-  app.get("/api/stats/favorites", async (req, res) => {
-    if (!req.isAuthenticated()) {
-      return res.sendStatus(401);
-    }
-
+  app.get("/api/stats/favorites", authenticateToken, async (req: AuthenticatedRequest, res) => {
     try {
-      const userId = req.user!.id;
+      const userId = req.user?.id;
+      if (!userId) {
+        return res.status(401).json({ error: "Authentication required" });
+      }
       const user = await storage.getUser(userId);
       
       // Get favorites from user profile or default to empty
