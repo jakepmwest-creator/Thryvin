@@ -415,19 +415,23 @@ export const ExerciseStatsModal = ({ visible, onClose, initialExerciseId }: Exer
   const getFilteredExercises = (): { done: Exercise[]; notDone: Exercise[] } => {
     const userExerciseIds = new Set(userExercises.map(e => e.exerciseId));
     
-    // Filter by category and subcategory if selected
+    // Filter by category if selected
     let filtered = allExercises;
     if (selectedCategory) {
-      filtered = filtered.filter(e => (e.category || 'Weights') === selectedCategory);
+      filtered = filtered.filter(e => e.category === selectedCategory);
     }
     if (selectedSubcategory) {
-      filtered = filtered.filter(e => (e.subcategory || 'Free Weights') === selectedSubcategory);
+      // Filter by equipment type
+      filtered = filtered.filter(e => 
+        e.equipment?.includes(selectedSubcategory) || e.subcategory === selectedSubcategory
+      );
     }
     
     // Filter by search
     if (searchQuery) {
+      const query = searchQuery.toLowerCase();
       filtered = filtered.filter(e => 
-        e.exerciseName.toLowerCase().includes(searchQuery.toLowerCase())
+        (e.exerciseName || e.name || '').toLowerCase().includes(query)
       );
     }
     
@@ -445,6 +449,11 @@ export const ExerciseStatsModal = ({ visible, onClose, initialExerciseId }: Exer
     return { done, notDone };
   };
 
+  // Get exercise count for a category
+  const getCategoryCount = (categoryKey: string): number => {
+    return allExercises.filter(e => e.category === categoryKey).length;
+  };
+
   // Render category selection
   const renderCategories = () => (
     <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
@@ -452,12 +461,12 @@ export const ExerciseStatsModal = ({ visible, onClose, initialExerciseId }: Exer
       <Text style={styles.viewSubtitle}>Select a category to explore</Text>
       
       <View style={styles.categoriesGrid}>
-        {Object.entries(EXERCISE_CATEGORIES).map(([name, config]) => (
+        {Object.entries(EXERCISE_CATEGORIES).map(([key, config]) => (
           <TouchableOpacity
-            key={name}
+            key={key}
             style={styles.categoryCard}
             onPress={() => {
-              setSelectedCategory(name);
+              setSelectedCategory(key);
               setView('subcategories');
             }}
             activeOpacity={0.8}
