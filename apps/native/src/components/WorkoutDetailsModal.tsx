@@ -580,12 +580,26 @@ export function WorkoutDetailsModal({
                           key={ex.exerciseId + idx} 
                           style={styles.exerciseSummaryCard}
                           activeOpacity={0.7}
+                          onPress={() => openExerciseDetail(ex.exerciseId)}
                         >
                           <View style={styles.exerciseSummaryLeft}>
                             <Text style={styles.exerciseSummaryName}>{ex.exerciseName}</Text>
                             <Text style={styles.exerciseSummaryMeta}>
                               {ex.sets?.length || 0} sets • Best: {ex.todayMax || 0}kg
                             </Text>
+                            {/* Show individual set breakdown */}
+                            {ex.sets?.length > 0 && (
+                              <View style={styles.setBreakdown}>
+                                {ex.sets.slice(0, 4).map((set: any, setIdx: number) => (
+                                  <Text key={setIdx} style={styles.setBreakdownText}>
+                                    Set {set.setNumber}: {set.weight}kg × {set.reps}
+                                  </Text>
+                                ))}
+                                {ex.sets.length > 4 && (
+                                  <Text style={styles.setBreakdownText}>+{ex.sets.length - 4} more sets</Text>
+                                )}
+                              </View>
+                            )}
                           </View>
                           <View style={styles.exerciseSummaryRight}>
                             {ex.isPR && (
@@ -595,6 +609,9 @@ export function WorkoutDetailsModal({
                             )}
                             <Text style={styles.exerciseVolume}>{ex.totalVolume}kg</Text>
                             <Text style={styles.exerciseVolumeLabel}>volume</Text>
+                            <View style={styles.viewDetailHint}>
+                              <Ionicons name="chevron-forward" size={16} color={COLORS.mediumGray} />
+                            </View>
                           </View>
                         </TouchableOpacity>
                       ))
