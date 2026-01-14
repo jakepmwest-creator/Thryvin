@@ -74,9 +74,9 @@ const MONTH_DATA = getCurrentMonthData();
 
 const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL || 'https://fitness-stats-7.preview.emergentagent.com';
 
-// Updated categories: Cardio, Flexibility, Strength, Calisthenics
+// Updated categories: Weights, Calisthenics, Cardio, Flexibility
 const DEFAULT_CATEGORIES = [
-  { id: 1, name: 'Strength', icon: 'barbell', gradient: COLORS.strength, workouts: 0 },
+  { id: 1, name: 'Weights', icon: 'barbell', gradient: COLORS.strength, workouts: 0 },
   { id: 2, name: 'Calisthenics', icon: 'body', gradient: COLORS.hiit, workouts: 0 },
   { id: 3, name: 'Cardio', icon: 'heart', gradient: COLORS.cardio, workouts: 0 },
   { id: 4, name: 'Flexibility', icon: 'fitness', gradient: COLORS.flexibility, workouts: 0 },
@@ -93,7 +93,7 @@ export default function WorkoutsScreen() {
   const [modalVisible, setModalVisible] = useState(false);
   
   const [exploreModalVisible, setExploreModalVisible] = useState(false);
-  const [selectedCategory, setSelectedCategory] = useState<string>('Strength');
+  const [selectedCategory, setSelectedCategory] = useState<string>('Weights');
   const [selectedCategoryGradient, setSelectedCategoryGradient] = useState<string[]>(COLORS.strength);
   const [likedDislikedModalVisible, setLikedDislikedModalVisible] = useState(false);
   const [workoutCategories, setWorkoutCategories] = useState(DEFAULT_CATEGORIES);
