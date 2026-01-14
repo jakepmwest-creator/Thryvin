@@ -942,40 +942,49 @@ export const ExerciseStatsModal = ({ visible, onClose, initialExerciseId }: Exer
               colors={[COLORS.accent, COLORS.accentSecondary]}
               style={styles.pbMainCard}
             >
-              <Text style={styles.pbMainLabel}>Actual PB</Text>
-              <Text style={styles.pbMainValue}>{personalBests?.actualPB || 0}kg</Text>
+              <Text style={styles.pbMainLabel}>Max Weight</Text>
+              <Text style={styles.pbMainValue}>{pbs?.maxWeight || pbs?.actualPB || 0}kg</Text>
               <Text style={styles.pbMainSub}>
-                {personalBests?.bestSet?.reps || 0} reps @ {personalBests?.bestSet?.weight || 0}kg
+                {pbs?.bestWeightSet?.reps || pbs?.bestSet?.reps || 0} reps @ {pbs?.bestWeightSet?.weight || pbs?.bestSet?.weight || 0}kg
               </Text>
             </LinearGradient>
 
             {/* Estimated 1RM */}
             <View style={styles.pbEstimatedCard}>
               <Text style={styles.pbEstLabel}>Est. 1RM (Epley)</Text>
-              <Text style={styles.pbEstValue}>{personalBests?.estimatedOneRM || 0}kg</Text>
-              {personalBests?.estimatedOneRM > personalBests?.actualPB && (
+              <Text style={styles.pbEstValue}>{pbs?.estimatedOneRM || 0}kg</Text>
+              {(pbs?.estimatedOneRM || 0) > (pbs?.maxWeight || pbs?.actualPB || 0) && (
                 <Text style={styles.pbMotivation}>You can hit this! 💪</Text>
               )}
             </View>
           </View>
+          
+          {/* Best Volume */}
+          {pbs?.maxVolume && (
+            <View style={styles.bestVolumeCard}>
+              <Ionicons name="trending-up" size={18} color={COLORS.success} />
+              <Text style={styles.bestVolumeLabel}>Best Single Set Volume:</Text>
+              <Text style={styles.bestVolumeValue}>{pbs.maxVolume}kg</Text>
+            </View>
+          )}
 
           {/* Rep Maxes */}
           <View style={styles.repMaxRow}>
             <View style={styles.repMaxItem}>
               <Text style={styles.repMaxLabel}>3RM</Text>
-              <Text style={styles.repMaxValue}>{personalBests?.estimated3RM || 0}kg</Text>
+              <Text style={styles.repMaxValue}>{pbs?.estimated3RM || 0}kg</Text>
             </View>
             <View style={styles.repMaxItem}>
               <Text style={styles.repMaxLabel}>5RM</Text>
-              <Text style={styles.repMaxValue}>{personalBests?.estimated5RM || 0}kg</Text>
+              <Text style={styles.repMaxValue}>{pbs?.estimated5RM || 0}kg</Text>
             </View>
             <View style={styles.repMaxItem}>
-              <Text style={styles.repMaxLabel}>6RM</Text>
-              <Text style={styles.repMaxValue}>{personalBests?.estimated6RM || 0}kg</Text>
+              <Text style={styles.repMaxLabel}>Max Reps</Text>
+              <Text style={styles.repMaxValue}>{pbs?.maxReps || 0}</Text>
             </View>
             <View style={styles.repMaxItem}>
               <Text style={styles.repMaxLabel}>10RM</Text>
-              <Text style={styles.repMaxValue}>{personalBests?.estimated10RM || 0}kg</Text>
+              <Text style={styles.repMaxValue}>{pbs?.estimated10RM || 0}kg</Text>
             </View>
           </View>
         </View>
