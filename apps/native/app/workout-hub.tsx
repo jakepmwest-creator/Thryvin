@@ -391,13 +391,15 @@ export default function WorkoutHubScreen() {
     
     // Log to backend for AI learning (including notes)
     const exerciseName = exercise?.name || exercise?.exercise?.name || 'Unknown Exercise';
+    const exerciseId = exercise?.id || exercise?.exerciseId || exerciseName.toLowerCase().replace(/[^a-z0-9]/g, '_');
     logSetToBackend(
       exerciseName,
       currentSet + 1,
       performanceWeight,
       performanceValue,
       setNotes.trim() || undefined,
-      undefined // difficulty - could be added later
+      undefined, // difficulty - could be added later
+      exerciseId
     );
 
     if (currentSet < (exercise?.sets || 1) - 1) {
