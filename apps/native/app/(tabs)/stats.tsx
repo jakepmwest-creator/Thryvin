@@ -821,6 +821,16 @@ export default function StatsScreen() {
 
         <View style={{ height: 32 }} />
       </ScrollView>
+      
+      {/* Exercise Stats Modal */}
+      <ExerciseStatsModal
+        visible={showExerciseStats}
+        onClose={() => {
+          setShowExerciseStats(false);
+          setSelectedExerciseId(undefined);
+        }}
+        initialExerciseId={selectedExerciseId}
+      />
     </SafeAreaView>
   );
 }
