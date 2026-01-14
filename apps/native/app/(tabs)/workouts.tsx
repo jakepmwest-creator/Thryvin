@@ -331,9 +331,9 @@ export default function WorkoutsScreen() {
               </View>
             </View>
           ) : actualTodayWorkout?.completed ? (
-            // COMPLETED WORKOUT - Show GREEN summary card
+            // COMPLETED WORKOUT - Clean white card matching homepage style
             <TouchableOpacity 
-              style={[styles.workoutCard, styles.completedWorkoutCard]}
+              style={styles.workoutCard}
               onPress={() => {
                 const today = new Date();
                 const dayOfWeek = today.getDay();
@@ -343,38 +343,28 @@ export default function WorkoutsScreen() {
               }}
               activeOpacity={0.9}
             >
-              <LinearGradient
-                colors={[COLORS.success, '#2ECC71']}
-                style={styles.completedGradient}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 1 }}
-              >
-                <View style={styles.completedHeader}>
-                  <View style={styles.completedIconCircle}>
-                    <Ionicons name="checkmark" size={24} color={COLORS.success} />
+              <View style={styles.workoutCardContent}>
+                <View style={styles.workoutHeader}>
+                  <View style={{ flex: 1 }}>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                      <Text style={[styles.sectionLabel, { color: COLORS.success }]}>
+                        COMPLETED ✓
+                      </Text>
+                    </View>
+                    <Text style={styles.workoutName}>{actualTodayWorkout?.title || 'Workout'}</Text>
+                    <Text style={styles.workoutMeta}>
+                      {actualTodayWorkout?.duration || 45} min • {actualTodayWorkout?.exercises?.length || 0} exercises
+                    </Text>
                   </View>
-                  <Text style={styles.completedTitle}>Workout Complete!</Text>
-                </View>
-                
-                <Text style={styles.completedWorkoutName}>{actualTodayWorkout?.title || 'Workout'}</Text>
-                
-                <View style={styles.completedStats}>
-                  <View style={styles.completedStat}>
-                    <Ionicons name="time-outline" size={18} color="rgba(255,255,255,0.8)" />
-                    <Text style={styles.completedStatValue}>{actualTodayWorkout?.duration || 45} min</Text>
-                  </View>
-                  <View style={styles.completedStatDivider} />
-                  <View style={styles.completedStat}>
-                    <Ionicons name="barbell-outline" size={18} color="rgba(255,255,255,0.8)" />
-                    <Text style={styles.completedStatValue}>{actualTodayWorkout?.exercises?.length || 0} exercises</Text>
+                  <View style={styles.completedBadgeIcon}>
+                    <Ionicons name="checkmark-circle" size={32} color={COLORS.success} />
                   </View>
                 </View>
-                
-                <View style={styles.viewSummaryButton}>
-                  <Text style={styles.viewSummaryButtonText}>View Summary</Text>
-                  <Ionicons name="chevron-forward" size={18} color={COLORS.white} />
+                <View style={styles.viewSummaryHint}>
+                  <Text style={styles.viewSummaryText}>Tap to view summary</Text>
+                  <Ionicons name="chevron-forward" size={16} color={COLORS.mediumGray} />
                 </View>
-              </LinearGradient>
+              </View>
             </TouchableOpacity>
           ) : (
             <TouchableOpacity 
