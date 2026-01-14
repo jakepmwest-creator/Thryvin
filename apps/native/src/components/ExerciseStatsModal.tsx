@@ -375,7 +375,9 @@ export const ExerciseStatsModal = ({ visible, onClose, initialExerciseId }: Exer
       
       if (response.ok) {
         const data = await response.json();
-        setFavorites(data.favorites?.map((f: any) => f.exerciseId) || []);
+        // Use favoriteIds directly if available, otherwise map from favorites array
+        const ids = data.favoriteIds || data.favorites?.map((f: any) => f.exerciseId) || [];
+        setFavorites(ids);
       }
     } catch (err) {
       console.error('Error fetching favorites:', err);
