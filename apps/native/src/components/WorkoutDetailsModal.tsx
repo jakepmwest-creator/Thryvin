@@ -161,8 +161,16 @@ export function WorkoutDetailsModal({
         setCurrentWorkoutIndex(todayIndex >= 0 ? todayIndex : 0);
       }
       setExpandedExerciseIndex(null);
+      setWorkoutSummary(null);
     }
   }, [visible, initialDayIndex, selectedFullDate]);
+  
+  // Fetch summary when viewing a completed workout
+  useEffect(() => {
+    if (visible && currentWorkout?.completed && currentWorkout?.id) {
+      fetchWorkoutSummary(currentWorkout.id);
+    }
+  }, [visible, currentWorkout?.id, currentWorkout?.completed, fetchWorkoutSummary]);
   
   // Swipe gesture handler
   const panResponder = useRef(
