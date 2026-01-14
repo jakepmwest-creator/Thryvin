@@ -2501,8 +2501,16 @@ Respond with ONLY a JSON object (no markdown, no explanation):
       }
       const user = await storage.getUser(userId);
       
-      // Get favorites from user profile or default to empty
-      const favoriteIds: string[] = (user as any)?.favoriteExercises || [];
+      // Get favorites from user profile - stored as JSON string, parse it
+      let favoriteIds: string[] = [];
+      const rawFavorites = (user as any)?.favoriteExercises;
+      if (rawFavorites) {
+        try {
+          favoriteIds = typeof rawFavorites === 'string' ? JSON.parse(rawFavorites) : rawFavorites;
+        } catch {
+          favoriteIds = [];
+        }
+      }
       
       // Get stats for each favorite
       const favorites = [];
@@ -2526,7 +2534,7 @@ Respond with ONLY a JSON object (no markdown, no explanation):
         }
       }
       
-      res.json({ favorites });
+      res.json({ favorites, favoriteIds });
     } catch (error: any) {
       console.log(`❌ [STATS] Error:`, error);
       res.status(500).json({ error: "Failed to get favorites" });
@@ -2545,12 +2553,13 @@ Respond with ONLY a JSON object (no markdown, no explanation):
         return res.status(400).json({ error: "Maximum 3 favorite exercises allowed" });
       }
 
-      // Update user's favorite exercises
-      await storage.updateUser(userId, { favoriteExercises: exerciseIds } as any);
+      // Update user's favorite exercises - store as JSON string
+      await storage.updateUser(userId, { favoriteExercises: JSON.stringify(exerciseIds) } as any);
       
+      console.log(`✅ [STATS] Updated favorites for user ${userId}:`, exerciseIds);
       res.json({ success: true, favorites: exerciseIds });
     } catch (error: any) {
-      console.log(`❌ [STATS] Error:`, error);
+      console.log(`❌ [STATS] Error updating favorites:`, error);
       res.status(500).json({ error: "Failed to update favorites" });
     }
   });
