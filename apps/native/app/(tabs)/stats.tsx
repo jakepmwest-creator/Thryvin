@@ -896,4 +896,13 @@ const styles = StyleSheet.create({
   pbNumberEmpty: { fontSize: 24, fontWeight: '700', color: COLORS.lightGray },
   pbUnitEmpty: { fontSize: 11, color: COLORS.mediumGray, marginTop: 2, fontStyle: 'italic' },
   pbDivider: { height: 1, backgroundColor: COLORS.lightGray, marginVertical: 16 },
+  
+  // View All Exercises Button
+  viewAllExercisesButton: { marginTop: 4 },
+  viewAllExercisesGradient: { borderRadius: 14, flexDirection: 'row', alignItems: 'center', padding: 16 },
+  viewAllExercisesContent: { flex: 1, flexDirection: 'row', alignItems: 'center' },
+  viewAllExercisesIcon: { width: 40, height: 40, borderRadius: 10, backgroundColor: `${COLORS.accent}15`, justifyContent: 'center', alignItems: 'center', marginRight: 12 },
+  viewAllExercisesText: { flex: 1 },
+  viewAllExercisesTitle: { fontSize: 15, fontWeight: '600', color: COLORS.text },
+  viewAllExercisesSubtitle: { fontSize: 12, color: COLORS.mediumGray, marginTop: 2 },
 });
