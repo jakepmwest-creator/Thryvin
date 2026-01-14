@@ -41,59 +41,55 @@ const COLORS = {
 
 const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL || 'https://fitness-stats-7.preview.emergentagent.com';
 
-// Exercise Categories and Sub-Categories - matching database structure
+// Exercise Categories - User requested structure: Weights, Bodyweight, Cardio, Flexibility
+// With Weights having sub-categories: Upper Body, Lower Body, Full Body
 const EXERCISE_CATEGORIES = {
-  'upper-body': {
-    displayName: 'Upper Body',
-    icon: 'body',
+  'weights': {
+    displayName: 'Weights',
+    icon: 'barbell',
     gradient: [THEME_COLORS.gradientStart, THEME_COLORS.gradientEnd],
+    // Maps to database categories
+    dbCategories: ['upper-body', 'lower-body', 'full-body'],
     subcategories: {
-      'barbell': 'Barbell',
-      'dumbbell': 'Dumbbell', 
-      'cable': 'Cable',
-      'machine': 'Machine',
-      'bodyweight': 'Bodyweight',
+      'upper-body': 'Upper Body',
+      'lower-body': 'Lower Body',
+      'full-body': 'Full Body',
     }
   },
-  'lower-body': {
-    displayName: 'Lower Body',
-    icon: 'walk',
+  'bodyweight': {
+    displayName: 'Bodyweight',
+    icon: 'body',
     gradient: ['#FF4EC7', '#FF6B9D'],
+    dbCategories: ['upper-body', 'lower-body', 'core', 'full-body'],
+    equipmentFilter: 'bodyweight', // Filter by equipment
     subcategories: {
-      'barbell': 'Barbell',
-      'dumbbell': 'Dumbbell',
-      'machine': 'Machine',
-      'bodyweight': 'Bodyweight',
-    }
-  },
-  'core': {
-    displayName: 'Core',
-    icon: 'fitness',
-    gradient: ['#FF9500', '#FFAB40'],
-    subcategories: {
-      'bodyweight': 'Bodyweight',
-      'weighted': 'Weighted',
-      'machine': 'Machine',
+      'upper-body': 'Upper Body',
+      'lower-body': 'Lower Body',
+      'core': 'Core',
+      'full-body': 'Full Body',
     }
   },
   'cardio': {
     displayName: 'Cardio',
     icon: 'heart',
     gradient: ['#FF3B30', '#FF6B35'],
+    dbCategories: ['cardio'],
     subcategories: {
-      'treadmill': 'Treadmill',
+      'running': 'Running',
       'cycling': 'Cycling',
       'rowing': 'Rowing',
-      'jump-rope': 'Jump Rope',
+      'hiit': 'HIIT',
     }
   },
-  'full-body': {
-    displayName: 'Full Body',
-    icon: 'flash',
+  'flexibility': {
+    displayName: 'Flexibility',
+    icon: 'fitness',
     gradient: ['#34C759', '#5BD678'],
+    dbCategories: ['flexibility', 'mobility', 'stretching'],
     subcategories: {
-      'compound': 'Compound',
-      'bodyweight': 'Bodyweight',
+      'stretching': 'Stretching',
+      'yoga': 'Yoga',
+      'mobility': 'Mobility',
     }
   },
 };
