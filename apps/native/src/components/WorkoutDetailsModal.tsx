@@ -76,6 +76,8 @@ export function WorkoutDetailsModal({
   const [summaryLoading, setSummaryLoading] = useState(false);
   const [exerciseStatsVisible, setExerciseStatsVisible] = useState(false);
   const [selectedExerciseId, setSelectedExerciseId] = useState<string | undefined>(undefined);
+  const [currentWorkoutId, setCurrentWorkoutId] = useState<string | undefined>(undefined);
+  const [thisWorkoutExerciseData, setThisWorkoutExerciseData] = useState<any>(null);
   const [alertConfig, setAlertConfig] = useState<{
     visible: boolean;
     type: 'success' | 'error' | 'warning' | 'info';
