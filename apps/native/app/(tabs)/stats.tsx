@@ -769,29 +769,6 @@ export default function StatsScreen() {
             onViewAll={() => openExerciseStats()}
             onExercisePress={(exerciseId) => openExerciseStats(exerciseId)}
           />
-          
-          {/* View All Exercises Button */}
-          <TouchableOpacity 
-            style={styles.viewAllExercisesButton}
-            onPress={() => openExerciseStats()}
-            activeOpacity={0.7}
-          >
-            <LinearGradient
-              colors={[COLORS.lightGray, COLORS.lightGray]}
-              style={styles.viewAllExercisesGradient}
-            >
-              <View style={styles.viewAllExercisesContent}>
-                <View style={styles.viewAllExercisesIcon}>
-                  <Ionicons name="barbell" size={20} color={COLORS.accent} />
-                </View>
-                <View style={styles.viewAllExercisesText}>
-                  <Text style={styles.viewAllExercisesTitle}>All Exercise Stats</Text>
-                  <Text style={styles.viewAllExercisesSubtitle}>View PBs, history & progress for every exercise</Text>
-                </View>
-              </View>
-              <Ionicons name="chevron-forward" size={20} color={COLORS.mediumGray} />
-            </LinearGradient>
-          </TouchableOpacity>
         </View>
 
         {/* All-Time Stats */}
