@@ -2220,17 +2220,18 @@ Respond with ONLY a JSON object (no markdown, no explanation):
   });
 
   // 📊 PERFORMANCE LOGGING API - Critical for AI PT Learning
-  app.post("/api/performance/log", async (req, res) => {
-    if (!req.isAuthenticated()) {
-      return res.sendStatus(401);
-    }
-
+  app.post("/api/performance/log", authenticateToken, async (req: AuthenticatedRequest, res) => {
     try {
+      const userId = req.user?.id;
+      if (!userId) {
+        return res.status(401).json({ error: "Authentication required" });
+      }
+
       console.log(`📊 [${req.method}] ${req.url}`, req.body);
 
       const performanceData = {
         ...req.body,
-        userId: req.user!.id, // Ensure we use authenticated user ID
+        userId, // Ensure we use authenticated user ID
       };
 
       // Validate required fields for AI learning
