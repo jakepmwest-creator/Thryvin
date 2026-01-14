@@ -3232,10 +3232,33 @@ Respond with ONLY a JSON object (no markdown, no explanation):
     }
     
     try {
-      const { exerciseName, setNumber, weight, reps, note, difficulty } = req.body;
+      const { exerciseName, exerciseId, setNumber, weight, reps, note, difficulty, workoutId } = req.body;
       const userId = req.user!.id;
       
       console.log(`📝 Logging set for user ${userId}: ${exerciseName} - Set ${setNumber}: ${weight}kg x ${reps}`);
+      
+      // Generate exerciseId from name if not provided
+      const finalExerciseId = exerciseId || exerciseName.toLowerCase().replace(/[^a-z0-9]/g, '_');
+      
+      // CRITICAL: Save to performance_logs table for stats tracking
+      await storage.savePerformanceLog({
+        id: undefined as any,
+        loggedAt: new Date(),
+        userId,
+        workoutId: workoutId || `workout_${new Date().toISOString().split('T')[0]}`,
+        exerciseId: finalExerciseId,
+        exerciseName,
+        targetSets: 1,
+        targetReps: reps,
+        actualSets: 1,
+        actualReps: reps,
+        targetWeight: weight || 0,
+        actualWeight: weight || 0,
+        rpe: difficulty === 'easy' ? 5 : difficulty === 'moderate' ? 7 : difficulty === 'hard' ? 9 : difficulty === 'too_hard' ? 10 : undefined,
+        notes: note || undefined,
+        isPR: false,
+        completedAt: new Date(),
+      });
       
       // Save strength data to AI learning context
       if (weight && reps) {
