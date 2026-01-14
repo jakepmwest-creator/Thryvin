@@ -25,6 +25,7 @@ const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const COLORS = {
   primary: '#A22BF6',
   secondary: '#FF4EC7',
+  accent: '#A22BF6',
   gradientStart: '#A22BF6',
   gradientEnd: '#FF4EC7',
   // Green gradient for completed workouts
