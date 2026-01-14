@@ -1276,4 +1276,23 @@ const styles = StyleSheet.create({
   pinButtonText: { fontSize: 15, fontWeight: '600', color: COLORS.mediumGray },
   pinButtonInline: { flexDirection: 'row', alignItems: 'center', backgroundColor: COLORS.lightGray, alignSelf: 'flex-start', borderRadius: 20, paddingHorizontal: 12, paddingVertical: 6, gap: 6, marginBottom: 16 },
   pinButtonTextSmall: { fontSize: 13, fontWeight: '600', color: COLORS.mediumGray },
+  
+  // Last Session Card - NEW
+  lastSessionCard: { backgroundColor: COLORS.lightGray, borderRadius: 16, padding: 16, marginBottom: 16 },
+  lastSessionHeader: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 12 },
+  lastSessionTitle: { fontSize: 16, fontWeight: '700', color: COLORS.text, flex: 1 },
+  lastSessionDate: { fontSize: 13, color: COLORS.mediumGray },
+  lastSessionSets: { gap: 8 },
+  lastSessionSet: { flexDirection: 'row', alignItems: 'center', backgroundColor: COLORS.white, borderRadius: 10, padding: 12 },
+  lastSessionSetNum: { fontSize: 13, fontWeight: '600', color: COLORS.mediumGray, width: 50 },
+  lastSessionSetData: { fontSize: 15, fontWeight: '700', color: COLORS.text, flex: 1 },
+  lastSessionRpe: { fontSize: 12, color: COLORS.accent, fontWeight: '600' },
+  lastSessionTotal: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 12, paddingTop: 12, borderTopWidth: 1, borderTopColor: 'rgba(0,0,0,0.05)' },
+  lastSessionTotalLabel: { fontSize: 14, color: COLORS.mediumGray },
+  lastSessionTotalValue: { fontSize: 16, fontWeight: '700', color: COLORS.accent },
+  
+  // Best Volume Card
+  bestVolumeCard: { flexDirection: 'row', alignItems: 'center', backgroundColor: `${COLORS.success}15`, borderRadius: 10, padding: 12, marginBottom: 16, gap: 8 },
+  bestVolumeLabel: { fontSize: 14, color: COLORS.text, flex: 1 },
+  bestVolumeValue: { fontSize: 16, fontWeight: '700', color: COLORS.success },
 });
