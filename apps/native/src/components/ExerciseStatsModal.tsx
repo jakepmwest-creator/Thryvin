@@ -105,9 +105,13 @@ interface ExerciseStatsModalProps {
 }
 
 interface Exercise {
+  id?: number;
   exerciseId: string;
+  name?: string;
   exerciseName: string;
   category?: string;
+  equipment?: string[];
+  videoUrl?: string;
   subcategory?: string;
   totalSets?: number;
   totalReps?: number;
