@@ -304,16 +304,20 @@ export default function WorkoutHubScreen() {
     setSetNotes('');
   };
 
-  // Log set to backend for AI learning
+  // Log set to backend for AI learning and stats tracking
   const logSetToBackend = async (exerciseName: string, setNumber: number, weight: number | undefined, reps: number, note?: string, difficulty?: string, exerciseId?: string) => {
     try {
-      const authToken = await SecureStore.getItemAsync('auth_token');
-      if (!authToken) return;
+      // Use the correct token key that's used throughout the app
+      const authToken = await SecureStore.getItemAsync('thryvin_access_token');
+      if (!authToken) {
+        console.warn('⚠️ No auth token found, cannot log set');
+        return;
+      }
       
       // Generate exerciseId from name if not provided
       const finalExerciseId = exerciseId || exerciseName.toLowerCase().replace(/[^a-z0-9]/g, '_');
       
-      await fetch(`${API_BASE_URL}/api/workout/log-set`, {
+      const response = await fetch(`${API_BASE_URL}/api/workout/log-set`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -324,14 +328,19 @@ export default function WorkoutHubScreen() {
           exerciseName,
           exerciseId: finalExerciseId,
           setNumber,
-          weight,
+          weight: weight || 0,
           reps,
           note,
           difficulty,
           workoutId: currentWorkout?.id || `workout_${new Date().toISOString().split('T')[0]}`,
         }),
       });
-      console.log(`✅ Logged set to AI: ${exerciseName} Set ${setNumber}`);
+      
+      if (response.ok) {
+        console.log(`✅ Logged set to backend: ${exerciseName} Set ${setNumber} - ${weight}kg x ${reps}`);
+      } else {
+        console.error(`❌ Failed to log set: ${response.status}`);
+      }
     } catch (error) {
       console.error('Error logging set to backend:', error);
     }
