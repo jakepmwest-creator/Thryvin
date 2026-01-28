@@ -327,7 +327,6 @@ export default function OnboardingScreen() {
     inches: '',
     experience: '',
     fitnessGoals: [],
-    nutritionGoals: [],
     equipment: [],
     trainingDays: '',
     sessionDuration: '',
@@ -336,7 +335,6 @@ export default function OnboardingScreen() {
     selectedDays: ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'], // Default all selected for flexible
     specificDates: [], // For 'depends' - array of date strings
     injuriesDescription: '', // Text description of injuries
-    coachingStyle: '',
   });
   
   // CustomAlert state
