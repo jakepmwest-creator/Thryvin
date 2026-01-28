@@ -419,9 +419,9 @@ export function WorkoutDetailsModal({
     }
   };
   
-  const warmupExercises = currentWorkout?.exercises?.filter((e: any) => e.category === 'warmup') || [];
-  const mainExercises = currentWorkout?.exercises?.filter((e: any) => e.category === 'main') || [];
-  const cooldownExercises = currentWorkout?.exercises?.filter((e: any) => e.category === 'cooldown') || [];
+  const warmupExercises = displayExercises.filter((e: any) => e.category === 'warmup') || [];
+  const mainExercises = displayExercises.filter((e: any) => e.category === 'main') || [];
+  const cooldownExercises = displayExercises.filter((e: any) => e.category === 'cooldown') || [];
   
   if (!visible) return null;
   
