@@ -241,7 +241,7 @@ export default function WorkoutSessionScreen() {
         </View>
 
         {/* Video Player - Auto-plays 3x then stops */}
-        {currentExercise.videoUrl ? (
+        {isValidVideoUrl(currentExercise.videoUrl) ? (
           <View style={styles.videoContainer}>
             <WorkoutVideoPlayer
               videoUrl={currentExercise.videoUrl}
