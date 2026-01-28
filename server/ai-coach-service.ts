@@ -243,8 +243,14 @@ export async function getUnifiedCoachResponse(request: CoachChatRequest): Promis
     }
     
     if (!isFitnessRelated && !isBurnoutRelated && lowerMessage.length > 15) {
+      // Smart-witty response that brings it back to fitness
+      const wittyResponses = [
+        `Ha! That's an interesting question, but I'm more of a "biceps curls" expert than a "${message.split(' ').slice(0, 3).join(' ')}..." expert! 😄\n\nI'm your fitness coach, so let me stick to what I know best:\n• Workout tips & motivation\n• Exercise form & technique\n• Your stats & progress\n• Recovery advice\n\nWhat fitness question can I help you with?`,
+        `I appreciate the creative question! But as your fitness coach, my superpowers are limited to helping you get stronger, faster, and healthier! 💪\n\nLet's talk about:\n• Your workout plan\n• Exercise tips\n• Your fitness goals\n\nWhat's on your mind fitness-wise?`,
+        `Now that's thinking outside the box! But I'll leave that one to the experts - I'm here to help you crush your fitness goals! 🎯\n\nI can help with:\n• Workout advice\n• Form tips\n• Your progress & stats\n\nWhat fitness topic shall we dive into?`,
+      ];
       return {
-        response: `I appreciate you reaching out! However, as your fitness coach, I'm specifically trained to help with health, fitness, nutrition, and workout-related questions. 💪\n\nI can help you with:\n• Workout advice and scheduling\n• Exercise form and technique\n• Nutrition and meal planning\n• Recovery and injury prevention\n• Fitness goals and motivation\n\nWhat fitness topic can I help you with?`,
+        response: wittyResponses[Math.floor(Math.random() * wittyResponses.length)],
         coach: coachCharacter.name,
         contextUsed: false,
       };
