@@ -491,63 +491,31 @@ export function FloatingCoachButton({
       return { handled: false };
     }
     
-    // Reset program intent
-    if (lower.includes('reset') || lower.includes('start over') || lower.includes('new program') || lower.includes('restart')) {
+    // Help / capabilities
+    if (lower.includes('what can you do') || lower.includes('help') || lower.includes('commands')) {
       return {
         handled: true,
-        response: "🔄 Ready to reset your workout program?\n\nThis will:\n• Clear all current workouts\n• Generate a fresh 3-week plan\n• Keep your preferences and stats\n\n⚠️ This action cannot be undone.\n\nConfirm to reset?",
-        action: { type: 'reset' }
+        response: "🏋️ I'm your fitness coach! Here's what I can help with:\n\n💬 **Ask Me Anything:**\n• Exercise form & technique tips\n• Weight recommendations\n• Nutrition & recovery advice\n• Your workout schedule & stats\n\n🔧 **Want to Modify Your Plan?**\nHead to **Edit Plan** on your Workouts tab for:\n• Swap workout days\n• Skip a day\n• Make workouts harder/easier\n• Add new workouts\n\n📱 **Settings & Profile**\nGo to **Profile** tab to:\n• Change coach personality\n• Update your info\n• Adjust notifications\n\nWhat fitness topic can I help you with?"
       };
     }
     
-    // Regenerate workout intent - pick a SPECIFIC DAY, not the whole 21 days
-    if (lower.includes('new workout') || lower.includes('regenerate') || lower.includes('different workout') || lower.includes('fresh workout')) {
-      // Check if they specified a day
-      const days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
-      const dayMap: Record<string, string> = { 
-        monday: 'Monday', tuesday: 'Tuesday', wednesday: 'Wednesday', thursday: 'Thursday', 
-        friday: 'Friday', saturday: 'Saturday', sunday: 'Sunday',
-        mon: 'Monday', tue: 'Tuesday', wed: 'Wednesday', thu: 'Thursday', 
-        fri: 'Friday', sat: 'Saturday', sun: 'Sunday'
+    // Yes/confirm handling - clear pending action (no longer executing actions)
+    if (pendingAction && (lower === 'yes' || lower === 'confirm' || lower === 'do it' || lower === 'go ahead' || lower === 'ok')) {
+      setPendingAction(null);
+      return {
+        handled: true,
+        response: "Got it! 👍\n\nRemember, to make changes to your workout plan, head to **Edit Plan** on your Workouts tab. I'm here to guide and advise, and you're in full control of your workouts there! 💪\n\nWhat else can I help you with?"
       };
-      
-      let targetDay: string | null = null;
-      for (const [key, dayName] of Object.entries(dayMap)) {
-        if (lower.includes(key)) {
-          targetDay = dayName;
-          break;
-        }
-      }
-      
-      // Check for today/tomorrow
-      if (lower.includes('today')) {
-        targetDay = new Date().toLocaleDateString('en-US', { weekday: 'long' });
-      } else if (lower.includes('tomorrow')) {
-        const tomorrow = new Date();
-        tomorrow.setDate(tomorrow.getDate() + 1);
-        targetDay = tomorrow.toLocaleDateString('en-US', { weekday: 'long' });
-      }
-      
-      // If no day specified, ask which day
-      if (!targetDay) {
-        return {
-          handled: true,
-          response: "Which day would you like me to regenerate? 📅\n\n• Today\n• Tomorrow\n• Or pick a specific day (Monday, Tuesday, etc.)\n\nThis will ONLY regenerate that one day, not your whole program!",
-          showSuggestions: false,
-        };
-      }
-      
-      // Now ask for reason
-      const hasReason = lower.includes('because') || lower.includes('want') || lower.includes('need') || lower.includes('bored');
-      
-      if (!hasReason && lower.split(' ').length < 8) {
-        return {
-          handled: true,
-          response: `Regenerating ${targetDay}'s workout! 🔄\n\nQuick question - any specific reason? This helps me give you something better:\n\n• Bored with current exercises\n• Want more variety\n• Different muscle focus\n• Just want something fresh\n\nOr just say "go ahead" to regenerate!`,
-          action: { 
-            type: 'regenerate_day', 
-            params: { 
-              targetDay,
+    }
+    
+    // Cancel pending action
+    if (pendingAction && (lower === 'no' || lower === 'cancel' || lower === 'nevermind')) {
+      setPendingAction(null);
+      return {
+        handled: true,
+        response: "No problem! 👍\n\nWhat else can I help you with?"
+      };
+    }
               date: new Date()
             } 
           }
