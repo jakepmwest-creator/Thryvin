@@ -103,7 +103,7 @@ const AlternativeCard: React.FC<AlternativeCardProps> = ({
         <Text style={styles.alternativeDescription}>{exercise.description}</Text>
       )}
       
-      {exercise.videoUrl ? (
+      {isValidVideoUrl(exercise.videoUrl) ? (
         <View style={styles.videoStatus}>
           <Ionicons name="videocam" size={16} color={COLORS.success} />
           <Text style={styles.videoStatusText}>Video available</Text>
