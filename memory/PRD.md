@@ -183,5 +183,11 @@ User logs set in workout-hub → POST /api/workout/log-set (with thryvin_access_
 ```
 
 ## Pending
-- [ ] PR Celebration Animation
-- [ ] Fix exercise IDs showing in Explore Workout display
+- [ ] Implement "Add to future workout" button for unperformed exercises (P1)
+- [ ] Implement real-time PR celebration animation (P1)
+- [ ] Refactor FloatingCoachButton.tsx (tech debt - P2)
+- [ ] Verify and enhance badge system (P2)
+- [ ] Add equipment tags to exercises for better filtering (P2)
+
+## Known Issues
+- **OpenAI API Quota**: The OpenAI API key may be rate-limited. If coach returns error messages, check billing/plan or use different API key.
