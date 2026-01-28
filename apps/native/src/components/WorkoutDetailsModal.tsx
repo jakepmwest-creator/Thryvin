@@ -707,7 +707,7 @@ export function WorkoutDetailsModal({
                       ))
                     ) : (
                       // Fall back to showing exercises from workout data
-                      currentWorkout.exercises?.map((ex: any, idx: number) => (
+                      displayExercises.map((ex: any, idx: number) => (
                         <View key={idx} style={styles.exerciseSummaryCard}>
                           <View style={styles.exerciseSummaryLeft}>
                             <Text style={styles.exerciseSummaryName}>{ex.name}</Text>
