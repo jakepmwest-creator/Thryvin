@@ -239,7 +239,24 @@ export default function ActiveWorkoutScreen() {
     );
   }
 
-  const videoUrl = exerciseVideos.get(currentExercise.name);
+  // Look up video URL using multiple keys for best match
+  const getExerciseVideoUrl = (exercise: Exercise): string | undefined => {
+    // Try ID first (most reliable)
+    if (exercise.id && exerciseVideos.has(String(exercise.id))) {
+      return exerciseVideos.get(String(exercise.id));
+    }
+    // Try exact name
+    if (exercise.name && exerciseVideos.has(exercise.name)) {
+      return exerciseVideos.get(exercise.name);
+    }
+    // Try lowercase name
+    if (exercise.name && exerciseVideos.has(exercise.name.toLowerCase())) {
+      return exerciseVideos.get(exercise.name.toLowerCase());
+    }
+    return undefined;
+  };
+
+  const videoUrl = getExerciseVideoUrl(currentExercise);
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
