@@ -14,7 +14,7 @@ import {
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import * as SecureStore from 'expo-secure-store';
-import { PreviewVideoPlayer } from './ExerciseVideoPlayer';
+import { PreviewVideoPlayer, isValidVideoUrl } from './ExerciseVideoPlayer';
 import { useWorkoutStore } from '../stores/workout-store';
 import { EditWorkoutModal } from './EditWorkoutModal';
 import { CustomAlert } from './CustomAlert';
