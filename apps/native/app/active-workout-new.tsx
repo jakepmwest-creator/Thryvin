@@ -12,7 +12,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter, useLocalSearchParams } from 'expo-router';
-import { ExerciseVideoPlayer } from '../src/components/ExerciseVideoPlayer';
+import { ExerciseVideoPlayer, isValidVideoUrl } from '../src/components/ExerciseVideoPlayer';
 import { CustomAlert } from '../src/components/CustomAlert';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
