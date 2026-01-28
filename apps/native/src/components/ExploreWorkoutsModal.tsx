@@ -11,7 +11,7 @@ import {
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
-import { PreviewVideoPlayer } from './ExerciseVideoPlayer';
+import { PreviewVideoPlayer, isValidVideoUrl } from './ExerciseVideoPlayer';
 import { usePreferencesStore } from '../stores/preferences-store';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
