@@ -16,7 +16,7 @@ import { ExerciseVideoPlayer, isValidVideoUrl } from '../src/components/Exercise
 import { CustomAlert } from '../src/components/CustomAlert';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
-const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL || 'https://fitness-stats-8.preview.emergentagent.com';
+const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL || 'https://workout-data-cleanup.preview.emergentagent.com';
 
 const COLORS = {
   accent: '#a259ff',

@@ -5,7 +5,7 @@ import { notificationService } from '../services/notificationService';
 import { useWorkoutStore } from './workout-store';
 import { storeToken, clearToken, getToken } from '../services/api-client';
 
-const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL || 'https://fitness-stats-8.preview.emergentagent.com';
+const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL || 'https://workout-data-cleanup.preview.emergentagent.com';
 
 // Storage helpers - Use AsyncStorage for large data (user profiles can be >2KB)
 // Only use SecureStore for small secrets (email, password, tokens)

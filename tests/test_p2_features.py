@@ -9,7 +9,7 @@ Tests for P2 implementation:
 5. Pin from Exercise Detail -> favorites persist
 
 Test credentials: test@example.com / password123
-API Base URL: https://fitness-stats-8.preview.emergentagent.com
+API Base URL: https://workout-data-cleanup.preview.emergentagent.com
 """
 
 import pytest
@@ -19,7 +19,7 @@ import time
 import uuid
 
 # API Base URL from environment or default
-BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://fitness-stats-8.preview.emergentagent.com').rstrip('/')
+BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://workout-data-cleanup.preview.emergentagent.com').rstrip('/')
 
 # Test credentials
 TEST_EMAIL = "test@example.com"

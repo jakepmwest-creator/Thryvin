@@ -41,7 +41,7 @@ const BUTTON_SIZE = 60;
 const EDGE_PADDING = 20;
 
 // Use backend API instead of direct OpenAI calls
-const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL || 'https://fitness-stats-8.preview.emergentagent.com';
+const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL || 'https://workout-data-cleanup.preview.emergentagent.com';
 
 // Helper to make authenticated API calls
 const makeAuthenticatedRequest = async (
