@@ -178,6 +178,66 @@ export function WorkoutDetailsModal({
   const currentWorkoutDate = currentWorkout?.date ? new Date(currentWorkout.date) : new Date();
   const dayName = DAYS[currentWorkoutDate.getDay() === 0 ? 6 : currentWorkoutDate.getDay() - 1];
   
+  // State for refreshed exercises with updated video URLs
+  const [refreshedExercises, setRefreshedExercises] = useState<any[]>([]);
+  
+  // Refresh video URLs from database
+  const refreshExerciseVideos = async (workout: any) => {
+    if (!workout?.exercises?.length) return;
+    
+    try {
+      const exerciseNames = workout.exercises
+        .map((ex: any) => ex.name)
+        .filter(Boolean)
+        .join(',');
+      
+      if (!exerciseNames) return;
+      
+      const response = await fetch(
+        `${API_BASE_URL}/api/exercises?names=${encodeURIComponent(exerciseNames)}`
+      );
+      
+      if (response.ok) {
+        const data = await response.json();
+        const videoMap = new Map<string, string>();
+        
+        if (data?.exercises) {
+          data.exercises.forEach((ex: any) => {
+            if (ex && ex.videoUrl && ex.videoUrl.includes('cloudinary')) {
+              if (ex.name) {
+                videoMap.set(ex.name.toLowerCase(), ex.videoUrl);
+              }
+            }
+          });
+        }
+        
+        // Update exercises with fresh video URLs
+        const updated = workout.exercises.map((ex: any) => {
+          const freshVideoUrl = videoMap.get(ex.name?.toLowerCase());
+          if (freshVideoUrl) {
+            return { ...ex, videoUrl: freshVideoUrl };
+          }
+          return ex;
+        });
+        
+        setRefreshedExercises(updated);
+        console.log(`📹 WorkoutDetails: Refreshed ${videoMap.size} video URLs`);
+      }
+    } catch (error) {
+      console.error('Error refreshing exercise videos:', error);
+    }
+  };
+  
+  // Refresh videos when workout changes
+  useEffect(() => {
+    if (currentWorkout?.exercises?.length) {
+      refreshExerciseVideos(currentWorkout);
+    }
+  }, [currentWorkout?.id, currentWorkoutIndex]);
+  
+  // Use refreshed exercises if available, otherwise fall back to original
+  const displayExercises = refreshedExercises.length > 0 ? refreshedExercises : (currentWorkout?.exercises || []);
+  
   // Find the completed workout to get actual duration
   const completedWorkout = completedWorkouts.find(
     (cw: any) => cw.id === currentWorkout?.id || 
