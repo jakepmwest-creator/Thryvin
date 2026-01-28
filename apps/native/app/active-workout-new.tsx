@@ -147,6 +147,7 @@ export default function ActiveWorkoutScreen() {
 
     setLoadingVideos(true);
     try {
+      // Get exercise names for API query
       const exerciseNames = workout.exercises
         .map(ex => ex.name)
         .filter(Boolean)
@@ -167,14 +168,27 @@ export default function ActiveWorkoutScreen() {
 
         if (data?.exercises) {
           data.exercises.forEach((ex: any) => {
-            if (ex && ex.videoUrl) {
-              videoMap.set(ex.name, ex.videoUrl);
+            // Only map valid video URLs (Cloudinary, not placeholders)
+            if (ex && isValidVideoUrl(ex.videoUrl)) {
+              // Map by BOTH slug/id AND name for maximum compatibility
+              // This ensures videos match even if workout uses names or IDs
+              if (ex.slug) {
+                videoMap.set(ex.slug, ex.videoUrl);
+              }
+              if (ex.id) {
+                videoMap.set(String(ex.id), ex.videoUrl);
+              }
+              if (ex.name) {
+                videoMap.set(ex.name, ex.videoUrl);
+                // Also add lowercase version for case-insensitive matching
+                videoMap.set(ex.name.toLowerCase(), ex.videoUrl);
+              }
             }
           });
         }
 
         setExerciseVideos(videoMap);
-        console.log(`Fetched ${videoMap.size} exercise videos`);
+        console.log(`📹 Fetched ${videoMap.size} exercise video mappings`);
       }
     } catch (error) {
       console.error('Error fetching exercise videos:', error);
