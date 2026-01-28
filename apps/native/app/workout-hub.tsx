@@ -233,6 +233,62 @@ export default function WorkoutHubScreen() {
     }
   };
 
+  // Refresh video URLs from database for all exercises in current workout
+  const refreshExerciseVideos = async () => {
+    if (!currentWorkout?.exercises?.length) return;
+    
+    try {
+      const exerciseNames = currentWorkout.exercises
+        .map((ex: any) => ex.name)
+        .filter(Boolean)
+        .join(',');
+      
+      if (!exerciseNames) return;
+      
+      const response = await fetch(
+        `${API_BASE_URL}/api/exercises?names=${encodeURIComponent(exerciseNames)}`
+      );
+      
+      if (response.ok) {
+        const data = await response.json();
+        const videoMap = new Map<string, string>();
+        
+        if (data?.exercises) {
+          data.exercises.forEach((ex: any) => {
+            if (ex && ex.videoUrl && ex.videoUrl.includes('cloudinary')) {
+              // Map by name (case-insensitive)
+              if (ex.name) {
+                videoMap.set(ex.name.toLowerCase(), ex.videoUrl);
+              }
+            }
+          });
+        }
+        
+        // Update exercises in current workout with fresh video URLs
+        const updatedExercises = currentWorkout.exercises.map((ex: any) => {
+          const freshVideoUrl = videoMap.get(ex.name?.toLowerCase());
+          if (freshVideoUrl) {
+            return { ...ex, videoUrl: freshVideoUrl };
+          }
+          return ex;
+        });
+        
+        // Update the workout in store
+        setCurrentWorkout({ ...currentWorkout, exercises: updatedExercises });
+        console.log(`📹 Refreshed video URLs for ${videoMap.size} exercises`);
+      }
+    } catch (error) {
+      console.error('Error refreshing exercise videos:', error);
+    }
+  };
+
+  // Refresh videos when workout changes
+  useEffect(() => {
+    if (currentWorkout?.exercises?.length) {
+      refreshExerciseVideos();
+    }
+  }, [currentWorkout?.id]);
+
   // Split exercises into blocks based on their actual category
   const exercises = currentWorkout?.exercises || [];
   
