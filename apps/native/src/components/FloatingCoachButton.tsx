@@ -520,74 +520,16 @@ export function FloatingCoachButton({
     // Not handled - let the AI respond
     return { handled: false };
   };
-      
-      // Check if user's message is primarily a day name
-      const cleanedInput = lower.trim();
-      let detectedDay: string | null = null;
-      
-      for (const [key, dayName] of Object.entries(dayMap)) {
-        if (cleanedInput === key || cleanedInput.startsWith(key + ' ') || cleanedInput.includes(key)) {
-          detectedDay = dayName;
-          break;
-        }
-      }
-      
-      if (detectedDay) {
-        // Determine what action type based on the last question
-        const isSkipQuestion = lastAssistantMsg?.text?.toLowerCase().includes('skip');
-        const isRestQuestion = lastAssistantMsg?.text?.toLowerCase().includes('rest');
-        const isRegenerateQuestion = lastAssistantMsg?.text?.toLowerCase().includes('regenerate');
-        const isHarderQuestion = lastAssistantMsg?.text?.toLowerCase().includes('harder');
-        const isEasierQuestion = lastAssistantMsg?.text?.toLowerCase().includes('easier');
-        
-        if (isSkipQuestion) {
-          return {
-            handled: true,
-            response: `Got it! I'll skip ${detectedDay}'s workout. ⏭️\n\nDon't worry - you can always add it back later.\n\nPress confirm to skip!`,
-            action: { type: 'skip_day', params: { targetDay: detectedDay } }
-          };
-        } else if (isRestQuestion) {
-          return {
-            handled: true,
-            response: `Rest day incoming! 😴 I'll convert ${detectedDay} to a rest day.\n\nPress confirm to make it a rest day!`,
-            action: { type: 'rest_day', params: { targetDay: detectedDay } }
-          };
-        } else if (isRegenerateQuestion) {
-          return {
-            handled: true,
-            response: `Got it! 🔄 I'll regenerate ${detectedDay}'s workout with fresh exercises.\n\nPress confirm to regenerate!`,
-            action: { type: 'regenerate_day', params: { targetDay: detectedDay } }
-          };
-        }
-      }
-    }
-    
-    return { handled: false };
-  };
   
   // Execute pending action
   const executeAction = async (action: PendingActionDetails) => {
-    try {
-      switch (action.type) {
-        case 'log_workout':
-          if (action.params?.type && action.params?.duration) {
-            setMessages(prev => [...prev, { 
-              role: 'assistant', 
-              text: `💾 Logging your ${action.params.type} workout...` 
-            }]);
-            
-            // Create a workout entry
-            const workoutDate = action.params.date ? new Date(action.params.date) : new Date();
-            const loggedWorkout = {
-              id: `logged_${Date.now()}`,
-              title: `${action.params.type.charAt(0).toUpperCase() + action.params.type.slice(1)} Workout`,
-              type: action.params.type,
-              duration: action.params.duration,
-              date: workoutDate.toISOString(),
-              completedAt: new Date().toISOString(),
-              completed: true,
-              caloriesBurn: Math.round(action.params.duration * 6),
-              exercises: [
+    // Coach is now READ-ONLY, so just clear pending action and redirect
+    setPendingAction(null);
+    setMessages(prev => [...prev, { 
+      role: 'assistant', 
+      text: `I can't make that change directly, but you can do it yourself! 💪\n\n📍 **Go to Edit Plan** on your Workouts tab to modify your workout schedule.\n\nWhat else can I help you with?`
+    }]);
+  };
                 {
                   id: '1',
                   name: action.params.description || 'Custom workout',
