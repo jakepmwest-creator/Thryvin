@@ -28,6 +28,30 @@ const COLORS = {
 // Maximum number of loops before requiring user to click again
 const MAX_LOOPS = 3;
 
+/**
+ * Validates if a video URL is a real video (not a placeholder)
+ * Use this function across all components to ensure consistent video detection
+ */
+export const isValidVideoUrl = (videoUrl: string | undefined | null): boolean => {
+  if (!videoUrl) return false;
+  const url = videoUrl.toLowerCase();
+  // Only Cloudinary URLs are real videos
+  if (url.includes('cloudinary')) return true;
+  // thryvin.com URLs are placeholders that don't exist
+  if (url.includes('thryvin.com')) return false;
+  // Reject empty or placeholder patterns
+  if (url === 'placeholder' || url === '' || url === 'undefined') return false;
+  return false;
+};
+
+/**
+ * Gets a valid video URL or returns null
+ * Useful for conditional rendering
+ */
+export const getValidVideoUrl = (videoUrl: string | undefined | null): string | null => {
+  return isValidVideoUrl(videoUrl) ? videoUrl! : null;
+};
+
 interface ExerciseVideoPlayerProps {
   videoUrl: string;
   exerciseName?: string;
