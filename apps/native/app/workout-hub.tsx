@@ -15,7 +15,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import { WorkoutVideoPlayer } from '../src/components/ExerciseVideoPlayer';
+import { WorkoutVideoPlayer, isValidVideoUrl } from '../src/components/ExerciseVideoPlayer';
 import { VoiceInputButton } from '../src/components/VoiceInputButton';
 import { CustomAlert } from '../src/components/CustomAlert';
 import { useWorkoutStore } from '../src/stores/workout-store';
