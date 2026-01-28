@@ -848,7 +848,7 @@ export default function WorkoutHubScreen() {
 
                       <ScrollView style={styles.modalContent} showsVerticalScrollIndicator={false}>
                         {/* Video Player - Auto-plays 3x then stops */}
-                        {exercise.videoUrl && (
+                        {isValidVideoUrl(exercise.videoUrl) && (
                           <View style={styles.videoContainer}>
                             <WorkoutVideoPlayer
                               videoUrl={exercise.videoUrl}
