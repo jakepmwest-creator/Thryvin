@@ -2,6 +2,56 @@
 
 ## What's Been Implemented
 
+### Jan 28, 2025 - Coach Button Refactor & Onboarding Simplification
+
+#### ✅ Coach Button Made READ-ONLY
+- **Issue**: Coach was executing workout modifications directly (swap days, add workouts, etc.)
+- **Fix**: Coach is now purely advisory - redirects all modification requests to Edit Plan
+- **Key Changes**:
+  - Updated `detectWorkoutIntent()` in FloatingCoachButton.tsx to redirect ALL modification requests
+  - Added comprehensive `planModificationKeywords` including 'feeling energetic', 'swap', 'add workout', etc.
+  - Coach now responds: "Head to Edit Plan on your Workouts tab to..."
+  - Added `profileModificationKeywords` for profile changes (Coach Style, notifications)
+  - Removed all action execution code from `executeAction()` function
+- **Files Changed**: 
+  - `/app/apps/native/src/components/FloatingCoachButton.tsx` - Redirects all modifications
+  - `/app/server/ai-coach-service.ts` - Updated prompts with READ-ONLY rules
+
+#### ✅ Coach is Smart-Witted
+- **Issue**: Coach was giving boring redirects for non-fitness questions
+- **Fix**: Coach now responds with witty, fitness-related comebacks
+- **Example**: "Can squirrels fly?" → "Squirrels can't fly, but you can fly through your next workout!"
+- **Implementation**: Added random witty responses array in ai-coach-service.ts
+
+#### ✅ Coach Never Uses Profanity
+- **Fix**: Added explicit rule in CRITICAL RULES: "NEVER use profanity, swear words, or inappropriate language"
+- **Location**: `/app/server/ai-coach-service.ts` lines 374-375
+
+#### ✅ Coach Navigation Guidance
+- **Fix**: Coach now tells users WHERE to go for changes:
+  - Workout changes → "Edit Plan" on Workouts tab
+  - Profile/settings → "Profile" tab
+  - Coach personality → "Profile > Coach Style"
+  - Training schedule → "Edit Plan" or "Profile"
+
+#### ✅ Onboarding Simplified
+- **Issue**: Onboarding had questions for features not yet built (Nutrition, Coach Style)
+- **Fix**: Removed 2 steps from onboarding:
+  1. Removed "Nutrition Goals" question (nutrition feature not implemented)
+  2. Removed "Coaching Style" question (moved to Profile > Coach Style)
+- **Result**: Onboarding now has 11 steps instead of 13
+- **Files Changed**: `/app/apps/native/app/(auth)/onboarding.tsx`
+
+#### ✅ Server Stability Fix
+- **Issue**: Port 8001 conflict between 'backend' and 'frontend' supervisor processes
+- **Fix**: Disabled redundant 'frontend' supervisor process (this is React Native/Expo app)
+- **Files Changed**: `/etc/supervisor/conf.d/supervisord.conf`
+
+### Testing Results (Jan 28, 2025)
+- Code Review: **100% PASSED** (13/13 tests)
+- API Tests: 59% (9 failures due to OpenAI API quota exceeded - external dependency issue)
+- **Note**: All code implementations verified correct by testing agent
+
 ### Jan 14, 2025 - Summary → Exercise Detail Linking Fix (P2 Enhancement)
 
 #### ✅ PART 1: Summary → Exercise Detail Fixed
