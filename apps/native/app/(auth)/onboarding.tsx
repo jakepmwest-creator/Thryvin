@@ -329,25 +329,6 @@ const ONBOARDING_STEPS = [
     icon: 'medical-outline',
     placeholder: 'Describe any injuries, limitations, or health concerns...\n\nExamples:\n• Bad knee from running\n• Lower back pain\n• Shoulder injury healing\n• None',
   },
-  {
-    id: 'coaching',
-    title: 'Coaching Style',
-    subtitle: 'How do you like to be coached?',
-    emoji: '🎯',
-    type: 'select',
-    field: 'coachingStyle',
-    icon: 'megaphone-outline',
-    options: [
-      { value: 'motivational', label: 'Motivational', subtitle: 'Encouragement & hype' },
-      { value: 'technical', label: 'Technical', subtitle: 'Form focused' },
-      { value: 'balanced', label: 'Balanced', subtitle: 'Mix of both' },
-      { value: 'disciplined', label: 'Disciplined', subtitle: 'Strict & structured' },
-      { value: 'data_driven', label: 'Data-Driven', subtitle: 'Numbers & metrics' },
-      { value: 'supportive', label: 'Supportive', subtitle: 'Gentle & encouraging' },
-      { value: 'aggressive', label: 'Aggressive', subtitle: 'Push your limits' },
-      { value: 'fun', label: 'Fun & Playful', subtitle: 'Keep it light' },
-    ],
-  },
 ];
 
 export default function OnboardingScreen() {
