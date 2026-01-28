@@ -229,18 +229,8 @@ export const ExploreWorkoutsModal = ({ visible, onClose, category, categoryGradi
     return filtered;
   }, [exercises, searchQuery, filterDifficulty, filterEquipment, category, isLoading]);
 
-  // Check if video URL is valid (not a placeholder)
-  const hasValidVideo = (exercise: any) => {
-    if (!exercise.videoUrl) return false;
-    // Check if it's a real cloudinary video, not a placeholder
-    const url = exercise.videoUrl.toLowerCase();
-    if (url.includes('cloudinary')) return true;
-    if (url.includes('thryvin.com')) {
-      // These are placeholder URLs that don't exist
-      return false;
-    }
-    return false;
-  };
+  // Use shared video URL validation function
+  const hasValidVideo = (exercise: any) => isValidVideoUrl(exercise?.videoUrl);
 
   return (
     <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose}>
