@@ -908,7 +908,7 @@ function ExerciseCard({ exercise, index, isExpanded, onToggle }: any) {
       </TouchableOpacity>
       
       {isExpanded && (
-        exercise.videoUrl ? (
+        isValidVideoUrl(exercise.videoUrl) ? (
           <View style={styles.videoContainer}>
             <PreviewVideoPlayer
               videoUrl={exercise.videoUrl}
