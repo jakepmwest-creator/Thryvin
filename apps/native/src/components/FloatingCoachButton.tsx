@@ -398,7 +398,7 @@ export function FloatingCoachButton({
     }
     
     // ===========================================================================
-    // Stats/Progress inquiries - these are READ-ONLY and allowed
+    // Handle user rejection/correction - just clear and redirect
     // ===========================================================================
     const rejectionPatterns = [
       /^no[,.]?\s*/i,
@@ -413,36 +413,17 @@ export function FloatingCoachButton({
     const isRejection = rejectionPatterns.some(pattern => pattern.test(message.trim()));
     
     if (isRejection && pendingAction) {
-      console.log('⚠️ [COACH] User rejection detected, invalidating pendingAction');
-      
-      // Try to detect what they actually want
-      const bodyPartTypes = [
-        'arms', 'arm', 'biceps', 'bicep', 'triceps', 'tricep',
-        'chest', 'pecs', 'pec',
-        'back', 'lats', 'lat',
-        'legs', 'leg', 'quads', 'quad', 'hamstrings', 'hamstring', 'glutes', 'glute',
-        'shoulders', 'shoulder', 'delts', 'delt',
-        'core', 'abs', 'ab',
-        'upper', 'lower', 'push', 'pull',
-      ];
-      
-      let correctedType: string | null = null;
-      for (const type of bodyPartTypes) {
-        if (lower.includes(type)) {
-          // Map to standard name
-          if (type.includes('arm') || type.includes('bicep') || type.includes('tricep')) {
-            correctedType = 'arms';
-          } else if (type.includes('chest') || type.includes('pec')) {
-            correctedType = 'chest';
-          } else if (type.includes('back') || type.includes('lat')) {
-            correctedType = 'back';
-          } else if (type.includes('leg') || type.includes('quad') || type.includes('hamstring') || type.includes('glute')) {
-            correctedType = 'legs';
-          } else if (type.includes('shoulder') || type.includes('delt')) {
-            correctedType = 'shoulders';
-          } else if (type.includes('core') || type.includes('ab')) {
-            correctedType = 'core';
-          } else if (type === 'upper' || type === 'lower' || type === 'push' || type === 'pull') {
+      console.log('⚠️ [COACH] User rejection detected, clearing pendingAction');
+      setPendingAction(null);
+      return {
+        handled: true,
+        response: "No problem! I understand. 👍\n\nIf you want to make changes to your workout plan, head to **Edit Plan** on your Workouts tab. You have full control there!\n\nWhat else can I help you with - maybe some exercise tips or form advice?"
+      };
+    }
+    
+    // ===========================================================================
+    // Stats/Progress inquiries - these are READ-ONLY and allowed
+    // ===========================================================================
             correctedType = type;
           }
           break;
