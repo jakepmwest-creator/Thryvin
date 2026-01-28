@@ -502,7 +502,7 @@ export function WorkoutDetailsModal({
             <View style={styles.statDivider} />
             <View style={styles.statItem}>
               <Ionicons name="fitness-outline" size={20} color="#FFFFFF" />
-              <Text style={styles.statText}>{currentWorkout?.exercises?.length || 0} exercises</Text>
+              <Text style={styles.statText}>{displayExercises.length || 0} exercises</Text>
             </View>
             <View style={styles.statDivider} />
             <View style={styles.statItem}>
