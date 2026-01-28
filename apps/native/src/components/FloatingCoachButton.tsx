@@ -312,7 +312,7 @@ export function FloatingCoachButton({
     const lower = message.toLowerCase();
     
     // ===========================================================================
-    // DIRECTIVE-ONLY: Redirect ALL plan modifications to Edit Plan
+    // DIRECTIVE-ONLY: Coach is READ-ONLY - Redirect ALL modifications to the app
     // Coach should NOT perform actions itself - just guide users to the right place
     // ===========================================================================
     
@@ -328,6 +328,9 @@ export function FloatingCoachButton({
       'edit workout', 'edit plan', 'modify workout', 'modify plan',
       'regenerate', 'new workout', 'different workout',
       'reset', 'start over', 'new program',
+      'feeling energetic', 'i\'m energetic', 'extra workout', 'extra session',
+      'want to do', 'want to add', 'can you add',
+      'rest day', 'convert to rest', 'make rest day',
     ];
     
     const isPlanModification = planModificationKeywords.some(keyword => lower.includes(keyword));
@@ -335,14 +338,18 @@ export function FloatingCoachButton({
     if (isPlanModification) {
       // Determine which feature to recommend
       let recommendation = '';
+      let additionalTip = '';
       
-      if (lower.includes('swap') || lower.includes('switch') || lower.includes('move')) {
+      if (lower.includes('feeling energetic') || lower.includes('extra') || lower.includes('want to do') || lower.includes('want to add')) {
+        recommendation = '**Add Workout** in Edit Plan';
+        additionalTip = '\n\n💡 Feeling energetic? That\'s awesome! You can add an extra workout or convert a rest day to a training day right there.';
+      } else if (lower.includes('swap') || lower.includes('switch') || lower.includes('move')) {
         recommendation = '**Swap Days** in Edit Plan';
       } else if (lower.includes('skip')) {
         recommendation = '**Skip Day** in Edit Plan';
       } else if (lower.includes('remove') || lower.includes('delete') || lower.includes('cancel')) {
         recommendation = '**Skip Day** in Edit Plan to convert it to a rest day';
-      } else if (lower.includes('add workout') || lower.includes('add a workout')) {
+      } else if (lower.includes('add workout') || lower.includes('add a workout') || lower.includes('add exercise')) {
         recommendation = '**Add Workout** in Edit Plan';
       } else if (lower.includes('harder') || lower.includes('more intense') || lower.includes('increase')) {
         recommendation = '**Make Harder** in Edit Plan';
@@ -352,19 +359,46 @@ export function FloatingCoachButton({
         recommendation = '**Add Workout** in Edit Plan to create a new one';
       } else if (lower.includes('reset') || lower.includes('start over')) {
         recommendation = 'the **Edit Plan** section for workout modifications';
+      } else if (lower.includes('rest day')) {
+        recommendation = '**Skip Day** in Edit Plan to convert a workout day to rest';
       } else {
         recommendation = 'the **Edit Plan** section';
       }
       
       return {
         handled: true,
-        response: `I'd love to help with that! 🎯\n\nFor workout modifications, head to ${recommendation}.\n\n📍 **How to get there:**\nGo to your Workout tab → Tap "Edit Plan" button\n\nYou'll find all the tools you need there to customize your program exactly how you want it! 💪\n\nIs there anything else I can help you with - like exercise tips, form advice, or nutrition questions?`
+        response: `I'd love to help with that! 🎯\n\nFor workout modifications, head to ${recommendation}.\n\n📍 **How to get there:**\nGo to your Workout tab → Tap "Edit Plan" button\n\nYou'll find all the tools you need there to customize your program exactly how you want it! 💪${additionalTip}\n\nIs there anything else I can help you with - like exercise tips, form advice, or motivation?`
       };
     }
     
     // ===========================================================================
-    // CRITICAL: Check for user REJECTION/CORRECTION first
-    // If user says "not cardio" or "no, arms", invalidate pendingAction and re-detect
+    // Profile/Settings modifications - redirect to Profile
+    // ===========================================================================
+    const profileModificationKeywords = [
+      'change coach', 'change my coach', 'different coach', 'coach style', 'coaching style',
+      'change name', 'update name', 'change email', 'update profile',
+      'change settings', 'notification', 'notifications',
+    ];
+    
+    const isProfileModification = profileModificationKeywords.some(keyword => lower.includes(keyword));
+    
+    if (isProfileModification) {
+      let recommendation = 'your **Profile** tab';
+      
+      if (lower.includes('coach')) {
+        recommendation = '**Profile > Coach Style**';
+      } else if (lower.includes('notification')) {
+        recommendation = '**Profile > Notifications**';
+      }
+      
+      return {
+        handled: true,
+        response: `You got it! 👍\n\nYou can change that in ${recommendation}.\n\n📍 **How to get there:**\nTap the Profile tab at the bottom of the screen.\n\nAll your personal settings and preferences are there! 💪`
+      };
+    }
+    
+    // ===========================================================================
+    // Stats/Progress inquiries - these are READ-ONLY and allowed
     // ===========================================================================
     const rejectionPatterns = [
       /^no[,.]?\s*/i,
