@@ -734,6 +734,79 @@ export const insertProgressSnapshotSchema = createInsertSchema(progressSnapshots
   snapshotDate: true,
 });
 
+// User Badges schema - tracks badge/award progress for the island system
+export const userBadges = pgTable("user_badges", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").references(() => users.id, { onDelete: "cascade" }).notNull(),
+  badgeId: text("badge_id").notNull(), // e.g., "i1_first_step", "i1_week_warrior"
+  progress: integer("progress").default(0).notNull(),
+  completed: boolean("completed").default(false).notNull(),
+  unlockedAt: timestamp("unlocked_at"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+}, (table) => ({
+  // Unique constraint - one badge per user
+  uniqueUserBadge: unique().on(table.userId, table.badgeId),
+  // Performance index
+  userBadgeIdx: index("user_badges_user_idx").on(table.userId),
+}));
+
+// User Badge Stats - aggregate stats for quick badge checking
+export const userBadgeStats = pgTable("user_badge_stats", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").references(() => users.id, { onDelete: "cascade" }).notNull().unique(),
+  totalWorkouts: integer("total_workouts").default(0).notNull(),
+  totalReps: integer("total_reps").default(0).notNull(),
+  totalMinutes: integer("total_minutes").default(0).notNull(),
+  totalCoachMessages: integer("total_coach_messages").default(0).notNull(),
+  totalPRsBroken: integer("total_prs_broken").default(0).notNull(),
+  totalExtraActivities: integer("total_extra_activities").default(0).notNull(),
+  totalWorkoutEdits: integer("total_workout_edits").default(0).notNull(),
+  totalBadgesShared: integer("total_badges_shared").default(0).notNull(),
+  totalVideosWatched: integer("total_videos_watched").default(0).notNull(),
+  totalWeekendWorkouts: integer("total_weekend_workouts").default(0).notNull(),
+  totalEarlyWorkouts: integer("total_early_workouts").default(0).notNull(), // before 8am
+  totalLateWorkouts: integer("total_late_workouts").default(0).notNull(), // after 8pm
+  categoriesExplored: text("categories_explored"), // JSON array of category names
+  hasEditedProfile: boolean("has_edited_profile").default(false).notNull(),
+  hasRatedApp: boolean("has_rated_app").default(false).notNull(),
+  currentStreak: integer("current_streak").default(0).notNull(),
+  bestStreak: integer("best_streak").default(0).notNull(),
+  currentIsland: integer("current_island").default(1).notNull(),
+  totalXP: integer("total_xp").default(0).notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const userBadgesRelations = relations(userBadges, ({ one }) => ({
+  user: one(users, {
+    fields: [userBadges.userId],
+    references: [users.id],
+  }),
+}));
+
+export const userBadgeStatsRelations = relations(userBadgeStats, ({ one }) => ({
+  user: one(users, {
+    fields: [userBadgeStats.userId],
+    references: [users.id],
+  }),
+}));
+
+export const insertUserBadgeSchema = createInsertSchema(userBadges).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertUserBadgeStatsSchema = createInsertSchema(userBadgeStats).omit({
+  id: true,
+  updatedAt: true,
+});
+
+export type UserBadge = typeof userBadges.$inferSelect;
+export type InsertUserBadge = z.infer<typeof insertUserBadgeSchema>;
+export type UserBadgeStats = typeof userBadgeStats.$inferSelect;
+export type InsertUserBadgeStats = z.infer<typeof insertUserBadgeStatsSchema>;
+
 export type Achievement = typeof achievements.$inferSelect;
 export type InsertAchievement = z.infer<typeof insertAchievementSchema>;
 
