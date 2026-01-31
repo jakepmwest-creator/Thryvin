@@ -8569,6 +8569,11 @@ Respond with a complete workout in JSON format:
 
   // ============ BADGE SYSTEM API ENDPOINTS ============
   
+  // Test endpoint to verify API routing is working
+  app.get("/api/test", (req: Request, res) => {
+    res.json({ message: "API routing is working!", timestamp: new Date().toISOString() });
+  });
+  
   // GET /api/badges/progress - Get user's badge progress
   app.get("/api/badges/progress", async (req: Request, res) => {
     try {
