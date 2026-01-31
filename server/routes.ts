@@ -8567,6 +8567,376 @@ Respond with a complete workout in JSON format:
     }
   });
 
+  // ============ BADGE SYSTEM API ENDPOINTS ============
+  
+  // GET /api/badges/progress - Get user's badge progress
+  app.get("/api/badges/progress", async (req: Request, res) => {
+    try {
+      // Get user from auth token
+      const authHeader = req.headers.authorization;
+      if (!authHeader?.startsWith('Bearer ')) {
+        return res.status(401).json({ error: "Authentication required" });
+      }
+      
+      const token = authHeader.substring(7);
+      const jwt = require('jsonwebtoken');
+      const decoded = jwt.verify(token, process.env.JWT_SECRET || 'dev-secret');
+      const userId = decoded.userId;
+      
+      if (!userId) {
+        return res.status(401).json({ error: "Invalid token" });
+      }
+      
+      // Check for existing badge stats in user_badge_stats table
+      const existingStats = await db
+        .select()
+        .from(userBadgeStats)
+        .where(eq(userBadgeStats.userId, userId))
+        .limit(1);
+      
+      // Get badges from user_badges table
+      const badges = await db
+        .select()
+        .from(userBadges)
+        .where(eq(userBadges.userId, userId));
+      
+      // Transform to frontend format
+      const formattedBadges = badges.map(b => ({
+        badgeId: b.badgeId,
+        progress: b.progress,
+        completed: b.completed,
+        unlockedAt: b.unlockedAt?.toISOString(),
+      }));
+      
+      const stats = existingStats[0] || { totalXP: 0, currentIsland: 1 };
+      
+      res.json({
+        badges: formattedBadges,
+        totalXP: stats.totalXP || 0,
+        currentIsland: stats.currentIsland || 1,
+      });
+    } catch (error) {
+      console.error("Error fetching badge progress:", error);
+      res.status(500).json({ error: "Failed to fetch badge progress" });
+    }
+  });
+  
+  // PUT /api/badges/progress - Save user's badge progress
+  app.put("/api/badges/progress", async (req: Request, res) => {
+    try {
+      const authHeader = req.headers.authorization;
+      if (!authHeader?.startsWith('Bearer ')) {
+        return res.status(401).json({ error: "Authentication required" });
+      }
+      
+      const token = authHeader.substring(7);
+      const jwt = require('jsonwebtoken');
+      const decoded = jwt.verify(token, process.env.JWT_SECRET || 'dev-secret');
+      const userId = decoded.userId;
+      
+      if (!userId) {
+        return res.status(401).json({ error: "Invalid token" });
+      }
+      
+      const { badges, totalXP, currentIsland } = req.body;
+      
+      if (!badges || !Array.isArray(badges)) {
+        return res.status(400).json({ error: "badges array is required" });
+      }
+      
+      // Upsert user badge stats
+      await db
+        .insert(userBadgeStats)
+        .values({
+          userId,
+          totalXP: totalXP || 0,
+          currentIsland: currentIsland || 1,
+        })
+        .onConflictDoUpdate({
+          target: userBadgeStats.userId,
+          set: {
+            totalXP: totalXP || 0,
+            currentIsland: currentIsland || 1,
+            updatedAt: new Date(),
+          },
+        });
+      
+      // Upsert each badge
+      for (const badge of badges) {
+        await db
+          .insert(userBadges)
+          .values({
+            userId,
+            badgeId: badge.badgeId,
+            progress: badge.progress || 0,
+            completed: badge.completed || false,
+            unlockedAt: badge.unlockedAt ? new Date(badge.unlockedAt) : null,
+          })
+          .onConflictDoUpdate({
+            target: [userBadges.userId, userBadges.badgeId],
+            set: {
+              progress: badge.progress || 0,
+              completed: badge.completed || false,
+              unlockedAt: badge.unlockedAt ? new Date(badge.unlockedAt) : null,
+              updatedAt: new Date(),
+            },
+          });
+      }
+      
+      console.log(`✅ Saved ${badges.length} badges for user ${userId}`);
+      res.json({ success: true, count: badges.length });
+    } catch (error) {
+      console.error("Error saving badge progress:", error);
+      res.status(500).json({ error: "Failed to save badge progress" });
+    }
+  });
+  
+  // POST /api/badges/reset - Reset user's badge progress
+  app.post("/api/badges/reset", async (req: Request, res) => {
+    try {
+      const authHeader = req.headers.authorization;
+      if (!authHeader?.startsWith('Bearer ')) {
+        return res.status(401).json({ error: "Authentication required" });
+      }
+      
+      const token = authHeader.substring(7);
+      const jwt = require('jsonwebtoken');
+      const decoded = jwt.verify(token, process.env.JWT_SECRET || 'dev-secret');
+      const userId = decoded.userId;
+      
+      if (!userId) {
+        return res.status(401).json({ error: "Invalid token" });
+      }
+      
+      // Delete all user badges
+      await db.delete(userBadges).where(eq(userBadges.userId, userId));
+      
+      // Reset user badge stats
+      await db
+        .update(userBadgeStats)
+        .set({
+          totalXP: 0,
+          currentIsland: 1,
+          totalWorkouts: 0,
+          totalReps: 0,
+          totalMinutes: 0,
+          totalCoachMessages: 0,
+          totalPRsBroken: 0,
+          totalExtraActivities: 0,
+          totalWorkoutEdits: 0,
+          totalBadgesShared: 0,
+          totalVideosWatched: 0,
+          totalWeekendWorkouts: 0,
+          totalEarlyWorkouts: 0,
+          totalLateWorkouts: 0,
+          hasEditedProfile: false,
+          hasRatedApp: false,
+          currentStreak: 0,
+          bestStreak: 0,
+          updatedAt: new Date(),
+        })
+        .where(eq(userBadgeStats.userId, userId));
+      
+      console.log(`🔄 Reset badges for user ${userId}`);
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error resetting badges:", error);
+      res.status(500).json({ error: "Failed to reset badges" });
+    }
+  });
+  
+  // GET /api/badges/stats - Get user's computed badge stats from actual data
+  app.get("/api/badges/stats", async (req: Request, res) => {
+    try {
+      const authHeader = req.headers.authorization;
+      if (!authHeader?.startsWith('Bearer ')) {
+        return res.status(401).json({ error: "Authentication required" });
+      }
+      
+      const token = authHeader.substring(7);
+      const jwt = require('jsonwebtoken');
+      const decoded = jwt.verify(token, process.env.JWT_SECRET || 'dev-secret');
+      const userId = decoded.userId;
+      
+      if (!userId) {
+        return res.status(401).json({ error: "Invalid token" });
+      }
+      
+      // Calculate stats from actual performance_logs data
+      const performanceData = await db
+        .select({
+          totalWorkouts: sql<number>`COUNT(DISTINCT ${performanceLogs.workoutId})`,
+          totalReps: sql<number>`COALESCE(SUM(${performanceLogs.reps}), 0)`,
+          totalSets: sql<number>`COUNT(*)`,
+        })
+        .from(performanceLogs)
+        .where(eq(performanceLogs.userId, userId));
+      
+      // Get workout details for time calculation and other stats
+      const workoutDetails = await db
+        .select({
+          completedAt: workouts.completedAt,
+          duration: workouts.duration,
+          targetMuscles: workouts.targetMuscles,
+        })
+        .from(workouts)
+        .where(and(
+          eq(workouts.userId, userId),
+          eq(workouts.completed, true)
+        ));
+      
+      // Calculate time-based stats
+      let totalMinutes = 0;
+      let totalWeekendWorkouts = 0;
+      let totalEarlyWorkouts = 0;
+      let totalLateWorkouts = 0;
+      const categoriesSet = new Set<string>();
+      
+      for (const w of workoutDetails) {
+        totalMinutes += w.duration || 0;
+        
+        if (w.completedAt) {
+          const date = new Date(w.completedAt);
+          const day = date.getDay();
+          const hour = date.getHours();
+          
+          // Weekend check (0 = Sunday, 6 = Saturday)
+          if (day === 0 || day === 6) totalWeekendWorkouts++;
+          
+          // Early bird (before 8am)
+          if (hour < 8) totalEarlyWorkouts++;
+          
+          // Night owl (after 8pm = 20:00)
+          if (hour >= 20) totalLateWorkouts++;
+        }
+        
+        // Track categories
+        if (w.targetMuscles) {
+          const muscles = w.targetMuscles.split(',').map(m => m.trim().toLowerCase());
+          muscles.forEach(m => categoriesSet.add(m));
+        }
+      }
+      
+      // Get additional stats from user_badge_stats if exists
+      const existingStats = await db
+        .select()
+        .from(userBadgeStats)
+        .where(eq(userBadgeStats.userId, userId))
+        .limit(1);
+      
+      const additionalStats = existingStats[0] || {};
+      
+      const stats = {
+        totalWorkouts: performanceData[0]?.totalWorkouts || 0,
+        totalReps: performanceData[0]?.totalReps || 0,
+        totalMinutes,
+        totalCoachMessages: additionalStats.totalCoachMessages || 0,
+        totalPRsBroken: additionalStats.totalPRsBroken || 0,
+        totalExtraActivities: additionalStats.totalExtraActivities || 0,
+        totalWorkoutEdits: additionalStats.totalWorkoutEdits || 0,
+        totalBadgesShared: additionalStats.totalBadgesShared || 0,
+        totalVideosWatched: additionalStats.totalVideosWatched || 0,
+        totalWeekendWorkouts,
+        totalEarlyWorkouts,
+        totalLateWorkouts,
+        categoriesExplored: categoriesSet.size,
+        hasEditedProfile: additionalStats.hasEditedProfile || false,
+        hasRatedApp: additionalStats.hasRatedApp || false,
+        currentStreak: additionalStats.currentStreak || 0,
+      };
+      
+      res.json(stats);
+    } catch (error) {
+      console.error("Error fetching badge stats:", error);
+      res.status(500).json({ error: "Failed to fetch badge stats" });
+    }
+  });
+  
+  // POST /api/badges/track - Track a specific badge action
+  app.post("/api/badges/track", async (req: Request, res) => {
+    try {
+      const authHeader = req.headers.authorization;
+      if (!authHeader?.startsWith('Bearer ')) {
+        return res.status(401).json({ error: "Authentication required" });
+      }
+      
+      const token = authHeader.substring(7);
+      const jwt = require('jsonwebtoken');
+      const decoded = jwt.verify(token, process.env.JWT_SECRET || 'dev-secret');
+      const userId = decoded.userId;
+      
+      if (!userId) {
+        return res.status(401).json({ error: "Invalid token" });
+      }
+      
+      const { action, value } = req.body;
+      
+      // Valid actions
+      const validActions = [
+        'coachMessage', 'badgeShared', 'videoWatched', 'profileEdit',
+        'appRated', 'workoutEdit', 'extraActivity', 'prBroken'
+      ];
+      
+      if (!action || !validActions.includes(action)) {
+        return res.status(400).json({ error: `Invalid action. Valid: ${validActions.join(', ')}` });
+      }
+      
+      // Upsert user badge stats with the tracked action
+      const updates: Record<string, any> = { updatedAt: new Date() };
+      
+      switch (action) {
+        case 'coachMessage':
+          updates.totalCoachMessages = sql`${userBadgeStats.totalCoachMessages} + 1`;
+          break;
+        case 'badgeShared':
+          updates.totalBadgesShared = sql`${userBadgeStats.totalBadgesShared} + 1`;
+          break;
+        case 'videoWatched':
+          updates.totalVideosWatched = sql`${userBadgeStats.totalVideosWatched} + 1`;
+          break;
+        case 'profileEdit':
+          updates.hasEditedProfile = true;
+          break;
+        case 'appRated':
+          updates.hasRatedApp = true;
+          break;
+        case 'workoutEdit':
+          updates.totalWorkoutEdits = sql`${userBadgeStats.totalWorkoutEdits} + 1`;
+          break;
+        case 'extraActivity':
+          updates.totalExtraActivities = sql`${userBadgeStats.totalExtraActivities} + 1`;
+          break;
+        case 'prBroken':
+          updates.totalPRsBroken = sql`${userBadgeStats.totalPRsBroken} + ${value || 1}`;
+          break;
+      }
+      
+      // Create or update the stats row
+      const existing = await db
+        .select()
+        .from(userBadgeStats)
+        .where(eq(userBadgeStats.userId, userId))
+        .limit(1);
+      
+      if (existing.length === 0) {
+        // Create new row with defaults
+        await db.insert(userBadgeStats).values({ userId });
+      }
+      
+      // Now update
+      await db
+        .update(userBadgeStats)
+        .set(updates)
+        .where(eq(userBadgeStats.userId, userId));
+      
+      console.log(`📊 Tracked ${action} for user ${userId}`);
+      res.json({ success: true, action });
+    } catch (error) {
+      console.error("Error tracking badge action:", error);
+      res.status(500).json({ error: "Failed to track badge action" });
+    }
+  });
+
   return httpServer;
 }
 
