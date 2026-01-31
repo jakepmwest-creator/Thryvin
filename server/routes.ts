@@ -8569,39 +8569,6 @@ Respond with a complete workout in JSON format:
 
   // ============ BADGE SYSTEM API ENDPOINTS ============
   
-  // Test endpoint to verify API routing is working
-  app.get("/api/test", async (req: Request, res) => {
-    try {
-      // Test database connectivity
-      const result = await db.select().from(users).limit(1);
-      
-      // Test badge tables
-      let badgeTablesExist = false;
-      try {
-        await db.select().from(userBadges).limit(1);
-        await db.select().from(userBadgeStats).limit(1);
-        badgeTablesExist = true;
-      } catch (badgeError) {
-        console.log("Badge tables error:", badgeError.message);
-      }
-      
-      res.json({ 
-        message: "API routing is working!", 
-        timestamp: new Date().toISOString(),
-        dbConnected: true,
-        userCount: result.length,
-        badgeTablesExist
-      });
-    } catch (error) {
-      res.json({ 
-        message: "API routing is working!", 
-        timestamp: new Date().toISOString(),
-        dbConnected: false,
-        error: error.message
-      });
-    }
-  });
-  
   // GET /api/badges/progress - Get user's badge progress
   app.get("/api/badges/progress", async (req: Request, res) => {
     try {
