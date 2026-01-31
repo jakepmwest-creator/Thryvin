@@ -53,6 +53,10 @@ import {
   aiLearningContext,
   workoutSets,
   userWorkouts,
+  userBadges,
+  userBadgeStats,
+  performanceLogs,
+  workouts,
 } from "@shared/schema";
 import { sendPasswordResetEmail } from "./email-service-resend";
 import { generateSecureToken, hashPassword } from "./crypto-utils";
