@@ -8570,8 +8570,24 @@ Respond with a complete workout in JSON format:
   // ============ BADGE SYSTEM API ENDPOINTS ============
   
   // Test endpoint to verify API routing is working
-  app.get("/api/test", (req: Request, res) => {
-    res.json({ message: "API routing is working!", timestamp: new Date().toISOString() });
+  app.get("/api/test", async (req: Request, res) => {
+    try {
+      // Test database connectivity
+      const result = await db.select().from(users).limit(1);
+      res.json({ 
+        message: "API routing is working!", 
+        timestamp: new Date().toISOString(),
+        dbConnected: true,
+        userCount: result.length
+      });
+    } catch (error) {
+      res.json({ 
+        message: "API routing is working!", 
+        timestamp: new Date().toISOString(),
+        dbConnected: false,
+        error: error.message
+      });
+    }
   });
   
   // GET /api/badges/progress - Get user's badge progress
