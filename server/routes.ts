@@ -8574,11 +8574,23 @@ Respond with a complete workout in JSON format:
     try {
       // Test database connectivity
       const result = await db.select().from(users).limit(1);
+      
+      // Test badge tables
+      let badgeTablesExist = false;
+      try {
+        await db.select().from(userBadges).limit(1);
+        await db.select().from(userBadgeStats).limit(1);
+        badgeTablesExist = true;
+      } catch (badgeError) {
+        console.log("Badge tables error:", badgeError.message);
+      }
+      
       res.json({ 
         message: "API routing is working!", 
         timestamp: new Date().toISOString(),
         dbConnected: true,
-        userCount: result.length
+        userCount: result.length,
+        badgeTablesExist
       });
     } catch (error) {
       res.json({ 
