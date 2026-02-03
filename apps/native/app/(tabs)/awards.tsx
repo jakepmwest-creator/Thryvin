@@ -1073,24 +1073,49 @@ export default function AwardsScreen() {
   useEffect(() => {
     const checkForBadges = async () => {
       const allCompleted = [...completedWorkouts, ...weekWorkouts.filter(w => w.completed && !w.isRestDay)].filter((w, i, self) => i === self.findIndex(x => x.id === w.id));
-      const categoryCounts: Record<string, number> = { upper: 0, lower: 0, full: 0, cardio: 0, core: 0 };
+      
+      // Calculate categories explored
+      const categoriesSet = new Set<string>();
       allCompleted.forEach(w => {
         const type = (w.type || '').toLowerCase();
-        if (type.includes('upper') || type.includes('push') || type.includes('pull')) categoryCounts.upper++;
-        else if (type.includes('lower') || type.includes('leg')) categoryCounts.lower++;
-        else if (type.includes('cardio') || type.includes('hiit')) categoryCounts.cardio++;
-        else if (type.includes('core')) categoryCounts.core++;
-        else categoryCounts.full++;
+        const target = (w.targetMuscles || '').toLowerCase();
+        if (type.includes('upper') || type.includes('push') || target.includes('chest') || target.includes('back')) categoriesSet.add('upper');
+        if (type.includes('lower') || type.includes('leg') || target.includes('leg')) categoriesSet.add('lower');
+        if (type.includes('cardio') || type.includes('hiit')) categoriesSet.add('cardio');
+        if (type.includes('core') || target.includes('core')) categoriesSet.add('core');
+        if (type.includes('full') || type.includes('strength')) categoriesSet.add('full');
       });
-      await checkBadges({
+      
+      // Build badge stats from workout data
+      const badgeStats = {
         totalWorkouts: allCompleted.length,
+        totalReps: allCompleted.length * 150, // Estimate ~150 reps per workout
+        totalMinutes: allCompleted.reduce((sum, w) => sum + (w.duration || 45), 0),
+        totalCoachMessages: 0, // Tracked separately
+        totalPRsBroken: 0, // Tracked separately
+        totalExtraActivities: 0, // Tracked separately
+        totalWorkoutEdits: 0, // Tracked separately
+        totalBadgesShared: 0, // Tracked separately
+        totalVideosWatched: 0, // Tracked separately
+        totalWeekendWorkouts: allCompleted.filter(w => {
+          const d = new Date(w.completedAt || w.date);
+          return d.getDay() === 0 || d.getDay() === 6;
+        }).length,
+        totalEarlyWorkouts: allCompleted.filter(w => {
+          const d = new Date(w.completedAt || w.date);
+          return d.getHours() < 8;
+        }).length,
+        totalLateWorkouts: allCompleted.filter(w => {
+          const d = new Date(w.completedAt || w.date);
+          return d.getHours() >= 20;
+        }).length,
+        categoriesExplored: categoriesSet.size,
+        hasEditedProfile: false, // Tracked separately
+        hasRatedApp: false, // Tracked separately
         currentStreak: stats?.currentStreak || 0,
-        totalSets: allCompleted.length * 15,
-        totalReps: allCompleted.length * 150,
-        totalMinutes: stats?.totalMinutes || allCompleted.length * 45,
-        weeklyWorkouts: stats?.weeklyWorkouts || 0,
-        categoryCounts,
-      });
+      };
+      
+      await updateBadgeProgress(badgeStats);
     };
     if (completedWorkouts.length > 0 || weekWorkouts.some(w => w.completed)) checkForBadges();
   }, [completedWorkouts, weekWorkouts, stats]);
