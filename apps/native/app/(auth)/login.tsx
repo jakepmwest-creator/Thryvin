@@ -238,15 +238,6 @@ export default function LoginScreen() {
                 }
               ]}
             >
-              {/* Logo */}
-              <View style={styles.logoContainer}>
-                <Image 
-                  source={require('../../assets/images/thryvin-logo-final.png')}
-                  style={styles.logo}
-                  resizeMode="contain"
-                />
-              </View>
-
               {/* Main Welcome Card */}
               <View style={styles.card}>
                 {/* Logo - Inside the card */}
