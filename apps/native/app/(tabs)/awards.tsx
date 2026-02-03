@@ -1060,14 +1060,13 @@ const celebrationStyles = StyleSheet.create({
 });
 
 export default function AwardsScreen() {
-  const { userBadges, newlyUnlocked, totalXP, currentIsland, loadUserBadges, checkBadges, clearNewlyUnlocked, getCompletedCount, getCurrentIsland, getIslandProgress, getBadgesForIsland, resetToStartingLine } = useAwardsStore();
+  const { userBadges, newlyUnlocked, totalXP, currentIsland, loadUserBadges, updateBadgeProgress, clearNewlyUnlocked, getCompletedCount, getCurrentIsland, getIslandProgress, getBadgesForIsland, resetAllAwards } = useAwardsStore();
   const { completedWorkouts, weekWorkouts, stats } = useWorkoutStore();
   
   const [selectedBadge, setSelectedBadge] = useState<Badge | null>(null);
   const [showCelebration, setShowCelebration] = useState(false);
   const [showIslandSelector, setShowIslandSelector] = useState(false);
-  const [filter, setFilter] = useState<'all' | 'completed' | 'incomplete'>('all');
-  const [categoryFilter, setCategoryFilter] = useState<BadgeCategory | 'all'>('all');
+  const [filter, setFilter] = useState<'all' | 'done' | 'not_done' | 'nearly_there'>('all');
   
   useEffect(() => { loadUserBadges(); }, []);
   
