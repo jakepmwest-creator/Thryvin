@@ -9077,38 +9077,41 @@ Respond with a complete workout in JSON format:
         }
         await db.insert(userBadgeStats).values(insertValues);
       } else {
-        // Update existing row - use raw SQL for incrementing
-        const columnMap: Record<string, string> = {
-          'coachMessage': 'total_coach_messages',
-          'badgeShared': 'total_badges_shared',
-          'videoWatched': 'total_videos_watched',
-          'workoutEdit': 'total_workout_edits',
-          'extraActivity': 'total_extra_activities',
-          'prBroken': 'total_prs_broken',
-        };
+        // Update existing row - use drizzle-orm's SQL template
+        const currentStats = existing[0];
+        const updateValues: Partial<typeof userBadgeStats.$inferInsert> = { updatedAt: new Date() };
         
-        const booleanMap: Record<string, string> = {
-          'profileEdit': 'has_edited_profile',
-          'appRated': 'has_rated_app',
-        };
-        
-        if (columnMap[action]) {
-          // Increment action
-          await db.execute(sql`
-            UPDATE user_badge_stats 
-            SET ${sql.identifier(columnMap[action])} = ${sql.identifier(columnMap[action])} + ${value || 1},
-                updated_at = NOW()
-            WHERE user_id = ${userId}
-          `);
-        } else if (booleanMap[action]) {
-          // Boolean action
-          await db.execute(sql`
-            UPDATE user_badge_stats 
-            SET ${sql.identifier(booleanMap[action])} = true,
-                updated_at = NOW()
-            WHERE user_id = ${userId}
-          `);
+        switch (action) {
+          case 'coachMessage':
+            updateValues.totalCoachMessages = (currentStats.totalCoachMessages || 0) + 1;
+            break;
+          case 'badgeShared':
+            updateValues.totalBadgesShared = (currentStats.totalBadgesShared || 0) + 1;
+            break;
+          case 'videoWatched':
+            updateValues.totalVideosWatched = (currentStats.totalVideosWatched || 0) + 1;
+            break;
+          case 'profileEdit':
+            updateValues.hasEditedProfile = true;
+            break;
+          case 'appRated':
+            updateValues.hasRatedApp = true;
+            break;
+          case 'workoutEdit':
+            updateValues.totalWorkoutEdits = (currentStats.totalWorkoutEdits || 0) + 1;
+            break;
+          case 'extraActivity':
+            updateValues.totalExtraActivities = (currentStats.totalExtraActivities || 0) + 1;
+            break;
+          case 'prBroken':
+            updateValues.totalPRsBroken = (currentStats.totalPRsBroken || 0) + (value || 1);
+            break;
         }
+        
+        await db
+          .update(userBadgeStats)
+          .set(updateValues)
+          .where(eq(userBadgeStats.userId, userId));
       }
       
       console.log(`📊 Tracked ${action} for user ${userId}`);
