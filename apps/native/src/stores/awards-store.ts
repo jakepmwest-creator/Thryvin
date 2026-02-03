@@ -1015,11 +1015,39 @@ export const useAwardsStore = create<AwardsState>((set, get) => ({
   // Tracking functions for specific actions
   trackCoachMessage: async () => {
     try {
+      // Update local storage first (for offline support)
       const stored = await AsyncStorage.getItem('badge_stats');
       const stats = stored ? JSON.parse(stored) : {};
       stats.totalCoachMessages = (stats.totalCoachMessages || 0) + 1;
       await AsyncStorage.setItem('badge_stats', JSON.stringify(stats));
-      console.log('💬 [AWARDS] Coach message tracked:', stats.totalCoachMessages);
+      console.log('💬 [AWARDS] Coach message tracked locally:', stats.totalCoachMessages);
+      
+      // SYNC TO SERVER for persistence
+      await apiCall('/api/badges/track', 'POST', {
+        action: 'coach-message',
+        count: stats.totalCoachMessages,
+      });
+      console.log('💬 [AWARDS] Coach message synced to server');
+      
+      // Also trigger badge progress update
+      get().updateBadgeProgress({
+        totalWorkouts: 0,
+        totalReps: 0,
+        totalMinutes: 0,
+        totalCoachMessages: stats.totalCoachMessages,
+        totalPRsBroken: 0,
+        totalExtraActivities: 0,
+        totalWorkoutEdits: 0,
+        totalBadgesShared: stats.totalBadgesShared || 0,
+        totalVideosWatched: stats.totalVideosWatched || 0,
+        totalWeekendWorkouts: 0,
+        totalEarlyWorkouts: 0,
+        totalLateWorkouts: 0,
+        categoriesExplored: 0,
+        hasEditedProfile: stats.hasEditedProfile || false,
+        hasRatedApp: stats.hasRatedApp || false,
+        currentStreak: 0,
+      });
     } catch (error) {
       console.error('Error tracking coach message:', error);
     }
@@ -1032,6 +1060,12 @@ export const useAwardsStore = create<AwardsState>((set, get) => ({
       stats.totalBadgesShared = (stats.totalBadgesShared || 0) + 1;
       await AsyncStorage.setItem('badge_stats', JSON.stringify(stats));
       console.log('📤 [AWARDS] Badge shared tracked:', stats.totalBadgesShared);
+      
+      // SYNC TO SERVER for persistence
+      await apiCall('/api/badges/track', 'POST', {
+        action: 'badge-shared',
+        count: stats.totalBadgesShared,
+      });
     } catch (error) {
       console.error('Error tracking badge shared:', error);
     }
@@ -1044,6 +1078,12 @@ export const useAwardsStore = create<AwardsState>((set, get) => ({
       stats.totalVideosWatched = (stats.totalVideosWatched || 0) + 1;
       await AsyncStorage.setItem('badge_stats', JSON.stringify(stats));
       console.log('🎬 [AWARDS] Video watched tracked:', stats.totalVideosWatched);
+      
+      // SYNC TO SERVER for persistence
+      await apiCall('/api/badges/track', 'POST', {
+        action: 'video-watched',
+        count: stats.totalVideosWatched,
+      });
     } catch (error) {
       console.error('Error tracking video watched:', error);
     }
@@ -1056,6 +1096,12 @@ export const useAwardsStore = create<AwardsState>((set, get) => ({
       stats.hasEditedProfile = true;
       await AsyncStorage.setItem('badge_stats', JSON.stringify(stats));
       console.log('👤 [AWARDS] Profile edit tracked');
+      
+      // SYNC TO SERVER for persistence
+      await apiCall('/api/badges/track', 'POST', {
+        action: 'profile-edit',
+        value: true,
+      });
     } catch (error) {
       console.error('Error tracking profile edit:', error);
     }
@@ -1068,6 +1114,12 @@ export const useAwardsStore = create<AwardsState>((set, get) => ({
       stats.hasRatedApp = true;
       await AsyncStorage.setItem('badge_stats', JSON.stringify(stats));
       console.log('⭐ [AWARDS] App rated tracked');
+      
+      // SYNC TO SERVER for persistence
+      await apiCall('/api/badges/track', 'POST', {
+        action: 'app-rated',
+        value: true,
+      });
     } catch (error) {
       console.error('Error tracking app rated:', error);
     }
