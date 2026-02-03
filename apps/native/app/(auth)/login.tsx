@@ -11,7 +11,8 @@ import {
   Platform,
   ScrollView,
   Animated,
-  Dimensions
+  Dimensions,
+  Modal
 } from 'react-native';
 import { Text } from 'react-native-paper';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -27,26 +28,27 @@ const { width: SCREEN_WIDTH } = Dimensions.get('window');
 import { COLORS as THEME_COLORS } from '../../src/constants/colors';
 
 const COLORS = {
-  accent: THEME_COLORS.gradientStart, // #A22BF6
-  accentSecondary: THEME_COLORS.gradientEnd, // #FF4EC7
+  accent: THEME_COLORS.gradientStart,
+  accentSecondary: THEME_COLORS.gradientEnd,
   white: THEME_COLORS.white,
   text: THEME_COLORS.text,
   lightGray: THEME_COLORS.lightGray,
   mediumGray: THEME_COLORS.mediumGray,
   shadow: THEME_COLORS.cardShadow,
   error: THEME_COLORS.danger,
-  gradientStart: THEME_COLORS.gradientStart, // Purple
-  gradientEnd: THEME_COLORS.gradientEnd, // Pink
+  gradientStart: THEME_COLORS.gradientStart,
+  gradientEnd: THEME_COLORS.gradientEnd,
 };
 
 export default function LoginScreen() {
   const router = useRouter();
   const { login, isLoading, error } = useAuthStore();
   
+  const [showLoginForm, setShowLoginForm] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const [stayLoggedIn, setStayLoggedIn] = useState(true); // Default to true
+  const [stayLoggedIn, setStayLoggedIn] = useState(true);
   const [biometricAvailable, setBiometricAvailable] = useState(false);
   const [biometricEnabled, setBiometricEnabled] = useState(false);
   const [pinEnabled, setPinEnabled] = useState(false);
@@ -70,8 +72,8 @@ export default function LoginScreen() {
 
   // Animation values
   const fadeAnim = useRef(new Animated.Value(0)).current;
-  const slideAnim = useRef(new Animated.Value(50)).current;
-  const pulseAnim = useRef(new Animated.Value(1)).current;
+  const slideAnim = useRef(new Animated.Value(30)).current;
+  const scaleAnim = useRef(new Animated.Value(0.95)).current;
 
   useEffect(() => {
     checkBiometricStatus();
@@ -80,7 +82,7 @@ export default function LoginScreen() {
     Animated.parallel([
       Animated.timing(fadeAnim, {
         toValue: 1,
-        duration: 800,
+        duration: 600,
         useNativeDriver: true,
       }),
       Animated.spring(slideAnim, {
@@ -89,23 +91,13 @@ export default function LoginScreen() {
         friction: 8,
         useNativeDriver: true,
       }),
+      Animated.spring(scaleAnim, {
+        toValue: 1,
+        tension: 50,
+        friction: 8,
+        useNativeDriver: true,
+      }),
     ]).start();
-
-    // Subtle pulse animation for logo
-    Animated.loop(
-      Animated.sequence([
-        Animated.timing(pulseAnim, {
-          toValue: 1.05,
-          duration: 2000,
-          useNativeDriver: true,
-        }),
-        Animated.timing(pulseAnim, {
-          toValue: 1,
-          duration: 2000,
-          useNativeDriver: true,
-        }),
-      ])
-    ).start();
   }, []);
 
   const checkBiometricStatus = async () => {
@@ -117,16 +109,13 @@ export default function LoginScreen() {
       const storedEmail = await SecureStore.getItemAsync('user_email');
       const storedPassword = await SecureStore.getItemAsync('user_password');
       
-      // Only show quick login options if user has previously logged in successfully
       const hasStoredCredentials = storedEmail && storedPassword;
       
       setBiometricAvailable(compatible && enrolled);
       setBiometricEnabled(enabled === 'true' && hasStoredCredentials);
-      // Only show PIN if user has set one AND has stored credentials
       setPinEnabled(!!pinCode && hasStoredCredentials);
     } catch (error) {
       console.error('Biometric check failed:', error);
-      // Ensure quick login is hidden on error
       setPinEnabled(false);
       setBiometricEnabled(false);
     }
@@ -159,63 +148,6 @@ export default function LoginScreen() {
     }
   };
 
-  const createTestAccount = async () => {
-    try {
-      // Quick login with test@example.com account (already exists in backend)
-      await login({ 
-        email: 'test@example.com', 
-        password: 'password123' 
-      });
-      return; // Exit early after successful login
-      
-      /* OLD CODE - REPLACED WITH DIRECT LOGIN
-      // Create a fake test account with random onboarding data
-      const testAccount = {
-        id: Math.floor(Math.random() * 10000),
-        email: 'test@thryvin.com',
-        password: 'test123',
-        name: 'Test User',
-        // Random onboarding selections
-        fitnessGoals: [['build-muscle', 'get-stronger', 'lose-weight', 'improve-endurance'][Math.floor(Math.random() * 4)]],
-        goal: ['build-muscle', 'get-stronger', 'lose-weight', 'improve-endurance'][Math.floor(Math.random() * 4)],
-        experience: ['beginner', 'intermediate', 'advanced'][Math.floor(Math.random() * 3)],
-        trainingType: ['Strength Training', 'Calisthenics', 'Bodybuilding', 'Powerlifting'][Math.floor(Math.random() * 4)],
-        trainingDays: (Math.floor(Math.random() * 4) + 3).toString(), // 3-6 days
-        sessionDuration: ['30', '45', '60', '90'][Math.floor(Math.random() * 4)],
-        equipment: ['gym', 'home', 'minimal'],
-        injuries: [],
-        preferredTime: ['morning', 'afternoon', 'evening'][Math.floor(Math.random() * 3)],
-      };
-
-      // Web-compatible storage fallback
-      const setStorageItem = async (key: string, value: string) => {
-        try {
-          await SecureStore.setItemAsync(key, value);
-        } catch (error) {
-          // Fallback to localStorage for web
-          if (typeof window !== 'undefined') {
-            localStorage.setItem(key, value);
-          }
-        }
-      };
-
-      // Save to storage
-      await setStorageItem('user_email', testAccount.email);
-      await setStorageItem('user_password', testAccount.password);
-      await setStorageItem('auth_user', JSON.stringify(testAccount));
-      
-      console.log('Test account created with random selections:', testAccount);
-      
-      // Auto-login with correct credentials format
-      await login({ email: testAccount.email, password: testAccount.password });
-      router.replace('/(tabs)');
-      */
-    } catch (error) {
-      console.error('Error with test login:', error);
-      showAlert('error', 'Error', 'Failed to login with test account');
-    }
-  };
-
   const handleLogin = async () => {
     if (!email || !password) {
       showAlert('warning', 'Error', 'Please enter email and password');
@@ -225,11 +157,9 @@ export default function LoginScreen() {
     try {
       await login({ email, password });
       
-      // Save credentials if "Stay Logged In" is checked
       if (stayLoggedIn) {
         await SecureStore.setItemAsync('user_email', email);
         await SecureStore.setItemAsync('user_password', password);
-        console.log('✅ Credentials saved for quick login');
       }
       
       router.replace('/(tabs)');
@@ -296,652 +226,499 @@ export default function LoginScreen() {
             showsVerticalScrollIndicator={false}
             keyboardShouldPersistTaps="handled"
           >
-            <View style={styles.contentContainer}>
-              {/* Elevated Card Container */}
-              <Animated.View 
-                style={[
-                  styles.cardContainer,
-                  {
-                    opacity: fadeAnim,
-                    transform: [{ translateY: slideAnim }]
-                  }
-                ]}
-              >
-                <View style={styles.card}>
-                {/* Logo in Card */}
-                <View style={styles.cardLogoContainer}>
-                  <Image 
-                    source={require('../../assets/images/thryvin-logo-final.png')}
-                    style={styles.cardLogo}
-                    resizeMode="contain"
-                  />
+            <Animated.View 
+              style={[
+                styles.contentContainer,
+                {
+                  opacity: fadeAnim,
+                  transform: [
+                    { translateY: slideAnim },
+                    { scale: scaleAnim }
+                  ]
+                }
+              ]}
+            >
+              {/* Logo */}
+              <View style={styles.logoContainer}>
+                <Image 
+                  source={require('../../assets/images/thryvin-logo-final.png')}
+                  style={styles.logo}
+                  resizeMode="contain"
+                />
+              </View>
+
+              {/* Main Welcome Card */}
+              <View style={styles.card}>
+                {/* Hero Section - Welcoming New Users */}
+                <View style={styles.heroSection}>
+                  <Text style={styles.heroTitle}>Transform Your{'\n'}Fitness Journey</Text>
+                  <Text style={styles.heroSubtitle}>
+                    AI-powered workouts tailored to you.{'\n'}Join thousands crushing their goals.
+                  </Text>
                 </View>
 
-                {/* Welcome Text */}
-                <View style={styles.welcomeContainer}>
-                  <Text style={styles.welcomeTitle}>Welcome Back 👋</Text>
-                  <Text style={styles.welcomeSubtitle}>Ready to crush your goals?</Text>
-                </View>
-
-                {/* Login Form */}
-                <View style={styles.formContainer}>
-                  {/* Email Input */}
-                  <View style={styles.inputWrapper}>
-                    <View style={styles.inputIconContainer}>
-                      <Ionicons name="mail-outline" size={18} color={COLORS.accent} />
-                    </View>
-                    <RNTextInput
-                      style={styles.input}
-                      placeholder="Email"
-                      placeholderTextColor={COLORS.mediumGray}
-                      value={email}
-                      onChangeText={setEmail}
-                      keyboardType="email-address"
-                      autoCapitalize="none"
-                      autoCorrect={false}
-                    />
+                {/* Feature Pills */}
+                <View style={styles.featurePills}>
+                  <View style={styles.featurePill}>
+                    <Ionicons name="flash" size={14} color={COLORS.accent} />
+                    <Text style={styles.featurePillText}>Smart AI Coach</Text>
                   </View>
-
-                  {/* Password Input */}
-                  <View style={styles.inputWrapper}>
-                    <View style={styles.inputIconContainer}>
-                      <Ionicons name="lock-closed-outline" size={18} color={COLORS.accent} />
-                    </View>
-                    <RNTextInput
-                      style={[styles.input, styles.passwordInput]}
-                      placeholder="Password"
-                      placeholderTextColor={COLORS.mediumGray}
-                      value={password}
-                      onChangeText={setPassword}
-                      secureTextEntry={!showPassword}
-                      autoCapitalize="none"
-                    />
-                    <TouchableOpacity 
-                      onPress={() => setShowPassword(!showPassword)}
-                      style={styles.eyeIcon}
-                    >
-                      <Ionicons 
-                        name={showPassword ? "eye-outline" : "eye-off-outline"} 
-                        size={18} 
-                        color={COLORS.mediumGray} 
-                      />
-                    </TouchableOpacity>
+                  <View style={styles.featurePill}>
+                    <Ionicons name="trophy" size={14} color={COLORS.accent} />
+                    <Text style={styles.featurePillText}>Earn Rewards</Text>
                   </View>
-
-                  {/* Stay Logged In - Simple checkbox */}
-                  <TouchableOpacity 
-                    style={styles.stayLoggedInRow}
-                    onPress={() => setStayLoggedIn(!stayLoggedIn)}
-                    activeOpacity={0.7}
-                  >
-                    <View style={[styles.checkbox, stayLoggedIn && styles.checkboxChecked]}>
-                      {stayLoggedIn && <Ionicons name="checkmark" size={12} color={COLORS.white} />}
-                    </View>
-                    <Text style={styles.stayLoggedInText}>Stay logged in</Text>
-                  </TouchableOpacity>
-
-                  {/* Login Button */}
-                  <TouchableOpacity 
-                    style={styles.loginButton} 
-                    onPress={handleLogin}
-                    disabled={isLoading || !email || !password}
-                    activeOpacity={0.8}
-                  >
-                    <LinearGradient
-                      colors={[COLORS.accent, COLORS.accentSecondary]}
-                      style={styles.gradientButton}
-                      start={{ x: 0, y: 0 }}
-                      end={{ x: 1, y: 1 }}
-                    >
-                      {isLoading ? (
-                        <Text style={styles.buttonText}>Logging in...</Text>
-                      ) : (
-                        <>
-                          <Ionicons name="arrow-forward" size={18} color={COLORS.white} />
-                          <Text style={styles.buttonText}>Let's Go</Text>
-                        </>
-                      )}
-                    </LinearGradient>
-                  </TouchableOpacity>
-
-                  {/* Forgot Password Link */}
-                  <TouchableOpacity 
-                    style={styles.forgotPasswordLink}
-                    onPress={() => router.push('/(auth)/forgot-password')}
-                  >
-                    <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
-                  </TouchableOpacity>
-
-                  {/* Quick Login Options (PIN / Biometric) */}
-                  {(pinEnabled || (biometricAvailable && biometricEnabled)) && (
-                    <View style={styles.quickLoginContainer}>
-                      <View style={styles.quickLoginDivider}>
-                        <View style={styles.dividerLine} />
-                        <Text style={styles.dividerText}>Quick Login</Text>
-                        <View style={styles.dividerLine} />
-                      </View>
-                      <View style={styles.quickLoginButtons}>
-                        {pinEnabled && (
-                          <TouchableOpacity 
-                            style={styles.quickLoginButton}
-                            onPress={() => setShowPinLogin(true)}
-                          >
-                            <View style={styles.quickLoginIcon}>
-                              <Ionicons name="keypad" size={22} color={COLORS.accent} />
-                            </View>
-                            <Text style={styles.quickLoginText}>PIN</Text>
-                          </TouchableOpacity>
-                        )}
-                        {biometricAvailable && biometricEnabled && (
-                          <TouchableOpacity 
-                            style={styles.quickLoginButton}
-                            onPress={handleBiometricLogin}
-                          >
-                            <View style={styles.quickLoginIcon}>
-                              <Ionicons name="finger-print" size={22} color={COLORS.accent} />
-                            </View>
-                            <Text style={styles.quickLoginText}>Biometric</Text>
-                          </TouchableOpacity>
-                        )}
-                      </View>
-                    </View>
-                  )}
-                </View>
-
-                {/* Divider */}
-                <View style={styles.divider}>
-                  <View style={styles.dividerLine} />
-                  <Text style={styles.dividerText}>New here?</Text>
-                  <View style={styles.dividerLine} />
-                </View>
-
-                {/* Why Join - 3 Bullet Points */}
-                <View style={styles.whyJoinContainer}>
-                  <View style={styles.bulletPoint}>
-                    <Ionicons name="fitness" size={14} color={COLORS.accent} />
-                    <Text style={styles.bulletText}>AI-powered personalized workouts</Text>
-                  </View>
-                  <View style={styles.bulletPoint}>
-                    <Ionicons name="trending-up" size={14} color={COLORS.accent} />
-                    <Text style={styles.bulletText}>Track progress and smash your goals</Text>
-                  </View>
-                  <View style={styles.bulletPoint}>
-                    <Ionicons name="people" size={14} color={COLORS.accent} />
-                    <Text style={styles.bulletText}>Join a community of winners</Text>
+                  <View style={styles.featurePill}>
+                    <Ionicons name="analytics" size={14} color={COLORS.accent} />
+                    <Text style={styles.featurePillText}>Track Progress</Text>
                   </View>
                 </View>
 
-                {/* Start Journey Button */}
+                {/* Primary CTA - Start Journey */}
                 <TouchableOpacity 
-                  style={styles.startJourneyButton} 
+                  style={styles.primaryButton} 
                   onPress={handleStartJourney}
-                  activeOpacity={0.7}
+                  activeOpacity={0.9}
                 >
                   <LinearGradient
-                    colors={[`${COLORS.accent}15`, `${COLORS.accentSecondary}15`]}
-                    style={styles.startJourneyGradient}
+                    colors={[COLORS.accent, COLORS.accentSecondary]}
+                    style={styles.primaryButtonGradient}
                     start={{ x: 0, y: 0 }}
                     end={{ x: 1, y: 1 }}
                   >
-                    <Ionicons name="rocket" size={18} color={COLORS.accent} />
-                    <Text style={styles.startJourneyText}>Start Your Journey</Text>
+                    <Ionicons name="rocket" size={20} color={COLORS.white} />
+                    <Text style={styles.primaryButtonText}>Start Your Journey</Text>
+                    <Ionicons name="arrow-forward" size={18} color={COLORS.white} />
                   </LinearGradient>
                 </TouchableOpacity>
+
+                {/* Quick Login Options for returning users */}
+                {(pinEnabled || (biometricAvailable && biometricEnabled)) && (
+                  <View style={styles.quickLoginSection}>
+                    <Text style={styles.quickLoginTitle}>Welcome back!</Text>
+                    <View style={styles.quickLoginButtons}>
+                      {biometricAvailable && biometricEnabled && (
+                        <TouchableOpacity 
+                          style={styles.quickLoginButton}
+                          onPress={handleBiometricLogin}
+                        >
+                          <Ionicons name="finger-print" size={24} color={COLORS.accent} />
+                          <Text style={styles.quickLoginButtonText}>Face/Touch ID</Text>
+                        </TouchableOpacity>
+                      )}
+                      {pinEnabled && (
+                        <TouchableOpacity 
+                          style={styles.quickLoginButton}
+                          onPress={() => setShowPinLogin(true)}
+                        >
+                          <Ionicons name="keypad" size={24} color={COLORS.accent} />
+                          <Text style={styles.quickLoginButtonText}>PIN</Text>
+                        </TouchableOpacity>
+                      )}
+                    </View>
+                  </View>
+                )}
+
+                {/* Secondary - Already have account */}
+                <View style={styles.loginSection}>
+                  <Text style={styles.loginSectionText}>Already have an account?</Text>
+                  <TouchableOpacity 
+                    style={styles.loginLink}
+                    onPress={() => setShowLoginForm(true)}
+                  >
+                    <Text style={styles.loginLinkText}>Sign In</Text>
+                    <Ionicons name="arrow-forward" size={14} color={COLORS.accent} />
+                  </TouchableOpacity>
+                </View>
 
                 {/* DEV-only Quick Test Login */}
                 <QuickTestLogin />
               </View>
             </Animated.View>
-          </View>
           </ScrollView>
         </KeyboardAvoidingView>
       </SafeAreaView>
 
-      {/* PIN Login Modal */}
-      {showPinLogin && (
-        <View style={styles.pinModalOverlay}>
-          <View style={styles.pinModalContainer}>
-            <LinearGradient
-              colors={[COLORS.accent, COLORS.accentSecondary]}
-              style={styles.pinModalHeader}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-            >
+      {/* Login Form Modal */}
+      <Modal
+        visible={showLoginForm}
+        animationType="slide"
+        presentationStyle="pageSheet"
+        onRequestClose={() => setShowLoginForm(false)}
+      >
+        <SafeAreaView style={styles.modalContainer}>
+          <View style={styles.modalHeader}>
+            <TouchableOpacity onPress={() => setShowLoginForm(false)} style={styles.modalClose}>
+              <Ionicons name="close" size={24} color={COLORS.text} />
+            </TouchableOpacity>
+            <Text style={styles.modalTitle}>Welcome Back</Text>
+            <View style={{ width: 24 }} />
+          </View>
+
+          <ScrollView 
+            style={styles.modalContent}
+            contentContainerStyle={styles.modalScrollContent}
+            keyboardShouldPersistTaps="handled"
+          >
+            <View style={styles.loginFormContainer}>
+              {/* Email Input */}
+              <View style={styles.inputWrapper}>
+                <View style={styles.inputIconContainer}>
+                  <Ionicons name="mail-outline" size={18} color={COLORS.accent} />
+                </View>
+                <RNTextInput
+                  style={styles.input}
+                  placeholder="Email"
+                  placeholderTextColor={COLORS.mediumGray}
+                  value={email}
+                  onChangeText={setEmail}
+                  keyboardType="email-address"
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                />
+              </View>
+
+              {/* Password Input */}
+              <View style={styles.inputWrapper}>
+                <View style={styles.inputIconContainer}>
+                  <Ionicons name="lock-closed-outline" size={18} color={COLORS.accent} />
+                </View>
+                <RNTextInput
+                  style={[styles.input, styles.passwordInput]}
+                  placeholder="Password"
+                  placeholderTextColor={COLORS.mediumGray}
+                  value={password}
+                  onChangeText={setPassword}
+                  secureTextEntry={!showPassword}
+                  autoCapitalize="none"
+                />
+                <TouchableOpacity 
+                  onPress={() => setShowPassword(!showPassword)}
+                  style={styles.eyeIcon}
+                >
+                  <Ionicons 
+                    name={showPassword ? "eye-outline" : "eye-off-outline"} 
+                    size={18} 
+                    color={COLORS.mediumGray} 
+                  />
+                </TouchableOpacity>
+              </View>
+
+              {/* Stay Logged In */}
               <TouchableOpacity 
-                style={styles.pinModalClose}
+                style={styles.stayLoggedInRow}
+                onPress={() => setStayLoggedIn(!stayLoggedIn)}
+                activeOpacity={0.7}
+              >
+                <View style={[styles.checkbox, stayLoggedIn && styles.checkboxChecked]}>
+                  {stayLoggedIn && <Ionicons name="checkmark" size={12} color={COLORS.white} />}
+                </View>
+                <Text style={styles.stayLoggedInText}>Stay logged in</Text>
+              </TouchableOpacity>
+
+              {/* Login Button */}
+              <TouchableOpacity 
+                style={styles.modalLoginButton} 
+                onPress={handleLogin}
+                disabled={isLoading || !email || !password}
+                activeOpacity={0.8}
+              >
+                <LinearGradient
+                  colors={[COLORS.accent, COLORS.accentSecondary]}
+                  style={styles.modalLoginButtonGradient}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 1 }}
+                >
+                  {isLoading ? (
+                    <Text style={styles.modalLoginButtonText}>Logging in...</Text>
+                  ) : (
+                    <>
+                      <Text style={styles.modalLoginButtonText}>Sign In</Text>
+                      <Ionicons name="arrow-forward" size={18} color={COLORS.white} />
+                    </>
+                  )}
+                </LinearGradient>
+              </TouchableOpacity>
+
+              {/* Forgot Password */}
+              <TouchableOpacity 
+                style={styles.forgotPasswordLink}
                 onPress={() => {
-                  setShowPinLogin(false);
-                  setPinInput('');
-                  setPinError('');
+                  setShowLoginForm(false);
+                  router.push('/(auth)/forgot-password');
                 }}
               >
-                <Ionicons name="close" size={24} color={COLORS.white} />
+                <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
               </TouchableOpacity>
-              <Ionicons name="keypad" size={40} color={COLORS.white} />
-              <Text style={styles.pinModalTitle}>Enter PIN</Text>
-              <Text style={styles.pinModalSubtitle}>Enter your 6-digit PIN to log in</Text>
-            </LinearGradient>
+            </View>
+          </ScrollView>
+        </SafeAreaView>
+      </Modal>
+
+      {/* PIN Login Modal */}
+      <Modal
+        visible={showPinLogin}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setShowPinLogin(false)}
+      >
+        <View style={styles.pinModalOverlay}>
+          <View style={styles.pinModalCard}>
+            <TouchableOpacity 
+              style={styles.pinModalClose}
+              onPress={() => { setShowPinLogin(false); setPinInput(''); setPinError(''); }}
+            >
+              <Ionicons name="close" size={20} color={COLORS.mediumGray} />
+            </TouchableOpacity>
             
-            <View style={styles.pinInputSection}>
-              <View style={styles.pinDotsContainer}>
-                {[0, 1, 2, 3, 4, 5].map((index) => (
-                  <View 
-                    key={index} 
-                    style={[
-                      styles.pinDot,
-                      pinInput.length > index && styles.pinDotFilled,
-                      pinError && styles.pinDotError,
-                    ]}
-                  />
-                ))}
-              </View>
-              {pinError ? (
-                <Text style={styles.pinErrorText}>{pinError}</Text>
-              ) : null}
-              
-              {/* Number Pad */}
-              <View style={styles.pinNumberPad}>
-                {[['1', '2', '3'], ['4', '5', '6'], ['7', '8', '9'], ['', '0', 'back']].map((row, rowIndex) => (
-                  <View key={rowIndex} style={styles.pinNumberRow}>
-                    {row.map((num, numIndex) => {
-                      if (num === '') {
-                        return <View key={numIndex} style={styles.pinEmptyButton} />;
+            <Text style={styles.pinModalTitle}>Enter Your PIN</Text>
+            
+            <View style={styles.pinDots}>
+              {[0, 1, 2, 3, 4, 5].map(i => (
+                <View 
+                  key={i} 
+                  style={[styles.pinDot, pinInput.length > i && styles.pinDotFilled]}
+                />
+              ))}
+            </View>
+            
+            {pinError ? <Text style={styles.pinErrorText}>{pinError}</Text> : null}
+            
+            <View style={styles.pinKeypad}>
+              {[1, 2, 3, 4, 5, 6, 7, 8, 9, '', 0, 'del'].map((key, idx) => (
+                <TouchableOpacity
+                  key={idx}
+                  style={[styles.pinKey, key === '' && styles.pinKeyEmpty]}
+                  onPress={() => {
+                    if (key === 'del') {
+                      setPinInput(prev => prev.slice(0, -1));
+                    } else if (key !== '' && pinInput.length < 6) {
+                      const newPin = pinInput + key;
+                      setPinInput(newPin);
+                      if (newPin.length === 6) {
+                        setTimeout(handlePinLogin, 100);
                       }
-                      if (num === 'back') {
-                        return (
-                          <TouchableOpacity 
-                            key={numIndex} 
-                            style={styles.pinNumberButton}
-                            onPress={() => {
-                              setPinInput(prev => prev.slice(0, -1));
-                              setPinError('');
-                            }}
-                          >
-                            <Ionicons name="backspace-outline" size={24} color={COLORS.text} />
-                          </TouchableOpacity>
-                        );
-                      }
-                      return (
-                        <TouchableOpacity 
-                          key={numIndex} 
-                          style={styles.pinNumberButton}
-                          onPress={() => {
-                            if (pinInput.length < 6) {
-                              const newPin = pinInput + num;
-                              setPinInput(newPin);
-                              setPinError('');
-                              if (newPin.length === 6) {
-                                // Auto-submit when 6 digits entered
-                                setTimeout(() => handlePinLogin(), 200);
-                              }
-                            }
-                          }}
-                        >
-                          <Text style={styles.pinNumberText}>{num}</Text>
-                        </TouchableOpacity>
-                      );
-                    })}
-                  </View>
-                ))}
-              </View>
+                    }
+                  }}
+                  disabled={key === ''}
+                >
+                  {key === 'del' ? (
+                    <Ionicons name="backspace-outline" size={22} color={COLORS.text} />
+                  ) : (
+                    <Text style={styles.pinKeyText}>{key}</Text>
+                  )}
+                </TouchableOpacity>
+              ))}
             </View>
           </View>
         </View>
-      )}
+      </Modal>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  gradientBackground: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-  },
-  safeArea: {
-    flex: 1,
-  },
-  keyboardView: {
-    flex: 1,
-  },
-  scrollView: {
-    flex: 1,
-  },
-  scrollContent: {
-    flexGrow: 1,
-    justifyContent: 'center',
-  },
-  contentContainer: {
-    paddingHorizontal: 20,
-    paddingVertical: 20,
-  },
-  cardContainer: {
-    borderRadius: 28,
-    overflow: 'visible',
+  container: { flex: 1 },
+  gradientBackground: { ...StyleSheet.absoluteFillObject },
+  safeArea: { flex: 1 },
+  keyboardView: { flex: 1 },
+  scrollView: { flex: 1 },
+  scrollContent: { flexGrow: 1, paddingHorizontal: 24, paddingVertical: 20 },
+  contentContainer: { flex: 1, justifyContent: 'center' },
+  
+  // Logo
+  logoContainer: { alignItems: 'center', marginBottom: 20 },
+  logo: { width: 120, height: 50 },
+  
+  // Main Card
+  card: { 
+    backgroundColor: COLORS.white, 
+    borderRadius: 28, 
+    padding: 28,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.10,
-    shadowRadius: 20,
+    shadowOpacity: 0.15,
+    shadowRadius: 30,
     elevation: 10,
   },
-  card: {
-    borderRadius: 28,
-    paddingHorizontal: 24,
-    paddingVertical: 32,
-    backgroundColor: COLORS.white,
-  },
-  cardLogoContainer: {
-    alignItems: 'center',
-    marginBottom: 28,
-  },
-  cardLogo: {
-    width: 160,
-    height: 36,
-  },
-  welcomeContainer: {
-    marginBottom: 28,
-    alignItems: 'center',
-  },
-  welcomeTitle: {
-    fontSize: 24,
-    fontWeight: '700',
-    color: COLORS.text,
-    marginBottom: 6,
+  
+  // Hero Section
+  heroSection: { alignItems: 'center', marginBottom: 24 },
+  heroTitle: { 
+    fontSize: 28, 
+    fontWeight: '800', 
+    color: COLORS.text, 
     textAlign: 'center',
+    lineHeight: 34,
   },
-  welcomeSubtitle: {
-    fontSize: 14,
-    color: COLORS.mediumGray,
-    fontWeight: '500',
-    textAlign: 'center',
+  heroSubtitle: { 
+    fontSize: 15, 
+    color: COLORS.mediumGray, 
+    textAlign: 'center', 
+    marginTop: 12,
+    lineHeight: 22,
   },
-  formContainer: {
-    width: '100%',
+  
+  // Feature Pills
+  featurePills: { flexDirection: 'row', justifyContent: 'center', flexWrap: 'wrap', gap: 8, marginBottom: 28 },
+  featurePill: { 
+    flexDirection: 'row', 
+    alignItems: 'center', 
+    backgroundColor: `${COLORS.accent}10`, 
+    paddingHorizontal: 12, 
+    paddingVertical: 6, 
+    borderRadius: 20,
+    gap: 4,
   },
+  featurePillText: { fontSize: 12, fontWeight: '600', color: COLORS.accent },
+  
+  // Primary Button
+  primaryButton: { marginBottom: 20 },
+  primaryButtonGradient: { 
+    flexDirection: 'row', 
+    alignItems: 'center', 
+    justifyContent: 'center', 
+    paddingVertical: 16, 
+    borderRadius: 16,
+    gap: 10,
+  },
+  primaryButtonText: { fontSize: 17, fontWeight: '700', color: COLORS.white },
+  
+  // Quick Login Section
+  quickLoginSection: { 
+    backgroundColor: COLORS.lightGray, 
+    borderRadius: 16, 
+    padding: 16, 
+    marginBottom: 20,
+    alignItems: 'center',
+  },
+  quickLoginTitle: { fontSize: 14, fontWeight: '600', color: COLORS.text, marginBottom: 12 },
+  quickLoginButtons: { flexDirection: 'row', gap: 16 },
+  quickLoginButton: { 
+    alignItems: 'center', 
+    backgroundColor: COLORS.white, 
+    padding: 16, 
+    borderRadius: 12,
+    minWidth: 90,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 2,
+  },
+  quickLoginButtonText: { fontSize: 11, fontWeight: '600', color: COLORS.text, marginTop: 6 },
+  
+  // Login Section
+  loginSection: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: 6, marginTop: 8 },
+  loginSectionText: { fontSize: 14, color: COLORS.mediumGray },
+  loginLink: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+  loginLinkText: { fontSize: 14, fontWeight: '700', color: COLORS.accent },
+  
+  // Modal Styles
+  modalContainer: { flex: 1, backgroundColor: COLORS.white },
+  modalHeader: { 
+    flexDirection: 'row', 
+    alignItems: 'center', 
+    justifyContent: 'space-between', 
+    paddingHorizontal: 20, 
+    paddingVertical: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.lightGray,
+  },
+  modalClose: { padding: 4 },
+  modalTitle: { fontSize: 18, fontWeight: '700', color: COLORS.text },
+  modalContent: { flex: 1 },
+  modalScrollContent: { padding: 24 },
+  
+  loginFormContainer: { gap: 16 },
+  
+  // Input Styles
   inputWrapper: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: COLORS.lightGray,
     borderRadius: 14,
     paddingHorizontal: 14,
-    marginBottom: 14,
-    borderWidth: 2,
-    borderColor: 'transparent',
+    height: 56,
   },
-  stayLoggedInRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 16,
-    alignSelf: 'center',
-  },
-  checkbox: {
-    width: 18,
-    height: 18,
-    borderRadius: 4,
-    borderWidth: 1.5,
+  inputIconContainer: { marginRight: 12 },
+  input: { flex: 1, fontSize: 16, color: COLORS.text },
+  passwordInput: { paddingRight: 40 },
+  eyeIcon: { position: 'absolute', right: 14, padding: 4 },
+  
+  // Stay Logged In
+  stayLoggedInRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+  checkbox: { 
+    width: 20, 
+    height: 20, 
+    borderRadius: 5, 
+    borderWidth: 2, 
     borderColor: COLORS.mediumGray,
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: 8,
   },
-  checkboxChecked: {
-    backgroundColor: COLORS.accent,
-    borderColor: COLORS.accent,
-  },
-  stayLoggedInText: {
-    fontSize: 13,
-    color: COLORS.mediumGray,
-  },
-  inputIconContainer: {
-    width: 36,
-    height: 36,
-    borderRadius: 10,
-    backgroundColor: `${COLORS.accent}10`,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 10,
-  },
-  input: {
-    flex: 1,
-    fontSize: 15,
-    color: COLORS.text,
-    paddingVertical: 14,
-    fontWeight: '500',
-  },
-  passwordInput: {
-    paddingRight: 40,
-  },
-  eyeIcon: {
-    position: 'absolute',
-    right: 18,
-    padding: 8,
-  },
-  loginButton: {
-    marginTop: 8,
-    marginBottom: 12,
+  checkboxChecked: { backgroundColor: COLORS.accent, borderColor: COLORS.accent },
+  stayLoggedInText: { fontSize: 14, color: COLORS.mediumGray },
+  
+  // Modal Login Button
+  modalLoginButton: { marginTop: 8 },
+  modalLoginButtonGradient: { 
+    flexDirection: 'row', 
+    alignItems: 'center', 
+    justifyContent: 'center', 
+    paddingVertical: 16, 
     borderRadius: 14,
-    shadowColor: COLORS.accent,
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.25,
-    shadowRadius: 12,
-    elevation: 6,
-  },
-  gradientButton: {
-    paddingVertical: 14,
-    borderRadius: 14,
-    alignItems: 'center',
-    justifyContent: 'center',
-    flexDirection: 'row',
     gap: 8,
   },
-  buttonText: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: COLORS.white,
-    letterSpacing: 0.5,
-  },
-  forgotPasswordLink: {
+  modalLoginButtonText: { fontSize: 16, fontWeight: '700', color: COLORS.white },
+  
+  // Forgot Password
+  forgotPasswordLink: { alignItems: 'center', paddingVertical: 8 },
+  forgotPasswordText: { fontSize: 14, color: COLORS.accent, fontWeight: '500' },
+  
+  // PIN Modal
+  pinModalOverlay: { 
+    flex: 1, 
+    backgroundColor: 'rgba(0,0,0,0.5)', 
+    justifyContent: 'center', 
     alignItems: 'center',
-    paddingVertical: 6,
+    padding: 24,
   },
-  forgotPasswordText: {
-    fontSize: 13,
-    color: COLORS.accent,
-    fontWeight: '600',
-  },
-  divider: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginVertical: 24,
-  },
-  dividerLine: {
-    flex: 1,
-    height: 1,
-    backgroundColor: `${COLORS.mediumGray}30`,
-  },
-  dividerText: {
-    marginHorizontal: 14,
-    fontSize: 12,
-    color: COLORS.mediumGray,
-    fontWeight: '600',
-  },
-  whyJoinContainer: {
-    backgroundColor: `${COLORS.accent}08`,
-    borderRadius: 12,
-    padding: 14,
-    marginBottom: 20,
-    gap: 10,
-  },
-  bulletPoint: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  bulletText: {
-    fontSize: 13,
-    color: COLORS.text,
-    fontWeight: '500',
-    flex: 1,
-  },
-  startJourneyButton: {
-    borderRadius: 14,
-    overflow: 'hidden',
-  },
-  startJourneyGradient: {
-    paddingVertical: 16,
-    paddingHorizontal: 20,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-    borderRadius: 14,
-  },
-  startJourneyText: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: COLORS.accent,
-  },
-  // Quick Login Styles
-  quickLoginContainer: {
-    marginTop: 16,
-  },
-  quickLoginDivider: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  quickLoginButtons: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    gap: 16,
-  },
-  quickLoginButton: {
-    alignItems: 'center',
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-    backgroundColor: `${COLORS.accent}10`,
-    borderRadius: 14,
-  },
-  quickLoginIcon: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: COLORS.white,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 6,
-    shadowColor: COLORS.accent,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.15,
-    shadowRadius: 6,
-    elevation: 3,
-  },
-  quickLoginText: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: COLORS.accent,
-  },
-  // PIN Modal Styles
-  pinModalOverlay: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    justifyContent: 'flex-end',
-  },
-  pinModalContainer: {
-    backgroundColor: COLORS.white,
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    overflow: 'hidden',
-  },
-  pinModalHeader: {
-    paddingTop: 40,
-    paddingBottom: 24,
+  pinModalCard: { 
+    backgroundColor: COLORS.white, 
+    borderRadius: 24, 
+    padding: 28, 
+    width: '100%',
+    maxWidth: 320,
     alignItems: 'center',
   },
-  pinModalClose: {
-    position: 'absolute',
-    top: 16,
-    left: 16,
-    padding: 4,
-    zIndex: 10,
-  },
-  pinModalTitle: {
-    fontSize: 24,
-    fontWeight: '700',
-    color: COLORS.white,
-    marginTop: 12,
-  },
-  pinModalSubtitle: {
-    fontSize: 14,
-    color: 'rgba(255,255,255,0.85)',
-    marginTop: 4,
-  },
-  pinInputSection: {
-    paddingVertical: 24,
-    alignItems: 'center',
-  },
-  pinDotsContainer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    gap: 16,
-    marginBottom: 16,
-  },
-  pinDot: {
-    width: 16,
-    height: 16,
-    borderRadius: 8,
-    borderWidth: 2,
-    borderColor: COLORS.mediumGray,
-    backgroundColor: 'transparent',
-  },
-  pinDotFilled: {
-    backgroundColor: COLORS.accent,
-    borderColor: COLORS.accent,
-  },
-  pinDotError: {
-    borderColor: COLORS.error,
-    backgroundColor: COLORS.error,
-  },
-  pinErrorText: {
-    fontSize: 14,
-    color: COLORS.error,
-    marginBottom: 16,
-    fontWeight: '500',
-  },
-  pinNumberPad: {
-    paddingHorizontal: 40,
-    paddingTop: 16,
-    paddingBottom: 32,
-  },
-  pinNumberRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 12,
-  },
-  pinNumberButton: {
-    width: 72,
-    height: 72,
-    borderRadius: 36,
+  pinModalClose: { position: 'absolute', top: 16, right: 16, padding: 4 },
+  pinModalTitle: { fontSize: 20, fontWeight: '700', color: COLORS.text, marginBottom: 24 },
+  pinDots: { flexDirection: 'row', gap: 12, marginBottom: 16 },
+  pinDot: { 
+    width: 14, 
+    height: 14, 
+    borderRadius: 7, 
     backgroundColor: COLORS.lightGray,
-    justifyContent: 'center',
-    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: COLORS.mediumGray,
   },
-  pinEmptyButton: {
-    width: 72,
-    height: 72,
+  pinDotFilled: { backgroundColor: COLORS.accent, borderColor: COLORS.accent },
+  pinErrorText: { fontSize: 13, color: COLORS.error, marginBottom: 16 },
+  pinKeypad: { 
+    flexDirection: 'row', 
+    flexWrap: 'wrap', 
+    justifyContent: 'center', 
+    width: 240,
   },
-  pinNumberText: {
-    fontSize: 28,
-    fontWeight: '500',
-    color: COLORS.text,
+  pinKey: { 
+    width: 70, 
+    height: 56, 
+    justifyContent: 'center', 
+    alignItems: 'center', 
+    margin: 4,
+    borderRadius: 12,
+    backgroundColor: COLORS.lightGray,
   },
+  pinKeyEmpty: { backgroundColor: 'transparent' },
+  pinKeyText: { fontSize: 24, fontWeight: '600', color: COLORS.text },
 });
