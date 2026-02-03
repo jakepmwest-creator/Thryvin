@@ -35,9 +35,9 @@ const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 const CATEGORY_INFO: Record<BadgeCategory, { label: string; icon: string; color: string }> = {
   consistency: { label: 'Consistency', icon: 'flame', color: '#FF6B35' },
   volume: { label: 'Volume', icon: 'barbell', color: '#5B8DEF' },
-  focus: { label: 'Focus', icon: 'body', color: '#34C759' },
-  program: { label: 'Program', icon: 'trophy', color: '#FFD700' },
-  challenge: { label: 'Challenge', icon: 'flash', color: '#FF4EC7' },
+  engagement: { label: 'Engagement', icon: 'chatbubbles', color: '#34C759' },
+  achievement: { label: 'Achievement', icon: 'trophy', color: '#FFD700' },
+  social: { label: 'Social', icon: 'people', color: '#FF4EC7' },
 };
 
 // Animated floating particle component
