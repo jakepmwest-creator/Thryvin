@@ -595,15 +595,16 @@ export default function StatsScreen() {
       .sort((a, b) => b.percentage - a.percentage);
     
     return {
-      thisWeek: {
-        workoutsCompleted: thisWeekWorkouts.length,
-        workoutsChange: thisWeekWorkouts.length - lastWeekWorkouts.length,
-        activeMinutes: thisWeekMinutes,
-        minutesChange: thisWeekMinutes - lastWeekMinutes,
-        caloriesBurned: thisWeekCalories,
-        caloriesChange: thisWeekCalories - lastWeekCalories,
+      periodLabel,
+      thisPeriod: {
+        workoutsCompleted: thisPeriodWorkouts.length,
+        workoutsChange: thisPeriodWorkouts.length - previousPeriodWorkouts.length,
+        activeMinutes: thisPeriodMinutes,
+        minutesChange: thisPeriodMinutes - previousPeriodMinutes,
+        caloriesBurned: thisPeriodCalories,
+        caloriesChange: thisPeriodCalories - previousPeriodCalories,
         weeklyGoal,
-        goalProgress: Math.round((thisWeekWorkouts.length / weeklyGoal) * 100),
+        goalProgress: Math.round((thisPeriodWorkouts.length / weeklyGoal) * 100),
       },
       streaks: {
         current: currentStreak,
@@ -616,7 +617,7 @@ export default function StatsScreen() {
       dailyData,
       muscleData,
     };
-  }, [completedWorkouts, weekWorkouts, user]);
+  }, [completedWorkouts, weekWorkouts, user, timePeriod, getDateRange]);
 
   useEffect(() => {
     const loadData = async () => {
