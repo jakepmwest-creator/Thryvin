@@ -8771,9 +8771,9 @@ Respond with a complete workout in JSON format:
         totalXP: stats.totalXP || 0,
         currentIsland: stats.currentIsland || 1,
       });
-    } catch (error) {
-      console.error("Error fetching badge progress:", error);
-      res.status(500).json({ error: "Failed to fetch badge progress" });
+    } catch (error: any) {
+      console.error("Error fetching badge progress:", error?.message || error);
+      res.status(500).json({ error: "Failed to fetch badge progress", details: error?.message });
     }
   });
   
