@@ -790,6 +790,48 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
         await setStorageItem('week_workouts_date', weekKey);
         await setStorageItem('week_workouts_version', CACHE_VERSION);
         
+        // ====================================================================
+        // STEP 3: SAVE GENERATED WORKOUTS TO DATABASE FOR PERSISTENCE
+        // ====================================================================
+        console.log('💾 [3-WEEK] Saving workouts to database for persistence...');
+        try {
+          let token = null;
+          try {
+            const SecureStore = require('expo-secure-store');
+            token = await SecureStore.getItemAsync('thryvin_access_token');
+          } catch {
+            token = await getStorageItem('auth_token');
+          }
+          
+          if (token) {
+            // Save each workout to the database
+            let savedCount = 0;
+            for (const workout of weekWorkouts) {
+              try {
+                const dateKey = toLocalDateKey(workout.date);
+                await fetch(`${API_BASE_URL}/api/workouts/save-schedule`, {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`,
+                    'Bypass-Tunnel-Reminder': 'true',
+                  },
+                  body: JSON.stringify({
+                    date: dateKey,
+                    workout: workout,
+                  }),
+                });
+                savedCount++;
+              } catch (saveErr) {
+                // Continue with other workouts even if one fails
+              }
+            }
+            console.log(`✅ [3-WEEK] Saved ${savedCount}/${weekWorkouts.length} workouts to database`);
+          }
+        } catch (dbSaveError) {
+          console.log('⚠️ [3-WEEK] Could not save to database (will use local cache):', dbSaveError);
+        }
+        
         // Release lock
         await deleteStorageItem('workout_generation_lock');
         set({ weekWorkouts, isLoading: false, error: null });
