@@ -24,7 +24,7 @@ import {
   RARITY_LABELS,
   ISLANDS,
   Badge,
-  UserBadge,
+  UserBadgeProgress,
   BadgeCategory,
   Island,
 } from '../../src/stores/awards-store';
