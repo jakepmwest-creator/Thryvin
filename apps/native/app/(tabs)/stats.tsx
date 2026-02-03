@@ -406,6 +406,7 @@ export default function StatsScreen() {
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [activeChart, setActiveChart] = useState<'minutes' | 'calories'>('minutes');
+  const [timePeriod, setTimePeriod] = useState<'week' | 'month' | 'year'>('week');
   
   // Exercise Stats Modal
   const [showExerciseStats, setShowExerciseStats] = useState(false);
@@ -416,18 +417,43 @@ export default function StatsScreen() {
     setShowExerciseStats(true);
   };
 
+  // Get date range based on selected time period
+  const getDateRange = useCallback(() => {
+    const now = new Date();
+    let startDate: Date;
+    let previousStartDate: Date;
+    let periodLabel: string;
+    
+    switch (timePeriod) {
+      case 'week':
+        // Start of this week (Sunday)
+        startDate = new Date(now);
+        startDate.setDate(now.getDate() - now.getDay());
+        startDate.setHours(0, 0, 0, 0);
+        previousStartDate = new Date(startDate);
+        previousStartDate.setDate(previousStartDate.getDate() - 7);
+        periodLabel = 'This Week';
+        break;
+      case 'month':
+        // Start of this month
+        startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+        previousStartDate = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+        periodLabel = 'This Month';
+        break;
+      case 'year':
+        // Start of this year
+        startDate = new Date(now.getFullYear(), 0, 1);
+        previousStartDate = new Date(now.getFullYear() - 1, 0, 1);
+        periodLabel = 'This Year';
+        break;
+    }
+    
+    return { startDate, previousStartDate, periodLabel, now };
+  }, [timePeriod]);
+
   // Calculate stats from LOCAL data (completedWorkouts from workout-store)
   const calculateLocalStats = useCallback(() => {
-    const now = new Date();
-    
-    // Start of this week (Sunday)
-    const startOfThisWeek = new Date(now);
-    startOfThisWeek.setDate(now.getDate() - now.getDay());
-    startOfThisWeek.setHours(0, 0, 0, 0);
-    
-    // Start of last week
-    const startOfLastWeek = new Date(startOfThisWeek);
-    startOfLastWeek.setDate(startOfLastWeek.getDate() - 7);
+    const { startDate, previousStartDate, periodLabel, now } = getDateRange();
     
     // Also count completed from weekWorkouts (current schedule)
     const allCompleted = [
