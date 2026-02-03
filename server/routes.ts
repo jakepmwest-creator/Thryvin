@@ -7072,6 +7072,61 @@ Respond with a complete workout in JSON format:
     }
   });
 
+  // GET /api/workouts/user-schedule?start=YYYY-MM-DD&end=YYYY-MM-DD - Get user's workouts by date range
+  app.get("/api/workouts/user-schedule", authenticateToken, async (req: AuthenticatedRequest, res) => {
+    const userId = req.user?.id;
+    if (!userId) {
+      return res.status(401).json({ error: "Authentication required" });
+    }
+
+    const { start, end } = req.query;
+    
+    if (!start || !end || typeof start !== 'string' || typeof end !== 'string') {
+      return res.status(400).json({ error: "start and end date query parameters are required (YYYY-MM-DD)" });
+    }
+
+    console.log(`📡 [USER-SCHEDULE] Fetching workouts for user ${userId} from ${start} to ${end}`);
+
+    try {
+      // Query workout_days table for the date range
+      const workouts = await db
+        .select()
+        .from(workoutDays)
+        .where(
+          and(
+            eq(workoutDays.userId, userId),
+            gte(workoutDays.date, start),
+            lte(workoutDays.date, end)
+          )
+        )
+        .orderBy(workoutDays.date);
+
+      console.log(`✅ [USER-SCHEDULE] Found ${workouts.length} workouts for user ${userId}`);
+      
+      // Transform to include payload data
+      const transformedWorkouts = workouts.map(w => {
+        let payload = {};
+        try {
+          payload = w.payloadJson ? (typeof w.payloadJson === 'string' ? JSON.parse(w.payloadJson) : w.payloadJson) : {};
+        } catch {}
+        
+        return {
+          id: w.id,
+          date: w.date,
+          status: w.status,
+          completed: w.status === 'completed',
+          completedAt: w.completedAt,
+          ...payload, // Spread the payload to include title, exercises, etc.
+        };
+      });
+
+      return res.json(transformedWorkouts);
+    } catch (error) {
+      console.error("❌ [USER-SCHEDULE] Error fetching workouts:", error);
+      return res.status(500).json({ error: "Failed to fetch user schedule" });
+    }
+  });
+
 
   // GET /api/v1/workouts/week - Get all workout days for current week
   app.get("/api/v1/workouts/week", async (req: Request, res) => {
