@@ -9087,9 +9087,9 @@ Respond with a complete workout in JSON format:
       
       console.log(`📊 Tracked ${action} for user ${userId}`);
       res.json({ success: true, action });
-    } catch (error) {
-      console.error("Error tracking badge action:", error);
-      res.status(500).json({ error: "Failed to track badge action" });
+    } catch (error: any) {
+      console.error("Error tracking badge action:", error?.message || error);
+      res.status(500).json({ error: "Failed to track badge action", details: error?.message });
     }
   });
 
