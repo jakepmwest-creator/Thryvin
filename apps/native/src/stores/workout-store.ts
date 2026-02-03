@@ -835,11 +835,16 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
           }
           
           if (token) {
-            // Save each workout to the database
+            // Save only NEWLY GENERATED workouts to the database (not ones we loaded from DB)
             let savedCount = 0;
             for (const workout of weekWorkouts) {
+              // Skip if this workout already exists in DB
+              const dateKey = toLocalDateKey(workout.date);
+              if (dbWorkoutsByDate[dateKey]) {
+                continue; // Already in database, no need to re-save
+              }
+              
               try {
-                const dateKey = toLocalDateKey(workout.date);
                 await fetch(`${API_BASE_URL}/api/workouts/save-schedule`, {
                   method: 'POST',
                   headers: {
@@ -857,7 +862,7 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
                 // Continue with other workouts even if one fails
               }
             }
-            console.log(`✅ [3-WEEK] Saved ${savedCount}/${weekWorkouts.length} workouts to database`);
+            console.log(`✅ [3-WEEK] Saved ${savedCount} NEW workouts to database (${Object.keys(dbWorkoutsByDate).length} already existed)`);
           }
         } catch (dbSaveError) {
           console.log('⚠️ [3-WEEK] Could not save to database (will use local cache):', dbSaveError);
