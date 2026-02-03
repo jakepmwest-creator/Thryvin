@@ -9037,35 +9037,7 @@ Respond with a complete workout in JSON format:
         return res.status(400).json({ error: `Invalid action. Valid: ${validActions.join(', ')}` });
       }
       
-      // Upsert user badge stats with the tracked action
-      const updates: Record<string, any> = { updatedAt: new Date() };
-      
-      switch (action) {
-        case 'coachMessage':
-          updates.totalCoachMessages = sql`${userBadgeStats.totalCoachMessages} + 1`;
-          break;
-        case 'badgeShared':
-          updates.totalBadgesShared = sql`${userBadgeStats.totalBadgesShared} + 1`;
-          break;
-        case 'videoWatched':
-          updates.totalVideosWatched = sql`${userBadgeStats.totalVideosWatched} + 1`;
-          break;
-        case 'profileEdit':
-          updates.hasEditedProfile = true;
-          break;
-        case 'appRated':
-          updates.hasRatedApp = true;
-          break;
-        case 'workoutEdit':
-          updates.totalWorkoutEdits = sql`${userBadgeStats.totalWorkoutEdits} + 1`;
-          break;
-        case 'extraActivity':
-          updates.totalExtraActivities = sql`${userBadgeStats.totalExtraActivities} + 1`;
-          break;
-        case 'prBroken':
-          updates.totalPRsBroken = sql`${userBadgeStats.totalPRsBroken} + ${value || 1}`;
-          break;
-      }
+      console.log(`📊 [BADGE-TRACK] Tracking ${action} for user ${userId}`);
       
       // Create or update the stats row
       const existing = await db
