@@ -659,16 +659,36 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
         const weekWorkouts: Workout[] = [];
         let workoutDayCounter = 0;
         
+        // Track how many workouts we'll need to generate
+        const datesToGenerate = allDates.filter(d => !dbWorkoutsByDate[d.toISOString().split('T')[0]]);
+        console.log(`📅 [3-WEEK] Will generate ${datesToGenerate.length} workouts, ${allDates.length - datesToGenerate.length} already in database`);
+        
+        // Get auth token for saving to database
+        let saveToken = null;
+        try {
+          const SecureStore = require('expo-secure-store');
+          saveToken = await SecureStore.getItemAsync('thryvin_access_token');
+        } catch {
+          saveToken = await getStorageItem('auth_token');
+        }
+        
         for (let i = 0; i < 21; i++) {
           const date = allDates[i];
           const dateStr = date.toISOString().split('T')[0]; // YYYY-MM-DD format
           const actualDayOfWeek = date.getDay(); // JavaScript: 0=Sunday, 1=Monday, ..., 6=Saturday
           
-          // CRITICAL FIX: Always call the backend to determine if this is a workout or rest day
-          // The backend's split planner is the source of truth for scheduling
-          // Don't make local decisions about rest days - let the backend decide
+          // CRITICAL FIX: Check if this date already has a workout in the database
+          // If yes, USE IT and don't regenerate
+          if (dbWorkoutsByDate[dateStr]) {
+            console.log(`✅ [3-WEEK] Day ${i + 1}/21 (${dateStr}): Using existing workout from database`);
+            weekWorkouts.push(dbWorkoutsByDate[dateStr]);
+            if (!dbWorkoutsByDate[dateStr].isRestDay) {
+              workoutDayCounter++;
+            }
+            continue; // Skip generation for this day
+          }
           
-          console.log(`🤖 [3-WEEK] Generating day ${i + 1}/21...`);
+          console.log(`🤖 [3-WEEK] Day ${i + 1}/21 (${dateStr}): Generating new workout...`);
           
           const weekNumber = Math.floor(i / 7) + 1; // 1, 2, or 3
           
