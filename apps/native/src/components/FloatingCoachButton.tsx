@@ -544,6 +544,13 @@ export function FloatingCoachButton({
     
     setMessages(prev => [...prev, { role: 'user', text: userMessage }]);
     setIsLoading(true);
+    
+    // Track coach message for badges - ALWAYS track when user sends a message
+    try {
+      await useAwardsStore.getState().trackCoachMessage();
+    } catch (trackError) {
+      console.log('⚠️ Could not track coach message:', trackError);
+    }
 
     // First check for workout intents
     const intentResult = detectWorkoutIntent(userMessage);
