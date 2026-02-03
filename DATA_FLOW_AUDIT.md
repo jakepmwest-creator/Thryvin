@@ -1,166 +1,197 @@
-# Thryvin Data Flow Audit
-
-## Summary
-
-This document tracks all user data inputs in the Thryvin app and where they are stored.
-
-**Database**: Neon PostgreSQL (Cloud)
-**Local Storage**: AsyncStorage (Device)
+# 🔍 THRYVIN DATA FLOW AUDIT REPORT
+## Live System Verification - January 28, 2025
 
 ---
 
-## 📊 Data Flow Table
+## ✅ VERIFIED WORKING
 
-| Data Input | Source | Database Table | AI Can See? | Notes |
-|------------|--------|----------------|-------------|-------|
-| **ONBOARDING** |
-| Name | Onboarding | `users.name` | ✅ Yes | Used in AI coach personalization |
-| Email | Onboarding/Login | `users.email` | ✅ Yes | Authentication |
-| Gender | Onboarding | `users.gender` | ✅ Yes | Workout customization |
-| Date of Birth | Onboarding | `users.date_of_birth` | ✅ Yes | Age-appropriate workouts |
-| Height | Onboarding | `users.height` | ✅ Yes | Exercise recommendations |
-| Weight | Onboarding | `users.weight` | ✅ Yes | Weight-based suggestions |
-| Experience Level | Onboarding | `users.experience` | ✅ Yes | Workout difficulty |
-| Fitness Goals | Onboarding | `users.fitness_goals` | ✅ Yes | Program customization |
-| Available Equipment | Onboarding | `users.equipment` | ✅ Yes | Exercise filtering |
-| Training Days/Week | Onboarding | `users.training_days` | ✅ Yes | Schedule planning |
-| Session Duration | Onboarding | `users.session_duration` | ✅ Yes | Workout length |
-| Training Schedule | Onboarding | `users.training_schedule` | ✅ Yes | Day preferences |
-| Selected Days | Onboarding | `users.selected_days` | ✅ Yes | Specific workout days |
-| Injuries | Onboarding | `users.injuries_description` | ✅ Yes | Exercise safety |
-| **WORKOUT DATA** |
-| Sets Completed | Workout Hub | `performance_logs.sets` | ✅ Yes | Performance tracking |
-| Reps Completed | Workout Hub | `performance_logs.reps` | ✅ Yes | Performance tracking |
-| Weight Used | Workout Hub | `performance_logs.weight` | ✅ Yes | PR tracking |
-| Workout Duration | Workout Summary | `workouts.duration` | ✅ Yes | Time tracking |
-| Workout Completed | Workout Hub | `workouts.completed` | ✅ Yes | Completion tracking |
-| Completion Time | Workout Hub | `workouts.completed_at` | ✅ Yes | Streak calculation |
-| Exercise Notes | Workout Hub | `performance_logs.notes` | ✅ Yes | Personal notes |
-| **EXTRA ACTIVITIES** |
-| Extra Workout Type | Log Activity | `workouts.type` | ✅ Yes | Extra activities |
-| Extra Workout Duration | Log Activity | `workouts.duration` | ✅ Yes | Time tracking |
-| Extra Workout Date | Log Activity | `workouts.date` | ✅ Yes | Calendar tracking |
-| **COACH INTERACTION** |
-| Coach Messages | AI Coach Chat | `coach_conversations.message` | ✅ Yes | Context for AI |
-| Coach Preference | Profile | `users.coach_personality` | ✅ Yes | Response style |
-| **AWARDS/BADGES** |
-| Badge Progress | Auto-calculated | `user_badges.progress` | ✅ Yes | Achievement tracking |
-| Badge Completion | Auto-calculated | `user_badges.completed` | ✅ Yes | Gamification |
-| Badge Unlock Time | Auto-calculated | `user_badges.unlocked_at` | ✅ Yes | Achievement history |
-| Total XP | Auto-calculated | `user_badge_stats.total_xp` | ✅ Yes | Level progression |
-| Current Island | Auto-calculated | `user_badge_stats.current_island` | ✅ Yes | Journey progress |
-| **TRACKING STATS** |
-| Total Workouts | Auto-calculated | `user_badge_stats.total_workouts` | ✅ Yes | Badge progress |
-| Total Reps | Auto-calculated | `user_badge_stats.total_reps` | ✅ Yes | Badge progress |
-| Total Minutes | Auto-calculated | `user_badge_stats.total_minutes` | ✅ Yes | Badge progress |
-| Coach Messages Count | Auto-tracked | `user_badge_stats.total_coach_messages` | ✅ Yes | Badge progress |
-| PRs Broken | Auto-tracked | `user_badge_stats.total_prs_broken` | ✅ Yes | Badge progress |
-| Extra Activities Count | Auto-tracked | `user_badge_stats.total_extra_activities` | ✅ Yes | Badge progress |
-| Workout Edits | Auto-tracked | `user_badge_stats.total_workout_edits` | ✅ Yes | Badge progress |
-| Badges Shared | Auto-tracked | `user_badge_stats.total_badges_shared` | ✅ Yes | Badge progress |
-| Videos Watched | Auto-tracked | `user_badge_stats.total_videos_watched` | ✅ Yes | Badge progress |
-| Weekend Workouts | Auto-calculated | `user_badge_stats.total_weekend_workouts` | ✅ Yes | Badge progress |
-| Early Workouts (<8am) | Auto-calculated | `user_badge_stats.total_early_workouts` | ✅ Yes | Badge progress |
-| Late Workouts (>8pm) | Auto-calculated | `user_badge_stats.total_late_workouts` | ✅ Yes | Badge progress |
-| Categories Explored | Auto-calculated | `user_badge_stats.categories_explored` | ✅ Yes | Badge progress |
-| Profile Edited | Auto-tracked | `user_badge_stats.has_edited_profile` | ✅ Yes | Badge progress |
-| App Rated | Auto-tracked | `user_badge_stats.has_rated_app` | ✅ Yes | Badge progress |
-| Current Streak | Auto-calculated | `user_badge_stats.current_streak` | ✅ Yes | Badge & display |
-| Best Streak | Auto-calculated | `user_badge_stats.best_streak` | ✅ Yes | Achievement record |
-| **PERSONAL RECORDS** |
-| Exercise PR Weight | Auto-detected | `personal_records.weight` | ✅ Yes | PR tracking |
-| PR Date | Auto-detected | `personal_records.achieved_at` | ✅ Yes | PR history |
+### Database Tables (36 tables in Neon PostgreSQL)
+All key tables exist and are properly structured:
+- ✅ `users` - User profiles and onboarding data
+- ✅ `performance_logs` - Exercise sets/reps/weight (42 records)
+- ✅ `workout_days` - Daily workout schedules (53 records)
+- ✅ `user_badges` - Badge progress (NEW - empty, ready for use)
+- ✅ `user_badge_stats` - Badge statistics (NEW - empty, ready for use)
+- ✅ `ai_learning_context` - AI learning data (39 records)
+- ✅ `exercises` - Exercise library
+- ✅ `workouts` - Workout templates
+
+### User Profile Data
+| Field | Database Column | Verified |
+|-------|----------------|----------|
+| Name | `users.name` | ✅ Set |
+| Email | `users.email` | ✅ Set |
+| Goal | `users.goal` | ✅ "improve-health" |
+| Training Type | `users.training_type` | ✅ "general-fitness" |
+| Days/Week | `users.training_days_per_week` | ✅ 4 |
+| Duration | `users.session_duration_preference` | ✅ 45 min |
+| Equipment | `users.equipment_access` | ✅ ["bodyweight"] |
+| Onboarding JSON | `users.onboarding_responses` | ✅ Stored |
+
+### Performance Tracking
+| Data | Table | Sample Data |
+|------|-------|-------------|
+| Squat | `performance_logs` | 120kg x 5 reps ✅ |
+| Deadlift | `performance_logs` | 110kg x 3 reps ✅ |
+| Exercise logs | `performance_logs` | 42 total records ✅ |
+
+### AI Context Building
+The AI coach builds context using `buildAiContext()` which includes:
+- ✅ User profile (name, goals, fitness level)
+- ✅ Training preferences (equipment, schedule)
+- ✅ Performance history (weights, reps, PRs)
+- ✅ Learning insights (39 records)
+- ✅ Workout history summary
+- ✅ Advanced questionnaire data
 
 ---
 
-## 🔄 Data Sync Architecture
+## ⚠️ ISSUES FOUND
 
-### Primary Storage: Neon PostgreSQL
-All workout data, user profiles, and badge progress is stored in the cloud database for:
-- Data persistence across devices
-- AI coach context
-- Progress tracking
-- Backup/recovery
+### Issue 1: Missing User Profile Fields
+**Status: MINOR**
 
-### Local Cache: AsyncStorage
-Used for:
-- Offline access (read-only)
-- Faster app loading
-- Reduced API calls
+Some onboarding fields have different column names than expected:
+| Expected | Actual Column | Data |
+|----------|--------------|------|
+| `experience` | `fitness_level` | ✗ Missing |
+| `gender` | `gender` | ✗ Missing |
 
-### Sync Flow:
-1. User completes action (e.g., finishes workout)
-2. Data saved to **PostgreSQL** immediately
-3. Local **AsyncStorage** cache updated
-4. AI coach receives updated context on next message
+**Impact**: AI coach may not have complete user context
+**Fix**: Ensure onboarding saves to correct columns
 
 ---
 
-## 🤖 AI Coach Data Access
+### Issue 2: Extra Workouts Storage
+**Status: NEEDS VERIFICATION**
 
-The AI coach has access to:
-- User profile (name, goals, experience, injuries)
-- Workout history (exercises, weights, reps, sets)
-- Performance trends (PRs, improvements)
-- Badge progress and achievements
-- Coach conversation history
-- Training schedule and preferences
+Extra workouts logged via `/api/workouts/log-extra` are saved to:
+- `users.workoutHistory` (JSON field) ✅
 
-This allows the coach to provide:
-- Personalized workout advice
-- Weight recommendations based on history
-- Progress-aware motivation
-- Injury-conscious modifications
+But they are NOT saved to:
+- `workout_days` table ❌
+- `performance_logs` table ❌
 
----
+**Impact**: Extra workouts may not:
+- Count towards badge progress
+- Show in stats calculations
+- Appear in performance history
 
-## ✅ Data That IS Persisted (Survives Server Restart)
+**Current Code** (routes.ts:1155-1175):
+```javascript
+// Saves only to user.workoutHistory JSON field
+const user = await storage.getUser(userId);
+await storage.updateUser(userId, {
+  workoutHistory: [...currentHistory, loggedWorkout]
+});
+```
 
-| Data | Storage |
-|------|---------|
-| User Profile | PostgreSQL |
-| Workout History | PostgreSQL |
-| Performance Logs | PostgreSQL |
-| Personal Records | PostgreSQL |
-| Badge Progress | PostgreSQL (NEW!) |
-| Badge Stats | PostgreSQL (NEW!) |
-| Coach Conversations | PostgreSQL |
-
-## ⚠️ Data That WAS Lost (Now Fixed)
-
-| Data | Old Storage | New Storage |
-|------|-------------|-------------|
-| Badge Progress | AsyncStorage | PostgreSQL |
-| Badge Stats | AsyncStorage | PostgreSQL |
-| XP & Island | AsyncStorage | PostgreSQL |
+**Recommended Fix**: Also insert into `workout_days` table
 
 ---
 
-## 📝 API Endpoints for Data
+### Issue 3: Personal Records Not In Separate Table
+**Status: MINOR**
 
-### User Data
-- `GET /api/users/:id` - Get user profile
-- `PUT /api/users/:id` - Update user profile
-- `GET /api/users/:id/stats` - Get user statistics
+PRs are calculated dynamically from `performance_logs` - there's no dedicated `personal_records` table.
 
-### Workout Data
-- `GET /api/workouts` - Get user workouts
-- `POST /api/workouts` - Create workout
-- `PUT /api/workouts/:id` - Update workout
-- `POST /api/workouts/:id/complete` - Mark complete
-
-### Performance Logs
-- `POST /api/performance-logs` - Log exercise performance
-- `GET /api/performance-logs` - Get performance history
-- `GET /api/stats/personal-bests` - Get PRs
-
-### Badge Data (NEW)
-- `GET /api/badges/progress` - Get user badge progress
-- `PUT /api/badges/progress` - Save badge progress
-- `POST /api/badges/reset` - Reset all badges
-- `GET /api/badges/stats` - Get computed badge stats
-- `POST /api/badges/track` - Track specific actions
+**Current Behavior**: Works fine - PRs are derived from max weights in performance_logs
+**Note**: This is actually fine, just different from what the audit doc suggested
 
 ---
 
-Last Updated: January 28, 2025
+### Issue 4: Badge Stats Not Yet Populated
+**Status: NEW FEATURE**
+
+The new badge tables (`user_badges`, `user_badge_stats`) exist but are empty:
+- Tables created ✅
+- API endpoints created ✅
+- No data yet (users haven't triggered badge sync)
+
+**Expected**: Will populate when users log workouts in the app
+
+---
+
+## 📊 COMPLETE DATA MAP
+
+### What AI Coach CAN See:
+| Data Type | Source | Status |
+|-----------|--------|--------|
+| User Name | `users.name` | ✅ |
+| Goals | `users.goal` | ✅ |
+| Training Type | `users.training_type` | ✅ |
+| Training Days | `users.training_days_per_week` | ✅ |
+| Session Duration | `users.session_duration_preference` | ✅ |
+| Equipment | `users.equipment_access` | ✅ |
+| Onboarding Data | `users.onboarding_responses` | ✅ |
+| Exercise Weights | `performance_logs.actual_weight` | ✅ |
+| Exercise Reps | `performance_logs.actual_reps` | ✅ |
+| Workout Schedule | `workout_days` | ✅ |
+| AI Insights | `ai_learning_context` | ✅ |
+
+### What AI Coach CANNOT See:
+| Data Type | Why |
+|-----------|-----|
+| Badge Progress | New - not yet integrated into AI context |
+| Extra Workouts | Stored in JSON, not queried by AI context builder |
+| Videos Watched | Only tracked locally |
+| Badges Shared | Only tracked locally |
+
+---
+
+## 🔧 RECOMMENDED FIXES
+
+### Priority 1: Extra Workout Integration
+Update `/api/workouts/log-extra` to also save to `workout_days` table:
+
+```javascript
+// Also insert into workout_days
+await db.insert(workoutDays).values({
+  userId,
+  date: loggedWorkout.date,
+  status: 'completed',
+  payloadJson: loggedWorkout,
+  completedAt: new Date(),
+});
+```
+
+### Priority 2: Badge Tracking Integration
+Add badge stats tracking when workouts are completed:
+- Call `/api/badges/track` with action "extraActivity" when logging extra workouts
+- Update badge stats on workout completion
+
+### Priority 3: AI Context Enhancement
+Add badge progress to AI context for motivational coaching:
+- "You're 2 workouts away from your Week Warrior badge!"
+
+---
+
+## 📈 DATA PERSISTENCE SUMMARY
+
+| Data | Pre-Fix Storage | Post-Fix Storage | Persists? |
+|------|-----------------|------------------|-----------|
+| User Profile | PostgreSQL | PostgreSQL | ✅ Yes |
+| Performance Logs | PostgreSQL | PostgreSQL | ✅ Yes |
+| Workout Schedule | PostgreSQL | PostgreSQL | ✅ Yes |
+| Badge Progress | AsyncStorage | **PostgreSQL** | ✅ Yes (FIXED) |
+| Badge Stats | AsyncStorage | **PostgreSQL** | ✅ Yes (FIXED) |
+| XP & Island | AsyncStorage | **PostgreSQL** | ✅ Yes (FIXED) |
+| Extra Workouts | JSON in users | JSON in users | ⚠️ Partial |
+
+---
+
+## ✅ AUDIT CONCLUSION
+
+**Overall Status: GOOD with minor improvements needed**
+
+1. **Core data flow is working** - User profiles, workout logs, and performance data are all stored in PostgreSQL and accessible to the AI coach.
+
+2. **Badge persistence is FIXED** - Badges now go to PostgreSQL instead of local storage. They will persist across server restarts.
+
+3. **One gap identified** - Extra workouts are saved to a JSON field but not to the main workout tracking tables. This should be fixed for complete badge progress tracking.
+
+4. **AI has good context** - The coach can see user profile, goals, equipment, performance history, and learning insights.
+
+---
+
+*Report generated: January 28, 2025*
