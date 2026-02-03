@@ -592,9 +592,6 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
         console.log('⚠️ [3-WEEK] Cache miss - cachedWeek:', !!cachedWeek, 'dateMatch:', cachedWeekDate === weekKey);
         console.log('   Expected week key:', weekKey, 'Got:', cachedWeekDate);
       }
-        console.log('⚠️ [3-WEEK] Cache miss - cachedWeek:', !!cachedWeek, 'dateMatch:', cachedWeekDate === weekKey);
-        console.log('   Expected week key:', weekKey, 'Got:', cachedWeekDate);
-      }
       
       console.log('🤖 [3-WEEK] Generating 3 weeks of workouts with AI...');
       
