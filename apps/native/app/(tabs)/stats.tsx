@@ -466,25 +466,25 @@ export default function StatsScreen() {
       index === self.findIndex(w => w.id === workout.id)
     );
     
-    // This week's workouts
-    const thisWeekWorkouts = uniqueCompleted.filter(w => {
+    // This period's workouts
+    const thisPeriodWorkouts = uniqueCompleted.filter(w => {
       const completedDate = new Date(w.completedAt || w.date);
-      return completedDate >= startOfThisWeek;
+      return completedDate >= startDate;
     });
     
-    // Last week's workouts
-    const lastWeekWorkouts = uniqueCompleted.filter(w => {
+    // Previous period's workouts
+    const previousPeriodWorkouts = uniqueCompleted.filter(w => {
       const completedDate = new Date(w.completedAt || w.date);
-      return completedDate >= startOfLastWeek && completedDate < startOfThisWeek;
+      return completedDate >= previousStartDate && completedDate < startDate;
     });
     
-    // Calculate minutes (45 min average per workout)
-    const thisWeekMinutes = thisWeekWorkouts.reduce((sum, w) => sum + (w.duration || 45), 0);
-    const lastWeekMinutes = lastWeekWorkouts.reduce((sum, w) => sum + (w.duration || 45), 0);
+    // Calculate minutes
+    const thisPeriodMinutes = thisPeriodWorkouts.reduce((sum, w) => sum + (w.duration || 45), 0);
+    const previousPeriodMinutes = previousPeriodWorkouts.reduce((sum, w) => sum + (w.duration || 45), 0);
     
     // Calories (8 cal/min average)
-    const thisWeekCalories = thisWeekMinutes * 8;
-    const lastWeekCalories = lastWeekMinutes * 8;
+    const thisPeriodCalories = thisPeriodMinutes * 8;
+    const previousPeriodCalories = previousPeriodMinutes * 8;
     
     // Weekly goal from user settings
     const weeklyGoal = parseInt(String(user?.trainingDays)) || 5;
