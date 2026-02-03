@@ -20,6 +20,7 @@ import * as SecureStore from 'expo-secure-store';
 import { VoiceInputButton } from './VoiceInputButton';
 import { useWorkoutStore } from '../stores/workout-store';
 import { useCoachStore } from '../stores/coach-store';
+import { useAwardsStore } from '../stores/awards-store';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { ActionConfirmationModal, PendingActionDetails } from './ActionConfirmationModal';
 import { InlineSuggestedActions, WORKOUT_TYPE_SUGGESTIONS, GENERAL_SUGGESTIONS, SuggestedAction } from './InlineSuggestedActions';
