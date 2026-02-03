@@ -1367,13 +1367,12 @@ const styles = StyleSheet.create({
   statLabel: { fontSize: 11, color: COLORS.mediumGray, marginTop: 2 },
   statDivider: { width: 1, backgroundColor: COLORS.lightGray, marginHorizontal: 8 },
   
-  // Filters (ONE ROW)
-  filterRow: { paddingHorizontal: 12, paddingVertical: 12, alignItems: 'center' },
-  filterChip: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, paddingVertical: 7, backgroundColor: COLORS.lightGray, borderRadius: 18, marginRight: 8 },
+  // Filters - 4 simple buttons
+  filterRow: { flexDirection: 'row', paddingHorizontal: 16, paddingVertical: 12, gap: 8 },
+  filterChip: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingVertical: 10, backgroundColor: COLORS.lightGray, borderRadius: 12, gap: 4 },
   filterChipActive: { backgroundColor: COLORS.gradientStart },
-  filterChipText: { fontSize: 12, fontWeight: '500', color: COLORS.text },
+  filterChipText: { fontSize: 11, fontWeight: '600', color: COLORS.text },
   filterChipTextActive: { color: COLORS.white },
-  filterDivider: { width: 1, height: 20, backgroundColor: COLORS.lightGray, marginHorizontal: 6 },
   
   // Badge Grid
   badgeGrid: { flexDirection: 'row', flexWrap: 'wrap', paddingHorizontal: 10, marginTop: 4 },
