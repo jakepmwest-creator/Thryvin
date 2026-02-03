@@ -9075,15 +9075,69 @@ Respond with a complete workout in JSON format:
         .limit(1);
       
       if (existing.length === 0) {
-        // Create new row with defaults
-        await db.insert(userBadgeStats).values({ userId });
+        // Create new row with defaults and the initial tracked value
+        const insertValues: any = { userId, updatedAt: new Date() };
+        switch (action) {
+          case 'coachMessage':
+            insertValues.totalCoachMessages = 1;
+            break;
+          case 'badgeShared':
+            insertValues.totalBadgesShared = 1;
+            break;
+          case 'videoWatched':
+            insertValues.totalVideosWatched = 1;
+            break;
+          case 'profileEdit':
+            insertValues.hasEditedProfile = true;
+            break;
+          case 'appRated':
+            insertValues.hasRatedApp = true;
+            break;
+          case 'workoutEdit':
+            insertValues.totalWorkoutEdits = 1;
+            break;
+          case 'extraActivity':
+            insertValues.totalExtraActivities = 1;
+            break;
+          case 'prBroken':
+            insertValues.totalPRsBroken = value || 1;
+            break;
+        }
+        await db.insert(userBadgeStats).values(insertValues);
+      } else {
+        // Update existing row - use raw SQL for incrementing
+        const columnMap: Record<string, string> = {
+          'coachMessage': 'total_coach_messages',
+          'badgeShared': 'total_badges_shared',
+          'videoWatched': 'total_videos_watched',
+          'workoutEdit': 'total_workout_edits',
+          'extraActivity': 'total_extra_activities',
+          'prBroken': 'total_prs_broken',
+        };
+        
+        const booleanMap: Record<string, string> = {
+          'profileEdit': 'has_edited_profile',
+          'appRated': 'has_rated_app',
+        };
+        
+        if (columnMap[action]) {
+          // Increment action
+          await db.execute(sql`
+            UPDATE user_badge_stats 
+            SET ${sql.identifier(columnMap[action])} = ${sql.identifier(columnMap[action])} + ${value || 1},
+                updated_at = NOW()
+            WHERE user_id = ${userId}
+          `);
+        } else if (booleanMap[action]) {
+          // Boolean action
+          await db.execute(sql`
+            UPDATE user_badge_stats 
+            SET ${sql.identifier(booleanMap[action])} = true,
+                updated_at = NOW()
+            WHERE user_id = ${userId}
+          `);
+        }
       }
-      
-      // Now update
-      await db
-        .update(userBadgeStats)
-        .set(updates)
-        .where(eq(userBadgeStats.userId, userId));
       
       console.log(`📊 Tracked ${action} for user ${userId}`);
       res.json({ success: true, action });
