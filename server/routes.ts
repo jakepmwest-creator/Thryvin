@@ -40,7 +40,7 @@ import {
 import { generateExerciseAlternative } from "./ai-exercise-swap";
 import { generateWeekWorkouts } from "./week-generator";
 import { db } from "./db";
-import { eq, count, sql, inArray, ilike, and, like } from "drizzle-orm";
+import { eq, count, sql, inArray, ilike, and, like, gte, lte } from "drizzle-orm";
 import {
   posts,
   postLikes,
