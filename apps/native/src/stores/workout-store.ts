@@ -493,6 +493,9 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
       // ====================================================================
       console.log('📡 [3-WEEK] Checking database for existing workouts...');
       
+      // Track which dates already have workouts in the DB
+      let dbWorkoutsByDate: Record<string, any> = {};
+      
       try {
         // Get auth token for API call
         let token = null;
@@ -522,43 +525,54 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
           if (response.ok) {
             const dbWorkouts = await response.json();
             
-            if (dbWorkouts && Array.isArray(dbWorkouts) && dbWorkouts.length >= 14) {
-              console.log(`✅ [3-WEEK] Found ${dbWorkouts.length} workouts in database, using those!`);
+            if (dbWorkouts && Array.isArray(dbWorkouts)) {
+              console.log(`📦 [3-WEEK] Found ${dbWorkouts.length} workouts in database`);
               
-              // Transform database format to local format if needed
-              const transformedWorkouts = dbWorkouts.map((w: any) => ({
-                id: w.id || `db_${w.date}`,
-                title: w.title || w.payloadJson?.title || 'Workout',
-                type: w.type || w.payloadJson?.type || 'workout',
-                difficulty: w.difficulty || w.payloadJson?.difficulty || 'intermediate',
-                duration: w.duration || w.payloadJson?.duration || 45,
-                date: w.date,
-                exercises: w.exercises || w.payloadJson?.exercises || [],
-                overview: w.overview || w.payloadJson?.overview || '',
-                targetMuscles: w.targetMuscles || w.payloadJson?.targetMuscles || '',
-                caloriesBurn: w.caloriesBurn || w.payloadJson?.caloriesBurn || 0,
-                completed: w.completed || w.status === 'completed',
-                completedAt: w.completedAt,
-                isRestDay: w.isRestDay || w.type === 'Rest' || w.type === 'rest',
-              }));
+              // Build a map of workouts by date - these should NOT be regenerated
+              dbWorkouts.forEach((w: any) => {
+                if (w.date) {
+                  dbWorkoutsByDate[w.date] = {
+                    id: w.id || `db_${w.date}`,
+                    title: w.title || w.payloadJson?.title || 'Workout',
+                    type: w.type || w.payloadJson?.type || 'workout',
+                    difficulty: w.difficulty || w.payloadJson?.difficulty || 'intermediate',
+                    duration: w.duration || w.payloadJson?.duration || 45,
+                    date: w.date,
+                    exercises: w.exercises || w.payloadJson?.exercises || [],
+                    overview: w.overview || w.payloadJson?.overview || '',
+                    targetMuscles: w.targetMuscles || w.payloadJson?.targetMuscles || '',
+                    caloriesBurn: w.caloriesBurn || w.payloadJson?.caloriesBurn || 0,
+                    completed: w.completed || w.status === 'completed',
+                    completedAt: w.completedAt,
+                    isRestDay: w.isRestDay || w.status === 'rest' || w.type === 'Rest' || w.type === 'rest',
+                  };
+                }
+              });
               
-              // Cache locally for offline use
-              await setStorageItem('week_workouts', JSON.stringify(transformedWorkouts));
-              await setStorageItem('week_workouts_date', mondayOfThisWeek.toDateString());
-              await setStorageItem('week_workouts_version', 'v7_db_first');
-              
-              set({ weekWorkouts: transformedWorkouts, isLoading: false });
-              await deleteStorageItem('workout_generation_lock');
-              return;
-            } else {
-              console.log(`⚠️ [3-WEEK] Database has only ${dbWorkouts?.length || 0} workouts, need to generate more`);
+              // If we have ALL 21 days, just use what we have
+              if (Object.keys(dbWorkoutsByDate).length >= 21) {
+                console.log(`✅ [3-WEEK] Database has all 21 days of workouts, using those!`);
+                
+                const transformedWorkouts = Object.values(dbWorkoutsByDate);
+                
+                // Cache locally for offline use
+                await setStorageItem('week_workouts', JSON.stringify(transformedWorkouts));
+                await setStorageItem('week_workouts_date', mondayOfThisWeek.toDateString());
+                await setStorageItem('week_workouts_version', 'v8_db_merge');
+                
+                set({ weekWorkouts: transformedWorkouts, isLoading: false });
+                await deleteStorageItem('workout_generation_lock');
+                return;
+              } else {
+                console.log(`⚠️ [3-WEEK] Database has ${Object.keys(dbWorkoutsByDate).length}/21 days, will generate missing ones`);
+              }
             }
           } else {
-            console.log(`⚠️ [3-WEEK] Database fetch returned ${response.status}, will check local cache`);
+            console.log(`⚠️ [3-WEEK] Database fetch returned ${response.status}, will generate fresh workouts`);
           }
         }
       } catch (dbError) {
-        console.log('⚠️ [3-WEEK] Database fetch failed:', dbError, '- will check local cache');
+        console.log('⚠️ [3-WEEK] Database fetch failed:', dbError, '- will generate fresh workouts');
       }
       
       // ====================================================================
