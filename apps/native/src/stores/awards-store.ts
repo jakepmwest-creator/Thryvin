@@ -1022,9 +1022,9 @@ export const useAwardsStore = create<AwardsState>((set, get) => ({
       await AsyncStorage.setItem('badge_stats', JSON.stringify(stats));
       console.log('💬 [AWARDS] Coach message tracked locally:', stats.totalCoachMessages);
       
-      // SYNC TO SERVER for persistence
+      // SYNC TO SERVER for persistence - use correct action name
       await apiCall('/api/badges/track', 'POST', {
-        action: 'coach-message',
+        action: 'coachMessage',
         count: stats.totalCoachMessages,
       });
       console.log('💬 [AWARDS] Coach message synced to server');
@@ -1063,7 +1063,7 @@ export const useAwardsStore = create<AwardsState>((set, get) => ({
       
       // SYNC TO SERVER for persistence
       await apiCall('/api/badges/track', 'POST', {
-        action: 'badge-shared',
+        action: 'badgeShared',
         count: stats.totalBadgesShared,
       });
     } catch (error) {
@@ -1081,7 +1081,7 @@ export const useAwardsStore = create<AwardsState>((set, get) => ({
       
       // SYNC TO SERVER for persistence
       await apiCall('/api/badges/track', 'POST', {
-        action: 'video-watched',
+        action: 'videoWatched',
         count: stats.totalVideosWatched,
       });
     } catch (error) {
@@ -1099,7 +1099,7 @@ export const useAwardsStore = create<AwardsState>((set, get) => ({
       
       // SYNC TO SERVER for persistence
       await apiCall('/api/badges/track', 'POST', {
-        action: 'profile-edit',
+        action: 'profileEdit',
         value: true,
       });
     } catch (error) {
@@ -1117,7 +1117,7 @@ export const useAwardsStore = create<AwardsState>((set, get) => ({
       
       // SYNC TO SERVER for persistence
       await apiCall('/api/badges/track', 'POST', {
-        action: 'app-rated',
+        action: 'appRated',
         value: true,
       });
     } catch (error) {
