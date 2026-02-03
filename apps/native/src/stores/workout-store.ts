@@ -576,9 +576,9 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
       }
       
       // ====================================================================
-      // STEP 2: CHECK LOCAL CACHE IF DATABASE DIDN'T HAVE WORKOUTS
+      // STEP 2: CHECK LOCAL CACHE IF DATABASE DIDN'T HAVE ALL WORKOUTS
       // ====================================================================
-      const CACHE_VERSION = 'v7_db_first';
+      const CACHE_VERSION = 'v8_db_merge';
       const cachedWeek = await getStorageItem('week_workouts');
       const cachedWeekDate = await getStorageItem('week_workouts_date');
       const cachedVersion = await getStorageItem('week_workouts_version');
