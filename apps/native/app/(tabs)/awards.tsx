@@ -1273,29 +1273,40 @@ Transform your fitness journey with personalized workouts and gamified progressi
           </View>
         </View>
         
-        {/* Combined Filters in ONE row */}
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filterRow}>
-          {/* Status filters */}
-          {(['all', 'completed', 'incomplete'] as const).map(f => (
-            <TouchableOpacity key={f} style={[styles.filterChip, filter === f && categoryFilter === 'all' && styles.filterChipActive]} onPress={() => { setFilter(f); setCategoryFilter('all'); }}>
-              <Text style={[styles.filterChipText, filter === f && categoryFilter === 'all' && styles.filterChipTextActive]}>
-                {f === 'all' ? 'All' : f === 'completed' ? '✅ Done' : '🔓 In Progress'}
-              </Text>
-            </TouchableOpacity>
-          ))}
+        {/* Simplified Filters - 4 options only */}
+        <View style={styles.filterRow}>
+          <TouchableOpacity 
+            style={[styles.filterChip, filter === 'all' && styles.filterChipActive]} 
+            onPress={() => setFilter('all')}
+          >
+            <Ionicons name="apps" size={14} color={filter === 'all' ? COLORS.white : COLORS.text} />
+            <Text style={[styles.filterChipText, filter === 'all' && styles.filterChipTextActive]}>All</Text>
+          </TouchableOpacity>
           
-          <View style={styles.filterDivider} />
+          <TouchableOpacity 
+            style={[styles.filterChip, filter === 'done' && styles.filterChipActive]} 
+            onPress={() => setFilter('done')}
+          >
+            <Ionicons name="checkmark-circle" size={14} color={filter === 'done' ? COLORS.white : '#34C759'} />
+            <Text style={[styles.filterChipText, filter === 'done' && styles.filterChipTextActive]}>Done</Text>
+          </TouchableOpacity>
           
-          {/* Category filters */}
-          {(Object.keys(CATEGORY_INFO) as BadgeCategory[]).map(cat => (
-            <TouchableOpacity key={cat} style={[styles.filterChip, categoryFilter === cat && styles.filterChipActive]} onPress={() => { setCategoryFilter(cat); setFilter('all'); }}>
-              <Ionicons name={CATEGORY_INFO[cat].icon as any} size={14} color={categoryFilter === cat ? COLORS.white : COLORS.text} />
-              <Text style={[styles.filterChipText, categoryFilter === cat && styles.filterChipTextActive, { marginLeft: 4 }]}>
-                {CATEGORY_INFO[cat].label}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </ScrollView>
+          <TouchableOpacity 
+            style={[styles.filterChip, filter === 'nearly_there' && styles.filterChipActive]} 
+            onPress={() => setFilter('nearly_there')}
+          >
+            <Ionicons name="flame" size={14} color={filter === 'nearly_there' ? COLORS.white : '#FF9500'} />
+            <Text style={[styles.filterChipText, filter === 'nearly_there' && styles.filterChipTextActive]}>Nearly There</Text>
+          </TouchableOpacity>
+          
+          <TouchableOpacity 
+            style={[styles.filterChip, filter === 'not_done' && styles.filterChipActive]} 
+            onPress={() => setFilter('not_done')}
+          >
+            <Ionicons name="lock-open" size={14} color={filter === 'not_done' ? COLORS.white : COLORS.mediumGray} />
+            <Text style={[styles.filterChipText, filter === 'not_done' && styles.filterChipTextActive]}>Not Done</Text>
+          </TouchableOpacity>
+        </View>
         
         {/* Badge Grid */}
         <View style={styles.badgeGrid}>
