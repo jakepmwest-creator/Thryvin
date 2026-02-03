@@ -674,29 +674,29 @@ export default function StatsScreen() {
           <View style={styles.statsGrid}>
             <StatCard
               title="Workouts Completed"
-              value={stats.thisWeek.workoutsCompleted}
+              value={stats.thisPeriod.workoutsCompleted}
               icon="checkmark-circle"
-              trend={stats.thisWeek.workoutsChange > 0 ? 'up' : stats.thisWeek.workoutsChange < 0 ? 'down' : 'neutral'}
-              trendValue={stats.thisWeek.workoutsChange >= 0 ? `+${stats.thisWeek.workoutsChange}` : `${stats.thisWeek.workoutsChange}`}
+              trend={stats.thisPeriod.workoutsChange > 0 ? 'up' : stats.thisPeriod.workoutsChange < 0 ? 'down' : 'neutral'}
+              trendValue={stats.thisPeriod.workoutsChange >= 0 ? `+${stats.thisPeriod.workoutsChange}` : `${stats.thisPeriod.workoutsChange}`}
               gradient={true}
             />
             
             <StatCard
               title="Active Minutes"
-              value={stats.thisWeek.activeMinutes}
+              value={stats.thisPeriod.activeMinutes}
               unit="min"
               icon="time"
-              trend={stats.thisWeek.minutesChange > 0 ? 'up' : stats.thisWeek.minutesChange < 0 ? 'down' : 'neutral'}
-              trendValue={stats.thisWeek.minutesChange >= 0 ? `+${stats.thisWeek.minutesChange}` : `${stats.thisWeek.minutesChange}`}
+              trend={stats.thisPeriod.minutesChange > 0 ? 'up' : stats.thisPeriod.minutesChange < 0 ? 'down' : 'neutral'}
+              trendValue={stats.thisPeriod.minutesChange >= 0 ? `+${stats.thisPeriod.minutesChange}` : `${stats.thisPeriod.minutesChange}`}
             />
             
             <StatCard
               title="Calories Burned"
-              value={stats.thisWeek.caloriesBurned}
+              value={stats.thisPeriod.caloriesBurned}
               unit="kcal"
               icon="flame"
-              trend={stats.thisWeek.caloriesChange > 0 ? 'up' : stats.thisWeek.caloriesChange < 0 ? 'down' : 'neutral'}
-              trendValue={stats.thisWeek.caloriesChange >= 0 ? `+${stats.thisWeek.caloriesChange}` : `${stats.thisWeek.caloriesChange}`}
+              trend={stats.thisPeriod.caloriesChange > 0 ? 'up' : stats.thisPeriod.caloriesChange < 0 ? 'down' : 'neutral'}
+              trendValue={stats.thisPeriod.caloriesChange >= 0 ? `+${stats.thisPeriod.caloriesChange}` : `${stats.thisPeriod.caloriesChange}`}
             />
             
             <StatCard
@@ -715,16 +715,16 @@ export default function StatsScreen() {
           <View style={styles.progressCard}>
             <View style={styles.progressHeader}>
               <Text style={styles.progressTitle}>
-                {stats.thisWeek.workoutsCompleted} of {stats.thisWeek.weeklyGoal} workouts
+                {stats.thisPeriod.workoutsCompleted} of {stats.thisPeriod.weeklyGoal} workouts
               </Text>
-              <Text style={styles.progressPercentage}>{stats.thisWeek.goalProgress}%</Text>
+              <Text style={styles.progressPercentage}>{stats.thisPeriod.goalProgress}%</Text>
             </View>
             
             <View style={styles.progressBarContainer}>
               <View style={styles.progressBarBackground}>
                 <LinearGradient
                   colors={[COLORS.accent, COLORS.accentSecondary]}
-                  style={[styles.progressBarFill, { width: `${Math.min(stats.thisWeek.goalProgress, 100)}%` }]}
+                  style={[styles.progressBarFill, { width: `${Math.min(stats.thisPeriod.goalProgress, 100)}%` }]}
                   start={{ x: 0, y: 0 }}
                   end={{ x: 1, y: 0 }}
                 />
@@ -732,9 +732,9 @@ export default function StatsScreen() {
             </View>
             
             <Text style={styles.progressSubtext}>
-              {stats.thisWeek.goalProgress >= 100 
+              {stats.thisPeriod.goalProgress >= 100 
                 ? '🎉 Goal achieved! Keep it up!'
-                : `${stats.thisWeek.weeklyGoal - stats.thisWeek.workoutsCompleted} more to hit your goal`}
+                : `${stats.thisPeriod.weeklyGoal - stats.thisPeriod.workoutsCompleted} more to hit your goal`}
             </Text>
           </View>
         </View>
