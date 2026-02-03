@@ -537,7 +537,7 @@ const IslandJourneyModal = ({
   onClose: () => void; 
   currentIsland: number; 
   completedCount: number;
-  userBadges: UserBadge[];
+  userBadges: UserBadgeProgress[];
 }) => {
   const scrollRef = useRef<ScrollView>(null);
   const fadeAnim = useRef(new Animated.Value(0)).current;
