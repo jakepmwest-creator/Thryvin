@@ -1925,7 +1925,16 @@ Respond with JSON ONLY:
 
   app.get("/api/workouts/:id", async (req, res) => {
     try {
+      // Skip if this is a named route (not a numeric ID)
+      if (req.params.id === 'user-schedule' || req.params.id === 'today' || req.params.id === 'week') {
+        return res.status(404).json({ error: "Invalid workout ID" });
+      }
+      
       const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ error: "Invalid workout ID - must be a number" });
+      }
+      
       const workout = await storage.getWorkout(id);
       if (!workout) {
         return res.status(404).json({ error: "Workout not found" });
