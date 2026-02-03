@@ -249,11 +249,20 @@ export default function LoginScreen() {
 
               {/* Main Welcome Card */}
               <View style={styles.card}>
+                {/* Logo - Inside the card */}
+                <View style={styles.logoContainer}>
+                  <Image 
+                    source={require('../../assets/images/thryvin-logo-final.png')}
+                    style={styles.logo}
+                    resizeMode="contain"
+                  />
+                </View>
+
                 {/* Hero Section - Welcoming New Users */}
                 <View style={styles.heroSection}>
-                  <Text style={styles.heroTitle}>Transform Your{'\n'}Fitness Journey</Text>
+                  <Text style={styles.heroTitle}>Your Fitness{'\n'}Journey Starts Here</Text>
                   <Text style={styles.heroSubtitle}>
-                    AI-powered workouts tailored to you.{'\n'}Join thousands crushing their goals.
+                    AI-powered workouts designed for you.{'\n'}Join thousands crushing their goals daily.
                   </Text>
                 </View>
 
