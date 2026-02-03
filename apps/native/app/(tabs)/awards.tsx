@@ -1172,9 +1172,20 @@ Transform your fitness journey with personalized workouts and gamified progressi
   // Get badges for current island and apply filters
   let filteredBadges = BADGE_DEFINITIONS.filter(b => b.island <= currentIsland);
   
-  if (categoryFilter !== 'all') filteredBadges = filteredBadges.filter(b => b.category === categoryFilter);
-  if (filter === 'completed') filteredBadges = filteredBadges.filter(b => userBadges.find(ub => ub.badgeId === b.id)?.completed);
-  else if (filter === 'incomplete') filteredBadges = filteredBadges.filter(b => !userBadges.find(ub => ub.badgeId === b.id)?.completed);
+  // Apply new simplified filter
+  if (filter === 'done') {
+    filteredBadges = filteredBadges.filter(b => userBadges.find(ub => ub.badgeId === b.id)?.completed);
+  } else if (filter === 'not_done') {
+    filteredBadges = filteredBadges.filter(b => !userBadges.find(ub => ub.badgeId === b.id)?.completed);
+  } else if (filter === 'nearly_there') {
+    // "Nearly There" = 50%+ progress but not complete
+    filteredBadges = filteredBadges.filter(b => {
+      const userBadge = userBadges.find(ub => ub.badgeId === b.id);
+      if (!userBadge || userBadge.completed) return false;
+      const progressPercent = (userBadge.progress / b.targetValue) * 100;
+      return progressPercent >= 50;
+    });
+  }
   
   return (
     <SafeAreaView style={styles.container}>
