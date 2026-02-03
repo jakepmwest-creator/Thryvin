@@ -8895,19 +8895,16 @@ Respond with a complete workout in JSON format:
   // GET /api/badges/stats - Get user's computed badge stats from actual data
   app.get("/api/badges/stats", async (req: Request, res) => {
     try {
-      const authHeader = req.headers.authorization;
-      if (!authHeader?.startsWith('Bearer ')) {
+      const token = extractBearerToken(req);
+      if (!token) {
         return res.status(401).json({ error: "Authentication required" });
       }
       
-      const token = authHeader.substring(7);
-      const jwt = require('jsonwebtoken');
-      const decoded = jwt.verify(token, process.env.JWT_SECRET || 'thryvin-jwt-secret-change-in-production');
-      const userId = decoded.userId;
-      
-      if (!userId) {
+      const decoded = verifyAccessToken(token);
+      if (!decoded || !decoded.userId) {
         return res.status(401).json({ error: "Invalid token" });
       }
+      const userId = decoded.userId;
       
       // Calculate stats from actual performance_logs data
       const performanceData = await db
