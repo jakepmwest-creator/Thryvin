@@ -1176,6 +1176,52 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.log('✅ [LOG-EXTRA] Saved to user history');
       }
       
+      // Also save to workout_days table for proper tracking
+      try {
+        const workoutDate = new Date(loggedWorkout.date);
+        await db.insert(workoutDays).values({
+          userId,
+          date: workoutDate,
+          status: 'completed',
+          payloadJson: JSON.stringify(loggedWorkout),
+          completedAt: new Date(),
+        });
+        console.log('✅ [LOG-EXTRA] Saved to workout_days table');
+      } catch (dbError) {
+        console.log('⚠️ [LOG-EXTRA] Could not save to workout_days (may already exist):', dbError);
+      }
+      
+      // Track for badge progress - increment extra activities count
+      try {
+        const existingStats = await db
+          .select()
+          .from(userBadgeStats)
+          .where(eq(userBadgeStats.userId, userId))
+          .limit(1);
+        
+        if (existingStats.length === 0) {
+          await db.insert(userBadgeStats).values({ 
+            userId,
+            totalExtraActivities: 1,
+            totalWorkouts: 1,
+            totalMinutes: loggedWorkout.duration,
+          });
+        } else {
+          await db
+            .update(userBadgeStats)
+            .set({
+              totalExtraActivities: sql`${userBadgeStats.totalExtraActivities} + 1`,
+              totalWorkouts: sql`${userBadgeStats.totalWorkouts} + 1`,
+              totalMinutes: sql`${userBadgeStats.totalMinutes} + ${loggedWorkout.duration}`,
+              updatedAt: new Date(),
+            })
+            .where(eq(userBadgeStats.userId, userId));
+        }
+        console.log('✅ [LOG-EXTRA] Updated badge stats');
+      } catch (badgeError) {
+        console.log('⚠️ [LOG-EXTRA] Could not update badge stats:', badgeError);
+      }
+      
       return res.json({ ok: true, message: 'Workout logged successfully', workout: loggedWorkout });
     } catch (error: any) {
       console.error('❌ [LOG-EXTRA] Error:', error);
