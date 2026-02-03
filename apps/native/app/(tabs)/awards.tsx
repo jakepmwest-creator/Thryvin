@@ -698,7 +698,7 @@ const journeyStyles = StyleSheet.create({
 });
 
 // Enhanced Badge Detail Modal
-const BadgeDetailModal = ({ visible, onClose, badge, userBadge, onShare }: { visible: boolean; onClose: () => void; badge: Badge | null; userBadge?: UserBadge; onShare: () => void }) => {
+const BadgeDetailModal = ({ visible, onClose, badge, userBadge, onShare }: { visible: boolean; onClose: () => void; badge: Badge | null; userBadge?: UserBadgeProgress; onShare: () => void }) => {
   const slideAnim = useRef(new Animated.Value(SCREEN_HEIGHT)).current;
   
   useEffect(() => {
