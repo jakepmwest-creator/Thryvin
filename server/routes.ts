@@ -7127,6 +7127,61 @@ Respond with a complete workout in JSON format:
     }
   });
 
+  // POST /api/workouts/save-schedule - Save a single workout day to the database
+  app.post("/api/workouts/save-schedule", authenticateToken, async (req: AuthenticatedRequest, res) => {
+    const userId = req.user?.id;
+    if (!userId) {
+      return res.status(401).json({ error: "Authentication required" });
+    }
+
+    const { date, workout } = req.body;
+    
+    if (!date || !workout) {
+      return res.status(400).json({ error: "date and workout are required" });
+    }
+
+    try {
+      // Check if workout already exists for this date
+      const existing = await db
+        .select()
+        .from(workoutDays)
+        .where(
+          and(
+            eq(workoutDays.userId, userId),
+            eq(workoutDays.date, date)
+          )
+        )
+        .limit(1);
+
+      if (existing.length > 0) {
+        // Update existing workout only if it's not completed
+        if (existing[0].status !== 'completed') {
+          await db
+            .update(workoutDays)
+            .set({
+              payloadJson: JSON.stringify(workout),
+              status: workout.isRestDay ? 'rest' : 'pending',
+            })
+            .where(eq(workoutDays.id, existing[0].id));
+        }
+        return res.json({ ok: true, action: 'updated', date });
+      }
+
+      // Insert new workout
+      await db.insert(workoutDays).values({
+        userId,
+        date: date,
+        status: workout.isRestDay ? 'rest' : 'pending',
+        payloadJson: JSON.stringify(workout),
+      });
+
+      return res.json({ ok: true, action: 'created', date });
+    } catch (error) {
+      console.error("❌ [SAVE-SCHEDULE] Error saving workout:", error);
+      return res.status(500).json({ error: "Failed to save workout" });
+    }
+  });
+
 
   // GET /api/v1/workouts/week - Get all workout days for current week
   app.get("/api/v1/workouts/week", async (req: Request, res) => {
