@@ -9040,11 +9040,18 @@ Respond with a complete workout in JSON format:
       console.log(`📊 [BADGE-TRACK] Tracking ${action} for user ${userId}`);
       
       // Create or update the stats row
-      const existing = await db
-        .select()
-        .from(userBadgeStats)
-        .where(eq(userBadgeStats.userId, userId))
-        .limit(1);
+      let existing: any[] = [];
+      try {
+        existing = await db
+          .select()
+          .from(userBadgeStats)
+          .where(eq(userBadgeStats.userId, userId))
+          .limit(1);
+        console.log(`📊 [BADGE-TRACK] Existing stats found: ${existing.length}`);
+      } catch (dbError: any) {
+        console.error(`📊 [BADGE-TRACK] Error querying existing stats:`, dbError?.message);
+        throw new Error(`DB query failed: ${dbError?.message}`);
+      }
       
       if (existing.length === 0) {
         // Create new row with defaults and the initial tracked value
@@ -9075,7 +9082,14 @@ Respond with a complete workout in JSON format:
             insertValues.totalPRsBroken = value || 1;
             break;
         }
-        await db.insert(userBadgeStats).values(insertValues);
+        console.log(`📊 [BADGE-TRACK] Inserting new row:`, insertValues);
+        try {
+          await db.insert(userBadgeStats).values(insertValues);
+          console.log(`📊 [BADGE-TRACK] Insert successful`);
+        } catch (insertError: any) {
+          console.error(`📊 [BADGE-TRACK] Insert error:`, insertError?.message);
+          throw new Error(`DB insert failed: ${insertError?.message}`);
+        }
       } else {
         // Update existing row - use drizzle-orm's SQL template
         const currentStats = existing[0];
