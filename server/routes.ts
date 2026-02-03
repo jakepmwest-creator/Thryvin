@@ -5155,18 +5155,14 @@ Respond with ONLY a JSON object (no markdown, no explanation):
     }
   });
 
-  app.get("/api/workouts/:id", async (req, res) => {
+  app.get("/api/workouts/:id", async (req, res, next) => {
     try {
-      // Skip if this is a named route (not a numeric ID)
-      if (req.params.id === 'user-schedule' || req.params.id === 'today' || req.params.id === 'week') {
-        return res.status(404).json({ error: "Invalid workout ID" });
+      // Skip if this is a named route (not a numeric ID) - let Express continue to next matching route
+      if (isNaN(parseInt(req.params.id, 10))) {
+        return next('route'); // Skip this handler and continue to next route
       }
       
       const workoutId = parseInt(req.params.id, 10);
-      if (isNaN(workoutId)) {
-        return res.status(400).json({ error: "Invalid workout ID - must be a number" });
-      }
-      
       const workout = await storage.getWorkout(workoutId);
 
       if (!workout) {
