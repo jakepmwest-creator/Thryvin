@@ -485,18 +485,89 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
       }
       
       const user = JSON.parse(storedUser);
+      const today = new Date();
+      const mondayOfThisWeek = getMondayOfWeek(today);
       
-      // Check if we have cached week workouts
-      // Version key to invalidate cache - bump this to force regeneration
-      const CACHE_VERSION = 'v6_backend_scheduling_fix';
+      // ====================================================================
+      // STEP 1: TRY TO FETCH EXISTING WORKOUTS FROM DATABASE FIRST
+      // ====================================================================
+      console.log('📡 [3-WEEK] Checking database for existing workouts...');
+      
+      try {
+        // Get auth token for API call
+        let token = null;
+        try {
+          const SecureStore = require('expo-secure-store');
+          token = await SecureStore.getItemAsync('thryvin_access_token');
+        } catch {
+          token = await getStorageItem('auth_token');
+        }
+        
+        if (token) {
+          // Fetch workouts for the next 21 days from the database
+          const startDate = mondayOfThisWeek.toISOString().split('T')[0];
+          const endDate = new Date(mondayOfThisWeek);
+          endDate.setDate(endDate.getDate() + 20);
+          const endDateStr = endDate.toISOString().split('T')[0];
+          
+          const response = await fetch(`${API_BASE_URL}/api/workouts/user-schedule?start=${startDate}&end=${endDateStr}`, {
+            method: 'GET',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}`,
+              'Bypass-Tunnel-Reminder': 'true',
+            },
+          });
+          
+          if (response.ok) {
+            const dbWorkouts = await response.json();
+            
+            if (dbWorkouts && Array.isArray(dbWorkouts) && dbWorkouts.length >= 14) {
+              console.log(`✅ [3-WEEK] Found ${dbWorkouts.length} workouts in database, using those!`);
+              
+              // Transform database format to local format if needed
+              const transformedWorkouts = dbWorkouts.map((w: any) => ({
+                id: w.id || `db_${w.date}`,
+                title: w.title || w.payloadJson?.title || 'Workout',
+                type: w.type || w.payloadJson?.type || 'workout',
+                difficulty: w.difficulty || w.payloadJson?.difficulty || 'intermediate',
+                duration: w.duration || w.payloadJson?.duration || 45,
+                date: w.date,
+                exercises: w.exercises || w.payloadJson?.exercises || [],
+                overview: w.overview || w.payloadJson?.overview || '',
+                targetMuscles: w.targetMuscles || w.payloadJson?.targetMuscles || '',
+                caloriesBurn: w.caloriesBurn || w.payloadJson?.caloriesBurn || 0,
+                completed: w.completed || w.status === 'completed',
+                completedAt: w.completedAt,
+                isRestDay: w.isRestDay || w.type === 'Rest' || w.type === 'rest',
+              }));
+              
+              // Cache locally for offline use
+              await setStorageItem('week_workouts', JSON.stringify(transformedWorkouts));
+              await setStorageItem('week_workouts_date', mondayOfThisWeek.toDateString());
+              await setStorageItem('week_workouts_version', 'v7_db_first');
+              
+              set({ weekWorkouts: transformedWorkouts, isLoading: false });
+              await deleteStorageItem('workout_generation_lock');
+              return;
+            } else {
+              console.log(`⚠️ [3-WEEK] Database has only ${dbWorkouts?.length || 0} workouts, need to generate more`);
+            }
+          } else {
+            console.log(`⚠️ [3-WEEK] Database fetch returned ${response.status}, will check local cache`);
+          }
+        }
+      } catch (dbError) {
+        console.log('⚠️ [3-WEEK] Database fetch failed:', dbError, '- will check local cache');
+      }
+      
+      // ====================================================================
+      // STEP 2: CHECK LOCAL CACHE IF DATABASE DIDN'T HAVE WORKOUTS
+      // ====================================================================
+      const CACHE_VERSION = 'v7_db_first';
       const cachedWeek = await getStorageItem('week_workouts');
       const cachedWeekDate = await getStorageItem('week_workouts_date');
       const cachedVersion = await getStorageItem('week_workouts_version');
-      const today = new Date();
-      const mondayOfThisWeek = new Date(today);
-      const dayOfWeek = today.getDay();
-      const mondayOffset = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
-      mondayOfThisWeek.setDate(today.getDate() + mondayOffset);
       const weekKey = mondayOfThisWeek.toDateString();
       
       // Force regeneration if cache version is outdated
@@ -518,6 +589,9 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
           console.warn('⚠️ [3-WEEK] Failed to parse cached workouts, regenerating...');
         }
       } else {
+        console.log('⚠️ [3-WEEK] Cache miss - cachedWeek:', !!cachedWeek, 'dateMatch:', cachedWeekDate === weekKey);
+        console.log('   Expected week key:', weekKey, 'Got:', cachedWeekDate);
+      }
         console.log('⚠️ [3-WEEK] Cache miss - cachedWeek:', !!cachedWeek, 'dateMatch:', cachedWeekDate === weekKey);
         console.log('   Expected week key:', weekKey, 'Got:', cachedWeekDate);
       }
