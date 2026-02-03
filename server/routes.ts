@@ -8736,7 +8736,7 @@ Respond with a complete workout in JSON format:
       
       const token = authHeader.substring(7);
       const jwt = require('jsonwebtoken');
-      const decoded = jwt.verify(token, process.env.JWT_SECRET || 'dev-secret');
+      const decoded = jwt.verify(token, process.env.JWT_SECRET || 'thryvin-jwt-secret-change-in-production');
       const userId = decoded.userId;
       
       if (!userId) {
@@ -8787,7 +8787,7 @@ Respond with a complete workout in JSON format:
       
       const token = authHeader.substring(7);
       const jwt = require('jsonwebtoken');
-      const decoded = jwt.verify(token, process.env.JWT_SECRET || 'dev-secret');
+      const decoded = jwt.verify(token, process.env.JWT_SECRET || 'thryvin-jwt-secret-change-in-production');
       const userId = decoded.userId;
       
       if (!userId) {
@@ -8857,7 +8857,7 @@ Respond with a complete workout in JSON format:
       
       const token = authHeader.substring(7);
       const jwt = require('jsonwebtoken');
-      const decoded = jwt.verify(token, process.env.JWT_SECRET || 'dev-secret');
+      const decoded = jwt.verify(token, process.env.JWT_SECRET || 'thryvin-jwt-secret-change-in-production');
       const userId = decoded.userId;
       
       if (!userId) {
@@ -8911,7 +8911,7 @@ Respond with a complete workout in JSON format:
       
       const token = authHeader.substring(7);
       const jwt = require('jsonwebtoken');
-      const decoded = jwt.verify(token, process.env.JWT_SECRET || 'dev-secret');
+      const decoded = jwt.verify(token, process.env.JWT_SECRET || 'thryvin-jwt-secret-change-in-production');
       const userId = decoded.userId;
       
       if (!userId) {
@@ -9018,7 +9018,7 @@ Respond with a complete workout in JSON format:
       
       const token = authHeader.substring(7);
       const jwt = require('jsonwebtoken');
-      const decoded = jwt.verify(token, process.env.JWT_SECRET || 'dev-secret');
+      const decoded = jwt.verify(token, process.env.JWT_SECRET || 'thryvin-jwt-secret-change-in-production');
       const userId = decoded.userId;
       
       if (!userId) {
