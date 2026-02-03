@@ -857,15 +857,78 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
     }
   },
 
-  // Fetch completed workouts
+  // Fetch completed workouts from DATABASE first, then fallback to local cache
   fetchCompletedWorkouts: async () => {
     try {
+      console.log('📊 [WORKOUTS] Fetching completed workouts...');
+      
+      // Step 1: Try to fetch from database for persistence
+      try {
+        let token = null;
+        try {
+          const SecureStore = require('expo-secure-store');
+          token = await SecureStore.getItemAsync('thryvin_access_token');
+        } catch {
+          token = await getStorageItem('auth_token');
+        }
+        
+        if (token) {
+          // Get completed workouts from database (workout_days with completed status)
+          const startDate = new Date();
+          startDate.setFullYear(startDate.getFullYear() - 1); // Last year
+          const endDate = new Date();
+          endDate.setMonth(endDate.getMonth() + 1); // Include current month
+          
+          const response = await fetch(`${API_BASE_URL}/api/workouts/user-schedule?start=${startDate.toISOString().split('T')[0]}&end=${endDate.toISOString().split('T')[0]}`, {
+            method: 'GET',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}`,
+              'Bypass-Tunnel-Reminder': 'true',
+            },
+          });
+          
+          if (response.ok) {
+            const allWorkouts = await response.json();
+            
+            // Filter to only completed workouts
+            const dbCompletedWorkouts = allWorkouts.filter((w: any) => 
+              w.completed || w.status === 'completed'
+            ).map((w: any) => ({
+              id: w.id || `db_${w.date}`,
+              title: w.title || 'Workout',
+              type: w.type || 'workout',
+              difficulty: w.difficulty || 'intermediate',
+              duration: w.duration || 45,
+              date: w.date,
+              exercises: w.exercises || [],
+              completed: true,
+              completedAt: w.completedAt || w.date,
+              isRestDay: false,
+            }));
+            
+            if (dbCompletedWorkouts.length > 0) {
+              console.log(`✅ [WORKOUTS] Loaded ${dbCompletedWorkouts.length} completed workouts from database`);
+              set({ completedWorkouts: dbCompletedWorkouts });
+              
+              // Cache locally for offline use
+              await setStorageItem('completed_workouts', JSON.stringify(dbCompletedWorkouts));
+              return;
+            }
+          }
+        }
+      } catch (dbError) {
+        console.log('⚠️ [WORKOUTS] Could not fetch from database, using local cache:', dbError);
+      }
+      
+      // Step 2: Fallback to local storage
       const stored = await getStorageItem('completed_workouts');
       const completedWorkouts = stored ? JSON.parse(stored) : [];
       set({ completedWorkouts });
-      console.log('Completed workouts loaded:', completedWorkouts.length);
+      console.log('📊 [WORKOUTS] Completed workouts loaded from local cache:', completedWorkouts.length);
     } catch (error) {
-      console.error('Error fetching completed workouts:', error);
+      console.error('❌ [WORKOUTS] Error fetching completed workouts:', error);
+      set({ completedWorkouts: [] });
     }
   },
 
