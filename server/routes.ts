@@ -7074,9 +7074,11 @@ Respond with a complete workout in JSON format:
 
   // GET /api/workouts/user-schedule?start=YYYY-MM-DD&end=YYYY-MM-DD - Get user's workouts by date range
   app.get("/api/workouts/user-schedule", authenticateToken, async (req: AuthenticatedRequest, res) => {
+    console.log('📡 [USER-SCHEDULE] req.user:', JSON.stringify(req.user, null, 2));
     const userId = req.user?.id;
-    if (!userId) {
-      return res.status(401).json({ error: "Authentication required" });
+    console.log('📡 [USER-SCHEDULE] parsed userId:', userId, typeof userId);
+    if (!userId || typeof userId !== 'number') {
+      return res.status(401).json({ error: "Authentication required", debug: { userId, type: typeof userId } });
     }
 
     const { start, end } = req.query;
