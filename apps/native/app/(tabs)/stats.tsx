@@ -667,9 +667,31 @@ export default function StatsScreen() {
           <RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} tintColor={COLORS.accent} />
         }
       >
-        {/* This Week Stats */}
+        {/* Time Period Selector */}
+        <View style={styles.timePeriodContainer}>
+          <TouchableOpacity
+            style={[styles.timePeriodButton, timePeriod === 'week' && styles.timePeriodButtonActive]}
+            onPress={() => setTimePeriod('week')}
+          >
+            <Text style={[styles.timePeriodText, timePeriod === 'week' && styles.timePeriodTextActive]}>Week</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.timePeriodButton, timePeriod === 'month' && styles.timePeriodButtonActive]}
+            onPress={() => setTimePeriod('month')}
+          >
+            <Text style={[styles.timePeriodText, timePeriod === 'month' && styles.timePeriodTextActive]}>Month</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.timePeriodButton, timePeriod === 'year' && styles.timePeriodButtonActive]}
+            onPress={() => setTimePeriod('year')}
+          >
+            <Text style={[styles.timePeriodText, timePeriod === 'year' && styles.timePeriodTextActive]}>Year</Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* Period Stats */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>This Week</Text>
+          <Text style={styles.sectionTitle}>{stats.periodLabel}</Text>
           
           <View style={styles.statsGrid}>
             <StatCard
@@ -710,7 +732,7 @@ export default function StatsScreen() {
 
         {/* Progress Section */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Weekly Goal</Text>
+          <Text style={styles.sectionTitle}>{timePeriod === 'week' ? 'Weekly' : timePeriod === 'month' ? 'Monthly' : 'Yearly'} Goal</Text>
           
           <View style={styles.progressCard}>
             <View style={styles.progressHeader}>
