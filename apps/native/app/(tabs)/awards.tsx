@@ -402,7 +402,7 @@ const islandStyles = StyleSheet.create({
 });
 
 // Enhanced Badge Card with rarity-based styling and animations
-const BadgeCard = ({ badge, userBadge, onPress, isAvailable }: { badge: Badge; userBadge?: UserBadge; onPress: () => void; isAvailable: boolean }) => {
+const BadgeCard = ({ badge, userBadge, onPress, isAvailable }: { badge: Badge; userBadge?: UserBadgeProgress; onPress: () => void; isAvailable: boolean }) => {
   const isUnlocked = userBadge?.completed;
   const progress = userBadge?.progress || 0;
   const progressPercent = Math.min((progress / badge.targetValue) * 100, 100);
