@@ -642,6 +642,14 @@ export default function StatsScreen() {
       }))
       .sort((a, b) => b.percentage - a.percentage);
     
+    // Calculate goal based on time period
+    let periodGoal = weeklyGoal;
+    if (timePeriod === 'month') {
+      periodGoal = weeklyGoal * 4; // 4 weeks in a month
+    } else if (timePeriod === 'year') {
+      periodGoal = weeklyGoal * 4 * 12; // 12 months in a year
+    }
+    
     return {
       periodLabel,
       thisPeriod: {
@@ -651,8 +659,8 @@ export default function StatsScreen() {
         minutesChange: thisPeriodMinutes - previousPeriodMinutes,
         caloriesBurned: thisPeriodCalories,
         caloriesChange: thisPeriodCalories - previousPeriodCalories,
-        weeklyGoal,
-        goalProgress: Math.round((thisPeriodWorkouts.length / weeklyGoal) * 100),
+        periodGoal,
+        goalProgress: Math.round((thisPeriodWorkouts.length / periodGoal) * 100),
       },
       streaks: {
         current: currentStreak,
