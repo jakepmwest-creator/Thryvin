@@ -1411,7 +1411,7 @@ export default function WorkoutHubScreen() {
                 <Ionicons name="close-circle" size={32} color={COLORS.white} />
               </TouchableOpacity>
             <LinearGradient
-              colors={[COLORS.gradientStart, COLORS.gradientEnd]}
+              colors={['#34C759', '#2DB54D']}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 1 }}
               style={styles.celebrationGradient}
