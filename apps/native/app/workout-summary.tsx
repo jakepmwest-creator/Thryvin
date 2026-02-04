@@ -30,6 +30,9 @@ const COLORS = {
   lightGray: THEME_COLORS.lightGray,
   mediumGray: THEME_COLORS.mediumGray,
   success: THEME_COLORS.success,
+  // Green theme for completion celebration
+  successGradientStart: '#34C759',
+  successGradientEnd: '#2DB54D',
 };
 
 const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL || 'https://workout-data-cleanup.preview.emergentagent.com';
