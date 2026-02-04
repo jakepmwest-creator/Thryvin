@@ -3,6 +3,7 @@ import * as SecureStore from 'expo-secure-store';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { notificationService } from '../services/notificationService';
 import { useWorkoutStore } from './workout-store';
+import { useAwardsStore } from './awards-store';
 import { storeToken, clearToken, getToken } from '../services/api-client';
 
 const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL || 'https://workout-data-cleanup.preview.emergentagent.com';
