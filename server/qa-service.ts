@@ -713,6 +713,46 @@ export function setupQARoutes(app: Express) {
       requestId,
     });
   });
+
+  /**
+   * DELETE /api/qa/clear-all-users
+   * Clears ALL users and their data from the database
+   * Use with caution - this is destructive!
+   */
+  app.delete('/api/qa/clear-all-users', qaGate, async (req: any, res: Response) => {
+    const requestId = (req as ApiRequest).requestId || `qa_clear_${Date.now()}`;
+    
+    console.log(`[QA] ${requestId} | clear-all-users status=STARTED`);
+    
+    try {
+      // Get count before deletion
+      const users = await storage.getAllUsers?.() || [];
+      const userCount = users.length;
+      
+      // Delete all users (cascade will handle related data)
+      for (const user of users) {
+        await storage.deleteUser?.(user.id);
+      }
+      
+      console.log(`[QA] ${requestId} | clear-all-users status=SUCCESS deleted=${userCount}`);
+      
+      res.setHeader('Content-Type', 'application/json');
+      return res.json({
+        ok: true,
+        message: `Deleted ${userCount} users and all their data`,
+        deletedCount: userCount,
+        requestId,
+      });
+    } catch (error: any) {
+      console.error(`[QA] ${requestId} | clear-all-users status=ERROR error=${error.message}`);
+      res.setHeader('Content-Type', 'application/json');
+      return res.status(500).json({
+        ok: false,
+        error: error.message || 'Failed to clear users',
+        requestId,
+      });
+    }
+  });
   
   console.log('[QA] QA routes registered (dev/test only)');
 }
