@@ -166,6 +166,21 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     await setStorageItem('auth_user', JSON.stringify(userData));
     await setStorageItem('user_email', userData.email);
     console.log('✅ User set directly (QA mode):', userData.name);
+    
+    // CRITICAL: Also load user data from backend for Fast Tester Login
+    console.log('🔄 Loading user data from backend (QA mode)...');
+    try {
+      const workoutStore = useWorkoutStore.getState();
+      await workoutStore.fetchWeekWorkouts();
+      await workoutStore.fetchCompletedWorkouts();
+      await workoutStore.fetchStats();
+      
+      const awardsStore = useAwardsStore.getState();
+      await awardsStore.loadUserBadges();
+      console.log('✅ User data loaded from backend (QA mode)');
+    } catch (loadError) {
+      console.warn('⚠️ Could not load data after QA login:', loadError);
+    }
   },
 
   login: async (credentials: { email: string; password: string }) => {
