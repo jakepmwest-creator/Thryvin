@@ -1241,4 +1241,81 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: COLORS.white,
   },
+  // Rating Modal Styles
+  ratingModalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 24,
+  },
+  ratingModalContent: {
+    backgroundColor: COLORS.white,
+    borderRadius: 24,
+    padding: 28,
+    width: '100%',
+    maxWidth: 340,
+    alignItems: 'center',
+  },
+  ratingModalTitle: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: COLORS.text,
+    marginBottom: 8,
+  },
+  ratingModalSubtitle: {
+    fontSize: 15,
+    color: COLORS.mediumGray,
+    marginBottom: 24,
+  },
+  starsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: 8,
+    marginBottom: 16,
+  },
+  starButton: {
+    padding: 4,
+  },
+  ratingLabel: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: COLORS.text,
+    marginBottom: 24,
+    height: 24,
+  },
+  ratingButtonsRow: {
+    flexDirection: 'row',
+    gap: 12,
+    width: '100%',
+  },
+  ratingCancelButton: {
+    flex: 1,
+    paddingVertical: 14,
+    borderRadius: 12,
+    backgroundColor: COLORS.lightGray,
+    alignItems: 'center',
+  },
+  ratingCancelText: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: COLORS.mediumGray,
+  },
+  ratingSubmitButton: {
+    flex: 1,
+    borderRadius: 12,
+    overflow: 'hidden',
+  },
+  ratingSubmitDisabled: {
+    opacity: 0.5,
+  },
+  ratingSubmitGradient: {
+    paddingVertical: 14,
+    alignItems: 'center',
+  },
+  ratingSubmitText: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: COLORS.white,
+  },
 });
