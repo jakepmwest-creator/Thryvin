@@ -764,6 +764,9 @@ export default function OnboardingScreen() {
                 onChangeText={(value) => setFormData({ ...formData, [field.key]: value })}
                 keyboardType={field.type === 'number' ? 'numeric' : 'default'}
                 autoCapitalize={field.type === 'text' ? 'words' : 'none'}
+                returnKeyType="done"
+                blurOnSubmit={true}
+                enablesReturnKeyAutomatically={true}
               />
             </View>
           );
