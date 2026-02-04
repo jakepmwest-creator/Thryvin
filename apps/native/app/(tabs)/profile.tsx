@@ -724,6 +724,70 @@ export default function ProfileScreen() {
         onReset={() => {}}
       />
       
+      {/* Star Rating Modal */}
+      <Modal
+        visible={showRatingModal}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowRatingModal(false)}
+      >
+        <View style={styles.ratingModalOverlay}>
+          <View style={styles.ratingModalContent}>
+            <Text style={styles.ratingModalTitle}>Rate Thryvin ⭐</Text>
+            <Text style={styles.ratingModalSubtitle}>How are you enjoying the app?</Text>
+            
+            <View style={styles.starsContainer}>
+              {[1, 2, 3, 4, 5].map((star) => (
+                <TouchableOpacity
+                  key={star}
+                  onPress={() => setSelectedRating(star)}
+                  style={styles.starButton}
+                >
+                  <Ionicons
+                    name={selectedRating >= star ? "star" : "star-outline"}
+                    size={40}
+                    color={selectedRating >= star ? "#FFD700" : COLORS.mediumGray}
+                  />
+                </TouchableOpacity>
+              ))}
+            </View>
+            
+            <Text style={styles.ratingLabel}>
+              {selectedRating === 0 && "Tap a star to rate"}
+              {selectedRating === 1 && "Poor 😢"}
+              {selectedRating === 2 && "Fair 😐"}
+              {selectedRating === 3 && "Good 🙂"}
+              {selectedRating === 4 && "Great! 😊"}
+              {selectedRating === 5 && "Amazing! 🎉"}
+            </Text>
+            
+            <View style={styles.ratingButtonsRow}>
+              <TouchableOpacity 
+                style={styles.ratingCancelButton}
+                onPress={() => setShowRatingModal(false)}
+              >
+                <Text style={styles.ratingCancelText}>Maybe Later</Text>
+              </TouchableOpacity>
+              
+              <TouchableOpacity 
+                style={[styles.ratingSubmitButton, selectedRating === 0 && styles.ratingSubmitDisabled]}
+                onPress={() => selectedRating > 0 && submitRating(selectedRating)}
+                disabled={selectedRating === 0}
+              >
+                <LinearGradient
+                  colors={selectedRating > 0 ? [COLORS.accent, COLORS.accentLight] : ['#ccc', '#aaa']}
+                  style={styles.ratingSubmitGradient}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 0 }}
+                >
+                  <Text style={styles.ratingSubmitText}>Submit Rating</Text>
+                </LinearGradient>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+      
       <BiometricsModal
         visible={showBiometrics}
         onClose={() => setShowBiometrics(false)}
