@@ -113,9 +113,9 @@ export default function WorkoutSummaryScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      {/* Header */}
+      {/* Header - Green Success Theme */}
       <LinearGradient
-        colors={[COLORS.accent, COLORS.accentSecondary]}
+        colors={[COLORS.successGradientStart, COLORS.successGradientEnd]}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
         style={styles.header}
