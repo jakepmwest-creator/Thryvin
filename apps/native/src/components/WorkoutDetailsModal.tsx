@@ -250,30 +250,14 @@ export function WorkoutDetailsModal({
   
   // Refresh videos when workout changes
   useEffect(() => {
-    if (currentWorkout?.exercises?.length) {
+    // Use the helper to check if exercises exist in any structure
+    const exercises = getWorkoutExercises(currentWorkout);
+    if (exercises.length > 0) {
       refreshExerciseVideos(currentWorkout);
     }
   }, [currentWorkout?.id, currentWorkoutIndex]);
   
   // Use refreshed exercises if available, otherwise fall back to original
-  // CRITICAL: Check both top-level exercises AND payloadJson.exercises for database-loaded workouts
-  const getWorkoutExercises = (workout: any): any[] => {
-    if (!workout) return [];
-    // Check top-level first (local workouts)
-    if (workout.exercises && Array.isArray(workout.exercises) && workout.exercises.length > 0) {
-      return workout.exercises;
-    }
-    // Check payloadJson (database-loaded workouts)
-    if (workout.payloadJson?.exercises && Array.isArray(workout.payloadJson.exercises)) {
-      return workout.payloadJson.exercises;
-    }
-    // Check exerciseList alias
-    if (workout.exerciseList && Array.isArray(workout.exerciseList)) {
-      return workout.exerciseList;
-    }
-    return [];
-  };
-  
   const displayExercises = refreshedExercises.length > 0 ? refreshedExercises : getWorkoutExercises(currentWorkout);
   
   // Find the completed workout to get actual duration
