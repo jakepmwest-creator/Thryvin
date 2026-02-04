@@ -181,6 +181,24 @@ export function WorkoutDetailsModal({
   // State for refreshed exercises with updated video URLs
   const [refreshedExercises, setRefreshedExercises] = useState<any[]>([]);
   
+  // CRITICAL: Helper to get exercises from any workout structure (local or database-loaded)
+  const getWorkoutExercises = (workout: any): any[] => {
+    if (!workout) return [];
+    // Check top-level first (local workouts)
+    if (workout.exercises && Array.isArray(workout.exercises) && workout.exercises.length > 0) {
+      return workout.exercises;
+    }
+    // Check payloadJson (database-loaded workouts)
+    if (workout.payloadJson?.exercises && Array.isArray(workout.payloadJson.exercises)) {
+      return workout.payloadJson.exercises;
+    }
+    // Check exerciseList alias
+    if (workout.exerciseList && Array.isArray(workout.exerciseList)) {
+      return workout.exerciseList;
+    }
+    return [];
+  };
+  
   // Refresh video URLs from database
   const refreshExerciseVideos = async (workout: any) => {
     // Use the same helper to get exercises from any structure
