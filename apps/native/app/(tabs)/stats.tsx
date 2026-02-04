@@ -900,22 +900,7 @@ export default function StatsScreen() {
 
         {/* Muscle Group Distribution (Pie Chart for Workout Nerds!) */}
         <View style={styles.section}>
-          <View style={styles.chartHeader}>
-            <Text style={styles.sectionTitle}>Muscle Group Distribution</Text>
-            <View style={styles.timePeriodMini}>
-              {(['week', 'month', 'year'] as const).map((period) => (
-                <TouchableOpacity
-                  key={period}
-                  style={[styles.miniPeriodButton, timePeriod === period && styles.miniPeriodButtonActive]}
-                  onPress={() => setTimePeriod(period)}
-                >
-                  <Text style={[styles.miniPeriodText, timePeriod === period && styles.miniPeriodTextActive]}>
-                    {period.charAt(0).toUpperCase() + period.slice(1, 2)}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-          </View>
+          <Text style={styles.sectionTitle}>Muscle Group Distribution</Text>
           
           <View style={styles.chartCard}>
             {stats.muscleData.length > 0 ? (
