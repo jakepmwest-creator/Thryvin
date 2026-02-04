@@ -258,13 +258,13 @@ export default function WorkoutSummaryScreen() {
           )}
         </View>
 
-        {/* Done Button */}
+        {/* Done Button - Green Theme */}
         <TouchableOpacity 
           style={styles.doneButton}
           onPress={() => router.replace('/(tabs)')}
         >
           <LinearGradient
-            colors={[COLORS.accent, COLORS.accentSecondary]}
+            colors={[COLORS.successGradientStart, COLORS.successGradientEnd]}
             style={styles.doneButtonGradient}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 0 }}
