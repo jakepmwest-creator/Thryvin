@@ -829,7 +829,7 @@ export default function StatsScreen() {
           <View style={styles.progressCard}>
             <View style={styles.progressHeader}>
               <Text style={styles.progressTitle}>
-                {stats.thisPeriod.workoutsCompleted} of {stats.thisPeriod.weeklyGoal} workouts
+                {stats.thisPeriod.workoutsCompleted} of {stats.thisPeriod.periodGoal} workouts
               </Text>
               <Text style={styles.progressPercentage}>{stats.thisPeriod.goalProgress}%</Text>
             </View>
@@ -848,7 +848,7 @@ export default function StatsScreen() {
             <Text style={styles.progressSubtext}>
               {stats.thisPeriod.goalProgress >= 100 
                 ? '🎉 Goal achieved! Keep it up!'
-                : `${stats.thisPeriod.weeklyGoal - stats.thisPeriod.workoutsCompleted} more to hit your goal`}
+                : `${stats.thisPeriod.periodGoal - stats.thisPeriod.workoutsCompleted} more to hit your ${timePeriod}ly goal`}
             </Text>
           </View>
         </View>
