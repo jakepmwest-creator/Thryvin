@@ -328,9 +328,6 @@ export default function LoginScreen() {
                     <Ionicons name="arrow-forward" size={14} color={COLORS.accent} />
                   </TouchableOpacity>
                 </View>
-
-                {/* DEV-only Quick Test Login */}
-                <QuickTestLogin />
               </View>
             </Animated.View>
           </ScrollView>
