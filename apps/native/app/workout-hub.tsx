@@ -307,9 +307,22 @@ export default function WorkoutHubScreen() {
     // Use the helper to check if exercises exist in any structure
     const exercises = getWorkoutExercises(currentWorkout);
     if (exercises.length > 0) {
+      // Always refresh video URLs to ensure correctness
       refreshExerciseVideos();
     }
-  }, [currentWorkout?.id]);
+  }, [currentWorkout?.id, currentWorkout?.date]); // Also refresh when date changes
+  
+  // Also refresh when component mounts with exercises
+  useEffect(() => {
+    const exercises = getWorkoutExercises(currentWorkout);
+    if (exercises.length > 0 && currentWorkout?.id) {
+      // Delay slightly to ensure component is fully mounted
+      const timer = setTimeout(() => {
+        refreshExerciseVideos();
+      }, 100);
+      return () => clearTimeout(timer);
+    }
+  }, []); // Run once on mount
   
   // Split exercises into blocks based on their actual category
   const exercises = getWorkoutExercises(currentWorkout);
