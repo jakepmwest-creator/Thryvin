@@ -233,12 +233,32 @@ export default function WorkoutHubScreen() {
     }
   };
 
+  // CRITICAL: Helper to get exercises from any workout structure (local or database-loaded)
+  // Must be defined before functions that use it
+  const getWorkoutExercises = (workout: any): any[] => {
+    if (!workout) return [];
+    // Check top-level first (local workouts)
+    if (workout.exercises && Array.isArray(workout.exercises) && workout.exercises.length > 0) {
+      return workout.exercises;
+    }
+    // Check payloadJson (database-loaded workouts)
+    if (workout.payloadJson?.exercises && Array.isArray(workout.payloadJson.exercises)) {
+      return workout.payloadJson.exercises;
+    }
+    // Check exerciseList alias
+    if (workout.exerciseList && Array.isArray(workout.exerciseList)) {
+      return workout.exerciseList;
+    }
+    return [];
+  };
+
   // Refresh video URLs from database for all exercises in current workout
   const refreshExerciseVideos = async () => {
-    if (!currentWorkout?.exercises?.length) return;
+    const workoutExercises = getWorkoutExercises(currentWorkout);
+    if (!workoutExercises.length) return;
     
     try {
-      const exerciseNames = currentWorkout.exercises
+      const exerciseNames = workoutExercises
         .map((ex: any) => ex.name)
         .filter(Boolean)
         .join(',');
@@ -265,7 +285,7 @@ export default function WorkoutHubScreen() {
         }
         
         // Update exercises in current workout with fresh video URLs
-        const updatedExercises = currentWorkout.exercises.map((ex: any) => {
+        const updatedExercises = workoutExercises.map((ex: any) => {
           const freshVideoUrl = videoMap.get(ex.name?.toLowerCase());
           if (freshVideoUrl) {
             return { ...ex, videoUrl: freshVideoUrl };
@@ -291,24 +311,6 @@ export default function WorkoutHubScreen() {
     }
   }, [currentWorkout?.id]);
   
-  // CRITICAL: Helper to get exercises from any workout structure (local or database-loaded)
-  const getWorkoutExercises = (workout: any): any[] => {
-    if (!workout) return [];
-    // Check top-level first (local workouts)
-    if (workout.exercises && Array.isArray(workout.exercises) && workout.exercises.length > 0) {
-      return workout.exercises;
-    }
-    // Check payloadJson (database-loaded workouts)
-    if (workout.payloadJson?.exercises && Array.isArray(workout.payloadJson.exercises)) {
-      return workout.payloadJson.exercises;
-    }
-    // Check exerciseList alias
-    if (workout.exerciseList && Array.isArray(workout.exerciseList)) {
-      return workout.exerciseList;
-    }
-    return [];
-  };
-
   // Split exercises into blocks based on their actual category
   const exercises = getWorkoutExercises(currentWorkout);
   
