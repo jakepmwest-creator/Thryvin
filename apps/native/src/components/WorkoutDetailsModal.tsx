@@ -183,10 +183,12 @@ export function WorkoutDetailsModal({
   
   // Refresh video URLs from database
   const refreshExerciseVideos = async (workout: any) => {
-    if (!workout?.exercises?.length) return;
+    // Use the same helper to get exercises from any structure
+    const exercises = getWorkoutExercises(workout);
+    if (!exercises.length) return;
     
     try {
-      const exerciseNames = workout.exercises
+      const exerciseNames = exercises
         .map((ex: any) => ex.name)
         .filter(Boolean)
         .join(',');
@@ -212,7 +214,7 @@ export function WorkoutDetailsModal({
         }
         
         // Update exercises with fresh video URLs
-        const updated = workout.exercises.map((ex: any) => {
+        const updated = exercises.map((ex: any) => {
           const freshVideoUrl = videoMap.get(ex.name?.toLowerCase());
           if (freshVideoUrl) {
             return { ...ex, videoUrl: freshVideoUrl };
