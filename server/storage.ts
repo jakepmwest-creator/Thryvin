@@ -211,6 +211,21 @@ export class DatabaseStorage implements IStorage {
     return result.length > 0 ? result[0] : undefined;
   }
   
+  async getAllUsers(): Promise<User[]> {
+    return await db.select().from(users);
+  }
+  
+  async deleteUser(id: number): Promise<boolean> {
+    try {
+      // Delete user - cascade will handle related tables
+      const result = await db.delete(users).where(eq(users.id, id)).returning();
+      return result.length > 0;
+    } catch (error) {
+      console.error(`Error deleting user ${id}:`, error);
+      return false;
+    }
+  }
+  
   // Message methods
   async getUserMessages(userId: number): Promise<Message[]> {
     return await db
