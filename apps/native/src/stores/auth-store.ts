@@ -226,6 +226,22 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       await setStorageItem('user_email', credentials.email);
 
       console.log('✅ Login successful:', userData.name);
+      
+      // CRITICAL: Re-fetch all user data from backend after login
+      // This ensures the user sees their persisted data, not stale/empty state
+      console.log('🔄 Loading user data from backend...');
+      try {
+        // Import and call workout store functions to load persisted data
+        const workoutStore = useWorkoutStore.getState();
+        await workoutStore.fetchWeekWorkouts();
+        await workoutStore.fetchCompletedWorkouts();
+        await workoutStore.fetchStats();
+        console.log('✅ User workout data loaded from backend');
+      } catch (loadError) {
+        console.warn('⚠️ Could not load workout data after login:', loadError);
+        // Non-critical - user can still use the app, data will load on next fetch
+      }
+      
       return;
       
     } catch (error) {
