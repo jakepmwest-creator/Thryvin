@@ -759,25 +759,58 @@ export default function StatsScreen() {
           <RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} tintColor={COLORS.accent} />
         }
       >
-        {/* Time Period Selector */}
+        {/* Time Period Selector - Purple to Pink Gradient */}
         <View style={styles.timePeriodContainer}>
           <TouchableOpacity
-            style={[styles.timePeriodButton, timePeriod === 'week' && styles.timePeriodButtonActive]}
+            style={[styles.timePeriodButton, timePeriod !== 'week' && styles.timePeriodButtonInactive]}
             onPress={() => setTimePeriod('week')}
           >
-            <Text style={[styles.timePeriodText, timePeriod === 'week' && styles.timePeriodTextActive]}>Week</Text>
+            {timePeriod === 'week' ? (
+              <LinearGradient
+                colors={[COLORS.accent, COLORS.accentSecondary]}
+                style={styles.timePeriodGradient}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0 }}
+              >
+                <Text style={styles.timePeriodTextActive}>Week</Text>
+              </LinearGradient>
+            ) : (
+              <Text style={styles.timePeriodText}>Week</Text>
+            )}
           </TouchableOpacity>
           <TouchableOpacity
-            style={[styles.timePeriodButton, timePeriod === 'month' && styles.timePeriodButtonActive]}
+            style={[styles.timePeriodButton, timePeriod !== 'month' && styles.timePeriodButtonInactive]}
             onPress={() => setTimePeriod('month')}
           >
-            <Text style={[styles.timePeriodText, timePeriod === 'month' && styles.timePeriodTextActive]}>Month</Text>
+            {timePeriod === 'month' ? (
+              <LinearGradient
+                colors={[COLORS.accent, COLORS.accentSecondary]}
+                style={styles.timePeriodGradient}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0 }}
+              >
+                <Text style={styles.timePeriodTextActive}>Month</Text>
+              </LinearGradient>
+            ) : (
+              <Text style={styles.timePeriodText}>Month</Text>
+            )}
           </TouchableOpacity>
           <TouchableOpacity
-            style={[styles.timePeriodButton, timePeriod === 'year' && styles.timePeriodButtonActive]}
+            style={[styles.timePeriodButton, timePeriod !== 'year' && styles.timePeriodButtonInactive]}
             onPress={() => setTimePeriod('year')}
           >
-            <Text style={[styles.timePeriodText, timePeriod === 'year' && styles.timePeriodTextActive]}>Year</Text>
+            {timePeriod === 'year' ? (
+              <LinearGradient
+                colors={[COLORS.accent, COLORS.accentSecondary]}
+                style={styles.timePeriodGradient}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0 }}
+              >
+                <Text style={styles.timePeriodTextActive}>Year</Text>
+              </LinearGradient>
+            ) : (
+              <Text style={styles.timePeriodText}>Year</Text>
+            )}
           </TouchableOpacity>
         </View>
 
