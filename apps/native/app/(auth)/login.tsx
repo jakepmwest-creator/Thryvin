@@ -109,7 +109,7 @@ export default function LoginScreen() {
       const storedEmail = await SecureStore.getItemAsync('user_email');
       const storedPassword = await SecureStore.getItemAsync('user_password');
       
-      const hasStoredCredentials = storedEmail && storedPassword;
+      const hasStoredCredentials = !!(storedEmail && storedPassword);
       
       setBiometricAvailable(compatible && enrolled);
       setBiometricEnabled(enabled === 'true' && hasStoredCredentials);
@@ -359,6 +359,27 @@ export default function LoginScreen() {
             contentContainerStyle={styles.modalScrollContent}
             keyboardShouldPersistTaps="handled"
           >
+            {/* Welcoming Section */}
+            <View style={{ alignItems: 'center', marginBottom: 32 }}>
+              <View style={{ 
+                width: 64, 
+                height: 64, 
+                borderRadius: 32, 
+                backgroundColor: `${COLORS.accent}15`,
+                alignItems: 'center',
+                justifyContent: 'center',
+                marginBottom: 16,
+              }}>
+                <Ionicons name="person-circle" size={36} color={COLORS.accent} />
+              </View>
+              <Text style={{ fontSize: 24, fontWeight: '700', color: COLORS.text, marginBottom: 8 }}>
+                Welcome Back!
+              </Text>
+              <Text style={{ fontSize: 15, color: COLORS.mediumGray, textAlign: 'center' }}>
+                Sign in to continue your fitness journey
+              </Text>
+            </View>
+
             <View style={styles.loginFormContainer}>
               {/* Email Input */}
               <View style={styles.inputWrapper}>
@@ -620,12 +641,15 @@ const styles = StyleSheet.create({
     alignItems: 'center', 
     justifyContent: 'space-between', 
     paddingHorizontal: 20, 
-    paddingVertical: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: COLORS.lightGray,
+    paddingVertical: 20,
+    borderBottomWidth: 0,
   },
-  modalClose: { padding: 4 },
-  modalTitle: { fontSize: 18, fontWeight: '700', color: COLORS.text },
+  modalClose: { 
+    padding: 8, 
+    backgroundColor: COLORS.lightGray, 
+    borderRadius: 20,
+  },
+  modalTitle: { fontSize: 20, fontWeight: '700', color: COLORS.text },
   modalContent: { flex: 1 },
   modalScrollContent: { padding: 24 },
   

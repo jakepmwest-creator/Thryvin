@@ -8920,23 +8920,22 @@ Respond with a complete workout in JSON format:
       const performanceData = await db
         .select({
           totalWorkouts: sql<number>`COUNT(DISTINCT ${performanceLogs.workoutId})`,
-          totalReps: sql<number>`COALESCE(SUM(${performanceLogs.reps}), 0)`,
+          totalReps: sql<number>`COALESCE(sum(${performanceLogs.actualReps}), 0)`,
           totalSets: sql<number>`COUNT(*)`,
         })
         .from(performanceLogs)
         .where(eq(performanceLogs.userId, userId));
       
-      // Get workout details for time calculation and other stats
+      // Get workout details for time calculation from workoutDays
       const workoutDetails = await db
         .select({
-          completedAt: workouts.completedAt,
-          duration: workouts.duration,
-          targetMuscles: workouts.targetMuscles,
+          completedAt: workoutDays.completedAt,
+          payloadJson: workoutDays.payloadJson,
         })
-        .from(workouts)
+        .from(workoutDays)
         .where(and(
-          eq(workouts.userId, userId),
-          eq(workouts.completed, true)
+          eq(workoutDays.userId, userId),
+          eq(workoutDays.status, 'completed')
         ));
       
       // Calculate time-based stats
@@ -8947,7 +8946,13 @@ Respond with a complete workout in JSON format:
       const categoriesSet = new Set<string>();
       
       for (const w of workoutDetails) {
-        totalMinutes += w.duration || 0;
+        // Parse the payload JSON to get workout details
+        let payload: any = {};
+        try {
+          payload = w.payloadJson ? (typeof w.payloadJson === 'string' ? JSON.parse(w.payloadJson) : w.payloadJson) : {};
+        } catch {}
+        
+        totalMinutes += payload.duration || 0;
         
         if (w.completedAt) {
           const date = new Date(w.completedAt);
@@ -8964,10 +8969,11 @@ Respond with a complete workout in JSON format:
           if (hour >= 20) totalLateWorkouts++;
         }
         
-        // Track categories
-        if (w.targetMuscles) {
-          const muscles = w.targetMuscles.split(',').map(m => m.trim().toLowerCase());
-          muscles.forEach(m => categoriesSet.add(m));
+        // Track categories from target muscles
+        const targetMuscles = payload.targetMuscles || '';
+        if (targetMuscles) {
+          const muscles = targetMuscles.split(',').map((m: string) => m.trim().toLowerCase());
+          muscles.forEach((m: string) => categoriesSet.add(m));
         }
       }
       
@@ -9000,9 +9006,9 @@ Respond with a complete workout in JSON format:
       };
       
       res.json(stats);
-    } catch (error) {
-      console.error("Error fetching badge stats:", error);
-      res.status(500).json({ error: "Failed to fetch badge stats" });
+    } catch (error: any) {
+      console.error("Error fetching badge stats:", error?.message || error);
+      res.status(500).json({ error: "Failed to fetch badge stats", details: error?.message });
     }
   });
   

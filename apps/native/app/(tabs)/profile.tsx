@@ -444,7 +444,7 @@ export default function ProfileScreen() {
     }
   };
   
-  const handleRateApp = () => {
+  const handleRateApp = async () => {
     showAlert({
       type: 'info',
       title: 'Rate Thryvin ⭐',
@@ -453,13 +453,23 @@ export default function ProfileScreen() {
         { text: 'Maybe Later', style: 'cancel', onPress: hideAlert },
         { 
           text: 'Rate Now', 
-          onPress: () => {
+          onPress: async () => {
             hideAlert();
+            
+            // Track the rating for badge unlock
+            try {
+              const { useAwardsStore } = await import('../../src/stores/awards-store');
+              await useAwardsStore.getState().trackAppRated();
+              console.log('📊 [PROFILE] App rating tracked for badge');
+            } catch (trackError) {
+              console.log('⚠️ Could not track app rating:', trackError);
+            }
+            
             setTimeout(() => {
               showAlert({
                 type: 'success',
                 title: 'Thank You! 🙏',
-                message: 'App store rating will be available soon. We appreciate your support!',
+                message: "You've unlocked the 'Rate Thryvin' badge! App store rating will be available soon.",
                 buttons: [{ text: 'OK', onPress: hideAlert }]
               });
             }, 300);
@@ -475,6 +485,16 @@ export default function ProfileScreen() {
   
   const handleProfileSave = async () => {
     await loadSettings(); // Reload to get updated profile data
+    
+    // Track profile edit for badge unlock
+    try {
+      const { useAwardsStore } = await import('../../src/stores/awards-store');
+      await useAwardsStore.getState().trackProfileEdit();
+      console.log('📊 [PROFILE] Profile edit tracked for badge');
+    } catch (trackError) {
+      console.log('⚠️ Could not track profile edit:', trackError);
+    }
+    
     showAlert({
       type: 'success',
       title: 'Profile Updated!',

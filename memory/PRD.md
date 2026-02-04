@@ -182,12 +182,113 @@ User logs set in workout-hub → POST /api/workout/log-set (with thryvin_access_
                              → Returns correct exercises, sets, volume
 ```
 
+### Feb 3, 2026 - Session 2: Enhanced Features
+
+#### ✅ AI Coach Stats Query (NEW)
+- **Feature**: Coach can now answer questions about user's performance stats
+- **Example Queries**: "What's my heaviest bench press?", "How much can I squat?", "What's my max deadlift?"
+- **Implementation**:
+  - Added `detectStatsQuestion()` to identify stats-related queries
+  - Added `getUserExerciseStats()` to fetch from `performance_logs` table
+  - Stats context injected into AI prompt with EXACT numbers from database
+- **Files Changed**: `/app/server/ai-coach-service.ts`
+
+#### ✅ Rate Thryvin Badge (NEW)
+- **Feature**: Profile "Rate App" button now tracks badge progress
+- **Implementation**: 
+  - `handleRateApp()` now calls `useAwardsStore.getState().trackAppRated()`
+  - Badge persists to `user_badge_stats.has_rated_app` column
+  - Profile edit also tracked for badge
+- **Files Changed**: `/app/apps/native/app/(tabs)/profile.tsx`
+
+#### ✅ Stats Page Enhancements (NEW)
+- **Feature**: Charts now adapt to selected time period (Week/Month/Year)
+- **Changes**:
+  - Added `weeklyData` (4 weeks) and `monthlyData` (12 months) calculations
+  - Bar chart labels change based on period (Days → Weeks → Months)
+  - Added line chart trend view for Month/Year periods
+  - Added mini time period toggle to Muscle Group Distribution section
+- **Files Changed**: `/app/apps/native/app/(tabs)/stats.tsx`
+
+#### ✅ Login Page UI Improvements (NEW)
+- **Feature**: Improved sign-in modal design
+- **Changes**:
+  - Added welcoming icon and "Welcome Back!" header
+  - Removed border from modal header for cleaner look
+  - Added background to close button
+- **Files Changed**: `/app/apps/native/app/(auth)/login.tsx`
+
+### Testing Results (Feb 3, 2026 - Session 2)
+- AI Coach Stats Query: ✅ VERIFIED - Returns actual exercise stats from DB
+- Badge Tracking (Rate App): ✅ VERIFIED - Persists to database
+- Badge Stats: ✅ VERIFIED - Shows `hasRatedApp: true`
+- Stats Page Charts: ✅ TypeScript compiles, awaiting mobile testing
+
+---
+
+### Feb 3, 2026 - Critical Data Persistence Fixes (P0)
+
+#### ✅ CRITICAL FIX: Workout Persistence (P0 - VERIFIED)
+- **Issue**: Workouts were being regenerated on every login instead of loading from database
+- **Root Cause**: `fetchWeekWorkouts` in workout-store.ts was not properly checking DB first, and local cache was being invalidated on logout
+- **Fix**: 
+  - Updated `fetchWeekWorkouts` to fetch existing workouts from `/api/workouts/user-schedule` API first
+  - Only generate workouts for dates that don't exist in DB
+  - Save newly generated workouts back to DB via `/api/workouts/save-schedule`
+  - Track which dates have DB workouts using `dbWorkoutsByDate` map
+- **Files Changed**: `/app/apps/native/src/stores/workout-store.ts`
+
+#### ✅ CRITICAL FIX: Badge Persistence (P0 - VERIFIED)
+- **Issue**: Badge progress was being stored in AsyncStorage (local) and wiped on logout
+- **Root Cause**: `trackCoachMessage` and other tracking functions only saved to local storage
+- **Fix**:
+  - Updated all tracking functions to sync to backend via `/api/badges/track` API
+  - Fixed JWT authentication in badge endpoints (was using wrong secret)
+  - Badge stats now persist to `user_badge_stats` table in PostgreSQL
+- **Files Changed**: 
+  - `/app/apps/native/src/stores/awards-store.ts` - Added API calls to tracking functions
+  - `/app/server/routes.ts` - Fixed JWT authentication using `extractBearerToken` and `verifyAccessToken`
+
+#### ✅ CRITICAL FIX: Coach Message Badge Tracking (P0 - VERIFIED)
+- **Issue**: Sending messages to coach wasn't incrementing badge progress
+- **Root Cause**: `handleSend` in FloatingCoachButton wasn't calling the tracking function
+- **Fix**: Added `useAwardsStore.getState().trackCoachMessage()` call in `handleSend`
+- **Files Changed**: `/app/apps/native/src/components/FloatingCoachButton.tsx`
+
+#### ✅ Route Ordering Fix for /api/workouts/user-schedule
+- **Issue**: Route was returning "invalid input syntax for type integer: NaN"
+- **Root Cause**: `/api/workouts/:id` wildcard route was matching before `/api/workouts/user-schedule`
+- **Fix**: Added `next('route')` to skip wildcard handler when param is not numeric
+- **Files Changed**: `/app/server/routes.ts` (two locations)
+
+#### ✅ Badge Stats Endpoint Fix
+- **Issue**: `/api/badges/stats` was failing with "function sum() does not exist"
+- **Root Cause**: Wrong table being queried (`workouts` instead of `workoutDays`) and wrong column name (`reps` instead of `actualReps`)
+- **Fix**: Query `workoutDays` table and use correct column `performanceLogs.actualReps`
+- **Files Changed**: `/app/server/routes.ts`
+
+### Testing Results (Feb 3, 2026)
+- Backend Tests: **100% PASSED** (17/17 tests)
+- All data persistence endpoints verified working:
+  - `GET /api/workouts/user-schedule` - Returns workouts from database ✅
+  - `POST /api/badges/track` - Persists badge actions to database ✅
+  - `GET /api/badges/progress` - Returns badge progress from database ✅
+  - `GET /api/badges/stats` - Returns computed stats from database ✅
+
 ## Pending
 - [ ] Implement "Add to future workout" button for unperformed exercises (P1)
 - [ ] Implement real-time PR celebration animation (P1)
+- [ ] Stats Page UI redesign - needs distinct Monthly/Yearly views with graphs (P1)
+- [ ] "Rate Thryvin" badge - requires rating component in profile (P1)
 - [ ] Refactor FloatingCoachButton.tsx (tech debt - P2)
-- [ ] Verify and enhance badge system (P2)
+- [x] ~~Verify and enhance badge system~~ (COMPLETED - Feb 3, 2026)
 - [ ] Add equipment tags to exercises for better filtering (P2)
+- [ ] Video inconsistency investigation - may be client-side caching issue (P2)
+- [x] ~~Login page UI tweaks - logo placement, sign-in modal (P3)~~ (COMPLETED - Feb 3, 2026)
+- [x] ~~AI Coach Stats Query - answer questions about user's lifts~~ (COMPLETED - Feb 3, 2026)
+- [x] ~~Rate Thryvin badge - track when user rates app~~ (COMPLETED - Feb 3, 2026)
+- [x] ~~Stats Page Week/Month/Year chart views~~ (COMPLETED - Feb 3, 2026)
 
 ## Known Issues
 - **OpenAI API Quota**: The OpenAI API key may be rate-limited. If coach returns error messages, check billing/plan or use different API key.
+- **Video Inconsistency (Recurring)**: Some videos may still show incorrect exercises. Root cause may be client-side caching, needs investigation.

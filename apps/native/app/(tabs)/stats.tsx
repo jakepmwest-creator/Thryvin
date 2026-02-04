@@ -516,7 +516,7 @@ export default function StatsScreen() {
       }
     }
     
-    // Daily data for charts (last 7 days)
+    // Daily data for charts (last 7 days) - WEEK VIEW
     const dailyData: Array<{ label: string; workouts: number; minutes: number; calories: number }> = [];
     const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
     
@@ -539,7 +539,55 @@ export default function StatsScreen() {
         label: dayNames[dayDate.getDay()],
         workouts: dayWorkouts.length,
         minutes: dayMinutes,
-        calories: Math.round(dayMinutes * 6), // 6 cals per minute
+        calories: Math.round(dayMinutes * 6),
+      });
+    }
+    
+    // Weekly data for MONTH VIEW (last 4 weeks)
+    const weeklyData: Array<{ label: string; workouts: number; minutes: number; calories: number }> = [];
+    for (let w = 3; w >= 0; w--) {
+      const weekStart = new Date(now);
+      weekStart.setDate(now.getDate() - (w * 7) - now.getDay());
+      weekStart.setHours(0, 0, 0, 0);
+      
+      const weekEnd = new Date(weekStart);
+      weekEnd.setDate(weekStart.getDate() + 7);
+      
+      const weekWorkouts = uniqueCompleted.filter(workout => {
+        const wDate = new Date(workout.completedAt || workout.date);
+        return wDate >= weekStart && wDate < weekEnd;
+      });
+      
+      const weekMinutes = weekWorkouts.reduce((sum, workout) => sum + (workout.duration || 45), 0);
+      
+      weeklyData.push({
+        label: `W${4-w}`,
+        workouts: weekWorkouts.length,
+        minutes: weekMinutes,
+        calories: Math.round(weekMinutes * 6),
+      });
+    }
+    
+    // Monthly data for YEAR VIEW (last 12 months)
+    const monthlyData: Array<{ label: string; workouts: number; minutes: number; calories: number }> = [];
+    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    
+    for (let m = 11; m >= 0; m--) {
+      const monthStart = new Date(now.getFullYear(), now.getMonth() - m, 1);
+      const monthEnd = new Date(now.getFullYear(), now.getMonth() - m + 1, 1);
+      
+      const monthWorkouts = uniqueCompleted.filter(workout => {
+        const wDate = new Date(workout.completedAt || workout.date);
+        return wDate >= monthStart && wDate < monthEnd;
+      });
+      
+      const monthMinutes = monthWorkouts.reduce((sum, workout) => sum + (workout.duration || 45), 0);
+      
+      monthlyData.push({
+        label: monthNames[monthStart.getMonth()],
+        workouts: monthWorkouts.length,
+        minutes: monthMinutes,
+        calories: Math.round(monthMinutes * 6),
       });
     }
     
@@ -615,6 +663,8 @@ export default function StatsScreen() {
         totalMinutes: uniqueCompleted.reduce((sum, w) => sum + (w.duration || 45), 0),
       },
       dailyData,
+      weeklyData,
+      monthlyData,
       muscleData,
     };
   }, [completedWorkouts, weekWorkouts, user, timePeriod, getDateRange]);
@@ -635,13 +685,47 @@ export default function StatsScreen() {
 
   const stats = calculateLocalStats();
 
-  // Prepare chart data - DAILY VIEW
-  const barChartData = stats.dailyData.map(d => ({
+  // Prepare chart data based on time period
+  const getChartData = () => {
+    switch (timePeriod) {
+      case 'week':
+        return stats.dailyData;
+      case 'month':
+        return stats.weeklyData;
+      case 'year':
+        return stats.monthlyData;
+      default:
+        return stats.dailyData;
+    }
+  };
+  
+  const chartData = getChartData();
+  const barChartData = chartData.map(d => ({
     label: d.label,
+    value: activeChart === 'minutes' ? d.minutes : d.calories,
+  }));
+  
+  // Line chart data for trend view
+  const lineChartData = chartData.map(d => ({
     value: activeChart === 'minutes' ? d.minutes : d.calories,
   }));
 
   const maxBarValue = Math.max(...barChartData.map(d => d.value), 1);
+  const maxLineValue = Math.max(...lineChartData.map(d => d.value), 1);
+  
+  // Chart title based on time period
+  const getChartTitle = () => {
+    switch (timePeriod) {
+      case 'week':
+        return 'Daily Progress';
+      case 'month':
+        return 'Weekly Progress';
+      case 'year':
+        return 'Monthly Progress';
+      default:
+        return 'Daily Progress';
+    }
+  };
 
   if (isLoading) {
     return (
@@ -761,10 +845,10 @@ export default function StatsScreen() {
           </View>
         </View>
 
-        {/* Daily Progress Bar Chart */}
+        {/* Progress Chart - Adapts to time period */}
         <View style={styles.section}>
           <View style={styles.chartHeader}>
-            <Text style={styles.sectionTitle}>Daily Progress</Text>
+            <Text style={styles.sectionTitle}>{getChartTitle()}</Text>
             <View style={styles.chartToggle}>
               <TouchableOpacity 
                 style={[styles.toggleButton, activeChart === 'minutes' && styles.toggleButtonActive]}
@@ -783,7 +867,20 @@ export default function StatsScreen() {
           
           <View style={styles.chartCard}>
             {barChartData.some(d => d.value > 0) ? (
-              <SimpleBarChart data={barChartData} maxValue={maxBarValue + Math.ceil(maxBarValue * 0.2)} height={180} />
+              <>
+                {/* Bar chart for all views */}
+                <SimpleBarChart data={barChartData} maxValue={maxBarValue + Math.ceil(maxBarValue * 0.2)} height={180} />
+                
+                {/* Line chart trend for month and year views */}
+                {(timePeriod === 'month' || timePeriod === 'year') && lineChartData.some(d => d.value > 0) && (
+                  <View style={{ marginTop: 16 }}>
+                    <Text style={[styles.sectionTitle, { fontSize: 14, marginBottom: 8 }]}>
+                      {activeChart === 'minutes' ? 'Minutes Trend' : 'Calories Trend'}
+                    </Text>
+                    <SimpleLineChart data={lineChartData} maxValue={maxLineValue + Math.ceil(maxLineValue * 0.2)} height={120} />
+                  </View>
+                )}
+              </>
             ) : (
               <View style={styles.noDataContainer}>
                 <Ionicons name="bar-chart-outline" size={48} color={COLORS.mediumGray} />
@@ -795,7 +892,22 @@ export default function StatsScreen() {
 
         {/* Muscle Group Distribution (Pie Chart for Workout Nerds!) */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Muscle Group Distribution</Text>
+          <View style={styles.chartHeader}>
+            <Text style={styles.sectionTitle}>Muscle Group Distribution</Text>
+            <View style={styles.timePeriodMini}>
+              {(['week', 'month', 'year'] as const).map((period) => (
+                <TouchableOpacity
+                  key={period}
+                  style={[styles.miniPeriodButton, timePeriod === period && styles.miniPeriodButtonActive]}
+                  onPress={() => setTimePeriod(period)}
+                >
+                  <Text style={[styles.miniPeriodText, timePeriod === period && styles.miniPeriodTextActive]}>
+                    {period.charAt(0).toUpperCase() + period.slice(1, 2)}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </View>
           
           <View style={styles.chartCard}>
             {stats.muscleData.length > 0 ? (
@@ -902,6 +1014,11 @@ const styles = StyleSheet.create({
   toggleButtonActive: { backgroundColor: COLORS.accent },
   toggleText: { fontSize: 12, fontWeight: '500', color: COLORS.mediumGray },
   toggleTextActive: { color: COLORS.white },
+  timePeriodMini: { flexDirection: 'row', backgroundColor: COLORS.lightGray, borderRadius: 12, padding: 2 },
+  miniPeriodButton: { paddingHorizontal: 8, paddingVertical: 4, borderRadius: 10 },
+  miniPeriodButtonActive: { backgroundColor: COLORS.accent },
+  miniPeriodText: { fontSize: 10, fontWeight: '600', color: COLORS.mediumGray },
+  miniPeriodTextActive: { color: COLORS.white },
   chartCard: { backgroundColor: COLORS.white, borderRadius: 16, padding: 16, borderWidth: 1, borderColor: COLORS.lightGray, shadowColor: COLORS.shadow, shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.1, shadowRadius: 8, elevation: 3 },
   noDataContainer: { alignItems: 'center', justifyContent: 'center', height: 150, paddingHorizontal: 20 },
   noDataText: { marginTop: 12, fontSize: 14, color: COLORS.mediumGray, textAlign: 'center' },

@@ -18,6 +18,8 @@ import {
   type CoachPersonality,
   type ContextMode as CoachContextMode 
 } from './coach-memory';
+import { db } from './db';
+import { sql } from 'drizzle-orm';
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -214,6 +216,131 @@ function buildTendenciesPrompt(tendencies: any): string {
   return parts.join('\n');
 }
 
+// Exercise name patterns for common exercises
+const EXERCISE_NAME_PATTERNS: Record<string, string[]> = {
+  'bench press': ['bench', 'bench press', 'flat bench', 'barbell bench'],
+  'squat': ['squat', 'squats', 'back squat', 'barbell squat'],
+  'deadlift': ['deadlift', 'deadlifts', 'conventional deadlift'],
+  'overhead press': ['ohp', 'overhead press', 'shoulder press', 'military press'],
+  'barbell row': ['row', 'barbell row', 'bent over row', 'pendlay row'],
+  'pull-up': ['pull-up', 'pullup', 'pull ups', 'chin-up', 'chinup'],
+  'dumbbell press': ['dumbbell press', 'db press', 'incline press'],
+  'lat pulldown': ['lat pulldown', 'pulldown', 'lat pull'],
+  'leg press': ['leg press'],
+  'curl': ['curl', 'bicep curl', 'barbell curl', 'dumbbell curl'],
+};
+
+/**
+ * Detect if user is asking about their stats/performance and extract exercise name
+ */
+function detectStatsQuestion(message: string): { isStatsQuestion: boolean; exerciseName?: string; questionType?: string } {
+  const lowerMessage = message.toLowerCase();
+  
+  // Keywords that indicate a stats question
+  const statsKeywords = [
+    'heaviest', 'max', 'maximum', 'personal best', 'pb', 'pr', 'record',
+    'strongest', 'best', 'most', 'highest weight', 'how much', 'what weight',
+    'lift', 'lifted', 'done', 'hit', 'achieved', 'what\'s my'
+  ];
+  
+  const hasStatsKeyword = statsKeywords.some(keyword => lowerMessage.includes(keyword));
+  
+  if (!hasStatsKeyword) {
+    return { isStatsQuestion: false };
+  }
+  
+  // Try to find the exercise name
+  for (const [canonical, patterns] of Object.entries(EXERCISE_NAME_PATTERNS)) {
+    if (patterns.some(pattern => lowerMessage.includes(pattern))) {
+      return { 
+        isStatsQuestion: true, 
+        exerciseName: canonical,
+        questionType: lowerMessage.includes('heaviest') || lowerMessage.includes('max') ? 'max_weight' : 'general'
+      };
+    }
+  }
+  
+  // If we have stats keywords but couldn't find a specific exercise, return partial match
+  return { isStatsQuestion: true, questionType: 'general' };
+}
+
+/**
+ * Fetch user's exercise stats from the database
+ */
+async function getUserExerciseStats(userId: number, exerciseName?: string): Promise<string> {
+  try {
+    // Query performance_logs using drizzle's raw SQL
+    let query = sql`
+      SELECT exercise_name, actual_weight, actual_reps, logged_at 
+      FROM performance_logs 
+      WHERE user_id = ${userId} AND actual_weight > 0
+    `;
+    
+    if (exerciseName) {
+      query = sql`
+        SELECT exercise_name, actual_weight, actual_reps, logged_at 
+        FROM performance_logs 
+        WHERE user_id = ${userId} AND actual_weight > 0 
+        AND LOWER(exercise_name) LIKE ${`%${exerciseName}%`}
+        ORDER BY logged_at DESC LIMIT 500
+      `;
+    } else {
+      query = sql`
+        SELECT exercise_name, actual_weight, actual_reps, logged_at 
+        FROM performance_logs 
+        WHERE user_id = ${userId} AND actual_weight > 0
+        ORDER BY logged_at DESC LIMIT 500
+      `;
+    }
+    
+    const result = await db.execute(query);
+    const logs = result.rows as any[];
+    
+    if (logs.length === 0) {
+      return exerciseName 
+        ? `No performance data found for ${exerciseName}. The user may not have logged any sets for this exercise yet.`
+        : 'No exercise performance data found for this user yet.';
+    }
+    
+    // Group by exercise and calculate stats
+    const exerciseStats: Record<string, { maxWeight: number; totalSets: number; recentWeight?: number; recentReps?: number; maxDate?: string }> = {};
+    
+    for (const log of logs) {
+      const name = log.exercise_name;
+      if (!name) continue;
+      
+      if (!exerciseStats[name]) {
+        exerciseStats[name] = { maxWeight: 0, totalSets: 0 };
+      }
+      
+      exerciseStats[name].totalSets++;
+      if ((log.actual_weight || 0) > exerciseStats[name].maxWeight) {
+        exerciseStats[name].maxWeight = log.actual_weight || 0;
+        exerciseStats[name].maxDate = log.logged_at ? new Date(log.logged_at).toLocaleDateString() : undefined;
+      }
+      
+      // Track most recent entry
+      if (!exerciseStats[name].recentWeight) {
+        exerciseStats[name].recentWeight = log.actual_weight || 0;
+        exerciseStats[name].recentReps = log.actual_reps || 0;
+      }
+    }
+    
+    // Format stats for the AI
+    const statsList: string[] = [];
+    statsList.push('\n=== USER EXERCISE STATS (FROM DATABASE) ===');
+    
+    for (const [name, stats] of Object.entries(exerciseStats)) {
+      statsList.push(`• ${name}: MAX WEIGHT = ${stats.maxWeight}kg${stats.maxDate ? ` (on ${stats.maxDate})` : ''}, Total sets logged = ${stats.totalSets}, Most recent = ${stats.recentWeight}kg x ${stats.recentReps} reps`);
+    }
+    
+    return statsList.join('\n');
+  } catch (error) {
+    console.error('Error fetching exercise stats:', error);
+    return 'Could not fetch exercise stats at this time.';
+  }
+}
+
 /**
  * Get coach response with full user context
  * This is the ONLY function that should be called for coach interactions
@@ -242,7 +369,17 @@ export async function getUnifiedCoachResponse(request: CoachChatRequest): Promis
       console.log(`💚 [COACH] Burnout keywords detected - allowing message through`);
     }
     
-    if (!isFitnessRelated && !isBurnoutRelated && lowerMessage.length > 15) {
+    // NEW: Check if user is asking about their stats (heaviest bench, max squat, etc.)
+    const statsQuestion = detectStatsQuestion(message);
+    let exerciseStatsContext = '';
+    
+    if (statsQuestion.isStatsQuestion && userId) {
+      console.log(`📊 [COACH] Stats question detected! Exercise: ${statsQuestion.exerciseName || 'general'}`);
+      exerciseStatsContext = await getUserExerciseStats(userId, statsQuestion.exerciseName);
+      console.log(`📊 [COACH] Fetched exercise stats for context`);
+    }
+    
+    if (!isFitnessRelated && !isBurnoutRelated && !statsQuestion.isStatsQuestion && lowerMessage.length > 15) {
       // Smart-witty response that brings it back to fitness
       const wittyResponses = [
         `Ha! That's an interesting question, but I'm more of a "biceps curls" expert than a "${message.split(' ').slice(0, 3).join(' ')}..." expert! 😄\n\nI'm your fitness coach, so let me stick to what I know best:\n• Workout tips & motivation\n• Exercise form & technique\n• Your stats & progress\n• Recovery advice\n\nWhat fitness question can I help you with?`,
@@ -339,6 +476,11 @@ export async function getUnifiedCoachResponse(request: CoachChatRequest): Promis
     // Phase 11: Add tendencies-aware coaching directives
     if (userTendencies) {
       systemPrompt += buildTendenciesPrompt(userTendencies);
+    }
+    
+    // NEW: Add exercise stats context if user is asking about their performance
+    if (exerciseStatsContext) {
+      systemPrompt += `\n\n${exerciseStatsContext}\n\nIMPORTANT: The user is asking about their exercise stats. Use the EXACT numbers from the stats above in your response. Be specific and cite the actual weights/reps from the data.`;
     }
     
     // Add strict fitness-only instruction
