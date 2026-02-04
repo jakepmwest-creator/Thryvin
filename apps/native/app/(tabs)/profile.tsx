@@ -444,39 +444,36 @@ export default function ProfileScreen() {
     }
   };
   
-  const handleRateApp = async () => {
-    showAlert({
-      type: 'info',
-      title: 'Rate Thryvin ⭐',
-      message: 'Loving the app? Your review helps us grow and improve!',
-      buttons: [
-        { text: 'Maybe Later', style: 'cancel', onPress: hideAlert },
-        { 
-          text: 'Rate Now', 
-          onPress: async () => {
-            hideAlert();
-            
-            // Track the rating for badge unlock
-            try {
-              const { useAwardsStore } = await import('../../src/stores/awards-store');
-              await useAwardsStore.getState().trackAppRated();
-              console.log('📊 [PROFILE] App rating tracked for badge');
-            } catch (trackError) {
-              console.log('⚠️ Could not track app rating:', trackError);
-            }
-            
-            setTimeout(() => {
-              showAlert({
-                type: 'success',
-                title: 'Thank You! 🙏',
-                message: "You've unlocked the 'Rate Thryvin' badge! App store rating will be available soon.",
-                buttons: [{ text: 'OK', onPress: hideAlert }]
-              });
-            }, 300);
-          }
-        },
-      ]
-    });
+  const [showRatingModal, setShowRatingModal] = useState(false);
+  const [selectedRating, setSelectedRating] = useState(0);
+  
+  const handleRateApp = () => {
+    setSelectedRating(0);
+    setShowRatingModal(true);
+  };
+  
+  const submitRating = async (rating: number) => {
+    setShowRatingModal(false);
+    
+    // Track the rating for badge unlock
+    try {
+      const { useAwardsStore } = await import('../../src/stores/awards-store');
+      await useAwardsStore.getState().trackAppRated();
+      console.log('📊 [PROFILE] App rated with', rating, 'stars - badge tracked');
+    } catch (trackError) {
+      console.log('⚠️ Could not track app rating:', trackError);
+    }
+    
+    setTimeout(() => {
+      showAlert({
+        type: 'success',
+        title: rating >= 4 ? 'Thank You! 🎉' : 'Thanks for Your Feedback! 🙏',
+        message: rating >= 4 
+          ? `You rated us ${rating} stars! You've unlocked the 'Rate Thryvin' badge!`
+          : `You rated us ${rating} stars. We'll work hard to improve! Badge unlocked!`,
+        buttons: [{ text: 'OK', onPress: hideAlert }]
+      });
+    }, 300);
   };
   
   const handleContactSupport = () => {
