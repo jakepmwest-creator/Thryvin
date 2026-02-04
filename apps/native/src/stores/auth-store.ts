@@ -238,6 +238,11 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         await workoutStore.fetchCompletedWorkouts();
         await workoutStore.fetchStats();
         console.log('✅ User workout data loaded from backend');
+        
+        // Also load user badges from backend
+        const awardsStore = useAwardsStore.getState();
+        await awardsStore.loadUserBadges();
+        console.log('✅ User badges loaded from backend');
       } catch (loadError) {
         console.warn('⚠️ Could not load workout data after login:', loadError);
         // Non-critical - user can still use the app, data will load on next fetch
