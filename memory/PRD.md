@@ -278,8 +278,7 @@ User logs set in workout-hub → POST /api/workout/log-set (with thryvin_access_
 ## Pending
 - [ ] Implement "Add to future workout" button for unperformed exercises (P1)
 - [ ] Implement real-time PR celebration animation (P1)
-- [ ] Stats Page UI redesign - needs distinct Monthly/Yearly views with graphs (P1)
-- [ ] "Rate Thryvin" badge - requires rating component in profile (P1)
+- [ ] Stats Page UI refinements - verify monthly/yearly goal calculations (P2)
 - [ ] Refactor FloatingCoachButton.tsx (tech debt - P2)
 - [x] ~~Verify and enhance badge system~~ (COMPLETED - Feb 3, 2026)
 - [ ] Add equipment tags to exercises for better filtering (P2)
@@ -288,6 +287,41 @@ User logs set in workout-hub → POST /api/workout/log-set (with thryvin_access_
 - [x] ~~AI Coach Stats Query - answer questions about user's lifts~~ (COMPLETED - Feb 3, 2026)
 - [x] ~~Rate Thryvin badge - track when user rates app~~ (COMPLETED - Feb 3, 2026)
 - [x] ~~Stats Page Week/Month/Year chart views~~ (COMPLETED - Feb 3, 2026)
+- [x] ~~P0 Empty Workouts in UI~~ (FIXED - Feb 4, 2026)
+- [x] ~~P0 Data Resets on Sign-Out/Sign-In~~ (FIXED - Feb 4, 2026)
+
+---
+
+### Feb 4, 2026 - P0 Critical Bug Fixes
+
+#### ✅ CRITICAL FIX: Empty Workouts in UI (P0 - VERIFIED)
+- **Issue**: Workouts displayed empty in WorkoutDetailsModal despite exercise data existing in database
+- **Root Cause**: Frontend components were only checking `workout.exercises`, not `workout.payloadJson.exercises` (database-loaded workouts have different structure)
+- **Fix**: Added `getWorkoutExercises()` helper function that checks multiple data paths:
+  1. `workout.exercises` (local/newly generated workouts)
+  2. `workout.payloadJson.exercises` (database-loaded workouts)
+  3. `workout.exerciseList` (alias for compatibility)
+- **Files Changed**: 
+  - `/app/apps/native/src/components/WorkoutDetailsModal.tsx` - Added helper at lines 185-200
+  - `/app/apps/native/app/workout-hub.tsx` - Added same helper at lines 236-253
+
+#### ✅ CRITICAL FIX: Data Resets on Sign-Out/Sign-In (P0 - VERIFIED)
+- **Issue**: User data appeared to reset/disappear after signing out and back in
+- **Root Cause**: The `login()` function in auth-store.ts did NOT re-fetch data from backend after login - only set user state
+- **Fix**: Added data re-fetching after successful login:
+  1. `workoutStore.fetchWeekWorkouts()` - Load weekly workouts from database
+  2. `workoutStore.fetchCompletedWorkouts()` - Load completed workout history
+  3. `workoutStore.fetchStats()` - Load user statistics
+  4. `awardsStore.loadUserBadges()` - Load badge progress from database
+- **Files Changed**: `/app/apps/native/src/stores/auth-store.ts`
+  - `login()` function - lines 230-250
+  - `setUserDirectly()` (QA login) - lines 170-185
+
+### Testing Results (Feb 4, 2026)
+- All 10 tests PASSED (test_frontend_data_loading.py)
+- Backend API verified returning workouts with exercises correctly
+- Data persistence verified - same workout count after re-login
+- Test report: `/app/test_reports/iteration_5.json`
 
 ## Known Issues
 - **OpenAI API Quota**: The OpenAI API key may be rate-limited. If coach returns error messages, check billing/plan or use different API key.
