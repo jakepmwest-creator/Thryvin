@@ -23,7 +23,7 @@ import * as SecureStore from 'expo-secure-store';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
-const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL || 'https://workout-data-cleanup.preview.emergentagent.com';
+const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL || 'https://fitness-tracker-792.preview.emergentagent.com';
 
 const COLORS = {
   accent: '#A22BF6',

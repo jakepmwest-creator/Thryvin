@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // API Base URL
-const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL || 'https://workoutsaver.preview.emergentagent.com';
+const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL || 'https://fitness-tracker-792.preview.emergentagent.com';
 
 // ============ ISLAND TIER SYSTEM ============
 export interface Island {

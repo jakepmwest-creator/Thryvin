@@ -28,7 +28,7 @@ import { useRouter } from 'expo-router';
 import { COLORS } from '../constants/colors';
 import * as api from '../services/api-client';
 
-const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL || 'https://workout-data-cleanup.preview.emergentagent.com';
+const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL || 'https://fitness-tracker-792.preview.emergentagent.com';
 
 interface HealthResponse {
   ok: boolean;
