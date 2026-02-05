@@ -48,6 +48,7 @@ interface NumberScrollPickerProps {
   max?: number;
   step?: number;
   decimals?: boolean;
+  testId?: string;
 }
 
 export const NumberScrollPicker = ({
@@ -59,6 +60,7 @@ export const NumberScrollPicker = ({
   max = 500,
   step = 1,
   decimals = false,
+  testId,
 }: NumberScrollPickerProps) => {
   const [showPicker, setShowPicker] = useState(false);
   const [tempValue, setTempValue] = useState(value);
@@ -117,6 +119,7 @@ export const NumberScrollPicker = ({
           setShowPicker(true);
         }}
         activeOpacity={0.8}
+        data-testid={testId ? `${testId}-trigger` : 'number-scroll-picker-trigger'}
       >
         <TextInput
           style={styles.input}
@@ -125,6 +128,7 @@ export const NumberScrollPicker = ({
           keyboardType="numeric"
           placeholder="0"
           placeholderTextColor={COLORS.textMuted}
+          data-testid={testId ? `${testId}-text-input` : 'number-scroll-picker-text-input'}
         />
         <View style={styles.scrollIcon}>
           <Ionicons name="chevron-up" size={12} color={COLORS.textMuted} />
@@ -143,11 +147,17 @@ export const NumberScrollPicker = ({
           <View style={styles.pickerContainer}>
             {/* Header */}
             <View style={styles.pickerHeader}>
-              <TouchableOpacity onPress={() => setShowPicker(false)}>
+              <TouchableOpacity
+                onPress={() => setShowPicker(false)}
+                data-testid={testId ? `${testId}-cancel-button` : 'number-scroll-picker-cancel-button'}
+              >
                 <Text style={styles.cancelText}>Cancel</Text>
               </TouchableOpacity>
               <Text style={styles.pickerTitle}>{label}</Text>
-              <TouchableOpacity onPress={handleConfirm}>
+              <TouchableOpacity
+                onPress={handleConfirm}
+                data-testid={testId ? `${testId}-done-button` : 'number-scroll-picker-done-button'}
+              >
                 <LinearGradient
                   colors={[COLORS.gradientStart, COLORS.gradientEnd]}
                   style={styles.confirmButton}
@@ -210,6 +220,9 @@ export const NumberScrollPicker = ({
                           Haptics.selectionAsync();
                         }
                       }}
+                      data-testid={
+                        testId ? `${testId}-option-${num}` : `number-scroll-picker-option-${num}`
+                      }
                     >
                       <Text style={[
                         styles.pickerItemText,
@@ -243,6 +256,9 @@ export const NumberScrollPicker = ({
                       Haptics.selectionAsync();
                     }
                   }}
+                  data-testid={
+                    testId ? `${testId}-quick-${preset}` : `number-scroll-picker-quick-${preset}`
+                  }
                 >
                   <Text style={[
                     styles.quickButtonText,
