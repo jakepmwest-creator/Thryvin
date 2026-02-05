@@ -6925,8 +6925,6 @@ Respond with a complete workout in JSON format:
       const user = req.user!;
       
       console.log('📥 [API] Week generation request for user:', user.id);
-      console.log('📥 [API] User object keys:', Object.keys(user));
-      console.log('📥 [API] User preferredTrainingDays raw:', user.preferredTrainingDays);
       
       // CRITICAL FIX: Build complete user profile from database user data
       // This ensures preferredTrainingDays and other settings are used
