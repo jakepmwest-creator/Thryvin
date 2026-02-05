@@ -221,7 +221,7 @@ export default function WorkoutSummaryScreen() {
                   
                   <View style={styles.exerciseMax}>
                     <Text style={styles.maxLabel}>Max</Text>
-                    <Text style={styles.maxValue}>{exercise.todayMax}kg</Text>
+                    <Text style={styles.maxValue}>{exercise.todayMax}kg × {exercise.repsAtMax || 0}</Text>
                     {exercise.previousMax > 0 && (
                       <Text style={[
                         styles.comparison,
