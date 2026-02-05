@@ -201,6 +201,12 @@ export default function ProfileScreen() {
       if (savedReminders !== null) setWorkoutReminders(savedReminders === 'true');
       if (savedAutoLogin !== null) setAutoLoginEnabled(savedAutoLogin !== 'false'); // Default true
       
+      // Load weight and height
+      const savedWeight = await AsyncStorage.getItem(`user_weight_${userId}`);
+      const savedHeight = await AsyncStorage.getItem(`user_height_${userId}`);
+      if (savedWeight) setUserWeight(savedWeight);
+      if (savedHeight) setUserHeight(savedHeight);
+      
       // Prefer user-specific data, fall back to global only if it belongs to this user
       if (savedImage) {
         setProfileImage(savedImage);
