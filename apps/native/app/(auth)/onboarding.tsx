@@ -688,6 +688,11 @@ export default function OnboardingScreen() {
             value={formData[field.key]}
             onChangeText={(value) => setFormData({ ...formData, [field.key]: value })}
             keyboardType="numeric"
+            returnKeyType="done"
+            blurOnSubmit={true}
+            onSubmitEditing={() => Keyboard.dismiss()}
+            inputAccessoryViewID={accessoryId}
+            data-testid={`onboarding-measurement-${field.key}-input`}
           />
           <Text style={styles.unitLabel}>{unit}</Text>
         </View>
