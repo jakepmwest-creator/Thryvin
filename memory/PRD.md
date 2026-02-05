@@ -2,6 +2,30 @@
 
 ## What's Been Implemented
 
+### Feb 5, 2026 - Profile Crash + Onboarding Keyboard + Rolling Regeneration + Scroll Picker
+
+#### ✅ Profile Crash Fix (TextInput runtime error)
+- Added missing `TextInput` import and ensured Body Stats inputs are wired correctly
+- Added test IDs for Body Stats inputs and save action
+- **Files**: `/app/apps/native/app/(tabs)/profile.tsx`
+
+#### ✅ Onboarding Keyboard “Done” UX (iOS + Android)
+- Added iOS InputAccessory “Done” bar to dismiss keyboard
+- Added input accessory wiring + return key handling to onboarding inputs
+- Added test IDs for onboarding inputs and navigation buttons
+- **Files**: `/app/apps/native/app/(auth)/onboarding.tsx`
+
+#### ✅ Weight/Reps Number Scroll Picker Integration (P1)
+- Replaced weight/reps TextInputs with `NumberScrollPicker`
+- Added light-theme input variant for logging card
+- **Files**: `/app/apps/native/app/workout-hub.tsx`, `/app/apps/native/src/components/NumberScrollPicker.tsx`
+
+#### ✅ Rolling Regeneration (P2)
+- Added rolling regeneration check + modal trigger on Home
+- Created backend regeneration endpoint and 2-week re-generation flow
+- Added test IDs throughout regeneration modal
+- **Files**: `/app/apps/native/app/(tabs)/index.tsx`, `/app/apps/native/src/components/RollingRegenerationModal.tsx`, `/app/server/routes.ts`, `/app/server/week-generator.ts`
+
 ### Jan 28, 2025 - Coach Button Refactor & Onboarding Simplification
 
 #### ✅ Coach Button Made READ-ONLY
