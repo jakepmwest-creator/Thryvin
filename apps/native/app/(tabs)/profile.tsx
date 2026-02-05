@@ -888,7 +888,7 @@ export default function ProfileScreen() {
               </View>
             </View>
             
-            {userWeight && userHeight && (
+            {userWeight && userHeight && parseFloat(userHeight) > 0 && (
               <View style={styles.bmiContainer}>
                 <Text style={styles.bmiLabel}>BMI</Text>
                 <Text style={styles.bmiValue}>
