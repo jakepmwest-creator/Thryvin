@@ -10,6 +10,7 @@ import {
   Linking,
   Platform,
   Modal,
+  TextInput,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -867,6 +868,7 @@ export default function ProfileScreen() {
                     keyboardType="numeric"
                     placeholder="70"
                     placeholderTextColor={COLORS.mediumGray}
+                    data-testid="profile-body-stats-weight-input"
                   />
                   <Text style={styles.bodyStatsUnit}>kg</Text>
                 </View>
@@ -882,6 +884,7 @@ export default function ProfileScreen() {
                     keyboardType="numeric"
                     placeholder="175"
                     placeholderTextColor={COLORS.mediumGray}
+                    data-testid="profile-body-stats-height-input"
                   />
                   <Text style={styles.bodyStatsUnit}>cm</Text>
                 </View>
@@ -913,6 +916,7 @@ export default function ProfileScreen() {
                   buttons: [{ text: 'OK', onPress: hideAlert }]
                 });
               }}
+              data-testid="profile-body-stats-save-button"
             >
               <LinearGradient
                 colors={[COLORS.accent, COLORS.accentSecondary]}
