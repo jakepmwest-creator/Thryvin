@@ -28,6 +28,7 @@ import { EditWorkoutModal } from '../src/components/EditWorkoutModal';
 import { FloatingCoachButton } from '../src/components/FloatingCoachButton';
 import { WorkoutActionBar } from '../src/components/WorkoutActionBar';
 import { CoachNudgeCard } from '../src/components/CoachNudgeCard';
+import { NumberScrollPicker } from '../src/components/NumberScrollPicker';
 import { useCoachNudges, useLearningEvents } from '../src/hooks/useCoachNudges';
 import { useAuthStore } from '../src/stores/auth-store';
 import { useCoachStore } from '../src/stores/coach-store';
@@ -1211,6 +1212,7 @@ export default function WorkoutHubScreen() {
                                         <TouchableOpacity
                                           style={styles.unitButtonWrapper}
                                           onPress={() => setWeightUnit('lbs')}
+                                          data-testid="workout-weight-unit-lbs-button"
                                         >
                                           {weightUnit === 'lbs' ? (
                                             <LinearGradient
@@ -1230,6 +1232,7 @@ export default function WorkoutHubScreen() {
                                         <TouchableOpacity
                                           style={styles.unitButtonWrapper}
                                           onPress={() => setWeightUnit('kg')}
+                                          data-testid="workout-weight-unit-kg-button"
                                         >
                                           {weightUnit === 'kg' ? (
                                             <LinearGradient
@@ -1248,26 +1251,30 @@ export default function WorkoutHubScreen() {
                                         </TouchableOpacity>
                                       </View>
                                     </View>
-                                    <TextInput
-                                      style={styles.input}
-                                      placeholder="0"
-                                      placeholderTextColor={COLORS.mediumGray}
-                                      keyboardType="numeric"
+                                    <NumberScrollPicker
                                       value={weight}
-                                      onChangeText={setWeight}
+                                      onValueChange={setWeight}
+                                      label="Weight"
+                                      unit={weightUnit}
+                                      min={0}
+                                      max={weightUnit === 'lbs' ? 500 : 250}
+                                      step={weightUnit === 'lbs' ? 2.5 : 1}
+                                      decimals={weightUnit === 'lbs'}
+                                      testId="workout-weight-picker"
                                     />
                                   </View>
                                   <View style={styles.inputWrapper}>
                                     <View style={styles.repsLabelRow}>
                                       <Text style={styles.inputLabel}>Reps</Text>
                                     </View>
-                                    <TextInput
-                                      style={styles.input}
-                                      placeholder="0"
-                                      placeholderTextColor={COLORS.mediumGray}
-                                      keyboardType="numeric"
+                                    <NumberScrollPicker
                                       value={reps}
-                                      onChangeText={setReps}
+                                      onValueChange={setReps}
+                                      label="Reps"
+                                      min={0}
+                                      max={50}
+                                      step={1}
+                                      testId="workout-reps-picker"
                                     />
                                   </View>
                                 </View>
@@ -1303,6 +1310,7 @@ export default function WorkoutHubScreen() {
                               <TouchableOpacity
                                 style={styles.completeButton}
                                 onPress={() => handleCompleteSet(index, exercise)}
+                                data-testid="workout-complete-set-button"
                               >
                                 <LinearGradient
                                   colors={[COLORS.gradientStart, COLORS.gradientEnd]}
