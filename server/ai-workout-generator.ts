@@ -83,7 +83,7 @@ interface UserProfile {
   equipment?: string[];
   injuries?: string[];
   userId?: number; // For personalized learning
-  preferredTrainingDays?: number[]; // 0-6 (Sun-Sat)
+  preferredTrainingDays?: number[] | string[]; // 0-6 (Sun-Sat) or ['mon', 'tue', etc.]
   // Advanced questionnaire data
   advancedQuestionnaire?: {
     targets?: string;
@@ -99,6 +99,25 @@ interface UserProfile {
     preferredSplit?: string;
     preferredSplitOther?: string;
   };
+}
+
+// Convert day names (mon, tue, etc.) to day indices (0-6)
+function convertDayNamesToIndices(days: (string | number)[]): number[] {
+  const dayNameToIndex: Record<string, number> = {
+    'sun': 0, 'sunday': 0,
+    'mon': 1, 'monday': 1,
+    'tue': 2, 'tuesday': 2,
+    'wed': 3, 'wednesday': 3,
+    'thu': 4, 'thursday': 4,
+    'fri': 5, 'friday': 5,
+    'sat': 6, 'saturday': 6,
+  };
+  
+  return days.map(day => {
+    if (typeof day === 'number') return day;
+    const normalized = String(day).toLowerCase().trim();
+    return dayNameToIndex[normalized] ?? parseInt(day, 10);
+  }).filter(d => !isNaN(d) && d >= 0 && d <= 6);
 }
 
 interface GeneratedWorkout {
