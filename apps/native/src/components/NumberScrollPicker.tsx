@@ -290,11 +290,19 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     height: 50,
   },
+  inputContainerLight: {
+    backgroundColor: '#F3F4F6',
+    borderWidth: 2,
+    borderColor: '#E5E7EB',
+  },
   input: {
     flex: 1,
     color: COLORS.white,
     fontSize: 18,
     fontWeight: '600',
+  },
+  inputTextLight: {
+    color: '#111827',
   },
   scrollIcon: {
     alignItems: 'center',
