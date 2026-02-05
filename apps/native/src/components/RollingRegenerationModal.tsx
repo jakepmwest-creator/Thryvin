@@ -191,6 +191,7 @@ export const RollingRegenerationModal = ({
                   ...prev, 
                   intensityPreference: option as 'easier' | 'same' | 'harder' 
                 }))}
+                data-testid={`rolling-regeneration-intensity-${option}`}
               >
                 <Ionicons 
                   name={
