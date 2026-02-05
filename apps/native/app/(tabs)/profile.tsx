@@ -840,6 +840,93 @@ export default function ProfileScreen() {
         </View>
       </Modal>
       
+      {/* Body Stats Modal */}
+      <Modal
+        visible={showBodyStatsModal}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setShowBodyStatsModal(false)}
+      >
+        <View style={styles.bodyStatsModalOverlay}>
+          <View style={styles.bodyStatsModalContent}>
+            <View style={styles.bodyStatsModalHeader}>
+              <Text style={styles.bodyStatsModalTitle}>Body Stats</Text>
+              <TouchableOpacity onPress={() => setShowBodyStatsModal(false)}>
+                <Ionicons name="close" size={24} color={COLORS.text} />
+              </TouchableOpacity>
+            </View>
+            
+            <View style={styles.bodyStatsInputRow}>
+              <View style={styles.bodyStatsInputGroup}>
+                <Text style={styles.bodyStatsLabel}>Weight</Text>
+                <View style={styles.bodyStatsInputWrapper}>
+                  <TextInput
+                    style={styles.bodyStatsInput}
+                    value={userWeight}
+                    onChangeText={setUserWeight}
+                    keyboardType="numeric"
+                    placeholder="70"
+                    placeholderTextColor={COLORS.mediumGray}
+                  />
+                  <Text style={styles.bodyStatsUnit}>kg</Text>
+                </View>
+              </View>
+              
+              <View style={styles.bodyStatsInputGroup}>
+                <Text style={styles.bodyStatsLabel}>Height</Text>
+                <View style={styles.bodyStatsInputWrapper}>
+                  <TextInput
+                    style={styles.bodyStatsInput}
+                    value={userHeight}
+                    onChangeText={setUserHeight}
+                    keyboardType="numeric"
+                    placeholder="175"
+                    placeholderTextColor={COLORS.mediumGray}
+                  />
+                  <Text style={styles.bodyStatsUnit}>cm</Text>
+                </View>
+              </View>
+            </View>
+            
+            {userWeight && userHeight && (
+              <View style={styles.bmiContainer}>
+                <Text style={styles.bmiLabel}>BMI</Text>
+                <Text style={styles.bmiValue}>
+                  {(parseFloat(userWeight) / Math.pow(parseFloat(userHeight) / 100, 2)).toFixed(1)}
+                </Text>
+              </View>
+            )}
+            
+            <TouchableOpacity 
+              style={styles.bodyStatsSaveButton}
+              onPress={async () => {
+                const userId = user?.id;
+                if (userId) {
+                  await AsyncStorage.setItem(`user_weight_${userId}`, userWeight);
+                  await AsyncStorage.setItem(`user_height_${userId}`, userHeight);
+                }
+                setShowBodyStatsModal(false);
+                showAlert({
+                  type: 'success',
+                  title: 'Saved!',
+                  message: 'Your body stats have been updated.',
+                  buttons: [{ text: 'OK', onPress: hideAlert }]
+                });
+              }}
+            >
+              <LinearGradient
+                colors={[COLORS.accent, COLORS.accentSecondary]}
+                style={styles.bodyStatsSaveGradient}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0 }}
+              >
+                <Text style={styles.bodyStatsSaveText}>Save</Text>
+              </LinearGradient>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+      
       <BiometricsModal
         visible={showBiometrics}
         onClose={() => setShowBiometrics(false)}
