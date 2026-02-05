@@ -151,6 +151,7 @@ export const RollingRegenerationModal = ({
               multiline
               value={feedback.wentWell}
               onChangeText={(text) => setFeedback(prev => ({ ...prev, wentWell: text }))}
+              data-testid="rolling-regeneration-went-well-input"
             />
           </View>
         );
@@ -168,6 +169,7 @@ export const RollingRegenerationModal = ({
               multiline
               value={feedback.didntGoWell}
               onChangeText={(text) => setFeedback(prev => ({ ...prev, didntGoWell: text }))}
+              data-testid="rolling-regeneration-didnt-go-well-input"
             />
           </View>
         );
@@ -224,6 +226,7 @@ export const RollingRegenerationModal = ({
               multiline
               value={feedback.improvements}
               onChangeText={(text) => setFeedback(prev => ({ ...prev, improvements: text }))}
+              data-testid="rolling-regeneration-improvements-input"
             />
           </View>
         );
