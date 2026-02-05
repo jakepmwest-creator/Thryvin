@@ -377,6 +377,8 @@ export default function OnboardingScreen() {
 
   const currentStepData = ONBOARDING_STEPS[currentStep];
   const progress = ((currentStep + 1) / ONBOARDING_STEPS.length) * 100;
+  const inputAccessoryViewID = 'onboarding-input-accessory';
+  const accessoryId = Platform.OS === 'ios' ? inputAccessoryViewID : undefined;
 
   const handleNext = () => {
     // Validate current step
