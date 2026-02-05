@@ -220,6 +220,77 @@ export default function HomeScreen() {
     }
   }, [user?.id, weekWorkouts.length, completedWorkouts.length, hasCheckedQuestionnaire]);
 
+  const checkRollingRegeneration = useCallback(async () => {
+    if (hasCheckedRollingRegeneration) return;
+
+    try {
+      const userId = user?.id;
+      if (!userId || !user?.trialEndsAt) {
+        setHasCheckedRollingRegeneration(true);
+        return;
+      }
+
+      const completedKey = `rolling_regeneration_completed_${userId}`;
+      const lastShownKey = `rolling_regeneration_last_shown_${userId}`;
+      const completed = await AsyncStorage.getItem(completedKey);
+      const lastShown = await AsyncStorage.getItem(lastShownKey);
+
+      if (completed || lastShown) {
+        setHasCheckedRollingRegeneration(true);
+        return;
+      }
+
+      const trialEnd = new Date(user.trialEndsAt);
+      const joinDate = new Date(trialEnd);
+      joinDate.setDate(joinDate.getDate() - 7);
+
+      const daysSinceJoin = Math.floor((Date.now() - joinDate.getTime()) / (1000 * 60 * 60 * 24));
+      if (daysSinceJoin >= 14) {
+        const weekNumber = Math.max(2, Math.floor(daysSinceJoin / 7) + 1);
+        setRollingWeek(weekNumber);
+        setShowRollingRegeneration(true);
+        await AsyncStorage.setItem(lastShownKey, new Date().toISOString());
+      }
+    } catch (error) {
+      console.warn('⚠️ Rolling regeneration check failed:', error);
+    } finally {
+      setHasCheckedRollingRegeneration(true);
+    }
+  }, [user?.id, user?.trialEndsAt, hasCheckedRollingRegeneration]);
+
+  const handleRollingRegenerationSubmit = async (feedback: {
+    availableDays: string[];
+    wentWell: string;
+    didntGoWell: string;
+    improvements: string;
+    intensityPreference: 'same' | 'harder' | 'easier';
+  }) => {
+    const userId = user?.id;
+    if (!userId || rollingRegenerationSubmitting) return;
+
+    setRollingRegenerationSubmitting(true);
+
+    const response = await post('/api/workouts/rolling-regeneration', { feedback });
+    if (!response.ok) {
+      Alert.alert('Regeneration Failed', response.error || 'Unable to regenerate your plan. Please try again.');
+      setRollingRegenerationSubmitting(false);
+      return;
+    }
+
+    await AsyncStorage.setItem(`rolling_regeneration_completed_${userId}`, new Date().toISOString());
+    setShowRollingRegeneration(false);
+    setRollingRegenerationSubmitting(false);
+
+    await Promise.all([
+      fetchWeekWorkouts(),
+      fetchTodayWorkout(),
+      fetchStats(),
+      fetchCompletedWorkouts(),
+    ]);
+
+    Alert.alert('Plan Updated', 'Your next block has been refreshed based on your feedback.');
+  };
+
   // Check for weekly schedule check (for "It depends" users)
   const checkWeeklySchedule = useCallback(async () => {
     try {
