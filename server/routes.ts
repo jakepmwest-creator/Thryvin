@@ -8721,8 +8721,8 @@ Respond with a complete workout in JSON format:
         } else if (isFlex) {
           counts['Flexibility']++;
         } else if (nameHasEquipment || fieldHasEquipment) {
-          // Has equipment = Strength
-          counts['Strength']++;
+          // Has equipment = Weights
+          counts['Weights']++;
         } else if (isBodyweight || (!nameHasEquipment && !fieldHasEquipment)) {
           // No equipment and not cardio/flex = Calisthenics (bodyweight)
           counts['Calisthenics']++;
