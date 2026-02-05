@@ -1224,7 +1224,7 @@ export default function OnboardingScreen() {
         <KeyboardAvoidingView
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
           style={styles.keyboardView}
-          keyboardVerticalOffset={Platform.OS === 'ios' ? 100 : 20}
+          keyboardVerticalOffset={Platform.OS === 'ios' ? 60 : 0}
         >
           <View style={styles.contentContainer}>
             {/* Main Card */}
@@ -1244,14 +1244,12 @@ export default function OnboardingScreen() {
               <Text style={styles.title}>{currentStepData.title}</Text>
               <Text style={styles.subtitle}>{currentStepData.subtitle}</Text>
 
-              {/* Scrollable Content Area - Better iOS keyboard handling */}
+              {/* Scrollable Content Area */}
               <ScrollView
                 style={styles.scrollableContent}
                 contentContainerStyle={styles.scrollableContentInner}
                 showsVerticalScrollIndicator={false}
                 keyboardShouldPersistTaps="handled"
-                keyboardDismissMode="interactive"
-                automaticallyAdjustKeyboardInsets={true}
               >
                 {/* Content */}
                 {renderFields()}
@@ -1259,9 +1257,6 @@ export default function OnboardingScreen() {
                 {renderMultiSelectOptions()}
                 {renderTextarea()}
                 {renderTrainingSchedule()}
-                
-                {/* Extra padding at bottom for keyboard - ensures Next button is visible */}
-                <View style={{ height: Platform.OS === 'ios' ? 140 : 100 }} />
               </ScrollView>
 
               {/* Navigation Buttons - Always Visible */}
