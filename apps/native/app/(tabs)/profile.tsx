@@ -577,6 +577,23 @@ export default function ProfileScreen() {
             {bio ? (
               <Text style={styles.profileBio} numberOfLines={2}>{bio}</Text>
             ) : null}
+            
+            {/* Body Stats Row */}
+            <TouchableOpacity 
+              style={styles.bodyStatsRow}
+              onPress={() => setShowBodyStatsModal(true)}
+            >
+              <View style={styles.bodyStat}>
+                <Ionicons name="scale-outline" size={16} color="rgba(255,255,255,0.8)" />
+                <Text style={styles.bodyStatValue}>{userWeight || '--'} kg</Text>
+              </View>
+              <View style={styles.bodyStatDivider} />
+              <View style={styles.bodyStat}>
+                <Ionicons name="resize-outline" size={16} color="rgba(255,255,255,0.8)" />
+                <Text style={styles.bodyStatValue}>{userHeight || '--'} cm</Text>
+              </View>
+              <Ionicons name="pencil" size={14} color="rgba(255,255,255,0.6)" style={{ marginLeft: 8 }} />
+            </TouchableOpacity>
           </LinearGradient>
         </View>
 
