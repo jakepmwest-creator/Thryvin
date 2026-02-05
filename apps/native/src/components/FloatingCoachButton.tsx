@@ -662,18 +662,18 @@ export function FloatingCoachButton({
         transparent={true}
         onRequestClose={closeChat}
       >
-        <View style={styles.modalContainer}>
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          style={styles.modalContainer}
+          keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
+        >
           <TouchableOpacity
             style={styles.backdrop}
             activeOpacity={1}
             onPress={closeChat}
           />
           
-          <KeyboardAvoidingView
-            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-            style={styles.chatContainer}
-            keyboardVerticalOffset={Platform.OS === 'ios' ? 10 : 0}
-          >
+          <View style={styles.chatContainer}>
             <LinearGradient
               colors={[COLORS.accent, COLORS.accentSecondary]}
               style={styles.chatHeader}
