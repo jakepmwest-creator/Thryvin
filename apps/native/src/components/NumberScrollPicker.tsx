@@ -49,6 +49,7 @@ interface NumberScrollPickerProps {
   step?: number;
   decimals?: boolean;
   testId?: string;
+  inputVariant?: 'light' | 'dark';
 }
 
 export const NumberScrollPicker = ({
@@ -61,10 +62,14 @@ export const NumberScrollPicker = ({
   step = 1,
   decimals = false,
   testId,
+  inputVariant = 'dark',
 }: NumberScrollPickerProps) => {
   const [showPicker, setShowPicker] = useState(false);
   const [tempValue, setTempValue] = useState(value);
   const scrollRef = useRef<ScrollView>(null);
+  const isLightInput = inputVariant === 'light';
+  const inputIconColor = isLightInput ? '#9CA3AF' : COLORS.textMuted;
+  const inputPlaceholderColor = isLightInput ? '#9CA3AF' : COLORS.textMuted;
 
   // Generate numbers for the picker
   const numbers: number[] = [];
@@ -113,7 +118,7 @@ export const NumberScrollPicker = ({
     <>
       {/* Input field that opens picker */}
       <TouchableOpacity 
-        style={styles.inputContainer}
+        style={[styles.inputContainer, isLightInput && styles.inputContainerLight]}
         onPress={() => {
           setTempValue(value || String(min));
           setShowPicker(true);
@@ -122,17 +127,17 @@ export const NumberScrollPicker = ({
         data-testid={testId ? `${testId}-trigger` : 'number-scroll-picker-trigger'}
       >
         <TextInput
-          style={styles.input}
+          style={[styles.input, isLightInput && styles.inputTextLight]}
           value={value}
           onChangeText={handleDirectInput}
           keyboardType="numeric"
           placeholder="0"
-          placeholderTextColor={COLORS.textMuted}
+          placeholderTextColor={inputPlaceholderColor}
           data-testid={testId ? `${testId}-text-input` : 'number-scroll-picker-text-input'}
         />
         <View style={styles.scrollIcon}>
-          <Ionicons name="chevron-up" size={12} color={COLORS.textMuted} />
-          <Ionicons name="chevron-down" size={12} color={COLORS.textMuted} style={{ marginTop: -4 }} />
+          <Ionicons name="chevron-up" size={12} color={inputIconColor} />
+          <Ionicons name="chevron-down" size={12} color={inputIconColor} style={{ marginTop: -4 }} />
         </View>
       </TouchableOpacity>
 
