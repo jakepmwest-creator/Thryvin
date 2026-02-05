@@ -1039,6 +1039,14 @@ export default function HomeScreen() {
         weekStartDate={new Date()}
         suggestedDays={user?.selectedDays || []}
       />
+
+      {/* Rolling Regeneration Modal */}
+      <RollingRegenerationModal
+        visible={showRollingRegeneration}
+        onClose={() => setShowRollingRegeneration(false)}
+        onSubmit={handleRollingRegenerationSubmit}
+        currentWeek={rollingWeek}
+      />
       
       {/* View All Weeks Modal */}
       <ViewAllWeeksModal
