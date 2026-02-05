@@ -925,6 +925,9 @@ export default function OnboardingScreen() {
             textAlignVertical="top"
             autoCapitalize="sentences"
             autoCorrect={true}
+            returnKeyType="done"
+            inputAccessoryViewID={accessoryId}
+            data-testid="onboarding-injuries-textarea"
           />
         </View>
         <Text style={styles.textareaHint}>
