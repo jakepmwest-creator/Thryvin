@@ -1261,6 +1261,7 @@ export default function WorkoutHubScreen() {
                                       step={weightUnit === 'lbs' ? 2.5 : 1}
                                       decimals={weightUnit === 'lbs'}
                                       testId="workout-weight-picker"
+                                      inputVariant="light"
                                     />
                                   </View>
                                   <View style={styles.inputWrapper}>
@@ -1275,6 +1276,7 @@ export default function WorkoutHubScreen() {
                                       max={50}
                                       step={1}
                                       testId="workout-reps-picker"
+                                      inputVariant="light"
                                     />
                                   </View>
                                 </View>
