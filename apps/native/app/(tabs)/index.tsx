@@ -168,7 +168,6 @@ export default function HomeScreen() {
   const fetchPersonalBests = useWorkoutStore(state => state.fetchPersonalBests);
   const fetchCompletedWorkouts = useWorkoutStore(state => state.fetchCompletedWorkouts);
   const forceRegenerateWeek = useWorkoutStore(state => state.forceRegenerateWeek);
-  const fetchTodayWorkout = useWorkoutStore(state => state.fetchTodayWorkout);
   
   // Exercise stats modal state
   const [showExerciseStats, setShowExerciseStats] = useState(false);
