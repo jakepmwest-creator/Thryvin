@@ -68,10 +68,12 @@ interface User {
   trainingDays?: string | number;
   sessionDuration?: string | number;
   experience?: string;
+  fitnessLevel?: string;
   equipment?: string[];
   injuries?: string[];
   fitnessGoals?: string[];
   pushToken?: string;
+  trialEndsAt?: string;
 }
 
 // Function to clear ALL local data for a fresh user experience
