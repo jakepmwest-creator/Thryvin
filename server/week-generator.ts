@@ -17,18 +17,26 @@ interface UserProfile {
   advancedQuestionnaire?: any;
 }
 
-export async function generateWeekWorkouts(userId: number, userProfile: UserProfile, weekNumber: number = 1) {
+export async function generateWeekWorkouts(
+  userId: number,
+  userProfile: UserProfile,
+  weekNumber: number = 1,
+  weekStartDate?: Date
+) {
   console.log('🗓️ [WEEK-GEN] Starting week generation for user:', userId, '(Week', weekNumber, ')');
+  if (weekStartDate) {
+    console.log('🗓️ [WEEK-GEN] Using custom week start:', weekStartDate.toISOString().split('T')[0]);
+  }
   console.log('📋 [WEEK-GEN] User profile:', JSON.stringify(userProfile, null, 2));
   
   try {
     // Calculate Monday-Sunday of current week
-    const today = new Date();
-    const currentDay = today.getDay(); // 0 = Sunday
+    const referenceDate = weekStartDate ? new Date(weekStartDate) : new Date();
+    const currentDay = referenceDate.getDay(); // 0 = Sunday
     const mondayOffset = currentDay === 0 ? -6 : 1 - currentDay;
     
-    const monday = new Date(today);
-    monday.setDate(today.getDate() + mondayOffset);
+    const monday = new Date(referenceDate);
+    monday.setDate(referenceDate.getDate() + mondayOffset);
     monday.setHours(0, 0, 0, 0);
     
     const weekDates: string[] = [];
