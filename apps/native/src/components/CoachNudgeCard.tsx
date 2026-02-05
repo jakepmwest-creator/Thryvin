@@ -29,7 +29,7 @@ const COLORS = {
   cardBg: '#FFFFFF',
 };
 
-const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL || 'https://fitness-tracker-792.preview.emergentagent.com';
+const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL || 'https://bugzapper-55.preview.emergentagent.com';
 
 // Session storage key for nudge tracking
 const NUDGE_SESSION_KEY = '@coach_nudge_session';
