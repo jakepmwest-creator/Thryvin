@@ -124,6 +124,7 @@ export const RollingRegenerationModal = ({
                     feedback.availableDays.includes(day.key) && styles.dayButtonSelected,
                   ]}
                   onPress={() => handleDayToggle(day.key)}
+                  data-testid={`rolling-regeneration-day-${day.key}`}
                 >
                   <Text style={[
                     styles.dayButtonText,
