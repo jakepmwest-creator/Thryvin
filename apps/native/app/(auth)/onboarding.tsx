@@ -786,6 +786,9 @@ export default function OnboardingScreen() {
                 returnKeyType="done"
                 blurOnSubmit={true}
                 enablesReturnKeyAutomatically={true}
+                onSubmitEditing={() => Keyboard.dismiss()}
+                inputAccessoryViewID={accessoryId}
+                data-testid={`onboarding-input-${field.key}`}
               />
             </View>
           );
