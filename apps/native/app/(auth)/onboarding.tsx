@@ -1711,6 +1711,25 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: COLORS.white,
   },
+  inputAccessoryContainer: {
+    backgroundColor: COLORS.white,
+    borderTopWidth: 1,
+    borderTopColor: COLORS.lightGray,
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    alignItems: 'flex-end',
+  },
+  inputAccessoryButton: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 12,
+    backgroundColor: COLORS.accent,
+  },
+  inputAccessoryText: {
+    color: COLORS.white,
+    fontSize: 14,
+    fontWeight: '700',
+  },
   // Training Schedule Styles
   scheduleContainer: {
     marginBottom: 16,
