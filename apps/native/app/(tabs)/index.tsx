@@ -61,7 +61,8 @@ const ProgressRing = ({ label, progress, colors, size = 70, onPress, details }) 
   const strokeWidth = 8;
   const radius = (size - strokeWidth) / 2;
   const circumference = radius * 2 * Math.PI;
-  const strokeDashoffset = circumference - (progress * circumference);
+  // Progress starts from TOP (12 o'clock) and goes CLOCKWISE
+  const strokeDashoffset = circumference * (1 - progress);
 
   return (
     <TouchableOpacity style={styles.ringContainer} onPress={onPress}>
@@ -76,7 +77,7 @@ const ProgressRing = ({ label, progress, colors, size = 70, onPress, details }) 
             strokeWidth={strokeWidth}
             fill="transparent"
           />
-          {/* Progress circle */}
+          {/* Progress circle - starts from TOP */}
           <Circle
             cx={size / 2}
             cy={size / 2}
@@ -87,8 +88,7 @@ const ProgressRing = ({ label, progress, colors, size = 70, onPress, details }) 
             strokeDasharray={circumference}
             strokeDashoffset={strokeDashoffset}
             strokeLinecap="round"
-            rotation="-90"
-            origin={`${size / 2}, ${size / 2}`}
+            transform={`rotate(-90 ${size / 2} ${size / 2})`}
           />
           <Defs>
             <SvgLinearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
