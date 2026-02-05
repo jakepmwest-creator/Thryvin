@@ -797,7 +797,7 @@ export const useAwardsStore = create<AwardsState>((set, get) => ({
       // Try to load from server first
       const serverData = await apiCall('/api/badges/progress');
       
-      if (serverData?.badges) {
+      if (serverData?.badges && serverData.badges.length > 0) {
         set({
           userBadges: serverData.badges,
           totalXP: serverData.totalXP || 0,
@@ -818,16 +818,20 @@ export const useAwardsStore = create<AwardsState>((set, get) => ({
       const stored = await AsyncStorage.getItem('user_badges_v4');
       if (stored) {
         const data = JSON.parse(stored);
-        set({
-          userBadges: data.badges || [],
-          totalXP: data.totalXP || 0,
-          currentIsland: data.currentIsland || 1,
-          isLoading: false,
-        });
-        return;
+        if (data.badges && data.badges.length > 0) {
+          set({
+            userBadges: data.badges,
+            totalXP: data.totalXP || 0,
+            currentIsland: data.currentIsland || 1,
+            isLoading: false,
+          });
+          return;
+        }
       }
       
-      // Initialize fresh badges
+      // CRITICAL: Initialize fresh badges for ALL badge definitions
+      // This ensures new users always have badge progress tracking ready
+      console.log('🏆 [AWARDS] Initializing badges for new user - creating', BADGE_DEFINITIONS.length, 'badge entries');
       const initialBadges: UserBadgeProgress[] = BADGE_DEFINITIONS.map(badge => ({
         badgeId: badge.id,
         progress: 0,
@@ -841,9 +845,24 @@ export const useAwardsStore = create<AwardsState>((set, get) => ({
         currentIsland: 1 
       }));
       
+      // Also save to server so future logins work
+      await apiCall('/api/badges/progress', 'PUT', {
+        badges: initialBadges,
+        totalXP: 0,
+        currentIsland: 1,
+      });
+      console.log('🏆 [AWARDS] Badges initialized and saved to server');
+      
     } catch (error) {
       console.error('Error loading badges:', error);
-      set({ isLoading: false });
+      
+      // FALLBACK: Even on error, initialize badges locally so tracking works
+      const initialBadges: UserBadgeProgress[] = BADGE_DEFINITIONS.map(badge => ({
+        badgeId: badge.id,
+        progress: 0,
+        completed: false,
+      }));
+      set({ userBadges: initialBadges, totalXP: 0, currentIsland: 1, isLoading: false });
     }
   },
 
