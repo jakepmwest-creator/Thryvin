@@ -884,17 +884,16 @@ const styles = StyleSheet.create({
   },
   modalContainer: {
     flex: 1,
-    justifyContent: 'flex-end',
   },
   backdrop: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
+    flex: 1,
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
   },
   chatContainer: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
     height: '85%',
     backgroundColor: COLORS.white,
     borderTopLeftRadius: 32,
