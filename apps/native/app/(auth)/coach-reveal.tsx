@@ -324,32 +324,34 @@ export default function CoachRevealScreen() {
               </LinearGradient>
             </View>
 
-            {/* Buttons Row - Side by Side */}
-            <View style={styles.buttonsRow}>
-              {/* Switch Coach Button */}
-              <TouchableOpacity
-                style={styles.switchButton}
-                onPress={handleSwitchCoach}
-              >
-                <Ionicons name="refresh" size={16} color={COLORS.accent} />
-                <Text style={styles.switchButtonText}>Change</Text>
-              </TouchableOpacity>
-
-              {/* Continue Button */}
-              <TouchableOpacity
-                style={styles.continueButton}
-                onPress={handleContinue}
-              >
-                <LinearGradient
-                  colors={[COLORS.accent, COLORS.accentSecondary]}
-                  style={styles.continueGradient}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 1 }}
+            {/* Buttons Row - Side by Side on White Background */}
+            <View style={styles.buttonsContainer}>
+              <View style={styles.buttonsRow}>
+                {/* Switch Coach Button */}
+                <TouchableOpacity
+                  style={styles.switchButton}
+                  onPress={handleSwitchCoach}
                 >
-                  <Text style={styles.continueButtonText}>Let's Go!</Text>
-                  <Ionicons name="arrow-forward" size={18} color={COLORS.white} />
-                </LinearGradient>
-              </TouchableOpacity>
+                  <Ionicons name="refresh" size={16} color={COLORS.accent} />
+                  <Text style={styles.switchButtonText}>Change</Text>
+                </TouchableOpacity>
+
+                {/* Continue Button */}
+                <TouchableOpacity
+                  style={styles.continueButton}
+                  onPress={handleContinue}
+                >
+                  <LinearGradient
+                    colors={[COLORS.accent, COLORS.accentSecondary]}
+                    style={styles.continueGradient}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 1 }}
+                  >
+                    <Text style={styles.continueButtonText}>Let's Go!</Text>
+                    <Ionicons name="arrow-forward" size={18} color={COLORS.white} />
+                  </LinearGradient>
+                </TouchableOpacity>
+              </View>
             </View>
           </Animated.View>
         </SafeAreaView>
