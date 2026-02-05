@@ -1201,14 +1201,8 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
       await get().fetchStats();
       await get().fetchPersonalBests();
       
-      // Track badge event for workout completion
-      try {
-        const { useAwardsStore } = require('./awards-store');
-        await useAwardsStore.getState().trackEvent('workout-completed', { workoutId });
-        console.log('🏆 [BADGES] Tracked workout completion event');
-      } catch (badgeError) {
-        console.log('⚠️ [BADGES] Could not track badge event:', badgeError);
-      }
+      // Badge tracking is handled in finishWorkoutSession -> updateBadgesAfterWorkout
+      console.log('🏆 [BADGES] Workout completion will be tracked by finishWorkoutSession');
       
       // Check if we need to generate more weeks (rolling generation)
       await get().checkAndGenerateMoreWeeks();
