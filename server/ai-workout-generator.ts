@@ -195,12 +195,12 @@ export async function generateAIWorkout(
     injuries: userProfile.injuries?.join(', ') || null,
     sessionDuration,
     weeklyActivities: userProfile.advancedQuestionnaire?.weeklyActivities || [],
-    // CRITICAL FIX: Default to all days if no specific days selected
-    // Empty array [] means NO days available which causes REST-ONLY plans
+    // CRITICAL FIX: Convert day names to indices and default to all days if empty
+    // preferredTrainingDays from onboarding could be ['mon', 'tue', 'wed'] or [1, 2, 3]
     gymDaysAvailable: (userProfile.advancedQuestionnaire?.gymDaysAvailable?.length > 0) 
       ? userProfile.advancedQuestionnaire.gymDaysAvailable 
-      : (userProfile.preferredTrainingDays?.length > 0)
-        ? userProfile.preferredTrainingDays
+      : (userProfile.preferredTrainingDays && userProfile.preferredTrainingDays.length > 0)
+        ? convertDayNamesToIndices(userProfile.preferredTrainingDays)
         : [0, 1, 2, 3, 4, 5, 6], // ALL DAYS AVAILABLE by default
     scheduleFlexibility: userProfile.advancedQuestionnaire?.scheduleFlexibility ?? true,
     preferredSplit: userProfile.advancedQuestionnaire?.preferredSplit,
