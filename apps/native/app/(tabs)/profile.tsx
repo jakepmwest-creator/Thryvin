@@ -349,11 +349,37 @@ export default function ProfileScreen() {
   };
   
   // Compute profile data
+  // Get experience level from user profile or convert numeric level to text
+  const getExperienceLevel = () => {
+    // First check the experience field directly from user
+    if (user?.experience) {
+      // Capitalize first letter
+      return user.experience.charAt(0).toUpperCase() + user.experience.slice(1);
+    }
+    // Fallback to fitnessLevel if available
+    if (user?.fitnessLevel) {
+      return user.fitnessLevel.charAt(0).toUpperCase() + user.fitnessLevel.slice(1);
+    }
+    return 'Intermediate';
+  };
+
+  // Calculate join date from trial end date (trial is 7 days, so start = trialEnds - 7)
+  const getJoinDate = () => {
+    if (user?.trialEndsAt) {
+      const trialEnd = new Date(user.trialEndsAt);
+      const joinDate = new Date(trialEnd);
+      joinDate.setDate(joinDate.getDate() - 7);
+      return joinDate.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+    }
+    // Fallback to current month if no trial info
+    return new Date().toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+  };
+
   const profileData = {
     name: userName || user?.name || 'User',
     email: user?.email || 'user@example.com',
-    level: user?.experience || 'Intermediate',
-    joinDate: 'Dec 2024', // Using static date since createdAt not in User type
+    level: getExperienceLevel(),
+    joinDate: getJoinDate(),
     nextGoal: user?.goal || 'Get fit',
   };
 
