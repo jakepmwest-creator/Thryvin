@@ -2008,36 +2008,66 @@ async function updateBadgesAfterWorkout() {
     // This allows cardio users to progress on rep-based badges
     totalReps += cardioMinutes;
     
-    // Get coach conversation count for badge progress
-    let coachConversations = 0;
+    // Get badge stats from local storage for additional tracking
+    let badgeStatsFromStorage: any = {};
     try {
-      const stored = await getStorageItem('coach_conversation_count');
-      coachConversations = stored ? parseInt(stored, 10) : 0;
+      const stored = await getStorageItem('badge_stats');
+      badgeStatsFromStorage = stored ? JSON.parse(stored) : {};
     } catch (e) {
       // ignore
     }
     
-    // Prepare workout stats for badge system
-    const workoutStats = {
+    // Calculate weekend workouts and time-based badges
+    const now = new Date();
+    const isWeekend = now.getDay() === 0 || now.getDay() === 6;
+    const isEarlyWorkout = now.getHours() < 8;
+    const isLateWorkout = now.getHours() >= 20;
+    
+    // Count weekend workouts, early workouts, late workouts from completed workouts
+    const weekendWorkouts = completedWorkouts.filter(w => {
+      const date = new Date(w.completedAt || w.date);
+      return date.getDay() === 0 || date.getDay() === 6;
+    }).length;
+    
+    const earlyWorkouts = completedWorkouts.filter(w => {
+      const date = new Date(w.completedAt || w.date);
+      return date.getHours() < 8;
+    }).length;
+    
+    const lateWorkouts = completedWorkouts.filter(w => {
+      const date = new Date(w.completedAt || w.date);
+      return date.getHours() >= 20;
+    }).length;
+    
+    // Count unique categories explored
+    const categories = new Set(completedWorkouts.map(w => w.type?.toLowerCase()).filter(Boolean));
+    const categoriesExplored = categories.size;
+    
+    // Prepare workout stats for badge system - must match BadgeStats interface
+    const workoutStatsForBadges: import('./awards-store').BadgeStats = {
       totalWorkouts: stats.totalWorkouts,
-      currentStreak: stats.currentStreak,
-      totalSets,
       totalReps,
       totalMinutes: stats.totalMinutes,
-      cardioMinutes,
-      strengthSessions,
-      cardioSessions,
-      upperBodySessions,
-      lowerBodySessions,
-      fullBodySessions,
-      coachConversations,
+      totalCoachMessages: badgeStatsFromStorage.totalCoachMessages || 0,
+      totalPRsBroken: badgeStatsFromStorage.totalPRsBroken || 0,
+      totalExtraActivities: badgeStatsFromStorage.totalExtraActivities || 0,
+      totalWorkoutEdits: badgeStatsFromStorage.totalWorkoutEdits || 0,
+      totalBadgesShared: badgeStatsFromStorage.totalBadgesShared || 0,
+      totalVideosWatched: badgeStatsFromStorage.totalVideosWatched || 0,
+      totalWeekendWorkouts: weekendWorkouts,
+      totalEarlyWorkouts: earlyWorkouts,
+      totalLateWorkouts: lateWorkouts,
+      categoriesExplored,
+      hasEditedProfile: badgeStatsFromStorage.hasEditedProfile || false,
+      hasRatedApp: badgeStatsFromStorage.hasRatedApp || false,
+      currentStreak: stats.currentStreak,
     };
     
-    console.log('🏆 [BADGES] Updating badges with workout stats:', workoutStats);
+    console.log('🏆 [BADGES] Updating badges with workout stats:', workoutStatsForBadges);
     
     // Update badges using the awards store
     const awardsStore = useAwardsStore.getState();
-    const newlyUnlocked = await awardsStore.updateBadgeProgress(workoutStats);
+    const newlyUnlocked = await awardsStore.updateBadgeProgress(workoutStatsForBadges);
     
     if (newlyUnlocked.length > 0) {
       console.log('🎉 [BADGES] New badges unlocked:', newlyUnlocked.map(b => b.name));
