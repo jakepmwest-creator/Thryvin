@@ -419,12 +419,12 @@ class TestTrainingDays:
         """Test that training days are stored during registration"""
         assert self._register_and_login(), "Failed to register/login"
         
-        # Get user profile to verify training days
+        # Get user profile via /api/auth/me endpoint
         response = self.session.get(
-            f"{BASE_URL}/api/user/profile",
+            f"{BASE_URL}/api/auth/me",
             headers=self._get_auth_headers()
         )
-        print(f"User profile: {response.status_code}")
+        print(f"User profile (auth/me): {response.status_code}")
         print(f"Profile response: {response.text[:500]}")
         
         assert response.status_code == 200, f"Get profile failed: {response.text}"
