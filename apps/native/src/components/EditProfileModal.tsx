@@ -142,7 +142,18 @@ export const EditProfileModal = ({ visible, onClose, onSave }: EditProfileModalP
 
     setIsSaving(true);
     try {
+      const userId = user?.id;
+      // Save with user-specific keys for isolation between accounts
       await AsyncStorage.setItem('user_name', name);
+      if (userId) {
+        await AsyncStorage.setItem(`user_bio_${userId}`, bio);
+        if (profileImage) {
+          await AsyncStorage.setItem(`profile_image_${userId}`, profileImage);
+        } else {
+          await AsyncStorage.removeItem(`profile_image_${userId}`);
+        }
+      }
+      // Also save to global keys for backward compatibility
       await AsyncStorage.setItem('user_bio', bio);
       if (profileImage) {
         await AsyncStorage.setItem('user_profile_image', profileImage);
