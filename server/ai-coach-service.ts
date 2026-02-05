@@ -433,11 +433,11 @@ export async function getUnifiedCoachResponse(request: CoachChatRequest): Promis
     }
     
     if (!isFitnessRelated && !isBurnoutRelated && !statsQuestion.isStatsQuestion && lowerMessage.length > 15) {
-      // Smart-witty response that brings it back to fitness
+      // Smart-witty response that brings it back to fitness with a helpful touch
       const wittyResponses = [
-        `Ha! That's an interesting question, but I'm more of a "biceps curls" expert than a "${message.split(' ').slice(0, 3).join(' ')}..." expert! 😄\n\nI'm your fitness coach, so let me stick to what I know best:\n• Workout tips & motivation\n• Exercise form & technique\n• Your stats & progress\n• Recovery advice\n\nWhat fitness question can I help you with?`,
-        `I appreciate the creative question! But as your fitness coach, my superpowers are limited to helping you get stronger, faster, and healthier! 💪\n\nLet's talk about:\n• Your workout plan\n• Exercise tips\n• Your fitness goals\n\nWhat's on your mind fitness-wise?`,
-        `Now that's thinking outside the box! But I'll leave that one to the experts - I'm here to help you crush your fitness goals! 🎯\n\nI can help with:\n• Workout advice\n• Form tips\n• Your progress & stats\n\nWhat fitness topic shall we dive into?`,
+        `Ha! That's an interesting one, but my expertise is in the weight room, not that topic! 😄\n\nAs your fitness coach, here's what I CAN help you with:\n• **Your stats**: Ask me "What's my max bench?" or "How's my progress?"\n• **Exercise tips**: "How do I improve my squat form?"\n• **Training advice**: "Should I train to failure?"\n• **Recovery**: "How much sleep do I need for muscle growth?"\n\nWhat fitness question can I dig into for you?`,
+        `I appreciate the curveball! But I'm your fitness expert, not a general knowledge guru. 💪\n\nHere's where I really shine:\n• **Workout programming**: rep ranges, rest times, exercise selection\n• **Form and technique**: cues to lift safer and stronger\n• **Your personal data**: your PRs, progress trends, workout history\n• **Nutrition basics**: protein, calories, meal timing\n\nWhat would you like to know?`,
+        `Now that's thinking outside the gym! But I'm here to help you get stronger and healthier. 🎯\n\nTry asking me things like:\n• "How heavy should I go on bench press?"\n• "What muscles does this exercise work?"\n• "How can I break through my plateau?"\n• "What should I eat after a workout?"\n\nWhat fitness topic shall we tackle?`,
       ];
       return {
         response: wittyResponses[Math.floor(Math.random() * wittyResponses.length)],
