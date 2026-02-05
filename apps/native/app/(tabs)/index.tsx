@@ -26,6 +26,8 @@ import { ExerciseStatsModal } from '../../src/components/ExerciseStatsModal';
 import { useWorkoutStore } from '../../src/stores/workout-store';
 import { useAuthStore } from '../../src/stores/auth-store';
 import { useCoachStore } from '../../src/stores/coach-store';
+import { RollingRegenerationModal } from '../../src/components/RollingRegenerationModal';
+import { post } from '../../src/services/api-client';
 import Svg, { Circle, Defs, LinearGradient as SvgLinearGradient, Stop } from 'react-native-svg';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
@@ -122,6 +124,10 @@ export default function HomeScreen() {
   const [hasCheckedQuestionnaire, setHasCheckedQuestionnaire] = useState(false);
   const [showAllWeeks, setShowAllWeeks] = useState(false);
   const [showEditPlan, setShowEditPlan] = useState(false);
+  const [showRollingRegeneration, setShowRollingRegeneration] = useState(false);
+  const [rollingWeek, setRollingWeek] = useState(2);
+  const [hasCheckedRollingRegeneration, setHasCheckedRollingRegeneration] = useState(false);
+  const [rollingRegenerationSubmitting, setRollingRegenerationSubmitting] = useState(false);
   
   // Tour refs for highlighting
   const todayWorkoutRef = useRef(null);
@@ -162,6 +168,7 @@ export default function HomeScreen() {
   const fetchPersonalBests = useWorkoutStore(state => state.fetchPersonalBests);
   const fetchCompletedWorkouts = useWorkoutStore(state => state.fetchCompletedWorkouts);
   const forceRegenerateWeek = useWorkoutStore(state => state.forceRegenerateWeek);
+  const fetchTodayWorkout = useWorkoutStore(state => state.fetchTodayWorkout);
   
   // Exercise stats modal state
   const [showExerciseStats, setShowExerciseStats] = useState(false);
