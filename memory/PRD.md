@@ -411,3 +411,45 @@ User logs set in workout-hub → POST /api/workout/log-set (with thryvin_access_
 - Frontend: React Native/Expo
 - AI: OpenAI GPT-4o for coach and workout generation
 - Stable Preview URL: `https://fitness-tracker-792.preview.emergentagent.com`
+
+---
+
+### Feb 5, 2026 - Session 2 FINAL - All P0 Bugs Fixed
+
+#### ✅ CRITICAL FIX: Badge System Initialization (VERIFIED)
+- **Root Cause**: `loadUserBadges()` returned empty array for new users, causing no badges to track
+- **Fix**: Added fallback initialization - if server returns empty badges array, frontend initializes all BADGE_DEFINITIONS locally and syncs to server
+- **Files**: `/app/apps/native/src/stores/awards-store.ts` (lines 793-870)
+- **Testing**: All 8 badge tracking actions verified working
+
+#### ✅ CRITICAL FIX: Training Days Being Ignored (VERIFIED)
+- **Root Cause 1**: `preferredTrainingDays` from database wasn't being parsed and passed to week generator
+- **Root Cause 2**: TypeScript changes weren't compiled to JavaScript (`yarn build` needed)
+- **Fix**: Updated `/api/v1/workouts/generate-week` to:
+  1. Parse `preferredTrainingDays` from user database record
+  2. Convert day names ('mon', 'wed', 'fri') to indices (1, 3, 5)
+  3. Build complete user profile including advancedQuestionnaire
+  4. Pass to week generator which uses split-planner.ts for scheduling
+- **Files**: 
+  - `/app/server/routes.ts` (lines 6918-7016)
+  - `/app/server/week-generator.ts` (lines 6-16)
+- **Testing**: Workouts now correctly scheduled only on user's selected gym days
+
+#### ✅ ENHANCEMENT: AI Coach Made Truly Helpful
+- Enhanced all coach personalities with detailed system prompts
+- Coach now gives specific advice: sets, reps, weights, protein per kg bodyweight
+- Coach reads user's actual performance data and reports stats
+- 15+ form cues for exercises like deadlifts
+- **Files**: `/app/server/ai-coach-service.ts`
+
+### Testing Summary - Feb 5, 2026
+- **Iteration 6**: 16/16 PASSED - Badge API, workout summary
+- **Iteration 7**: 19/19 PASSED - AI Coach helpfulness
+- **Iteration 8**: 20/20 PASSED - Badge initialization, training days
+- **TOTAL**: 55/55 tests (100% pass rate)
+
+### Outstanding Items
+- **Video Inconsistency**: Pull-up showing pike push-up video (P1)
+- **Explore Data**: Exercise counts incorrect (P1)
+- **Muscle Distribution**: Chart not displaying (P1)
+- **UX Improvements**: Keyboard handling, modal redesign (P2)
