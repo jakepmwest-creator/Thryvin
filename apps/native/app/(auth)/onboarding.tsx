@@ -1287,7 +1287,7 @@ export default function OnboardingScreen() {
               {/* Navigation Buttons - Always Visible */}
               <View style={styles.buttonContainer}>
                 {currentStep > 0 && (
-                  <TouchableOpacity style={styles.backButton} onPress={handleBack}>
+                  <TouchableOpacity style={styles.backButton} onPress={handleBack} data-testid="onboarding-back-button">
                     <Ionicons name="arrow-back" size={20} color={COLORS.accent} />
                     <Text style={styles.backButtonText}>Back</Text>
                   </TouchableOpacity>
@@ -1296,6 +1296,7 @@ export default function OnboardingScreen() {
                 <TouchableOpacity
                   style={[styles.nextButton, currentStep === 0 && styles.nextButtonFull]}
                   onPress={handleNext}
+                  data-testid="onboarding-next-button"
                 >
                   <LinearGradient
                     colors={[COLORS.accent, COLORS.accentSecondary]}
@@ -1313,6 +1314,19 @@ export default function OnboardingScreen() {
             </Animated.View>
           </View>
         </KeyboardAvoidingView>
+        {Platform.OS === 'ios' && (
+          <InputAccessoryView nativeID={inputAccessoryViewID}>
+            <View style={styles.inputAccessoryContainer}>
+              <TouchableOpacity
+                style={styles.inputAccessoryButton}
+                onPress={() => Keyboard.dismiss()}
+                data-testid="onboarding-keyboard-done-button"
+              >
+                <Text style={styles.inputAccessoryText}>Done</Text>
+              </TouchableOpacity>
+            </View>
+          </InputAccessoryView>
+        )}
       </SafeAreaView>
     </View>
   );
