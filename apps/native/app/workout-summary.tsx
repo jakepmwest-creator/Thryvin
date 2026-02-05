@@ -43,6 +43,7 @@ interface ExerciseSummary {
   sets: Array<{ setNumber: number; weight: number; reps: number; rpe?: number }>;
   totalVolume: number;
   todayMax: number;
+  repsAtMax: number; // Reps at max weight
   previousMax: number;
   isPR: boolean;
   improvement: string | null;
