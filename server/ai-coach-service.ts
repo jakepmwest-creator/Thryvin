@@ -628,13 +628,13 @@ RESPONSE STYLE:
     messages.push({ role: 'user', content: message });
     
     // Phase 9.5: Adjust max_tokens based on context mode to enforce length limits
-    let maxTokens = 400; // default for chat
+    let maxTokens = 600; // Increased for more helpful, detailed responses
     if (effectiveMode === 'in_workout') {
-      maxTokens = 100; // Very short - 1-3 bullets
+      maxTokens = 150; // Short but helpful - 2-4 quick tips
     } else if (effectiveMode === 'home') {
-      maxTokens = 60; // One-liner
+      maxTokens = 100; // Quick greeting with one helpful tip
     } else if (effectiveMode === 'post_workout') {
-      maxTokens = 150; // 2-4 sentences
+      maxTokens = 200; // Celebratory + recovery tips
     }
     
     // Call OpenAI
