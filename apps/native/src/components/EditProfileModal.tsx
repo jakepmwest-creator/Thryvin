@@ -74,8 +74,10 @@ export const EditProfileModal = ({ visible, onClose, onSave }: EditProfileModalP
 
   const loadProfile = async () => {
     try {
-      const savedBio = await AsyncStorage.getItem('user_bio');
-      const savedImage = await AsyncStorage.getItem('user_profile_image');
+      const userId = user?.id;
+      // Try user-specific keys first, then fall back to global keys
+      const savedBio = await AsyncStorage.getItem(`user_bio_${userId}`) || await AsyncStorage.getItem('user_bio');
+      const savedImage = await AsyncStorage.getItem(`profile_image_${userId}`) || await AsyncStorage.getItem('user_profile_image');
       if (savedBio) setBio(savedBio);
       if (savedImage) setProfileImage(savedImage);
       setName(user?.name || '');
