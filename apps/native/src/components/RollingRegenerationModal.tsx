@@ -252,7 +252,7 @@ export const RollingRegenerationModal = ({
           end={{ x: 1, y: 1 }}
           style={styles.header}
         >
-          <TouchableOpacity onPress={onClose} style={styles.closeButton}>
+          <TouchableOpacity onPress={onClose} style={styles.closeButton} data-testid="rolling-regeneration-close-button">
             <Ionicons name="close" size={24} color={COLORS.white} />
           </TouchableOpacity>
           
@@ -294,6 +294,7 @@ export const RollingRegenerationModal = ({
             <TouchableOpacity 
               style={styles.backButton}
               onPress={() => setStep(step - 1)}
+              data-testid="rolling-regeneration-back-button"
             >
               <Ionicons name="arrow-back" size={20} color={COLORS.textSecondary} />
               <Text style={styles.backButtonText}>Back</Text>
@@ -310,6 +311,7 @@ export const RollingRegenerationModal = ({
               }
             }}
             disabled={!canProceed()}
+            data-testid="rolling-regeneration-continue-button"
           >
             <LinearGradient
               colors={canProceed() 
