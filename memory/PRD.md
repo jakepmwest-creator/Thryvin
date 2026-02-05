@@ -326,3 +326,88 @@ User logs set in workout-hub → POST /api/workout/log-set (with thryvin_access_
 ## Known Issues
 - **OpenAI API Quota**: The OpenAI API key may be rate-limited. If coach returns error messages, check billing/plan or use different API key.
 - **Video Inconsistency (Recurring)**: Some videos may still show incorrect exercises. Root cause may be client-side caching, needs investigation.
+
+
+---
+
+### Feb 5, 2026 - P0 Bug Fixes (Current Session)
+
+#### ✅ CRITICAL FIX: Awards/Badges System (P0 - VERIFIED)
+- **Issue**: Badges were not being triggered despite completing workouts, messaging coach, etc.
+- **Root Cause**: `updateBadgesAfterWorkout()` in workout-store.ts was passing wrong field names (e.g., `coachConversations` instead of `totalCoachMessages`) to match `BadgeStats` interface
+- **Fix**: Completely rewrote the function to properly map workout statistics to `BadgeStats` fields:
+  - `totalWorkouts`, `totalReps`, `totalMinutes` from workout stats
+  - `totalCoachMessages`, `totalPRsBroken`, etc. from badge stats storage
+  - `totalWeekendWorkouts`, `totalEarlyWorkouts`, `totalLateWorkouts` calculated from completed workouts
+- **Files Changed**: `/app/apps/native/src/stores/workout-store.ts` (lines 1939-2070)
+
+#### ✅ CRITICAL FIX: Profile Shows Wrong Level (P0 - VERIFIED)
+- **Issue**: Profile displayed "Intermediate" even when user selected "Advanced" during onboarding
+- **Root Cause**: Profile was directly using `user?.experience` without proper fallback or capitalization
+- **Fix**: Added `getExperienceLevel()` function that:
+  1. Reads `user.experience` first
+  2. Falls back to `user.fitnessLevel`
+  3. Capitalizes the first letter for display
+- **Files Changed**: `/app/apps/native/app/(tabs)/profile.tsx` (lines 353-364)
+
+#### ✅ CRITICAL FIX: Profile Shows Wrong Join Date (P0 - VERIFIED)
+- **Issue**: Profile displayed hardcoded "Dec 2024" instead of actual join date
+- **Root Cause**: No `createdAt` field in User type/database, join date was hardcoded
+- **Fix**: Added `getJoinDate()` function that calculates join date from `trialEndsAt - 7 days` (trial is 7 days from signup)
+- **Files Changed**: 
+  - `/app/apps/native/app/(tabs)/profile.tsx` (lines 367-376)
+  - `/app/apps/native/src/stores/auth-store.ts` - Added `trialEndsAt` to User interface and login response mapping
+
+#### ✅ CRITICAL FIX: Profile Picture Changes Crash App (P0 - VERIFIED)
+- **Issue**: Changing profile picture was crashing the app or logging user out
+- **Root Cause**: `EditProfileModal` used global AsyncStorage keys (`user_profile_image`) that conflicted between users and didn't match the keys profile.tsx was reading (`profile_image_${userId}`)
+- **Fix**: Updated `EditProfileModal` to use user-specific keys:
+  - `loadProfile()` now reads from `profile_image_${userId}` first
+  - `handleSave()` now saves to both user-specific and global keys for backward compatibility
+- **Files Changed**: `/app/apps/native/src/components/EditProfileModal.tsx` (lines 75-85, 137-165)
+
+#### ✅ CRITICAL FIX: Max Weight Shows 0 Reps (P0 - VERIFIED)
+- **Issue**: Workout summary showed max weight but "0 reps" instead of actual reps at that weight
+- **Root Cause**: Backend API didn't include the reps value for the set with maximum weight
+- **Fix**: Added `repsAtMax` field to workout summary API:
+  - Backend finds the set with max weight and extracts its reps
+  - Frontend displays as "75kg × 8" format
+- **Files Changed**: 
+  - `/app/server/routes.ts` (lines 2767-2772)
+  - `/app/apps/native/app/workout-summary.tsx` (interface + display)
+
+#### ✅ HIGH PRIORITY: Specific Training Days Ignored (P1 - VERIFIED)
+- **Issue**: User selected specific days (Mon/Tue/Fri) during onboarding but app used default schedule
+- **Root Cause**: `preferredTrainingDays` was stored as day names ('mon', 'tue') but `split-planner.ts` expected numeric indices (1, 2)
+- **Fix**: Added `convertDayNamesToIndices()` function to transform day names to indices:
+  - Maps 'sun'→0, 'mon'→1, 'tue'→2, etc.
+  - Handles both string names and numeric values
+- **Files Changed**: `/app/server/ai-workout-generator.ts` (lines 100-113, 181-185)
+
+### Testing Results (Feb 5, 2026)
+- Backend API Tests: **100% PASSED** (16/16 tests)
+- All badge tracking API endpoints verified working
+- Workout summary API returns `repsAtMax` field
+- Test report: `/app/test_reports/iteration_6.json`
+
+## Outstanding Issues (Feb 5, 2026)
+- **AI Coach Data Access**: Coach reported "no data yet" for exercise stats - needs mobile testing to verify fix
+- **3-Week Start Date**: Weekly schedule still starts from Monday, not user's signup date
+- **Workout Plan Quality**: Users report repetitive/unbalanced plans - needs AI prompt tuning
+- **Video Inconsistency**: Pull-up exercise showed pike push-up video - recurring issue
+- **Explore Data**: "Weights: 0 exercises" count incorrect
+- **Muscle Distribution Chart**: Not displaying data on stats page
+
+## Next Priority Tasks
+1. Test AI Coach data query with real user data
+2. Investigate workout plan quality issues (AI prompt)
+3. Fix Explore Workouts exercise counts
+4. Fix Muscle Distribution chart
+5. UX improvements (keyboard handling, progress circles)
+
+## Architecture Notes
+- Backend: Express.js + TypeScript on port 5000
+- Database: Neon PostgreSQL
+- Frontend: React Native/Expo
+- AI: OpenAI GPT-4o for coach and workout generation
+- Stable Preview URL: `https://fitness-tracker-792.preview.emergentagent.com`
