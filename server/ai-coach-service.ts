@@ -271,16 +271,27 @@ function buildTendenciesPrompt(tendencies: any): string {
 
 // Exercise name patterns for common exercises
 const EXERCISE_NAME_PATTERNS: Record<string, string[]> = {
-  'bench press': ['bench', 'bench press', 'flat bench', 'barbell bench'],
-  'squat': ['squat', 'squats', 'back squat', 'barbell squat'],
-  'deadlift': ['deadlift', 'deadlifts', 'conventional deadlift'],
-  'overhead press': ['ohp', 'overhead press', 'shoulder press', 'military press'],
-  'barbell row': ['row', 'barbell row', 'bent over row', 'pendlay row'],
-  'pull-up': ['pull-up', 'pullup', 'pull ups', 'chin-up', 'chinup'],
-  'dumbbell press': ['dumbbell press', 'db press', 'incline press'],
-  'lat pulldown': ['lat pulldown', 'pulldown', 'lat pull'],
-  'leg press': ['leg press'],
-  'curl': ['curl', 'bicep curl', 'barbell curl', 'dumbbell curl'],
+  'bench press': ['bench', 'bench press', 'flat bench', 'barbell bench', 'chest press'],
+  'squat': ['squat', 'squats', 'back squat', 'barbell squat', 'front squat'],
+  'deadlift': ['deadlift', 'deadlifts', 'conventional deadlift', 'sumo deadlift', 'romanian deadlift', 'rdl'],
+  'overhead press': ['ohp', 'overhead press', 'shoulder press', 'military press', 'standing press'],
+  'barbell row': ['row', 'barbell row', 'bent over row', 'pendlay row', 'cable row'],
+  'pull-up': ['pull-up', 'pullup', 'pull ups', 'chin-up', 'chinup', 'pull up'],
+  'dumbbell press': ['dumbbell press', 'db press', 'incline press', 'incline dumbbell', 'incline db'],
+  'lat pulldown': ['lat pulldown', 'pulldown', 'lat pull', 'cable pulldown'],
+  'leg press': ['leg press', 'leg-press'],
+  'curl': ['curl', 'bicep curl', 'barbell curl', 'dumbbell curl', 'biceps', 'hammer curl'],
+  'tricep extension': ['tricep', 'triceps', 'pushdown', 'skull crusher', 'tricep extension'],
+  'lateral raise': ['lateral raise', 'lateral', 'side raise', 'shoulder fly'],
+  'lunge': ['lunge', 'lunges', 'walking lunge', 'split squat', 'bulgarian'],
+  'calf raise': ['calf', 'calves', 'calf raise'],
+  'hip thrust': ['hip thrust', 'glute bridge', 'hip-thrust'],
+  'face pull': ['face pull', 'facepull', 'rear delt'],
+  'shrug': ['shrug', 'shrugs', 'trap', 'traps'],
+  'plank': ['plank', 'planks', 'core hold'],
+  'crunch': ['crunch', 'crunches', 'sit-up', 'situp', 'ab'],
+  'dip': ['dip', 'dips', 'tricep dip', 'chest dip'],
+  'push-up': ['push-up', 'pushup', 'push up', 'press-up'],
 };
 
 /**
