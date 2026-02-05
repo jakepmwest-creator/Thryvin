@@ -326,7 +326,8 @@ export default function HomeScreen() {
   useEffect(() => {
     checkAdvancedQuestionnaire();
     checkWeeklySchedule();
-  }, [checkAdvancedQuestionnaire, checkWeeklySchedule]);
+    checkRollingRegeneration();
+  }, [checkAdvancedQuestionnaire, checkWeeklySchedule, checkRollingRegeneration]);
 
   // Handle weekly schedule confirmation
   const handleWeeklyScheduleConfirm = async (selectedDays: string[]) => {
