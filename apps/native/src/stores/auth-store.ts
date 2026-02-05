@@ -225,10 +225,12 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         trainingDays: data.user.trainingDays,
         sessionDuration: data.user.sessionDuration,
         experience: data.user.experience,
+        fitnessLevel: data.user.fitnessLevel,
         equipment: data.user.equipment,
         injuries: data.user.injuries,
         fitnessGoals: data.user.fitnessGoals,
         hasCompletedOnboarding: true,
+        trialEndsAt: data.user.trialEndsAt,
       };
 
       set({ user: userData, isLoading: false });
