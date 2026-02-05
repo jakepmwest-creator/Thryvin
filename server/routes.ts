@@ -8673,12 +8673,12 @@ Respond with a complete workout in JSON format:
         })
         .from(exercises);
       
-      // Count exercises per category
+      // Count exercises per category - MUST match frontend category names
       const counts: { [key: string]: number } = {
-        'Strength': 0,
-        'Calisthenics': 0,
-        'Cardio': 0,
-        'Flexibility': 0,
+        'Weights': 0,       // Exercises with equipment (barbells, dumbbells, machines)
+        'Calisthenics': 0,  // Bodyweight exercises
+        'Cardio': 0,        // Cardiovascular exercises
+        'Flexibility': 0,   // Stretching and mobility
       };
       
       // Equipment keywords to detect in exercise names (since DB equipment field is often empty)
