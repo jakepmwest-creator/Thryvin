@@ -844,8 +844,8 @@ export function FloatingCoachButton({
                 </LinearGradient>
               </TouchableOpacity>
             </View>
-          </View>
-        </KeyboardAvoidingView>
+          </KeyboardAvoidingView>
+        </View>
       </Modal>
 
       {/* Action Confirmation Modal */}
