@@ -626,6 +626,11 @@ export default function OnboardingScreen() {
                 onChangeText={(value) => setFormData({ ...formData, feet: value })}
                 keyboardType="numeric"
                 maxLength={1}
+                returnKeyType="done"
+                blurOnSubmit={true}
+                onSubmitEditing={() => Keyboard.dismiss()}
+                inputAccessoryViewID={accessoryId}
+                data-testid="onboarding-height-feet-input"
               />
               <Text style={styles.unitLabel}>ft</Text>
             </View>
@@ -638,6 +643,11 @@ export default function OnboardingScreen() {
                 onChangeText={(value) => setFormData({ ...formData, inches: value })}
                 keyboardType="numeric"
                 maxLength={2}
+                returnKeyType="done"
+                blurOnSubmit={true}
+                onSubmitEditing={() => Keyboard.dismiss()}
+                inputAccessoryViewID={accessoryId}
+                data-testid="onboarding-height-inches-input"
               />
               <Text style={styles.unitLabel}>in</Text>
             </View>
