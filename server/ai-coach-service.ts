@@ -304,7 +304,10 @@ function detectStatsQuestion(message: string): { isStatsQuestion: boolean; exerc
   const statsKeywords = [
     'heaviest', 'max', 'maximum', 'personal best', 'pb', 'pr', 'record',
     'strongest', 'best', 'most', 'highest weight', 'how much', 'what weight',
-    'lift', 'lifted', 'done', 'hit', 'achieved', 'what\'s my'
+    'lift', 'lifted', 'done', 'hit', 'achieved', 'what\'s my', 'whats my',
+    'my best', 'my max', 'my heaviest', 'can i', 'how heavy', 'what can i',
+    'progress', 'improved', 'stronger', 'one rep max', '1rm', 'orm',
+    'how many', 'total', 'volume', 'stats', 'history', 'last time'
   ];
   
   const hasStatsKeyword = statsKeywords.some(keyword => lowerMessage.includes(keyword));
@@ -316,10 +319,15 @@ function detectStatsQuestion(message: string): { isStatsQuestion: boolean; exerc
   // Try to find the exercise name
   for (const [canonical, patterns] of Object.entries(EXERCISE_NAME_PATTERNS)) {
     if (patterns.some(pattern => lowerMessage.includes(pattern))) {
+      const questionType = lowerMessage.includes('heaviest') || lowerMessage.includes('max') || lowerMessage.includes('1rm') 
+        ? 'max_weight' 
+        : lowerMessage.includes('progress') || lowerMessage.includes('improved')
+        ? 'progress'
+        : 'general';
       return { 
         isStatsQuestion: true, 
         exerciseName: canonical,
-        questionType: lowerMessage.includes('heaviest') || lowerMessage.includes('max') ? 'max_weight' : 'general'
+        questionType
       };
     }
   }
