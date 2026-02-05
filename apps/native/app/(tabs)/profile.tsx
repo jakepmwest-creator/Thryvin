@@ -128,6 +128,9 @@ export default function ProfileScreen() {
   const [profileImage, setProfileImage] = useState<string | null>(null);
   const [bio, setBio] = useState('');
   const [userName, setUserName] = useState(user?.name || 'User');
+  const [userWeight, setUserWeight] = useState<string>('');
+  const [userHeight, setUserHeight] = useState<string>('');
+  const [showBodyStatsModal, setShowBodyStatsModal] = useState(false);
   
   // Custom alert state
   const [alertConfig, setAlertConfig] = useState<{
