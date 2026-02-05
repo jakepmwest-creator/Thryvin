@@ -6923,11 +6923,81 @@ Respond with a complete workout in JSON format:
 
     try {
       const user = req.user!;
-      const userProfile = req.body.userProfile || {};
       
       console.log('📥 [API] Week generation request for user:', user.id);
       
-      // Generate the week using the proper function
+      // CRITICAL FIX: Build complete user profile from database user data
+      // This ensures preferredTrainingDays and other settings are used
+      let preferredTrainingDays: number[] = [];
+      
+      // Parse preferredTrainingDays from database (stored as JSON string like '["mon","tue","wed"]')
+      if (user.preferredTrainingDays) {
+        try {
+          const daysArray = typeof user.preferredTrainingDays === 'string' 
+            ? JSON.parse(user.preferredTrainingDays) 
+            : user.preferredTrainingDays;
+          
+          // Convert day names to indices if needed
+          const dayNameToIndex: Record<string, number> = {
+            'sun': 0, 'sunday': 0, 'mon': 1, 'monday': 1, 'tue': 2, 'tuesday': 2,
+            'wed': 3, 'wednesday': 3, 'thu': 4, 'thursday': 4, 'fri': 5, 'friday': 5,
+            'sat': 6, 'saturday': 6
+          };
+          
+          preferredTrainingDays = daysArray.map((day: string | number) => {
+            if (typeof day === 'number') return day;
+            return dayNameToIndex[String(day).toLowerCase()] ?? -1;
+          }).filter((d: number) => d >= 0 && d <= 6);
+          
+          console.log('📅 [API] User preferred training days:', preferredTrainingDays);
+        } catch (e) {
+          console.log('⚠️ [API] Could not parse preferredTrainingDays:', e);
+        }
+      }
+      
+      // Parse onboarding responses for additional context
+      let advancedQuestionnaire: any = {};
+      if (user.onboardingResponses) {
+        try {
+          advancedQuestionnaire = typeof user.onboardingResponses === 'string'
+            ? JSON.parse(user.onboardingResponses)
+            : user.onboardingResponses;
+        } catch (e) {
+          console.log('⚠️ [API] Could not parse onboardingResponses');
+        }
+      }
+      
+      // Build complete user profile for workout generation
+      const userProfile = {
+        fitnessGoals: user.focusAreas ? 
+          (typeof user.focusAreas === 'string' ? JSON.parse(user.focusAreas) : user.focusAreas) : 
+          [user.goal || 'general'],
+        goal: user.goal || 'general',
+        experience: user.experience || 'intermediate',
+        trainingType: user.trainingType || 'strength',
+        sessionDuration: user.sessionDurationPreference || 45,
+        trainingDays: user.trainingDaysPerWeek || 4,
+        equipment: user.equipmentAccess ? 
+          (typeof user.equipmentAccess === 'string' ? JSON.parse(user.equipmentAccess) : user.equipmentAccess) : 
+          ['bodyweight'],
+        injuries: user.injuries ? 
+          (typeof user.injuries === 'string' ? JSON.parse(user.injuries) : user.injuries) : 
+          [],
+        userId: user.id,
+        // CRITICAL: Include preferred training days for the split planner
+        preferredTrainingDays: preferredTrainingDays,
+        advancedQuestionnaire: advancedQuestionnaire,
+        ...req.body.userProfile, // Allow overrides from request body
+      };
+      
+      console.log('🏋️ [API] Complete user profile for week generation:', {
+        experience: userProfile.experience,
+        trainingDays: userProfile.trainingDays,
+        preferredTrainingDays: userProfile.preferredTrainingDays,
+        sessionDuration: userProfile.sessionDuration,
+      });
+      
+      // Generate the week using the proper function with complete profile
       const result = await generateWeekWorkouts(user.id, userProfile);
       
       return res.status(200).json({
