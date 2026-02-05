@@ -2224,6 +2224,154 @@ Respond with ONLY a JSON object (no markdown, no explanation):
     }));
   }
 
+  // Rolling Regeneration - refresh upcoming workout block with user feedback
+  app.post("/api/workouts/rolling-regeneration", authenticateToken, async (req: AuthenticatedRequest, res) => {
+    try {
+      const userId = req.user?.id;
+      if (!userId) {
+        return res.status(401).json({ error: 'Not authenticated' });
+      }
+
+      const feedback = req.body?.feedback || {};
+      const availableDays = Array.isArray(feedback.availableDays) ? feedback.availableDays : [];
+
+      if (availableDays.length === 0) {
+        return res.status(400).json({ error: 'availableDays is required' });
+      }
+
+      const user = await storage.getUser(userId);
+      if (!user) {
+        return res.status(404).json({ error: 'User not found' });
+      }
+
+      const normalizeDay = (day: string) => day.toLowerCase().trim();
+      const dayNameToIndex: Record<string, number> = {
+        sun: 0,
+        sunday: 0,
+        mon: 1,
+        monday: 1,
+        tue: 2,
+        tuesday: 2,
+        wed: 3,
+        wednesday: 3,
+        thu: 4,
+        thursday: 4,
+        fri: 5,
+        friday: 5,
+        sat: 6,
+        saturday: 6,
+      };
+
+      const normalizedDays = availableDays.map((day: string) => normalizeDay(String(day)));
+      const gymDaysAvailable = normalizedDays
+        .map(day => dayNameToIndex[day])
+        .filter((day) => typeof day === 'number');
+
+      let onboardingResponses: any = {};
+      if (user.onboardingResponses) {
+        try {
+          onboardingResponses = typeof user.onboardingResponses === 'string'
+            ? JSON.parse(user.onboardingResponses)
+            : user.onboardingResponses;
+        } catch (e) {
+          console.log('⚠️ [ROLLING] Could not parse onboardingResponses');
+        }
+      }
+
+      const existingAdvanced = onboardingResponses?.advancedQuestionnaire || {};
+      const feedbackSummary = `Rolling regeneration feedback:\n- Went well: ${feedback.wentWell || 'N/A'}\n- Didn\'t go well: ${feedback.didntGoWell || 'N/A'}\n- Improvements: ${feedback.improvements || 'N/A'}\n- Intensity: ${feedback.intensityPreference || 'same'}`;
+
+      const updatedAdvancedQuestionnaire = {
+        ...existingAdvanced,
+        gymDaysAvailable: gymDaysAvailable.length > 0 ? gymDaysAvailable : existingAdvanced.gymDaysAvailable,
+        additionalInfo: existingAdvanced.additionalInfo
+          ? `${existingAdvanced.additionalInfo}\n\n${feedbackSummary}`
+          : feedbackSummary,
+      };
+
+      const updatedOnboardingResponses = {
+        ...onboardingResponses,
+        advancedQuestionnaire: updatedAdvancedQuestionnaire,
+        rollingRegeneration: {
+          ...feedback,
+          submittedAt: new Date().toISOString(),
+        },
+      };
+
+      await storage.updateUser(userId, {
+        preferredTrainingDays: JSON.stringify(normalizedDays),
+        trainingDaysPerWeek: normalizedDays.length,
+        onboardingResponses: JSON.stringify(updatedOnboardingResponses),
+        lastWorkoutGenerated: new Date(),
+      });
+
+      const getWeekStart = (baseDate: Date) => {
+        const day = baseDate.getDay();
+        const mondayOffset = day === 0 ? -6 : 1 - day;
+        const monday = new Date(baseDate);
+        monday.setDate(baseDate.getDate() + mondayOffset);
+        monday.setHours(0, 0, 0, 0);
+        return monday;
+      };
+
+      const getWeekDates = (weekStart: Date) => {
+        const dates: string[] = [];
+        for (let i = 0; i < 7; i++) {
+          const date = new Date(weekStart);
+          date.setDate(weekStart.getDate() + i);
+          dates.push(date.toISOString().split('T')[0]);
+        }
+        return dates;
+      };
+
+      const currentWeekStart = getWeekStart(new Date());
+      const nextWeekStart = new Date(currentWeekStart);
+      nextWeekStart.setDate(currentWeekStart.getDate() + 7);
+
+      const regenerationDates = [...getWeekDates(currentWeekStart), ...getWeekDates(nextWeekStart)];
+      const existingDays = await storage.getWorkoutDays(userId);
+
+      for (const day of existingDays.filter(d => regenerationDates.includes(d.date))) {
+        await storage.deleteWorkoutDay(day.id);
+      }
+
+      const userProfile = {
+        fitnessGoals: user.focusAreas ?
+          (typeof user.focusAreas === 'string' ? JSON.parse(user.focusAreas) : user.focusAreas) :
+          [user.goal || 'general'],
+        goal: user.goal || 'general',
+        experience: user.experience || 'intermediate',
+        trainingType: user.trainingType || 'strength',
+        sessionDuration: user.sessionDurationPreference || 45,
+        trainingDays: normalizedDays.length || user.trainingDaysPerWeek || 3,
+        equipment: user.equipmentAccess ?
+          (typeof user.equipmentAccess === 'string' ? JSON.parse(user.equipmentAccess) : user.equipmentAccess) :
+          ['bodyweight'],
+        injuries: user.injuries ?
+          (typeof user.injuries === 'string' ? JSON.parse(user.injuries) : user.injuries) :
+          [],
+        userId: user.id,
+        preferredTrainingDays: normalizedDays,
+        advancedQuestionnaire: updatedAdvancedQuestionnaire,
+      };
+
+      await generateWeekWorkouts(userId, userProfile, 1, currentWeekStart);
+      await generateWeekWorkouts(userId, userProfile, 2, nextWeekStart);
+
+      return res.status(200).json({
+        success: true,
+        message: 'Rolling regeneration completed',
+        regeneratedDates: regenerationDates,
+      });
+    } catch (error: any) {
+      console.error('❌ [ROLLING] Regeneration error:', error);
+      return res.status(500).json({
+        error: 'Failed to regenerate workouts',
+        message: error.message,
+      });
+    }
+  });
+
 
   // Exercise swap endpoint for Edit Workout feature
   app.post("/api/workouts/swap-exercise", async (req, res) => {
