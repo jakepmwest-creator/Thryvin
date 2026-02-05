@@ -12,6 +12,9 @@ interface UserProfile {
   trainingDays?: string | number;
   equipment?: string[];
   injuries?: string[];
+  userId?: number;
+  preferredTrainingDays?: number[] | string[]; // Day indices (0-6) or names ('mon', 'tue', etc.)
+  advancedQuestionnaire?: any;
 }
 
 export async function generateWeekWorkouts(userId: number, userProfile: UserProfile, weekNumber: number = 1) {
