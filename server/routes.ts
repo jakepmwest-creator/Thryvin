@@ -2762,9 +2762,14 @@ Respond with ONLY a JSON object (no markdown, no explanation):
           : 0;
         const todayMaxWeight = Math.max(...data.sets.map((s: any) => s.weight || 0));
         
+        // Find the reps at max weight (for the set with the highest weight)
+        const maxWeightSet = data.sets.find((s: any) => s.weight === todayMaxWeight);
+        const repsAtMax = maxWeightSet?.reps || 0;
+        
         exercisesWithComparison.push({
           ...data,
           todayMax: todayMaxWeight,
+          repsAtMax, // Include reps at max weight
           previousMax: previousMaxWeight,
           isPR: todayMaxWeight > previousMaxWeight && previousMaxWeight > 0,
           improvement: previousMaxWeight > 0 ? ((todayMaxWeight - previousMaxWeight) / previousMaxWeight * 100).toFixed(1) : null,
