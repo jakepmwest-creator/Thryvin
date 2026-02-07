@@ -198,11 +198,20 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Bypass-Tunnel-Reminder': 'true',
+          'Accept': 'application/json',
         },
         body: JSON.stringify(credentials),
       });
 
-      const data = await response.json();
+      const responseText = await response.text();
+      let data: any;
+      try {
+        data = JSON.parse(responseText);
+      } catch (parseError) {
+        console.error('Login response was not JSON:', responseText.substring(0, 120));
+        throw new Error('Server returned an invalid response. Please try again.');
+      }
 
       if (!response.ok) {
         throw new Error(data.error || 'Invalid email or password');
