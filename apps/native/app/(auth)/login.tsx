@@ -43,8 +43,12 @@ export default function LoginScreen() {
   const router = useRouter();
   const { login, isLoading, error } = useAuthStore();
   const rawApiBaseUrl = process.env.EXPO_PUBLIC_API_BASE_URL || 'Not set';
-  const normalizedBase = rawApiBaseUrl.replace(/\/+$/, '');
-  const displayApiUrl = normalizedBase.endsWith('/api') ? normalizedBase : `${normalizedBase}/api`;
+  const normalizedBase = rawApiBaseUrl === 'Not set'
+    ? rawApiBaseUrl
+    : rawApiBaseUrl.replace(/\/+$/, '');
+  const displayApiUrl = normalizedBase === 'Not set'
+    ? normalizedBase
+    : (normalizedBase.endsWith('/api') ? normalizedBase : `${normalizedBase}/api`);
   
   const [showLoginForm, setShowLoginForm] = useState(false);
   const [email, setEmail] = useState('');
