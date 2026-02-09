@@ -36,6 +36,8 @@ export default {
     },
     extra: {
       openaiApiKey: process.env.EXPO_PUBLIC_OPENAI_API_KEY,
+      EXPO_PUBLIC_API_BASE_URL: process.env.EXPO_PUBLIC_API_BASE_URL,
+      EXPO_PUBLIC_REVENUECAT_API_KEY: process.env.EXPO_PUBLIC_REVENUECAT_API_KEY,
     },
   },
 };
