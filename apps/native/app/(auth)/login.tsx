@@ -25,7 +25,7 @@ import { CustomAlert } from '../../src/components/CustomAlert';
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 import { COLORS as THEME_COLORS } from '../../src/constants/colors';
-import { getApiBaseUrl } from '../../src/services/env';
+import { getApiBaseUrlInfo } from '../../src/services/env';
 
 const COLORS = {
   accent: THEME_COLORS.gradientStart,
@@ -43,7 +43,8 @@ const COLORS = {
 export default function LoginScreen() {
   const router = useRouter();
   const { login, isLoading, error } = useAuthStore();
-  const rawApiBaseUrl = getApiBaseUrl() || 'Not set';
+  const apiBaseInfo = getApiBaseUrlInfo();
+  const rawApiBaseUrl = apiBaseInfo.value || 'Not set';
   const normalizedBase = rawApiBaseUrl === 'Not set'
     ? rawApiBaseUrl
     : rawApiBaseUrl.replace(/\/+$/, '');
@@ -340,6 +341,7 @@ export default function LoginScreen() {
             <View style={styles.serverInfo} data-testid="login-api-base-url">
               <Text style={styles.serverLabel}>Server:</Text>
               <Text style={styles.serverValue}>{displayApiUrl}</Text>
+              <Text style={styles.serverSource}>Source: {apiBaseInfo.source}</Text>
             </View>
           </Animated.View>
           </ScrollView>
