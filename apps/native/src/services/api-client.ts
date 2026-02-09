@@ -11,7 +11,19 @@ import * as SecureStore from 'expo-secure-store';
 import { router } from 'expo-router';
 import { Alert } from 'react-native';
 
-const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL;
+const RAW_API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL;
+const normalizeBaseUrl = (value?: string) => (value || '').replace(/\/+$/, '');
+const BASE_URL = normalizeBaseUrl(RAW_API_BASE_URL);
+const BASE_NO_API = BASE_URL.endsWith('/api') ? BASE_URL.slice(0, -4) : BASE_URL;
+
+export const buildApiUrl = (endpoint: string) => {
+  const path = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
+  if (!BASE_NO_API) return path;
+  if (path.startsWith('/api/')) {
+    return `${BASE_NO_API}${path}`;
+  }
+  return `${BASE_NO_API}/api${path}`;
+};
 
 // Token storage key
 const TOKEN_KEY = 'thryvin_access_token';
