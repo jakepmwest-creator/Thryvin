@@ -378,7 +378,7 @@ export interface DiagnosticsInfo {
 export async function getDiagnosticsInfo(): Promise<DiagnosticsInfo> {
   const tokenPresent = await hasToken();
   return {
-    apiBaseUrl: API_BASE_URL,
+    apiBaseUrl: BASE_NO_API,
     tokenPresent,
     recentErrors,
   };
