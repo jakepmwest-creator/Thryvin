@@ -261,7 +261,7 @@ export interface RegisterResponse {
  * Login and store token
  */
 export async function login(email: string, password: string): Promise<{ ok: boolean; user?: any; error?: string }> {
-  const result = await post<LoginResponse>('/api/auth/login', { email, password });
+  const result = await post<LoginResponse>('/auth/login', { email, password });
   
   if (result.ok && result.data?.accessToken) {
     await storeToken(result.data.accessToken);
@@ -275,7 +275,7 @@ export async function login(email: string, password: string): Promise<{ ok: bool
  * Register and store token
  */
 export async function register(userData: any): Promise<{ ok: boolean; user?: any; error?: string }> {
-  const result = await post<RegisterResponse>('/api/auth/register', userData);
+  const result = await post<RegisterResponse>('/auth/register', userData);
   
   if (result.ok && result.data?.accessToken) {
     await storeToken(result.data.accessToken);
