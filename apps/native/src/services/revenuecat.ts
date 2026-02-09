@@ -1,6 +1,7 @@
 import { CustomerInfo } from 'react-native-purchases';
+import { getRevenueCatKey } from './env';
 
-export const REVENUECAT_API_KEY = process.env.EXPO_PUBLIC_REVENUECAT_API_KEY;
+export const REVENUECAT_API_KEY = getRevenueCatKey();
 export const THRYVIN_PRO_ENTITLEMENT = "Thryvin' Pro";
 
 export const isThryvinProActive = (customerInfo?: CustomerInfo | null) => {
