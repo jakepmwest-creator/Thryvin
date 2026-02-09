@@ -639,6 +639,11 @@ const styles = StyleSheet.create({
     fontSize: 11,
     color: COLORS.mediumGray,
   },
+  serverSource: {
+    fontSize: 10,
+    color: COLORS.mediumGray,
+    marginTop: 2,
+  },
   quickLoginTitle: { fontSize: 14, fontWeight: '600', color: COLORS.text, marginBottom: 12 },
   quickLoginButtons: { flexDirection: 'row', gap: 16 },
   quickLoginButton: { 
