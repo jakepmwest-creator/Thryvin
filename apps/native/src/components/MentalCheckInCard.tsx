@@ -13,6 +13,7 @@ import {
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { useCoachStore } from '../stores/coach-store';
+import { getApiBaseUrl } from '../services/env';
 
 const COLORS = {
   accent: '#A22BF6',
@@ -25,7 +26,7 @@ const COLORS = {
   warmOrange: '#FF9500',
 };
 
-const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL;
+const API_BASE_URL = getApiBaseUrl();
 
 export interface MentalCheckIn {
   id: string;

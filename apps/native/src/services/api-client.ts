@@ -10,8 +10,9 @@
 import * as SecureStore from 'expo-secure-store';
 import { router } from 'expo-router';
 import { Alert } from 'react-native';
+import { getApiBaseUrl } from './env';
 
-const RAW_API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL;
+const RAW_API_BASE_URL = getApiBaseUrl();
 const normalizeBaseUrl = (value?: string) => (value || '').replace(/\/+$/, '');
 const BASE_URL = normalizeBaseUrl(RAW_API_BASE_URL);
 const BASE_NO_API = BASE_URL.endsWith('/api') ? BASE_URL.slice(0, -4) : BASE_URL;

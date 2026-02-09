@@ -25,10 +25,11 @@ import {
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import * as SecureStore from 'expo-secure-store';
+import { getApiBaseUrl } from '../services/env';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
-const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL;
+const API_BASE_URL = getApiBaseUrl();
 
 const COLORS = {
   primary: '#A22BF6',

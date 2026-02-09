@@ -16,8 +16,9 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { router, useLocalSearchParams } from 'expo-router';
 import { COLORS } from '../../src/constants/colors';
+import { getApiBaseUrl } from '../../src/services/env';
 
-const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL;
+const API_BASE_URL = getApiBaseUrl();
 
 export default function ResetPasswordScreen() {
   const params = useLocalSearchParams();

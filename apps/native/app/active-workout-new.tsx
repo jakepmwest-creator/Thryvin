@@ -14,9 +14,10 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { ExerciseVideoPlayer, isValidVideoUrl } from '../src/components/ExerciseVideoPlayer';
 import { CustomAlert } from '../src/components/CustomAlert';
+import { getApiBaseUrl } from '../src/services/env';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
-const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL;
+const API_BASE_URL = getApiBaseUrl();
 
 const COLORS = {
   accent: '#a259ff',

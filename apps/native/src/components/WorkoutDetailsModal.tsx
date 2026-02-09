@@ -23,9 +23,10 @@ import { useSubscriptionStore } from '../stores/subscription-store';
 import { ProPaywallModal } from './ProPaywallModal';
 import { ExternalActivityModal, ExternalActivityLog } from './ExternalActivityModal';
 import { ExerciseStatsModal } from './ExerciseStatsModal';
+import { getApiBaseUrl } from '../services/env';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
-const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL;
+const API_BASE_URL = getApiBaseUrl();
 
 const COLORS = {
   primary: '#A22BF6',

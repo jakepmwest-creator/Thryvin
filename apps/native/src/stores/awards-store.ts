@@ -1,8 +1,9 @@
 import { create } from 'zustand';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { getApiBaseUrl } from '../services/env';
 
 // API Base URL
-const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL;
+const API_BASE_URL = getApiBaseUrl();
 
 // ============ ISLAND TIER SYSTEM ============
 export interface Island {

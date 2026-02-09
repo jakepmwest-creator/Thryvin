@@ -42,6 +42,7 @@ import { CoachNudgeCard } from '../../src/components/CoachNudgeCard';
 import { useCoachNudges } from '../../src/hooks/useCoachNudges';
 import { ViewAllWeeksModal } from '../../src/components/ViewAllWeeksModal';
 import { EditPlanScreen } from '../../src/components/EditPlanScreen';
+import { getApiBaseUrl } from '../../src/services/env';
 
 // Activity cards with vibrant gradients
 const ACTIVITY_CARDS = [
@@ -487,7 +488,7 @@ export default function HomeScreen() {
 
   useEffect(() => {
     console.log('📱 [HOME] App starting...');
-    console.log('📱 [HOME] EXPO_PUBLIC_API_BASE_URL:', process.env.EXPO_PUBLIC_API_BASE_URL);
+    console.log('📱 [HOME] EXPO_PUBLIC_API_BASE_URL:', getApiBaseUrl());
     loadAllData();
   }, []);
   

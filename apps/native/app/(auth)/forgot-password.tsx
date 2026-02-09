@@ -16,8 +16,9 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { CustomAlert } from '../../src/components/CustomAlert';
+import { getApiBaseUrl } from '../../src/services/env';
 
-const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL;
+const API_BASE_URL = getApiBaseUrl();
 
 const COLORS = {
   accent: '#a259ff',

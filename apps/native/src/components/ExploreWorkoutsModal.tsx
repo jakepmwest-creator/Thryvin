@@ -13,9 +13,10 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { PreviewVideoPlayer, isValidVideoUrl } from './ExerciseVideoPlayer';
 import { usePreferencesStore } from '../stores/preferences-store';
+import { getApiBaseUrl } from '../services/env';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
-const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL;
+const API_BASE_URL = getApiBaseUrl();
 
 const COLORS = {
   accent: '#A22BF6',

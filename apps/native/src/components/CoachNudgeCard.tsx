@@ -16,6 +16,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useCoachStore } from '../stores/coach-store';
 import { useAuthStore } from '../stores/auth-store';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { getApiBaseUrl } from '../services/env';
 
 const COLORS = {
   accent: '#A22BF6',
@@ -29,7 +30,7 @@ const COLORS = {
   cardBg: '#FFFFFF',
 };
 
-const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL;
+const API_BASE_URL = getApiBaseUrl();
 
 // Session storage key for nudge tracking
 const NUDGE_SESSION_KEY = '@coach_nudge_session';

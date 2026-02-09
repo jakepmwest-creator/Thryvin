@@ -25,6 +25,7 @@ import { CustomAlert } from '../../src/components/CustomAlert';
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 import { COLORS as THEME_COLORS } from '../../src/constants/colors';
+import { getApiBaseUrl } from '../../src/services/env';
 
 const COLORS = {
   accent: THEME_COLORS.gradientStart,
@@ -42,7 +43,7 @@ const COLORS = {
 export default function LoginScreen() {
   const router = useRouter();
   const { login, isLoading, error } = useAuthStore();
-  const rawApiBaseUrl = process.env.EXPO_PUBLIC_API_BASE_URL || 'Not set';
+  const rawApiBaseUrl = getApiBaseUrl() || 'Not set';
   const normalizedBase = rawApiBaseUrl === 'Not set'
     ? rawApiBaseUrl
     : rawApiBaseUrl.replace(/\/+$/, '');

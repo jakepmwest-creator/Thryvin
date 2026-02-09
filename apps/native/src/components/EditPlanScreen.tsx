@@ -25,6 +25,7 @@ import { Audio } from 'expo-av';
 import { useWorkoutStore, toLocalDateKey, getMondayOfWeek, findWorkoutByDate, findWorkoutIndexByDate } from '../stores/workout-store';
 import { useAuthStore } from '../stores/auth-store';
 import { COLORS as THEME_COLORS } from '../constants/colors';
+import { getApiBaseUrl } from '../services/env';
 
 const COLORS = {
   accent: THEME_COLORS.gradientStart,
@@ -36,7 +37,7 @@ const COLORS = {
   success: THEME_COLORS.success,
 };
 
-const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL;
+const API_BASE_URL = getApiBaseUrl();
 const DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
 interface EditAction {

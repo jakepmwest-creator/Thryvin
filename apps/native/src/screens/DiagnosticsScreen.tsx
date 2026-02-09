@@ -27,8 +27,9 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { COLORS } from '../constants/colors';
 import * as api from '../services/api-client';
+import { getApiBaseUrl } from '../services/env';
 
-const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL;
+const API_BASE_URL = getApiBaseUrl();
 
 interface HealthResponse {
   ok: boolean;

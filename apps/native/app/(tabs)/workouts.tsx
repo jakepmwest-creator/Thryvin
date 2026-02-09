@@ -24,6 +24,7 @@ import { EditPlanScreen } from '../../src/components/EditPlanScreen';
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 import { COLORS, CARD_SHADOW } from '../../src/constants/colors';
+import { getApiBaseUrl } from '../../src/services/env';
 
 const EXTRA_COLORS = {
   shadow: COLORS.cardShadow,
@@ -72,7 +73,7 @@ const getCurrentMonthData = () => {
 
 const MONTH_DATA = getCurrentMonthData();
 
-const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL;
+const API_BASE_URL = getApiBaseUrl();
 
 // Updated categories: Weights, Calisthenics, Cardio, Flexibility
 const DEFAULT_CATEGORIES = [

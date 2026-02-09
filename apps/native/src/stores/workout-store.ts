@@ -1,8 +1,9 @@
 import { create } from 'zustand';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useAwardsStore } from './awards-store';
+import { getApiBaseUrl } from '../services/env';
 
-const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL;
+const API_BASE_URL = getApiBaseUrl();
 
 // ========================================================================
 // CANONICAL DATE UTILITIES - Use these EVERYWHERE for consistency

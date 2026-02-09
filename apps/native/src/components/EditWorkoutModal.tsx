@@ -11,6 +11,7 @@ import {
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { isValidVideoUrl } from './ExerciseVideoPlayer';
+import { getApiBaseUrl } from '../services/env';
 
 const COLORS = {
   primary: '#A22BF6',
@@ -118,7 +119,7 @@ const AlternativeCard: React.FC<AlternativeCardProps> = ({
   );
 };
 
-const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL;
+const API_BASE_URL = getApiBaseUrl();
 
 export function EditWorkoutModal({
   visible,

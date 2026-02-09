@@ -19,6 +19,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import * as SecureStore from 'expo-secure-store';
 import { COLORS as THEME_COLORS } from '../src/constants/colors';
+import { getApiBaseUrl } from '../src/services/env';
 
 const { width } = Dimensions.get('window');
 
@@ -35,7 +36,7 @@ const COLORS = {
   successGradientEnd: '#2DB54D',
 };
 
-const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL;
+const API_BASE_URL = getApiBaseUrl();
 
 interface ExerciseSummary {
   exerciseId: string;

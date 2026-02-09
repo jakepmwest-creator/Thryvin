@@ -28,6 +28,7 @@ import { InlineSuggestedActions, WORKOUT_TYPE_SUGGESTIONS, GENERAL_SUGGESTIONS, 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 import { COLORS as THEME_COLORS } from '../constants/colors';
+import { getApiBaseUrl } from '../services/env';
 
 const COLORS = {
   accent: THEME_COLORS.gradientStart, // #A22BF6
@@ -42,7 +43,7 @@ const BUTTON_SIZE = 60;
 const EDGE_PADDING = 20;
 
 // Use backend API instead of direct OpenAI calls
-const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL;
+const API_BASE_URL = getApiBaseUrl();
 
 // Helper to make authenticated API calls
 const makeAuthenticatedRequest = async (

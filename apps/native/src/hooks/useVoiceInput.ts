@@ -1,8 +1,9 @@
 import { useState, useRef, useCallback } from 'react';
 import { Audio } from 'expo-av';
 import { Alert, Platform } from 'react-native';
+import { getApiBaseUrl } from '../services/env';
 
-const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL;
+const API_BASE_URL = getApiBaseUrl();
 
 interface UseVoiceInputOptions {
   onTranscription?: (text: string) => void;

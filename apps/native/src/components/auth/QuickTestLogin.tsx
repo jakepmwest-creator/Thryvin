@@ -21,8 +21,9 @@ import { useRouter } from 'expo-router';
 import { COLORS } from '../../constants/colors';
 import { storeToken } from '../../services/api-client';
 import { useAuthStore } from '../../stores/auth-store';
+import { getApiBaseUrl } from '../../services/env';
 
-const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL;
+const API_BASE_URL = getApiBaseUrl();
 
 // Check if test login should be visible
 const isTestLoginEnabled = () => {

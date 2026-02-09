@@ -5,8 +5,9 @@ import { notificationService } from '../services/notificationService';
 import { useWorkoutStore } from './workout-store';
 import { useAwardsStore } from './awards-store';
 import { storeToken, clearToken, getToken, buildApiUrl } from '../services/api-client';
+import { getApiBaseUrl } from '../services/env';
 
-const RAW_API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL;
+const RAW_API_BASE_URL = getApiBaseUrl();
 
 // Storage helpers - Use AsyncStorage for large data (user profiles can be >2KB)
 // Only use SecureStore for small secrets (email, password, tokens)

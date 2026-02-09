@@ -16,6 +16,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { AppHeader } from '../../src/components/AppHeader';
+import { getApiBaseUrl } from '../../src/services/env';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -28,7 +29,7 @@ const COLORS = {
   mediumGray: '#8E8E93',
 };
 
-const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL;
+const API_BASE_URL = getApiBaseUrl();
 
 // BeReal-style reactions
 const REACTION_TYPES = [

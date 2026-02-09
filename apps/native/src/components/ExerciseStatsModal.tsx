@@ -25,6 +25,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import * as SecureStore from 'expo-secure-store';
 import { COLORS as THEME_COLORS } from '../constants/colors';
+import { getApiBaseUrl } from '../services/env';
 
 const { width, height } = Dimensions.get('window');
 
@@ -57,7 +58,7 @@ const COLORS = {
   chartLast: '#EC4899',
 };
 
-const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL;
+const API_BASE_URL = getApiBaseUrl();
 
 interface ExerciseStatsModalProps {
   visible: boolean;

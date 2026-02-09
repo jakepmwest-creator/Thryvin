@@ -34,10 +34,11 @@ import { useAuthStore } from '../src/stores/auth-store';
 import { useCoachStore } from '../src/stores/coach-store';
 import { useSubscriptionStore } from '../src/stores/subscription-store';
 import { ProPaywallModal } from '../src/components/ProPaywallModal';
+import { getApiBaseUrl } from '../src/services/env';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
-const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL;
+const API_BASE_URL = getApiBaseUrl();
 
 type TabType = 'warmup' | 'workout' | 'recovery';
 

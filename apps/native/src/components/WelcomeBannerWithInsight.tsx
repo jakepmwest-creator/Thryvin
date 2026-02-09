@@ -16,6 +16,7 @@ import { useCoachStore } from '../stores/coach-store';
 import { useAuthStore } from '../stores/auth-store';
 import { useWorkoutStore } from '../stores/workout-store';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { getApiBaseUrl } from '../services/env';
 
 const COLORS = {
   accent: '#A22BF6',
@@ -26,7 +27,7 @@ const COLORS = {
   text: '#222222',
 };
 
-const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL;
+const API_BASE_URL = getApiBaseUrl();
 
 export type InsightAction = 'start_workout' | 'swap_day' | 'ask_coach' | 'edit_workout' | 'view_stats' | 'rest_day' | 'none';
 

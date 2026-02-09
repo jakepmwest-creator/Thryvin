@@ -16,6 +16,7 @@ import { Ionicons } from '@expo/vector-icons';
 import * as SecureStore from 'expo-secure-store';
 import { useFocusEffect } from '@react-navigation/native';
 import { COLORS as THEME_COLORS } from '../constants/colors';
+import { getApiBaseUrl } from '../services/env';
 
 const COLORS = {
   accent: THEME_COLORS.gradientStart,
@@ -27,7 +28,7 @@ const COLORS = {
   success: THEME_COLORS.success,
 };
 
-const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL;
+const API_BASE_URL = getApiBaseUrl();
 
 interface FavoriteExercise {
   exerciseId: string;

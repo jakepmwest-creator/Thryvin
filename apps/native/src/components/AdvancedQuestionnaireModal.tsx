@@ -18,6 +18,7 @@ import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useAuthStore } from '../stores/auth-store';
 import { Audio } from 'expo-av';
+import { getApiBaseUrl } from '../services/env';
 
 const COLORS = {
   accent: '#A22BF6',
@@ -32,7 +33,7 @@ const COLORS = {
   cardBg: '#FFFFFF',
 };
 
-const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL;
+const API_BASE_URL = getApiBaseUrl();
 
 interface AdvancedQuestionnaireModalProps {
   visible: boolean;
