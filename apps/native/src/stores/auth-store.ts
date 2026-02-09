@@ -188,7 +188,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   login: async (credentials: { email: string; password: string }) => {
     set({ isLoading: true, error: null });
     try {
-      if (!API_BASE_URL) {
+      if (!RAW_API_BASE_URL) {
         throw new Error('API base URL is not configured. Please restart the app.');
       }
       // Check if this is a DIFFERENT user logging in
@@ -197,7 +197,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       const previousUserId = storedUser ? JSON.parse(storedUser).id : null;
       
       // Call the real backend API
-      const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
+      const response = await fetch(buildApiUrl('/auth/login'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -213,11 +213,11 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         data = JSON.parse(responseText);
       } catch (parseError) {
         console.error('Login response was not JSON:', responseText.substring(0, 120));
-        throw new Error(`Server returned an invalid response from ${API_BASE_URL}. Please restart the app.`);
+        throw new Error(`Server returned an invalid response from ${buildApiUrl('/auth/login')}. Please restart the app.`);
       }
 
       if (!response.ok) {
-        throw new Error(data.error || `Login failed (${response.status}) from ${API_BASE_URL}`);
+        throw new Error(data.error || `Login failed (${response.status}) from ${buildApiUrl('/auth/login')}`);
       }
 
       // If this is a DIFFERENT user, clear all old data first
@@ -294,7 +294,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   register: async (userData: any) => {
     set({ isLoading: true, error: null });
     try {
-      if (!API_BASE_URL) {
+      if (!RAW_API_BASE_URL) {
         throw new Error('API base URL is not configured. Please restart the app.');
       }
       // CRITICAL: Clear ALL local data FIRST for a completely fresh experience
@@ -302,7 +302,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       await clearAllLocalData();
       
       // Call the real backend API
-      const response = await fetch(`${API_BASE_URL}/api/auth/register`, {
+      const response = await fetch(buildApiUrl('/auth/register'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -320,11 +320,11 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         data = JSON.parse(responseText);
       } catch (parseError) {
         console.error('Failed to parse response:', responseText.substring(0, 100));
-        throw new Error(`Server returned an invalid response from ${API_BASE_URL}. Please restart the app.`);
+        throw new Error(`Server returned an invalid response from ${buildApiUrl('/auth/register')}. Please restart the app.`);
       }
 
       if (!response.ok) {
-        throw new Error(data.error || `Registration failed (${response.status}) from ${API_BASE_URL}`);
+        throw new Error(data.error || `Registration failed (${response.status}) from ${buildApiUrl('/auth/register')}`);
       }
 
       // Backend returns user data on successful registration
