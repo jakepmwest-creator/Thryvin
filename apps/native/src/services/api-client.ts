@@ -115,7 +115,7 @@ export async function apiRequest<T = any>(
   endpoint: string,
   options: RequestInit = {}
 ): Promise<{ ok: boolean; data?: T; error?: string; status: number }> {
-  if (!API_BASE_URL) {
+  if (!BASE_NO_API) {
     return {
       ok: false,
       error: 'API base URL is not configured. Please restart the app.',
@@ -135,7 +135,7 @@ export async function apiRequest<T = any>(
     (headers as Record<string, string>)['Authorization'] = `Bearer ${token}`;
   }
   
-  const url = `${API_BASE_URL}${endpoint}`;
+  const url = buildApiUrl(endpoint);
   
   try {
     console.log(`[API] ${options.method || 'GET'} ${endpoint}`);
