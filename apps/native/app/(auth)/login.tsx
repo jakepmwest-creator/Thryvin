@@ -42,7 +42,9 @@ const COLORS = {
 export default function LoginScreen() {
   const router = useRouter();
   const { login, isLoading, error } = useAuthStore();
-  const apiBaseUrl = process.env.EXPO_PUBLIC_API_BASE_URL || 'Not set';
+  const rawApiBaseUrl = process.env.EXPO_PUBLIC_API_BASE_URL || 'Not set';
+  const normalizedBase = rawApiBaseUrl.replace(/\/+$/, '');
+  const displayApiUrl = normalizedBase.endsWith('/api') ? normalizedBase : `${normalizedBase}/api`;
   
   const [showLoginForm, setShowLoginForm] = useState(false);
   const [email, setEmail] = useState('');
@@ -332,7 +334,7 @@ export default function LoginScreen() {
               </View>
             <View style={styles.serverInfo} data-testid="login-api-base-url">
               <Text style={styles.serverLabel}>Server:</Text>
-              <Text style={styles.serverValue}>{apiBaseUrl}</Text>
+              <Text style={styles.serverValue}>{displayApiUrl}</Text>
             </View>
           </Animated.View>
           </ScrollView>
