@@ -4,9 +4,9 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { notificationService } from '../services/notificationService';
 import { useWorkoutStore } from './workout-store';
 import { useAwardsStore } from './awards-store';
-import { storeToken, clearToken, getToken } from '../services/api-client';
+import { storeToken, clearToken, getToken, buildApiUrl } from '../services/api-client';
 
-const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL;
+const RAW_API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL;
 
 // Storage helpers - Use AsyncStorage for large data (user profiles can be >2KB)
 // Only use SecureStore for small secrets (email, password, tokens)
