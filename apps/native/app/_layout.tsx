@@ -5,11 +5,13 @@ import { Provider as PaperProvider } from 'react-native-paper';
 import { FloatingCoachButton } from '../src/components/FloatingCoachButton';
 import { SplashScreen } from '../src/components/SplashScreen';
 import { useAuthStore } from '../src/stores/auth-store';
+import { useSubscriptionStore } from '../src/stores/subscription-store';
 
 export default function RootLayout() {
   const segments = useSegments();
   const pathname = usePathname();
   const user = useAuthStore((state) => state.user);
+  const initializeSubscriptions = useSubscriptionStore((state) => state.initialize);
   const [showSplash, setShowSplash] = useState(true);
   
   // Show coach button only when user is logged in AND not in auth flow
@@ -24,6 +26,10 @@ export default function RootLayout() {
   const handleSplashComplete = () => {
     setShowSplash(false);
   };
+
+  useEffect(() => {
+    initializeSubscriptions(user?.id ? String(user.id) : null);
+  }, [user?.id, initializeSubscriptions]);
 
   return (
     <SafeAreaProvider>

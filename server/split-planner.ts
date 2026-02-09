@@ -311,6 +311,7 @@ export function generateWeeklyTemplate(input: SplitPlannerInput): WeeklyTemplate
     scheduleFlexibility = true,
     preferredSplit,
     weekNumber = 1,
+    preferredSplitOther,
   } = input;
   
   console.log(`\n📊 [SPLIT PLANNER] Planning ${frequency} gym training days for ${experience} user`);
@@ -322,11 +323,23 @@ export function generateWeeklyTemplate(input: SplitPlannerInput): WeeklyTemplate
   let splitDays: SplitDay[];
   let splitName: string;
   
+  const normalizedPreferredOther = (preferredSplitOther || '').toLowerCase();
+  const resolvedPreferredSplit = (() => {
+    if (preferredSplit && preferredSplit !== 'coach_choice') return preferredSplit;
+    if (!normalizedPreferredOther) return null;
+    if (normalizedPreferredOther.includes('bro')) return 'bro_split';
+    if (normalizedPreferredOther.includes('push pull legs') || normalizedPreferredOther.includes('ppl')) return 'push_pull_legs';
+    if (normalizedPreferredOther.includes('upper lower full')) return 'upper_lower_full';
+    if (normalizedPreferredOther.includes('upper lower')) return 'upper_lower';
+    if (normalizedPreferredOther.includes('full body')) return 'full_body';
+    return null;
+  })();
+
   // Check if user has preferred split
-  if (preferredSplit && preferredSplit !== 'coach_choice' && PREFERRED_SPLIT_TEMPLATES[preferredSplit]) {
-    const template = PREFERRED_SPLIT_TEMPLATES[preferredSplit];
+  if (resolvedPreferredSplit && PREFERRED_SPLIT_TEMPLATES[resolvedPreferredSplit]) {
+    const template = PREFERRED_SPLIT_TEMPLATES[resolvedPreferredSplit];
     splitDays = [];
-    splitName = preferredSplit;
+    splitName = resolvedPreferredSplit;
     
     // Expand template to match frequency
     while (splitDays.length < frequency) {
@@ -351,8 +364,10 @@ export function generateWeeklyTemplate(input: SplitPlannerInput): WeeklyTemplate
     }
   }
   
-  // Apply weekly variety rotation
-  splitDays = rotateSplitForVariety(splitDays, weekNumber);
+  // Apply weekly variety rotation ONLY if schedule is flexible
+  if (scheduleFlexibility !== false) {
+    splitDays = rotateSplitForVariety(splitDays, weekNumber);
+  }
   
   console.log(`  📋 Split: ${splitName}`);
   console.log(`  📅 Training days: ${splitDays.map(d => d.focus).join(' → ')}`);

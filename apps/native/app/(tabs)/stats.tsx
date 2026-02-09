@@ -16,6 +16,8 @@ import Svg, { Circle } from 'react-native-svg';
 import { AppHeader } from '../../src/components/AppHeader';
 import { useAuthStore } from '../../src/stores/auth-store';
 import { useWorkoutStore } from '../../src/stores/workout-store';
+import { useSubscriptionStore } from '../../src/stores/subscription-store';
+import { ProPaywallModal } from '../../src/components/ProPaywallModal';
 import { FavoriteExercisesCard } from '../../src/components/FavoriteExercisesCard';
 import { ExerciseStatsModal } from '../../src/components/ExerciseStatsModal';
 
@@ -403,6 +405,7 @@ const StatCard = ({
 export default function StatsScreen() {
   const { user } = useAuthStore();
   const { completedWorkouts, weekWorkouts, fetchCompletedWorkouts } = useWorkoutStore();
+  const { isPro } = useSubscriptionStore();
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [activeChart, setActiveChart] = useState<'minutes' | 'calories'>('minutes');
@@ -411,8 +414,13 @@ export default function StatsScreen() {
   // Exercise Stats Modal
   const [showExerciseStats, setShowExerciseStats] = useState(false);
   const [selectedExerciseId, setSelectedExerciseId] = useState<string | undefined>(undefined);
+  const [showProPaywall, setShowProPaywall] = useState(false);
 
   const openExerciseStats = (exerciseId?: string) => {
+    if (!isPro) {
+      setShowProPaywall(true);
+      return;
+    }
     setSelectedExerciseId(exerciseId);
     setShowExerciseStats(true);
   };
@@ -994,6 +1002,11 @@ export default function StatsScreen() {
           setSelectedExerciseId(undefined);
         }}
         initialExerciseId={selectedExerciseId}
+      />
+
+      <ProPaywallModal
+        visible={showProPaywall}
+        onClose={() => setShowProPaywall(false)}
       />
     </SafeAreaView>
   );

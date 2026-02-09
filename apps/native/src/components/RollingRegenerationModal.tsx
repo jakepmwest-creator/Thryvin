@@ -42,11 +42,13 @@ interface RollingRegenerationModalProps {
 }
 
 interface RegenerationFeedback {
-  availableDays: string[];
-  wentWell: string;
-  didntGoWell: string;
-  improvements: string;
-  intensityPreference: 'same' | 'harder' | 'easier';
+  availableDaysWeek1: string[];
+  availableDaysWeek2: string[];
+  overallFeeling: string;
+  favoriteThing: string;
+  leastFavoriteThing: string;
+  changeRequest: string;
+  keepSame: string;
 }
 
 const DAYS = [
@@ -66,43 +68,60 @@ export const RollingRegenerationModal = ({
   currentWeek 
 }: RollingRegenerationModalProps) => {
   const [step, setStep] = useState(0);
+  const [sameSchedule, setSameSchedule] = useState(true);
   const [feedback, setFeedback] = useState<RegenerationFeedback>({
-    availableDays: [],
-    wentWell: '',
-    didntGoWell: '',
-    improvements: '',
-    intensityPreference: 'same',
+    availableDaysWeek1: [],
+    availableDaysWeek2: [],
+    overallFeeling: '',
+    favoriteThing: '',
+    leastFavoriteThing: '',
+    changeRequest: '',
+    keepSame: '',
   });
 
-  const handleDayToggle = (day: string) => {
-    setFeedback(prev => ({
-      ...prev,
-      availableDays: prev.availableDays.includes(day)
-        ? prev.availableDays.filter(d => d !== day)
-        : [...prev.availableDays, day],
-    }));
+  const handleDayToggle = (weekKey: 'week1' | 'week2', day: string) => {
+    setFeedback(prev => {
+      const key = weekKey === 'week1' ? 'availableDaysWeek1' : 'availableDaysWeek2';
+      const nextDays = prev[key].includes(day)
+        ? prev[key].filter(d => d !== day)
+        : [...prev[key], day];
+      const updated = {
+        ...prev,
+        [key]: nextDays,
+      } as RegenerationFeedback;
+      if (sameSchedule && weekKey === 'week1') {
+        updated.availableDaysWeek2 = [...nextDays];
+      }
+      return updated;
+    });
   };
 
   const handleSubmit = () => {
-    onSubmit(feedback);
+    const submission: RegenerationFeedback = {
+      ...feedback,
+      availableDaysWeek2: sameSchedule ? feedback.availableDaysWeek1 : feedback.availableDaysWeek2,
+    };
+    onSubmit(submission);
     onClose();
     // Reset state
     setStep(0);
+    setSameSchedule(true);
     setFeedback({
-      availableDays: [],
-      wentWell: '',
-      didntGoWell: '',
-      improvements: '',
-      intensityPreference: 'same',
+      availableDaysWeek1: [],
+      availableDaysWeek2: [],
+      overallFeeling: '',
+      favoriteThing: '',
+      leastFavoriteThing: '',
+      changeRequest: '',
+      keepSame: '',
     });
   };
 
   const canProceed = () => {
     switch (step) {
-      case 0: return feedback.availableDays.length > 0;
-      case 1: return feedback.wentWell.length > 0;
-      case 2: return true; // Optional
-      case 3: return true; // Optional
+      case 0: return feedback.availableDaysWeek1.length > 0;
+      case 1: return sameSchedule ? true : feedback.availableDaysWeek2.length > 0;
+      case 2: return feedback.overallFeeling.length > 0;
       default: return true;
     }
   };
@@ -112,8 +131,8 @@ export const RollingRegenerationModal = ({
       case 0:
         return (
           <View style={styles.stepContent}>
-            <Text style={styles.stepTitle}>What days work for you next 2 weeks?</Text>
-            <Text style={styles.stepSubtitle}>Select your available training days</Text>
+            <Text style={styles.stepTitle}>Week 1 availability</Text>
+            <Text style={styles.stepSubtitle}>Pick the days you can train next week</Text>
             
             <View style={styles.daysGrid}>
               {DAYS.map(day => (
@@ -121,14 +140,14 @@ export const RollingRegenerationModal = ({
                   key={day.key}
                   style={[
                     styles.dayButton,
-                    feedback.availableDays.includes(day.key) && styles.dayButtonSelected,
+                    feedback.availableDaysWeek1.includes(day.key) && styles.dayButtonSelected,
                   ]}
-                  onPress={() => handleDayToggle(day.key)}
+                  onPress={() => handleDayToggle('week1', day.key)}
                   data-testid={`rolling-regeneration-day-${day.key}`}
                 >
                   <Text style={[
                     styles.dayButtonText,
-                    feedback.availableDays.includes(day.key) && styles.dayButtonTextSelected,
+                    feedback.availableDaysWeek1.includes(day.key) && styles.dayButtonTextSelected,
                   ]}>
                     {day.label}
                   </Text>
@@ -141,93 +160,142 @@ export const RollingRegenerationModal = ({
       case 1:
         return (
           <View style={styles.stepContent}>
-            <Text style={styles.stepTitle}>What went well? 💪</Text>
-            <Text style={styles.stepSubtitle}>Tell us about your wins this week</Text>
-            
-            <TextInput
-              style={styles.textarea}
-              placeholder="e.g., Hit a new bench PR, felt stronger on squats..."
-              placeholderTextColor={COLORS.textMuted}
-              multiline
-              value={feedback.wentWell}
-              onChangeText={(text) => setFeedback(prev => ({ ...prev, wentWell: text }))}
-              data-testid="rolling-regeneration-went-well-input"
-            />
+            <Text style={styles.stepTitle}>Week 2 availability</Text>
+            <Text style={styles.stepSubtitle}>Set your days for the following week</Text>
+
+            <View style={styles.toggleRow}>
+              <Text style={styles.toggleLabel}>Same as week 1</Text>
+              <TouchableOpacity
+                style={[styles.toggleButton, sameSchedule && styles.toggleButtonActive]}
+                onPress={() => {
+                  const nextSame = !sameSchedule;
+                  setSameSchedule(nextSame);
+                  if (nextSame) {
+                    setFeedback(prev => ({
+                      ...prev,
+                      availableDaysWeek2: [...prev.availableDaysWeek1],
+                    }));
+                  }
+                }}
+                data-testid="rolling-regeneration-same-schedule-toggle"
+              >
+                <Text style={[styles.toggleText, sameSchedule && styles.toggleTextActive]}>
+                  {sameSchedule ? 'Yes' : 'No'}
+                </Text>
+              </TouchableOpacity>
+            </View>
+
+            {!sameSchedule && (
+              <View style={styles.daysGrid}>
+                {DAYS.map(day => (
+                  <TouchableOpacity
+                    key={day.key}
+                    style={[
+                      styles.dayButton,
+                      feedback.availableDaysWeek2.includes(day.key) && styles.dayButtonSelected,
+                    ]}
+                    onPress={() => handleDayToggle('week2', day.key)}
+                    data-testid={`rolling-regeneration-week2-day-${day.key}`}
+                  >
+                    <Text style={[
+                      styles.dayButtonText,
+                      feedback.availableDaysWeek2.includes(day.key) && styles.dayButtonTextSelected,
+                    ]}>
+                      {day.label}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            )}
           </View>
         );
 
       case 2:
         return (
           <View style={styles.stepContent}>
-            <Text style={styles.stepTitle}>What didn't go well? 🤔</Text>
-            <Text style={styles.stepSubtitle}>Any struggles or challenges?</Text>
-            
+            <Text style={styles.stepTitle}>Program check‑in</Text>
+            <Text style={styles.stepSubtitle}>Short feedback so we can perfect your plan</Text>
+
+            <Text style={styles.fieldLabel}>How are you finding your program so far?</Text>
+            <View style={styles.quickRow}>
+              {['Loving it', 'Good', 'Okay', 'Too hard', 'Too easy'].map(option => (
+                <TouchableOpacity
+                  key={option}
+                  style={styles.quickChip}
+                  onPress={() => setFeedback(prev => ({ ...prev, overallFeeling: option }))}
+                  data-testid={`rolling-regeneration-feeling-${option.replace(/\s+/g, '-').toLowerCase()}`}
+                >
+                  <Text style={styles.quickChipText}>{option}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
             <TextInput
               style={styles.textarea}
-              placeholder="e.g., Shoulder felt tight, skipped leg day..."
+              placeholder="Add any extra detail (optional)"
               placeholderTextColor={COLORS.textMuted}
               multiline
-              value={feedback.didntGoWell}
-              onChangeText={(text) => setFeedback(prev => ({ ...prev, didntGoWell: text }))}
-              data-testid="rolling-regeneration-didnt-go-well-input"
+              value={feedback.overallFeeling}
+              onChangeText={(text) => setFeedback(prev => ({ ...prev, overallFeeling: text }))}
+              data-testid="rolling-regeneration-overall-feeling-input"
             />
-          </View>
-        );
 
-      case 3:
-        return (
-          <View style={styles.stepContent}>
-            <Text style={styles.stepTitle}>How should we adjust? 🎯</Text>
-            <Text style={styles.stepSubtitle}>Pick your intensity for the next block</Text>
-            
-            {['easier', 'same', 'harder'].map((option) => (
-              <TouchableOpacity
-                key={option}
-                style={[
-                  styles.intensityOption,
-                  feedback.intensityPreference === option && styles.intensityOptionSelected,
-                ]}
-                onPress={() => setFeedback(prev => ({ 
-                  ...prev, 
-                  intensityPreference: option as 'easier' | 'same' | 'harder' 
-                }))}
-                data-testid={`rolling-regeneration-intensity-${option}`}
-              >
-                <Ionicons 
-                  name={
-                    option === 'easier' ? 'remove-circle-outline' :
-                    option === 'same' ? 'checkmark-circle-outline' :
-                    'add-circle-outline'
-                  }
-                  size={24}
-                  color={feedback.intensityPreference === option ? COLORS.white : COLORS.textSecondary}
-                />
-                <View style={styles.intensityTextContainer}>
-                  <Text style={[
-                    styles.intensityTitle,
-                    feedback.intensityPreference === option && styles.intensityTitleSelected,
-                  ]}>
-                    {option === 'easier' ? 'Take it easier' :
-                     option === 'same' ? 'Keep it the same' :
-                     'Push me harder'}
-                  </Text>
-                  <Text style={styles.intensityDesc}>
-                    {option === 'easier' ? 'More recovery, less volume' :
-                     option === 'same' ? 'Continue current intensity' :
-                     'Increase weight/volume'}
-                  </Text>
-                </View>
-              </TouchableOpacity>
-            ))}
-            
+            <Text style={styles.fieldLabel}>Favorite thing so far?</Text>
             <TextInput
-              style={[styles.textarea, { marginTop: 16 }]}
-              placeholder="Any specific improvements you want? (optional)"
+              style={styles.textarea}
+              placeholder="e.g., The split, exercise variety, strength progress"
               placeholderTextColor={COLORS.textMuted}
               multiline
-              value={feedback.improvements}
-              onChangeText={(text) => setFeedback(prev => ({ ...prev, improvements: text }))}
-              data-testid="rolling-regeneration-improvements-input"
+              value={feedback.favoriteThing}
+              onChangeText={(text) => setFeedback(prev => ({ ...prev, favoriteThing: text }))}
+              data-testid="rolling-regeneration-favorite-input"
+            />
+
+            <Text style={styles.fieldLabel}>Least favorite thing?</Text>
+            <TextInput
+              style={styles.textarea}
+              placeholder="e.g., Too many leg days, not enough cardio"
+              placeholderTextColor={COLORS.textMuted}
+              multiline
+              value={feedback.leastFavoriteThing}
+              onChangeText={(text) => setFeedback(prev => ({ ...prev, leastFavoriteThing: text }))}
+              data-testid="rolling-regeneration-least-favorite-input"
+            />
+
+            <Text style={styles.fieldLabel}>What would you like to change?</Text>
+            <View style={styles.quickRow}>
+              {['More cardio', 'More strength', 'More variety', 'Shorter sessions', 'More recovery'].map(option => (
+                <TouchableOpacity
+                  key={option}
+                  style={styles.quickChip}
+                  onPress={() => setFeedback(prev => ({
+                    ...prev,
+                    changeRequest: prev.changeRequest ? `${prev.changeRequest}, ${option}` : option,
+                  }))}
+                  data-testid={`rolling-regeneration-change-${option.replace(/\s+/g, '-').toLowerCase()}`}
+                >
+                  <Text style={styles.quickChipText}>{option}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+            <TextInput
+              style={styles.textarea}
+              placeholder="Tell us what to adjust"
+              placeholderTextColor={COLORS.textMuted}
+              multiline
+              value={feedback.changeRequest}
+              onChangeText={(text) => setFeedback(prev => ({ ...prev, changeRequest: text }))}
+              data-testid="rolling-regeneration-change-input"
+            />
+
+            <Text style={styles.fieldLabel}>What should stay the same?</Text>
+            <TextInput
+              style={styles.textarea}
+              placeholder="What’s working well that you want to keep"
+              placeholderTextColor={COLORS.textMuted}
+              multiline
+              value={feedback.keepSame}
+              onChangeText={(text) => setFeedback(prev => ({ ...prev, keepSame: text }))}
+              data-testid="rolling-regeneration-keep-same-input"
             />
           </View>
         );
@@ -267,7 +335,7 @@ export const RollingRegenerationModal = ({
 
         {/* Progress dots */}
         <View style={styles.progressDots}>
-          {[0, 1, 2, 3].map(i => (
+          {[0, 1, 2].map(i => (
             <View
               key={i}
               style={[
@@ -304,7 +372,7 @@ export const RollingRegenerationModal = ({
           <TouchableOpacity
             style={[styles.nextButton, !canProceed() && styles.nextButtonDisabled]}
             onPress={() => {
-              if (step < 3) {
+              if (step < 2) {
                 setStep(step + 1);
               } else {
                 handleSubmit();
@@ -323,10 +391,10 @@ export const RollingRegenerationModal = ({
               end={{ x: 1, y: 0 }}
             >
               <Text style={styles.nextButtonText}>
-                {step < 3 ? 'Continue' : 'Generate New Plan'}
+                {step < 2 ? 'Continue' : 'Generate New Plan'}
               </Text>
               <Ionicons 
-                name={step < 3 ? 'arrow-forward' : 'sparkles'} 
+                name={step < 2 ? 'arrow-forward' : 'sparkles'} 
                 size={20} 
                 color={COLORS.white} 
               />
@@ -424,6 +492,33 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
     gap: 10,
   },
+  toggleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 16,
+  },
+  toggleLabel: {
+    color: COLORS.textSecondary,
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  toggleButton: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 16,
+    backgroundColor: COLORS.cardBg,
+  },
+  toggleButtonActive: {
+    backgroundColor: COLORS.gradientStart,
+  },
+  toggleText: {
+    color: COLORS.textSecondary,
+    fontWeight: '700',
+  },
+  toggleTextActive: {
+    color: COLORS.white,
+  },
   dayButton: {
     width: (width - 80) / 4,
     paddingVertical: 14,
@@ -450,6 +545,30 @@ const styles = StyleSheet.create({
     color: COLORS.white,
     minHeight: 120,
     textAlignVertical: 'top',
+  },
+  fieldLabel: {
+    marginTop: 12,
+    marginBottom: 8,
+    fontSize: 14,
+    fontWeight: '700',
+    color: COLORS.white,
+  },
+  quickRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    marginBottom: 10,
+  },
+  quickChip: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 16,
+    backgroundColor: '#232338',
+  },
+  quickChipText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: COLORS.textSecondary,
   },
   intensityOption: {
     flexDirection: 'row',

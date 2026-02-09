@@ -32,10 +32,12 @@ import { NumberScrollPicker } from '../src/components/NumberScrollPicker';
 import { useCoachNudges, useLearningEvents } from '../src/hooks/useCoachNudges';
 import { useAuthStore } from '../src/stores/auth-store';
 import { useCoachStore } from '../src/stores/coach-store';
+import { useSubscriptionStore } from '../src/stores/subscription-store';
+import { ProPaywallModal } from '../src/components/ProPaywallModal';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
-const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL || 'https://fitness-tracker-792.preview.emergentagent.com';
+const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL;
 
 type TabType = 'warmup' | 'workout' | 'recovery';
 
@@ -47,9 +49,10 @@ const TABS: { id: TabType; label: string }[] = [
 
 export default function WorkoutHubScreen() {
   const router = useRouter();
-  const { currentWorkout, activeSession, startWorkoutSession, completeSet, finishWorkoutSession, setCurrentWorkout, weekWorkouts } = useWorkoutStore();
+  const { currentWorkout, activeSession, startWorkoutSession, completeSet, removeCompletedSet, finishWorkoutSession, setCurrentWorkout, weekWorkouts } = useWorkoutStore();
   const { user } = useAuthStore();
   const { openChat } = useCoachStore();
+  const { isPro } = useSubscriptionStore();
   
   // Phase 11.5: Coach Nudge System
   const { 
@@ -67,9 +70,13 @@ export default function WorkoutHubScreen() {
   const [weight, setWeight] = useState('');
   const [reps, setReps] = useState('');
   const [setNotes, setSetNotes] = useState('');
+  const [setType, setSetType] = useState<'normal' | 'drop' | 'super' | 'giant'>('normal');
+  const [dropWeight, setDropWeight] = useState('');
+  const [dropReps, setDropReps] = useState('');
   const [showTips, setShowTips] = useState(false);
   const [showCelebration, setShowCelebration] = useState(false);
   const [weightUnit, setWeightUnit] = useState<'lbs' | 'kg'>('lbs');
+  const [showProPaywall, setShowProPaywall] = useState(false);
   // New state for different workout types
   const [duration, setDuration] = useState(''); // For cardio/yoga - time in minutes
   const [distance, setDistance] = useState(''); // For cardio - distance
@@ -166,6 +173,31 @@ export default function WorkoutHubScreen() {
     
     // Default to strength for weight training
     return 'strength';
+  };
+
+  const getSetTypeLabel = (note?: string): string | null => {
+    if (!note) return null;
+    const lowered = note.toLowerCase();
+    if (lowered.startsWith('drop set')) return 'Drop set';
+    if (lowered.startsWith('superset')) return 'Superset';
+    if (lowered.startsWith('giant set')) return 'Giant set';
+    return null;
+  };
+
+  const parseDropSetDetails = (note?: string) => {
+    if (!note) return { dropWeight: '', dropReps: '' };
+    const match = note.match(/drop set:\s*\d+(?:\.\d+)?x\d+\s*→\s*(\d+(?:\.\d+)?)x(\d+)/i);
+    if (!match) return { dropWeight: '', dropReps: '' };
+    return { dropWeight: match[1] || '', dropReps: match[2] || '' };
+  };
+
+  const stripSetTypePrefix = (note?: string) => {
+    if (!note) return '';
+    return note
+      .replace(/^drop set:[^•]*•?\s*/i, '')
+      .replace(/^superset[^•]*•?\s*/i, '')
+      .replace(/^giant set[^•]*•?\s*/i, '')
+      .trim();
   };
 
   // Get contextual tips based on exercise type
@@ -394,6 +426,11 @@ export default function WorkoutHubScreen() {
     setDistance('');
     setHoldTime('');
     setSetNotes('');
+    const exercise = currentExercises[index];
+    const defaultSetType = (exercise?.setType || exercise?.exercise?.setType || 'normal') as 'normal' | 'drop' | 'super' | 'giant';
+    setSetType(isPro ? defaultSetType : 'normal');
+    setDropWeight('');
+    setDropReps('');
   };
 
   // Log set to backend for AI learning and stats tracking
@@ -460,6 +497,10 @@ export default function WorkoutHubScreen() {
         showAlert('warning', 'Missing Data', 'Please enter reps');
         return;
       }
+      if (setType === 'drop' && (!dropWeight || !dropReps)) {
+        showAlert('warning', 'Missing Data', 'Please enter drop set weight and reps');
+        return;
+      }
     } else if (exerciseType === 'cardio') {
       if (!duration) {
         showAlert('warning', 'Missing Data', 'Please enter time/duration');
@@ -493,6 +534,21 @@ export default function WorkoutHubScreen() {
       performanceWeight = weight ? parseFloat(weight) : undefined;
     }
 
+    const setTypePrefix = (() => {
+      if (setType === 'drop') {
+        const topWeightLabel = weight ? weight : 'bodyweight';
+        return `Drop set: ${topWeightLabel}x${reps} → ${dropWeight}x${dropReps}`;
+      }
+      if (setType === 'super') {
+        return `Superset${exercise?.supersetWith ? ` with ${exercise.supersetWith}` : ''}`;
+      }
+      if (setType === 'giant') {
+        return 'Giant set';
+      }
+      return '';
+    })();
+    const combinedNote = [setTypePrefix, setNotes.trim()].filter(Boolean).join(' • ') || undefined;
+
     // Pass the notes along with the set data
     completeSet(
       actualIndex,
@@ -500,7 +556,7 @@ export default function WorkoutHubScreen() {
       performanceValue,
       performanceWeight,
       'Medium',
-      setNotes.trim() || undefined // Pass notes to the store
+      combinedNote // Pass notes to the store
     );
     
     // Log to backend for AI learning (including notes)
@@ -511,7 +567,7 @@ export default function WorkoutHubScreen() {
       currentSet + 1,
       performanceWeight,
       performanceValue,
-      setNotes.trim() || undefined,
+      combinedNote,
       undefined, // difficulty - could be added later
       exerciseId
     );
@@ -524,6 +580,8 @@ export default function WorkoutHubScreen() {
       setDistance('');
       setHoldTime('');
       setSetNotes(''); // Clear notes for next set
+      setDropWeight('');
+      setDropReps('');
     } else {
       showAlert('success', 'Exercise Complete!', 'Great work! Ready for the next one?', [
         {
@@ -532,10 +590,32 @@ export default function WorkoutHubScreen() {
             setExpandedExercise(null);
             setCurrentSet(0);
             setSetNotes(''); // Clear notes when moving to next exercise
+            setSetType('normal');
+            setDropWeight('');
+            setDropReps('');
           },
         },
       ]);
     }
+  };
+
+  const handleEditCompletedSet = (exerciseIndex: number, setData: any) => {
+    removeCompletedSet(exerciseIndex, setData.setIndex);
+    setCurrentSet(setData.setIndex || 0);
+    setWeight(setData.weight ? String(setData.weight) : '');
+    setReps(setData.reps ? String(setData.reps) : '');
+    const label = getSetTypeLabel(setData.note);
+    const nextSetType = label === 'Drop set' ? 'drop' : label === 'Superset' ? 'super' : label === 'Giant set' ? 'giant' : 'normal';
+    setSetType(nextSetType);
+    if (nextSetType === 'drop') {
+      const parsed = parseDropSetDetails(setData.note);
+      setDropWeight(parsed.dropWeight);
+      setDropReps(parsed.dropReps);
+    } else {
+      setDropWeight('');
+      setDropReps('');
+    }
+    setSetNotes(stripSetTypePrefix(setData.note));
   };
 
   // State for duration confirmation modal
@@ -1204,8 +1284,62 @@ export default function WorkoutHubScreen() {
 
                               {/* STRENGTH/HIIT INPUTS: Weight + Reps */}
                               {(exType === 'strength' || exType === 'hiit') && (
-                                <View style={styles.inputRow}>
-                                  <View style={styles.inputWrapper}>
+                                <View>
+                                  {isPro ? (
+                                    <View style={styles.setTypeContainer}>
+                                      <Text style={styles.inputLabel}>Set Type</Text>
+                                      <View style={styles.setTypeRow}>
+                                        {['normal', 'drop', 'super', 'giant'].map(type => (
+                                          <TouchableOpacity
+                                            key={type}
+                                            style={[
+                                              styles.setTypeButton,
+                                              setType === type && styles.setTypeButtonActive,
+                                            ]}
+                                            onPress={() => {
+                                              const nextType = type as 'normal' | 'drop' | 'super' | 'giant';
+                                              setSetType(nextType);
+                                              if (nextType !== 'drop') {
+                                                setDropWeight('');
+                                                setDropReps('');
+                                              }
+                                            }}
+                                            data-testid={`workout-set-type-${type}`}
+                                          >
+                                            <Text style={[
+                                              styles.setTypeText,
+                                              setType === type && styles.setTypeTextActive,
+                                            ]}>
+                                              {type === 'normal' ? 'Normal' :
+                                               type === 'drop' ? 'Drop' :
+                                               type === 'super' ? 'Superset' :
+                                               'Giant'}
+                                            </Text>
+                                          </TouchableOpacity>
+                                        ))}
+                                      </View>
+                                      {setType !== 'normal' && (
+                                        <Text style={styles.setTypeHint}>
+                                          {setType === 'drop'
+                                            ? 'Log the top set + the drop set'
+                                            : setType === 'super'
+                                              ? 'Pair this with another exercise (noted in notes)'
+                                              : '3+ exercises back‑to‑back'}
+                                        </Text>
+                                      )}
+                                    </View>
+                                  ) : (
+                                    <TouchableOpacity
+                                      style={styles.setTypeLocked}
+                                      onPress={() => setShowProPaywall(true)}
+                                      data-testid="workout-set-type-locked"
+                                    >
+                                      <Ionicons name="lock-closed" size={16} color={COLORS.mediumGray} />
+                                      <Text style={styles.setTypeLockedText}>Advanced set types are Pro only</Text>
+                                    </TouchableOpacity>
+                                  )}
+                                  <View style={styles.inputRow}>
+                                    <View style={styles.inputWrapper}>
                                     <View style={styles.weightLabelRow}>
                                       <Text style={styles.inputLabel}>Weight</Text>
                                       <View style={styles.unitSwitcher}>
@@ -1264,7 +1398,7 @@ export default function WorkoutHubScreen() {
                                       inputVariant="light"
                                     />
                                   </View>
-                                  <View style={styles.inputWrapper}>
+                                    <View style={styles.inputWrapper}>
                                     <View style={styles.repsLabelRow}>
                                       <Text style={styles.inputLabel}>Reps</Text>
                                     </View>
@@ -1276,6 +1410,40 @@ export default function WorkoutHubScreen() {
                                       max={50}
                                       step={1}
                                       testId="workout-reps-picker"
+                                      inputVariant="light"
+                                      />
+                                    </View>
+                                  </View>
+                                </View>
+                              )}
+
+                              {(exType === 'strength' || exType === 'hiit') && setType === 'drop' && isPro && (
+                                <View style={styles.inputRow}>
+                                  <View style={styles.inputWrapper}>
+                                    <Text style={styles.inputLabel}>Drop Weight</Text>
+                                    <NumberScrollPicker
+                                      value={dropWeight}
+                                      onValueChange={setDropWeight}
+                                      label="Drop Weight"
+                                      unit={weightUnit}
+                                      min={0}
+                                      max={weightUnit === 'lbs' ? 500 : 250}
+                                      step={weightUnit === 'lbs' ? 2.5 : 1}
+                                      decimals={weightUnit === 'lbs'}
+                                      testId="workout-drop-weight-picker"
+                                      inputVariant="light"
+                                    />
+                                  </View>
+                                  <View style={styles.inputWrapper}>
+                                    <Text style={styles.inputLabel}>Drop Reps</Text>
+                                    <NumberScrollPicker
+                                      value={dropReps}
+                                      onValueChange={setDropReps}
+                                      label="Drop Reps"
+                                      min={0}
+                                      max={50}
+                                      step={1}
+                                      testId="workout-drop-reps-picker"
                                       inputVariant="light"
                                     />
                                   </View>
@@ -1337,12 +1505,24 @@ export default function WorkoutHubScreen() {
                             <Text style={styles.completedTitle}>
                               {getExerciseType(exercise) === 'cardio' ? 'Session Logged' : 'Completed'}
                             </Text>
+                            <Text style={styles.completedHint}>Tap a set to edit</Text>
                             {completedSets.map((set, i) => {
                               const exType = getExerciseType(exercise);
+                              const setTypeLabel = getSetTypeLabel(set.note);
                               return (
-                                <View key={i} style={styles.completedSetWrapper}>
+                                <TouchableOpacity
+                                  key={i}
+                                  style={styles.completedSetWrapper}
+                                  onPress={() => handleEditCompletedSet(actualIndex, set)}
+                                  data-testid={`workout-completed-set-${actualIndex}-${set.setIndex}`}
+                                >
                                   <View style={styles.completedSet}>
                                     <Ionicons name="checkmark-circle" size={20} color={COLORS.success} />
+                                    {setTypeLabel && (
+                                      <View style={styles.setTypeBadge}>
+                                        <Text style={styles.setTypeBadgeText}>{setTypeLabel}</Text>
+                                      </View>
+                                    )}
                                     <Text style={styles.completedText}>
                                       {exType === 'cardio' 
                                         ? `${set.reps} min${set.weight ? ` • ${set.weight} ${distanceUnit}` : ''}`
@@ -1359,7 +1539,7 @@ export default function WorkoutHubScreen() {
                                       <Text style={styles.setNoteText}>{set.note}</Text>
                                     </View>
                                   )}
-                                </View>
+                                </TouchableOpacity>
                               );
                             })}
                           </View>
@@ -1572,6 +1752,11 @@ export default function WorkoutHubScreen() {
         workout={editableWorkout || currentWorkout}
         onSaveWorkout={handleSaveEditedWorkout}
         completedExerciseIndices={activeSession?.completedExercises ? Array.from(activeSession.completedExercises) : []}
+      />
+
+      <ProPaywallModal
+        visible={showProPaywall}
+        onClose={() => setShowProPaywall(false)}
       />
     </SafeAreaView>
   );
@@ -1907,6 +2092,52 @@ const styles = StyleSheet.create({
     gap: 12,
     marginBottom: 16,
   },
+  setTypeContainer: {
+    marginBottom: 12,
+  },
+  setTypeLocked: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 12,
+    backgroundColor: COLORS.lightGray,
+    marginBottom: 12,
+  },
+  setTypeLockedText: {
+    fontSize: 12,
+    color: COLORS.mediumGray,
+    fontWeight: '600',
+  },
+  setTypeRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    marginTop: 8,
+  },
+  setTypeButton: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 14,
+    backgroundColor: COLORS.lightGray,
+  },
+  setTypeButtonActive: {
+    backgroundColor: COLORS.gradientStart,
+  },
+  setTypeText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: COLORS.mediumGray,
+  },
+  setTypeTextActive: {
+    color: COLORS.white,
+  },
+  setTypeHint: {
+    marginTop: 6,
+    fontSize: 12,
+    color: COLORS.mediumGray,
+  },
   inputWrapper: {
     flex: 1,
   },
@@ -2000,11 +2231,27 @@ const styles = StyleSheet.create({
     color: COLORS.text,
     marginBottom: 12,
   },
+  completedHint: {
+    fontSize: 12,
+    color: COLORS.mediumGray,
+    marginBottom: 8,
+  },
   completedSet: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
     marginBottom: 4,
+  },
+  setTypeBadge: {
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 12,
+    backgroundColor: COLORS.lightGray,
+  },
+  setTypeBadgeText: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: COLORS.mediumGray,
   },
   completedSetWrapper: {
     marginBottom: 12,

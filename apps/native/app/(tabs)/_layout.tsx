@@ -37,6 +37,15 @@ export default function TabLayout() {
           href: null, // Hide from tab bar
         }} 
       />
+
+      {/* Hidden Pro Comparison */}
+      <Tabs.Screen
+        name="pro"
+        options={{
+          title: 'Thryvin\' Pro',
+          href: null,
+        }}
+      />
     </Tabs>
   );
 }

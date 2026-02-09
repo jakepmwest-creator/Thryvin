@@ -33,6 +33,27 @@ interface PlanStatus {
   planId: string | null;
 }
 
+const getPreferredTrainingDays = (user: any): number[] => {
+  if (!user?.preferredTrainingDays) return [];
+  try {
+    const parsed = typeof user.preferredTrainingDays === 'string'
+      ? JSON.parse(user.preferredTrainingDays)
+      : user.preferredTrainingDays;
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+};
+
+const getEffectiveTrainingDays = (user: any): number => {
+  const requested = user.trainingDaysPerWeek || user.trainingDays || 3;
+  const preferredDays = getPreferredTrainingDays(user);
+  if (preferredDays.length > 0) {
+    return Math.min(requested, preferredDays.length);
+  }
+  return requested;
+};
+
 /**
  * Get plan status for a user
  * FIXED: Now counts REAL workouts only (not rest days)
@@ -114,7 +135,7 @@ async function ensurePlan(userId: number, user: any): Promise<{
   
   try {
     // Get user's requested frequency
-    const frequency = user.trainingDaysPerWeek || user.trainingDays || 3;
+    const frequency = getEffectiveTrainingDays(user);
     
     // Check current plan status
     const status = await getPlanStatus(userId);
@@ -323,7 +344,7 @@ export function setupPlanRoutes(app: Express) {
     const result = await ensurePlan(req.user.id, req.user);
     
     // Get user's frequency for validation
-    const frequency = req.user.trainingDaysPerWeek || req.user.trainingDays || 3;
+    const frequency = getEffectiveTrainingDays(req.user);
     
     if (!result.ok) {
       return res.status(500).json({
@@ -375,7 +396,7 @@ export function setupPlanRoutes(app: Express) {
     }
     
     const status = await getPlanStatus(req.user.id);
-    const frequency = req.user.trainingDaysPerWeek || req.user.trainingDays || 3;
+    const frequency = getEffectiveTrainingDays(req.user);
     
     res.json({
       ok: true,
@@ -400,7 +421,7 @@ export function setupPlanRoutes(app: Express) {
     
     try {
       const workoutDays = await storage.getWorkoutDays(req.user.id);
-      const frequency = req.user.trainingDaysPerWeek || req.user.trainingDays || 3;
+    const frequency = getEffectiveTrainingDays(req.user);
       
       // Format workouts for frontend
       const formattedWorkouts = workoutDays.map(w => {

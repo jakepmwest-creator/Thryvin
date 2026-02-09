@@ -2233,10 +2233,17 @@ Respond with ONLY a JSON object (no markdown, no explanation):
       }
 
       const feedback = req.body?.feedback || {};
-      const availableDays = Array.isArray(feedback.availableDays) ? feedback.availableDays : [];
+      const availableDaysWeek1 = Array.isArray(feedback.availableDaysWeek1)
+        ? feedback.availableDaysWeek1
+        : Array.isArray(feedback.availableDays)
+          ? feedback.availableDays
+          : [];
+      const availableDaysWeek2 = Array.isArray(feedback.availableDaysWeek2)
+        ? feedback.availableDaysWeek2
+        : availableDaysWeek1;
 
-      if (availableDays.length === 0) {
-        return res.status(400).json({ error: 'availableDays is required' });
+      if (availableDaysWeek1.length === 0) {
+        return res.status(400).json({ error: 'availableDaysWeek1 is required' });
       }
 
       const user = await storage.getUser(userId);
@@ -2262,8 +2269,12 @@ Respond with ONLY a JSON object (no markdown, no explanation):
         saturday: 6,
       };
 
-      const normalizedDays = availableDays.map((day: string) => normalizeDay(String(day)));
-      const gymDaysAvailable = normalizedDays
+      const normalizedWeek1Days = availableDaysWeek1.map((day: string) => normalizeDay(String(day)));
+      const normalizedWeek2Days = availableDaysWeek2.map((day: string) => normalizeDay(String(day)));
+      const gymDaysAvailableWeek1 = normalizedWeek1Days
+        .map(day => dayNameToIndex[day])
+        .filter((day) => typeof day === 'number');
+      const gymDaysAvailableWeek2 = normalizedWeek2Days
         .map(day => dayNameToIndex[day])
         .filter((day) => typeof day === 'number');
 
@@ -2279,11 +2290,13 @@ Respond with ONLY a JSON object (no markdown, no explanation):
       }
 
       const existingAdvanced = onboardingResponses?.advancedQuestionnaire || {};
-      const feedbackSummary = `Rolling regeneration feedback:\n- Went well: ${feedback.wentWell || 'N/A'}\n- Didn\'t go well: ${feedback.didntGoWell || 'N/A'}\n- Improvements: ${feedback.improvements || 'N/A'}\n- Intensity: ${feedback.intensityPreference || 'same'}`;
+      const feedbackSummary = `Rolling regeneration feedback:\n- Overall feeling: ${feedback.overallFeeling || 'N/A'}\n- Favorite: ${feedback.favoriteThing || 'N/A'}\n- Least favorite: ${feedback.leastFavoriteThing || 'N/A'}\n- Change request: ${feedback.changeRequest || 'N/A'}\n- Keep the same: ${feedback.keepSame || 'N/A'}`;
 
       const updatedAdvancedQuestionnaire = {
         ...existingAdvanced,
-        gymDaysAvailable: gymDaysAvailable.length > 0 ? gymDaysAvailable : existingAdvanced.gymDaysAvailable,
+        gymDaysAvailable: gymDaysAvailableWeek1.length > 0 ? gymDaysAvailableWeek1 : existingAdvanced.gymDaysAvailable,
+        gymDaysAvailableWeek1: gymDaysAvailableWeek1,
+        gymDaysAvailableWeek2: gymDaysAvailableWeek2,
         additionalInfo: existingAdvanced.additionalInfo
           ? `${existingAdvanced.additionalInfo}\n\n${feedbackSummary}`
           : feedbackSummary,
@@ -2299,8 +2312,7 @@ Respond with ONLY a JSON object (no markdown, no explanation):
       };
 
       await storage.updateUser(userId, {
-        preferredTrainingDays: JSON.stringify(normalizedDays),
-        trainingDaysPerWeek: normalizedDays.length,
+        preferredTrainingDays: JSON.stringify(normalizedWeek1Days),
         onboardingResponses: JSON.stringify(updatedOnboardingResponses),
         lastWorkoutGenerated: new Date(),
       });
@@ -2335,7 +2347,8 @@ Respond with ONLY a JSON object (no markdown, no explanation):
         await storage.deleteWorkoutDay(day.id);
       }
 
-      const userProfile = {
+      const requestedTrainingDays = user.trainingDaysPerWeek || user.trainingDays || normalizedWeek1Days.length || 3;
+      const userProfileBase = {
         fitnessGoals: user.focusAreas ?
           (typeof user.focusAreas === 'string' ? JSON.parse(user.focusAreas) : user.focusAreas) :
           [user.goal || 'general'],
@@ -2343,7 +2356,7 @@ Respond with ONLY a JSON object (no markdown, no explanation):
         experience: user.experience || 'intermediate',
         trainingType: user.trainingType || 'strength',
         sessionDuration: user.sessionDurationPreference || 45,
-        trainingDays: normalizedDays.length || user.trainingDaysPerWeek || 3,
+        trainingDays: requestedTrainingDays,
         equipment: user.equipmentAccess ?
           (typeof user.equipmentAccess === 'string' ? JSON.parse(user.equipmentAccess) : user.equipmentAccess) :
           ['bodyweight'],
@@ -2351,12 +2364,17 @@ Respond with ONLY a JSON object (no markdown, no explanation):
           (typeof user.injuries === 'string' ? JSON.parse(user.injuries) : user.injuries) :
           [],
         userId: user.id,
-        preferredTrainingDays: normalizedDays,
         advancedQuestionnaire: updatedAdvancedQuestionnaire,
       };
 
-      await generateWeekWorkouts(userId, userProfile, 1, currentWeekStart);
-      await generateWeekWorkouts(userId, userProfile, 2, nextWeekStart);
+      await generateWeekWorkouts(userId, {
+        ...userProfileBase,
+        preferredTrainingDays: normalizedWeek1Days,
+      }, 1, currentWeekStart);
+      await generateWeekWorkouts(userId, {
+        ...userProfileBase,
+        preferredTrainingDays: normalizedWeek2Days,
+      }, 2, nextWeekStart);
 
       return res.status(200).json({
         success: true,
@@ -7115,6 +7133,11 @@ Respond with a complete workout in JSON format:
         }
       }
       
+      const requestedTrainingDays = user.trainingDaysPerWeek || 4;
+      const effectiveTrainingDays = preferredTrainingDays.length > 0
+        ? Math.min(requestedTrainingDays, preferredTrainingDays.length)
+        : requestedTrainingDays;
+
       // Build complete user profile for workout generation
       const userProfile = {
         fitnessGoals: user.focusAreas ? 
@@ -7124,7 +7147,7 @@ Respond with a complete workout in JSON format:
         experience: user.experience || 'intermediate',
         trainingType: user.trainingType || 'strength',
         sessionDuration: user.sessionDurationPreference || 45,
-        trainingDays: user.trainingDaysPerWeek || 4,
+        trainingDays: effectiveTrainingDays,
         equipment: user.equipmentAccess ? 
           (typeof user.equipmentAccess === 'string' ? JSON.parse(user.equipmentAccess) : user.equipmentAccess) : 
           ['bodyweight'],
@@ -7141,6 +7164,7 @@ Respond with a complete workout in JSON format:
       console.log('🏋️ [API] Complete user profile for week generation:', {
         experience: userProfile.experience,
         trainingDays: userProfile.trainingDays,
+        requestedTrainingDays,
         preferredTrainingDays: userProfile.preferredTrainingDays,
         sessionDuration: userProfile.sessionDuration,
       });

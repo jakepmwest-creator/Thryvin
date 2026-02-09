@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useAwardsStore } from './awards-store';
 
-const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL || 'https://bugzapper-55.preview.emergentagent.com';
+const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL;
 
 // ========================================================================
 // CANONICAL DATE UTILITIES - Use these EVERYWHERE for consistency
@@ -207,6 +207,7 @@ interface WorkoutStore {
   updatePersonalBest: (exerciseName: string, weight: number, reps: number, date?: string) => Promise<void>;
   startWorkoutSession: (workoutId: string) => void;
   completeSet: (exerciseIndex: number, setIndex: number, reps: number, weight: number | undefined, effort: string, note?: string) => void;
+  removeCompletedSet: (exerciseIndex: number, setIndex: number) => void;
   addExerciseNote: (exerciseIndex: number, note: string) => void;
   navigateToExercise: (exerciseIndex: number) => void;
   finishWorkoutSession: (actualDurationMinutes?: number) => Promise<void>;
@@ -1327,6 +1328,21 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
       }
     }
     
+    set({ activeSession: { ...session } });
+  },
+
+  removeCompletedSet: (exerciseIndex: number, setIndex: number) => {
+    const session = get().activeSession;
+    if (!session) return;
+
+    const exerciseData = session.exerciseData.get(exerciseIndex);
+    if (!exerciseData) return;
+
+    exerciseData.completedSets = exerciseData.completedSets.filter(set => set.setIndex !== setIndex);
+    session.exerciseData.set(exerciseIndex, exerciseData);
+
+    // Recalculate completion status
+    session.completedExercises.delete(exerciseIndex);
     set({ activeSession: { ...session } });
   },
 

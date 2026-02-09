@@ -17,7 +17,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { router, useLocalSearchParams } from 'expo-router';
 import { COLORS } from '../../src/constants/colors';
 
-const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL || 'http://localhost:8001';
+const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL;
 
 export default function ResetPasswordScreen() {
   const params = useLocalSearchParams();

@@ -39,7 +39,7 @@ const COLORS = {
   green: '#34C759',
 };
 
-const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL || 'https://bugzapper-55.preview.emergentagent.com';
+const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL;
 
 // Keywords for smart category detection (same as ExploreWorkoutsModal)
 const EQUIPMENT_KEYWORDS = ['dumbbell', 'barbell', 'cable', 'machine', 'kettlebell', 'smith', 'ez bar', 'ez-bar', 'resistance band', 'band', 'bench press', 'lat pull', 'pulldown', 'leg press', 'chest press', 'shoulder press', 'weight', 'weighted', 'rack', 'bar', 'press', 'curl', 'fly', 'row', 'pullover', 'extension', 'raise'];

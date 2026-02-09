@@ -26,6 +26,8 @@ import { ExerciseStatsModal } from '../../src/components/ExerciseStatsModal';
 import { useWorkoutStore } from '../../src/stores/workout-store';
 import { useAuthStore } from '../../src/stores/auth-store';
 import { useCoachStore } from '../../src/stores/coach-store';
+import { useSubscriptionStore } from '../../src/stores/subscription-store';
+import { ProPaywallModal } from '../../src/components/ProPaywallModal';
 import { RollingRegenerationModal } from '../../src/components/RollingRegenerationModal';
 import { post } from '../../src/services/api-client';
 import Svg, { Circle, Defs, LinearGradient as SvgLinearGradient, Stop } from 'react-native-svg';
@@ -128,12 +130,14 @@ export default function HomeScreen() {
   const [rollingWeek, setRollingWeek] = useState(2);
   const [hasCheckedRollingRegeneration, setHasCheckedRollingRegeneration] = useState(false);
   const [rollingRegenerationSubmitting, setRollingRegenerationSubmitting] = useState(false);
+  const [showProPaywall, setShowProPaywall] = useState(false);
   
   // Tour refs for highlighting
   const todayWorkoutRef = useRef(null);
 
   const { user } = useAuthStore();
   const { openChat } = useCoachStore();
+  const { isPro } = useSubscriptionStore();
   
   // Phase 11.5: Coach Nudge System for home screen (only weekly/high-level nudges)
   const {
@@ -174,6 +178,10 @@ export default function HomeScreen() {
   const [selectedExerciseId, setSelectedExerciseId] = useState<string | undefined>(undefined);
   
   const openExerciseStats = (exerciseId?: string) => {
+    if (!isPro) {
+      setShowProPaywall(true);
+      return;
+    }
     setSelectedExerciseId(exerciseId);
     setShowExerciseStats(true);
   };
@@ -222,6 +230,10 @@ export default function HomeScreen() {
 
   const checkRollingRegeneration = useCallback(async () => {
     if (hasCheckedRollingRegeneration) return;
+    if (!isPro) {
+      setHasCheckedRollingRegeneration(true);
+      return;
+    }
 
     try {
       const userId = user?.id;
@@ -234,10 +246,21 @@ export default function HomeScreen() {
       const lastShownKey = `rolling_regeneration_last_shown_${userId}`;
       const completed = await AsyncStorage.getItem(completedKey);
       const lastShown = await AsyncStorage.getItem(lastShownKey);
+      const completedDate = completed ? new Date(completed) : null;
+      const lastShownDate = lastShown ? new Date(lastShown) : null;
 
-      if (completed || lastShown) {
-        setHasCheckedRollingRegeneration(true);
-        return;
+      if (completedDate) {
+        const daysSinceCompleted = Math.floor((Date.now() - completedDate.getTime()) / (1000 * 60 * 60 * 24));
+        if (daysSinceCompleted < 21) {
+          setHasCheckedRollingRegeneration(true);
+          return;
+        }
+      } else if (lastShownDate) {
+        const daysSinceShown = Math.floor((Date.now() - lastShownDate.getTime()) / (1000 * 60 * 60 * 24));
+        if (daysSinceShown < 7) {
+          setHasCheckedRollingRegeneration(true);
+          return;
+        }
       }
 
       const trialEnd = new Date(user.trialEndsAt);
@@ -245,7 +268,15 @@ export default function HomeScreen() {
       joinDate.setDate(joinDate.getDate() - 7);
 
       const daysSinceJoin = Math.floor((Date.now() - joinDate.getTime()) / (1000 * 60 * 60 * 24));
-      if (daysSinceJoin >= 14) {
+      if (!completedDate && daysSinceJoin >= 14) {
+        const weekNumber = Math.max(2, Math.floor(daysSinceJoin / 7) + 1);
+        setRollingWeek(weekNumber);
+        setShowRollingRegeneration(true);
+        await AsyncStorage.setItem(lastShownKey, new Date().toISOString());
+        return;
+      }
+
+      if (completedDate) {
         const weekNumber = Math.max(2, Math.floor(daysSinceJoin / 7) + 1);
         setRollingWeek(weekNumber);
         setShowRollingRegeneration(true);
@@ -256,14 +287,16 @@ export default function HomeScreen() {
     } finally {
       setHasCheckedRollingRegeneration(true);
     }
-  }, [user?.id, user?.trialEndsAt, hasCheckedRollingRegeneration]);
+  }, [user?.id, user?.trialEndsAt, hasCheckedRollingRegeneration, isPro]);
 
   const handleRollingRegenerationSubmit = async (feedback: {
-    availableDays: string[];
-    wentWell: string;
-    didntGoWell: string;
-    improvements: string;
-    intensityPreference: 'same' | 'harder' | 'easier';
+    availableDaysWeek1: string[];
+    availableDaysWeek2: string[];
+    overallFeeling: string;
+    favoriteThing: string;
+    leastFavoriteThing: string;
+    changeRequest: string;
+    keepSame: string;
   }) => {
     const userId = user?.id;
     if (!userId || rollingRegenerationSubmitting) return;
@@ -857,6 +890,37 @@ export default function HomeScreen() {
           )}
         </View>
 
+        {!isPro && completedWorkouts.length >= 3 && (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Ready for Thryvin' Pro?</Text>
+            <TouchableOpacity
+              style={styles.proUpsellCard}
+              onPress={() => router.push('/(tabs)/pro')}
+              data-testid="home-pro-upsell-card"
+            >
+              <LinearGradient
+                colors={[COLORS.gradientStart, COLORS.gradientEnd]}
+                style={styles.proUpsellGradient}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+              >
+                <View style={styles.proUpsellContent}>
+                  <View>
+                    <Text style={styles.proUpsellTitle}>Upgrade to Pro</Text>
+                    <Text style={styles.proUpsellSubtitle}>
+                      Smart plans, advanced analytics, and priority support.
+                    </Text>
+                  </View>
+                  <View style={styles.proUpsellButton}>
+                    <Text style={styles.proUpsellButtonText}>Unlock</Text>
+                    <Ionicons name="chevron-forward" size={16} color={COLORS.white} />
+                  </View>
+                </View>
+              </LinearGradient>
+            </TouchableOpacity>
+          </View>
+        )}
+
         {/* Recent Activity - LARGER CARDS */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Recent Activity</Text>
@@ -917,7 +981,14 @@ export default function HomeScreen() {
             {/* Edit Plan - Smaller */}
             <TouchableOpacity 
               style={styles.programButtonSmall}
-              onPress={() => setShowEditPlan(true)}
+              onPress={() => {
+                if (!isPro) {
+                  setShowProPaywall(true);
+                  return;
+                }
+                setShowEditPlan(true);
+              }}
+              data-testid="home-edit-plan-button"
             >
               <LinearGradient
                 colors={[COLORS.gradientEnd, COLORS.gradientStart]}
@@ -1046,6 +1117,11 @@ export default function HomeScreen() {
         onClose={() => setShowRollingRegeneration(false)}
         onSubmit={handleRollingRegenerationSubmit}
         currentWeek={rollingWeek}
+      />
+
+      <ProPaywallModal
+        visible={showProPaywall}
+        onClose={() => setShowProPaywall(false)}
       />
       
       {/* View All Weeks Modal */}
@@ -1177,6 +1253,43 @@ const styles = StyleSheet.create({
   section: {
     paddingHorizontal: 16,
     marginTop: 24,
+  },
+  proUpsellCard: {
+    borderRadius: 18,
+    overflow: 'hidden',
+  },
+  proUpsellGradient: {
+    padding: 18,
+  },
+  proUpsellContent: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  proUpsellTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: COLORS.white,
+  },
+  proUpsellSubtitle: {
+    fontSize: 12,
+    color: COLORS.white,
+    opacity: 0.85,
+    marginTop: 4,
+    maxWidth: 200,
+  },
+  proUpsellButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 12,
+    backgroundColor: 'rgba(255,255,255,0.2)',
+  },
+  proUpsellButtonText: {
+    color: COLORS.white,
+    fontWeight: '700',
   },
   sectionHeader: {
     flexDirection: 'row',

@@ -28,7 +28,7 @@ import { useRouter } from 'expo-router';
 import { COLORS } from '../constants/colors';
 import * as api from '../services/api-client';
 
-const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL || 'https://bugzapper-55.preview.emergentagent.com';
+const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL;
 
 interface HealthResponse {
   ok: boolean;

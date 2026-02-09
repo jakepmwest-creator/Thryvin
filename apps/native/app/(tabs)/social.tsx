@@ -28,7 +28,7 @@ const COLORS = {
   mediumGray: '#8E8E93',
 };
 
-const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL || 'https://fitness-tracker-792.preview.emergentagent.com';
+const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL;
 
 // BeReal-style reactions
 const REACTION_TYPES = [

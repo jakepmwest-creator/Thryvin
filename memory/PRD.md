@@ -26,6 +26,45 @@
 - Added test IDs throughout regeneration modal
 - **Files**: `/app/apps/native/app/(tabs)/index.tsx`, `/app/apps/native/src/components/RollingRegenerationModal.tsx`, `/app/server/routes.ts`, `/app/server/week-generator.ts`
 
+### Feb 7, 2026 - AI Generator Rules + Rolling Regen UX + Set-Type Logging + Availability Logic
+
+#### ✅ AI Generator Rules Updates
+- Added cardio warmups (optional 5–10 min), compound-first ordering, and non‑normal set type requirement for intermediate/advanced
+- Titles now include muscle + goal; removed “avoid skipped exercises” rule; added bodyweight preference handling
+- **Files**: `/app/server/ai-workout-generator.ts`
+
+#### ✅ Availability & Split Scheduling Logic
+- Effective training days now respect weekly availability (min of requested vs available days)
+- Split rotation only applies when schedule is flexible; added parsing for preferred split text (bro split / PPL / upper‑lower)
+- **Files**: `/app/server/plan-service.ts`, `/app/server/routes.ts`, `/app/server/split-planner.ts`, `/app/server/ai-workout-generator.ts`
+
+#### ✅ Rolling Regeneration Modal Revamp
+- New 2‑week availability capture + short program feedback questions (favorite/least/change/keep)
+- Added quick‑answer chips and “same as week 1” toggle
+- **Files**: `/app/apps/native/src/components/RollingRegenerationModal.tsx`, `/app/apps/native/app/(tabs)/index.tsx`, `/app/server/routes.ts`
+
+#### ✅ Set‑Type Logging UX
+- Added set type selector (normal/drop/superset/giant) and drop‑set inputs
+- Completed sets now show set type badges; tap a completed set to edit and re‑log
+- **Files**: `/app/apps/native/app/workout-hub.tsx`, `/app/apps/native/src/stores/workout-store.ts`
+
+### Feb 7, 2026 - RevenueCat Subscription Foundation
+
+#### ✅ RevenueCat SDK Setup (Test Key)
+- Installed `react-native-purchases` + `react-native-purchases-ui` via Yarn
+- Added RevenueCat API key to Expo env vars and initialized SDK on app boot
+- **Files**: `/app/apps/native/.env`, `/app/apps/native/.env.production`, `/app/apps/native/app/_layout.tsx`
+
+#### ✅ Subscription Store + Entitlement Tracking
+- Added subscription store for customer info, offerings, entitlement checks, paywall & customer center actions
+- Entitlement checking uses `Thryvin' Pro` (case-sensitive)
+- **Files**: `/app/apps/native/src/stores/subscription-store.ts`, `/app/apps/native/src/services/revenuecat.ts`
+
+#### ✅ Pro Upsell + Customer Center UI
+- Added Thryvin' Pro card in Profile + upsell card on Home after 3 workouts
+- Added Pro paywall modal + “stay Pro” customer center upsell modal
+- **Files**: `/app/apps/native/app/(tabs)/profile.tsx`, `/app/apps/native/app/(tabs)/index.tsx`, `/app/apps/native/src/components/ProPaywallModal.tsx`, `/app/apps/native/src/components/SubscriptionManagerModal.tsx`
+
 ### Jan 28, 2025 - Coach Button Refactor & Onboarding Simplification
 
 #### ✅ Coach Button Made READ-ONLY

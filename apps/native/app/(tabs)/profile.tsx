@@ -14,6 +14,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { PINSetupModal } from '../../src/components/PINSetupModal';
 import { EditProfileModal } from '../../src/components/EditProfileModal';
@@ -24,10 +25,14 @@ import { LegalModal } from '../../src/components/LegalModal';
 import { ViewAllWeeksModal } from '../../src/components/ViewAllWeeksModal';
 import { CustomAlert } from '../../src/components/CustomAlert';
 import { AdvancedQuestionnaireModal, AdvancedQuestionnaireData } from '../../src/components/AdvancedQuestionnaireModal';
+import { ProPaywallModal } from '../../src/components/ProPaywallModal';
+import { SubscriptionManagerModal } from '../../src/components/SubscriptionManagerModal';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useAuthStore } from '../../src/stores/auth-store';
 import { useWorkoutStore } from '../../src/stores/workout-store';
 import { useCoachStore, COACH_PERSONALITIES, CoachPersonality } from '../../src/stores/coach-store';
+import { useSubscriptionStore } from '../../src/stores/subscription-store';
+import { getThryvinProEntitlement } from '../../src/services/revenuecat';
 
 const COLORS = {
   accent: '#A22BF6',
@@ -46,15 +51,17 @@ const MenuButton = ({
   title, 
   subtitle, 
   onPress, 
-  showArrow = true 
+  showArrow = true,
+  dataTestId,
 }: {
   icon: string;
   title: string;
   subtitle?: string;
   onPress: () => void;
   showArrow?: boolean;
+  dataTestId?: string;
 }) => (
-  <TouchableOpacity style={styles.menuButton} onPress={onPress}>
+  <TouchableOpacity style={styles.menuButton} onPress={onPress} data-testid={dataTestId}>
     <View style={styles.menuIconContainer}>
       <Ionicons name={icon as any} size={20} color={COLORS.accent} />
     </View>
@@ -103,6 +110,8 @@ export default function ProfileScreen() {
   const { user, logout } = useAuthStore();
   const { resetProgram, stats } = useWorkoutStore();
   const { coachName, coachPersonality, setCoachPersonality, loadCoachSettings } = useCoachStore();
+  const { isPro, customerInfo, error: subscriptionError } = useSubscriptionStore();
+  const router = useRouter();
   
   // Modal states
   const [showPINSetup, setShowPINSetup] = useState(false);
@@ -116,6 +125,8 @@ export default function ProfileScreen() {
   const [showAdvancedQuestionnaire, setShowAdvancedQuestionnaire] = useState(false);
   const [hasCompletedQuestionnaire, setHasCompletedQuestionnaire] = useState(false);
   const [showCoachPersonality, setShowCoachPersonality] = useState(false);
+  const [showPaywall, setShowPaywall] = useState(false);
+  const [showManageSubscription, setShowManageSubscription] = useState(false);
   
   // Settings states (persisted)
   const [notifications, setNotifications] = useState(true);
@@ -154,6 +165,8 @@ export default function ProfileScreen() {
   const hideAlert = () => {
     setAlertConfig(prev => ({ ...prev, visible: false }));
   };
+
+  const proEntitlement = getThryvinProEntitlement(customerInfo);
   
   // Load coach settings
   useEffect(() => {
@@ -598,6 +611,50 @@ export default function ProfileScreen() {
           </LinearGradient>
         </View>
 
+        <View style={styles.proCard}>
+          <LinearGradient
+            colors={[COLORS.accentSecondary, COLORS.accent]}
+            style={styles.proGradient}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+          >
+            <View style={styles.proHeader}>
+              <Text style={styles.proTitle}>Thryvin' Pro</Text>
+              <Text style={styles.proStatus}>{isPro ? 'Active' : 'Standard Plan'}</Text>
+            </View>
+            <Text style={styles.proSubtitle}>
+              {isPro
+                ? 'You’re fully unlocked. Keep your momentum going.'
+                : 'Unlock pro-level coaching, analytics, and smarter planning.'}
+            </Text>
+            <View style={styles.proBenefits}>
+              {['Advanced analytics', 'AI plan upgrades', 'Priority support'].map((benefit) => (
+                <View key={benefit} style={styles.proBenefitRow}>
+                  <Ionicons name="sparkles" size={14} color={COLORS.white} />
+                  <Text style={styles.proBenefitText}>{benefit}</Text>
+                </View>
+              ))}
+            </View>
+            {proEntitlement?.expirationDate && (
+              <Text style={styles.proExpiry}>
+                Renews on {new Date(proEntitlement.expirationDate).toLocaleDateString()}
+              </Text>
+            )}
+            {subscriptionError ? (
+              <Text style={styles.proErrorText}>{subscriptionError}</Text>
+            ) : null}
+            <TouchableOpacity
+              style={styles.proActionButton}
+              onPress={() => (isPro ? setShowManageSubscription(true) : setShowPaywall(true))}
+              data-testid={isPro ? 'manage-subscription-button' : 'upgrade-pro-button'}
+            >
+              <Text style={styles.proActionText}>
+                {isPro ? 'Manage Subscription' : 'Unlock Thryvin\' Pro'}
+              </Text>
+            </TouchableOpacity>
+          </LinearGradient>
+        </View>
+
         {/* Menu Sections */}
         <View style={styles.menuSection}>
           <Text style={styles.sectionTitle}>Account</Text>
@@ -607,6 +664,14 @@ export default function ProfileScreen() {
               title="Edit Profile"
               subtitle="Update your photo, name & bio"
               onPress={() => setShowEditProfile(true)}
+            />
+            <MenuButton
+              icon="diamond"
+              title="Compare Plans"
+              subtitle="Standard vs Thryvin' Pro"
+              onPress={() => router.push('/(tabs)/pro')}
+              showArrow
+              dataTestId="profile-compare-plans-button"
             />
             {/* Only show Advanced Questionnaire if not completed */}
             {!hasCompletedQuestionnaire && (
@@ -691,7 +756,14 @@ export default function ProfileScreen() {
               icon="person-circle"
               title="Coach Style"
               subtitle={`Current: ${COACH_PERSONALITIES.find(p => p.id === coachPersonality)?.name || 'Friendly'}`}
-              onPress={() => setShowCoachPersonality(true)}
+              onPress={() => {
+                if (!isPro) {
+                  setShowPaywall(true);
+                  return;
+                }
+                setShowCoachPersonality(true);
+              }}
+              dataTestId="profile-coach-style-button"
             />
           </View>
         </View>
@@ -775,6 +847,16 @@ export default function ProfileScreen() {
         visible={showResetProgram}
         onClose={() => setShowResetProgram(false)}
         onReset={() => {}}
+      />
+
+      <ProPaywallModal
+        visible={showPaywall}
+        onClose={() => setShowPaywall(false)}
+      />
+
+      <SubscriptionManagerModal
+        visible={showManageSubscription}
+        onClose={() => setShowManageSubscription(false)}
       />
       
       {/* Star Rating Modal */}
@@ -1113,6 +1195,77 @@ const styles = StyleSheet.create({
   },
   profileGradient: {
     padding: 24,
+  },
+  proCard: {
+    marginHorizontal: 24,
+    marginBottom: 24,
+    borderRadius: 18,
+    overflow: 'hidden',
+    shadowColor: COLORS.shadow,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.25,
+    shadowRadius: 8,
+    elevation: 5,
+  },
+  proGradient: {
+    padding: 20,
+  },
+  proHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  proTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: COLORS.white,
+  },
+  proStatus: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: COLORS.white,
+    opacity: 0.9,
+  },
+  proSubtitle: {
+    marginTop: 8,
+    color: COLORS.white,
+    opacity: 0.9,
+    fontSize: 13,
+  },
+  proBenefits: {
+    marginTop: 12,
+    gap: 6,
+  },
+  proBenefitRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  proBenefitText: {
+    color: COLORS.white,
+    fontSize: 12,
+  },
+  proExpiry: {
+    marginTop: 10,
+    fontSize: 11,
+    color: COLORS.white,
+    opacity: 0.9,
+  },
+  proErrorText: {
+    marginTop: 8,
+    fontSize: 11,
+    color: '#FFE5E5',
+  },
+  proActionButton: {
+    marginTop: 14,
+    backgroundColor: COLORS.white,
+    borderRadius: 12,
+    paddingVertical: 12,
+    alignItems: 'center',
+  },
+  proActionText: {
+    color: COLORS.accent,
+    fontWeight: '700',
   },
   profileHeader: {
     flexDirection: 'row',

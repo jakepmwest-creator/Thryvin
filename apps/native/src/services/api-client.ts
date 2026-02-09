@@ -11,7 +11,7 @@ import * as SecureStore from 'expo-secure-store';
 import { router } from 'expo-router';
 import { Alert } from 'react-native';
 
-const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL || 'https://bugzapper-55.preview.emergentagent.com';
+const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL;
 
 // Token storage key
 const TOKEN_KEY = 'thryvin_access_token';
@@ -103,6 +103,13 @@ export async function apiRequest<T = any>(
   endpoint: string,
   options: RequestInit = {}
 ): Promise<{ ok: boolean; data?: T; error?: string; status: number }> {
+  if (!API_BASE_URL) {
+    return {
+      ok: false,
+      error: 'API base URL is not configured. Please restart the app.',
+      status: 0,
+    };
+  }
   const token = await getToken();
   
   const headers: HeadersInit = {

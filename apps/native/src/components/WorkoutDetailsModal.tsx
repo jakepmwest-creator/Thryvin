@@ -19,11 +19,13 @@ import { useWorkoutStore } from '../stores/workout-store';
 import { EditWorkoutModal } from './EditWorkoutModal';
 import { CustomAlert } from './CustomAlert';
 import { useCoachStore } from '../stores/coach-store';
+import { useSubscriptionStore } from '../stores/subscription-store';
+import { ProPaywallModal } from './ProPaywallModal';
 import { ExternalActivityModal, ExternalActivityLog } from './ExternalActivityModal';
 import { ExerciseStatsModal } from './ExerciseStatsModal';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
-const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL || 'https://bugzapper-55.preview.emergentagent.com';
+const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL;
 
 const COLORS = {
   primary: '#A22BF6',
@@ -67,6 +69,7 @@ export function WorkoutDetailsModal({
 }: WorkoutDetailsModalProps) {
   const { weekWorkouts, updateWorkoutInWeek, setCurrentWorkout } = useWorkoutStore();
   const { openChat } = useCoachStore();
+  const { isPro } = useSubscriptionStore();
   
   const [currentWorkoutIndex, setCurrentWorkoutIndex] = useState(0);
   const [expandedExerciseIndex, setExpandedExerciseIndex] = useState<number | null>(null);
@@ -78,6 +81,7 @@ export function WorkoutDetailsModal({
   const [selectedExerciseId, setSelectedExerciseId] = useState<string | undefined>(undefined);
   const [currentWorkoutId, setCurrentWorkoutId] = useState<string | undefined>(undefined);
   const [thisWorkoutExerciseData, setThisWorkoutExerciseData] = useState<any>(null);
+  const [showProPaywall, setShowProPaywall] = useState(false);
   const [alertConfig, setAlertConfig] = useState<{
     visible: boolean;
     type: 'success' | 'error' | 'warning' | 'info';
@@ -90,6 +94,10 @@ export function WorkoutDetailsModal({
   
   // Open exercise stats detail with workout context
   const openExerciseDetail = (exerciseId: string) => {
+    if (!isPro) {
+      setShowProPaywall(true);
+      return;
+    }
     // Find exercise data from summary for "this workout" context
     const exerciseFromSummary = workoutSummary?.exercises?.find((ex: any) => ex.exerciseId === exerciseId);
     if (exerciseFromSummary) {
@@ -910,6 +918,11 @@ export function WorkoutDetailsModal({
         initialExerciseId={selectedExerciseId}
         currentWorkoutId={currentWorkoutId}
         thisWorkoutData={thisWorkoutExerciseData}
+      />
+
+      <ProPaywallModal
+        visible={showProPaywall}
+        onClose={() => setShowProPaywall(false)}
       />
     </Modal>
   );

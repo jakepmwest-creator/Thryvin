@@ -6,7 +6,7 @@ import { useWorkoutStore } from './workout-store';
 import { useAwardsStore } from './awards-store';
 import { storeToken, clearToken, getToken } from '../services/api-client';
 
-const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL || 'https://bugzapper-55.preview.emergentagent.com';
+const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL;
 
 // Storage helpers - Use AsyncStorage for large data (user profiles can be >2KB)
 // Only use SecureStore for small secrets (email, password, tokens)
@@ -188,6 +188,9 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   login: async (credentials: { email: string; password: string }) => {
     set({ isLoading: true, error: null });
     try {
+      if (!API_BASE_URL) {
+        throw new Error('API base URL is not configured. Please restart the app.');
+      }
       // Check if this is a DIFFERENT user logging in
       const currentUserId = get().user?.id;
       const storedUser = await getStorageItem('auth_user');
@@ -210,11 +213,11 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         data = JSON.parse(responseText);
       } catch (parseError) {
         console.error('Login response was not JSON:', responseText.substring(0, 120));
-        throw new Error('Server returned an invalid response. Please try again.');
+        throw new Error(`Server returned an invalid response from ${API_BASE_URL}. Please restart the app.`);
       }
 
       if (!response.ok) {
-        throw new Error(data.error || 'Invalid email or password');
+        throw new Error(data.error || `Login failed (${response.status}) from ${API_BASE_URL}`);
       }
 
       // If this is a DIFFERENT user, clear all old data first
@@ -291,6 +294,9 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   register: async (userData: any) => {
     set({ isLoading: true, error: null });
     try {
+      if (!API_BASE_URL) {
+        throw new Error('API base URL is not configured. Please restart the app.');
+      }
       // CRITICAL: Clear ALL local data FIRST for a completely fresh experience
       console.log('🆕 New user registration - clearing all old data first...');
       await clearAllLocalData();
@@ -314,11 +320,11 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         data = JSON.parse(responseText);
       } catch (parseError) {
         console.error('Failed to parse response:', responseText.substring(0, 100));
-        throw new Error('Server returned an invalid response. Please try again.');
+        throw new Error(`Server returned an invalid response from ${API_BASE_URL}. Please restart the app.`);
       }
 
       if (!response.ok) {
-        throw new Error(data.error || 'Registration failed');
+        throw new Error(data.error || `Registration failed (${response.status}) from ${API_BASE_URL}`);
       }
 
       // Backend returns user data on successful registration
@@ -380,6 +386,13 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       
       // Clear JWT access token
       await clearToken();
+
+      try {
+        const { useSubscriptionStore } = await import('./subscription-store');
+        await useSubscriptionStore.getState().setAppUser(null);
+      } catch (subscriptionError) {
+        console.warn('⚠️ RevenueCat logout sync failed:', subscriptionError);
+      }
       
       // Clear ALL stored user data for a fresh start on next login
       await deleteStorageItem('auth_user');

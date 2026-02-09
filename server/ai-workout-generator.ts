@@ -183,12 +183,20 @@ export async function generateAIWorkout(
   }
   
   // Step 1.6: Generate weekly split plan (Phase 8.5 - IMPROVED)
-  const frequency = Number(userProfile.trainingDays || 3);
+  const requestedFrequency = Number(userProfile.trainingDays || 3);
   const experience = (userProfile.experience || 'intermediate') as 'beginner' | 'intermediate' | 'advanced';
   const sessionDuration = Number(userProfile.sessionDuration || 45);
+  const resolvedGymDaysAvailable = (userProfile.advancedQuestionnaire?.gymDaysAvailable?.length > 0)
+    ? userProfile.advancedQuestionnaire.gymDaysAvailable
+    : (userProfile.preferredTrainingDays && userProfile.preferredTrainingDays.length > 0)
+      ? convertDayNamesToIndices(userProfile.preferredTrainingDays)
+      : [0, 1, 2, 3, 4, 5, 6];
+  const effectiveFrequency = resolvedGymDaysAvailable.length > 0
+    ? Math.min(requestedFrequency, resolvedGymDaysAvailable.length)
+    : requestedFrequency;
   
   const splitPlannerInput: SplitPlannerInput = {
-    frequency,
+    frequency: effectiveFrequency,
     experience,
     goals: userProfile.fitnessGoals || [userProfile.goal || 'general'],
     equipment: userProfile.equipment || [],
@@ -197,11 +205,7 @@ export async function generateAIWorkout(
     weeklyActivities: userProfile.advancedQuestionnaire?.weeklyActivities || [],
     // CRITICAL FIX: Convert day names to indices and default to all days if empty
     // preferredTrainingDays from onboarding could be ['mon', 'tue', 'wed'] or [1, 2, 3]
-    gymDaysAvailable: (userProfile.advancedQuestionnaire?.gymDaysAvailable?.length > 0) 
-      ? userProfile.advancedQuestionnaire.gymDaysAvailable 
-      : (userProfile.preferredTrainingDays && userProfile.preferredTrainingDays.length > 0)
-        ? convertDayNamesToIndices(userProfile.preferredTrainingDays)
-        : [0, 1, 2, 3, 4, 5, 6], // ALL DAYS AVAILABLE by default
+    gymDaysAvailable: resolvedGymDaysAvailable,
     scheduleFlexibility: userProfile.advancedQuestionnaire?.scheduleFlexibility ?? true,
     preferredSplit: userProfile.advancedQuestionnaire?.preferredSplit,
     preferredSplitOther: userProfile.advancedQuestionnaire?.preferredSplitOther,
@@ -209,6 +213,7 @@ export async function generateAIWorkout(
   };
   
   console.log(`  🗓️ Gym days available: ${splitPlannerInput.gymDaysAvailable.join(', ')} (${splitPlannerInput.gymDaysAvailable.length} days)`);
+  console.log(`  📊 Effective training days: ${splitPlannerInput.frequency} (requested ${requestedFrequency})`);
   
   // Generate full weekly template
   const weeklyTemplate = generateWeeklyTemplate(splitPlannerInput);
@@ -275,15 +280,23 @@ Sample exercises: ${sampleExercises.slice(0, 20).map(e => e.name).join(', ')}...
 
 2. **RESPECT PREFERENCES**: 
    - If they said they enjoy something → Include MORE of it
-   - If they said they dislike something → Include LESS (but don't eliminate completely - they still need variety)
-   - If they have weak areas → Add extra focus exercises for those
+   - If they said they dislike something → Include LESS (never remove entirely unless injured)
+   - If they have weak areas → Add extra focus exercises for those (but do NOT dominate every session)
+   - If they prefer bodyweight/calisthenics → Include MORE bodyweight movements
 
 3. **TARGET THEIR EVENTS**: If they have a target event (race, wedding, etc.), design workouts to prepare for it.
 
 4. **LEARN FROM HISTORY**: Use their workout history to:
-   - Avoid exercises they always skip
    - Include exercises they complete consistently
    - Adjust difficulty based on their feedback
+   - Do NOT automatically remove exercises just because they were skipped once
+
+5. **COMPOUND FIRST**: Start each workout with 1-2 compound lifts before isolation work
+   - Example (Chest day): Bench Press → Incline Press → Flyes
+
+6. **CARDIO WARMUPS (SOMETIMES)**:
+   - Warmup can include 5-10 minutes of light cardio (treadmill, rower, bike, stairmaster)
+   - Do this occasionally (not every session) and keep it under 10 minutes
 
 === SET VARIETY (CRITICAL) ===
 
@@ -298,6 +311,14 @@ Include DIFFERENT SET TYPES for variety:
 - "drop": Drop set - reduce weight each set, minimal rest
 - "super": Superset - pair with another exercise, no rest between
 - "giant": Giant set - 3+ exercises back-to-back
+
+For INTERMEDIATE/ADVANCED users, include at least ONE non-normal set type per workout.
+For BEGINNERS, keep most sets normal and avoid complex supersets.
+
+=== VOLUME vs SETS (GUIDANCE) ===
+- Higher volume goals (muscle gain, conditioning): moderate sets (3-4) + higher reps
+- Strength goals: lower reps + slightly higher sets (4-5) on compounds
+- Keep total set count realistic for the time limit
 
 === WEIGHT SUGGESTIONS ===
 
@@ -320,11 +341,11 @@ If you don't know their weight for an exercise, suggest based on:
 
 === WORKOUT TITLE ===
 
-Title format should be: "[Muscle Groups] Workout" or just the main focus.
+Title format should be: "[Muscle Groups] • [Goal]" or "[Muscle Groups] Workout".
 Examples:
-- "Back, Biceps & Rear Delts" (GOOD - specific muscle groups)
+- "Back, Biceps & Rear Delts • Strength" (GOOD - includes goal)
+- "Legs & Glutes • Muscle Gain" (GOOD - includes goal)
 - "Push Day - Chest & Triceps" (GOOD - clear focus)
-- "Legs & Glutes" (GOOD - simple and clear)
 - "Upper Body Strength" (GOOD - general category)
 - "Core & Abs" (GOOD - simple)
 - "Full Body Circuit" (GOOD - describes format)
@@ -459,7 +480,9 @@ ${advancedContext}
    - Wedding in 3 months? → Include more conditioning
    - Plan phases accordingly
 
-4. **PERSONALIZATION** - Use their enjoyed/disliked training to customize
+4. **PERSONALIZATION** - Use their enjoyed/disliked training to customize (do NOT remove disliked entirely)
+
+5. **COMPOUND-FIRST ORDERING** - Start with 1-2 compound lifts, finish with isolation/accessory work
 
 === CRITICAL: REALISTIC TIME-BASED EXERCISE LIMITS ===
 
@@ -760,6 +783,8 @@ Create a balanced workout respecting these limits and the DAY FOCUS above.`;
       videoUrl: dbExercise?.videoUrl,
       thumbnailUrl: dbExercise?.thumbnailUrl,
       category: ex.category || 'main',
+      setType: ex.setType || 'normal',
+      supersetWith: ex.supersetWith,
     };
   });
   

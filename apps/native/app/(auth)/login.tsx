@@ -42,6 +42,7 @@ const COLORS = {
 export default function LoginScreen() {
   const router = useRouter();
   const { login, isLoading, error } = useAuthStore();
+  const apiBaseUrl = process.env.EXPO_PUBLIC_API_BASE_URL || 'Not set';
   
   const [showLoginForm, setShowLoginForm] = useState(false);
   const [email, setEmail] = useState('');
@@ -329,7 +330,11 @@ export default function LoginScreen() {
                   </TouchableOpacity>
                 </View>
               </View>
-            </Animated.View>
+            <View style={styles.serverInfo} data-testid="login-api-base-url">
+              <Text style={styles.serverLabel}>Server:</Text>
+              <Text style={styles.serverValue}>{apiBaseUrl}</Text>
+            </View>
+          </Animated.View>
           </ScrollView>
         </KeyboardAvoidingView>
       </SafeAreaView>
@@ -607,6 +612,23 @@ const styles = StyleSheet.create({
     padding: 16, 
     marginBottom: 20,
     alignItems: 'center',
+  },
+  serverInfo: {
+    marginTop: 12,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 12,
+    backgroundColor: COLORS.lightGray,
+  },
+  serverLabel: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: COLORS.text,
+    marginBottom: 4,
+  },
+  serverValue: {
+    fontSize: 11,
+    color: COLORS.mediumGray,
   },
   quickLoginTitle: { fontSize: 14, fontWeight: '600', color: COLORS.text, marginBottom: 12 },
   quickLoginButtons: { flexDirection: 'row', gap: 16 },
