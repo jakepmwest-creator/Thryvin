@@ -67,7 +67,7 @@ export const ProPaywallModal = ({ visible, onClose }: ProPaywallModalProps) => {
             </View>
 
             <View style={styles.paywallWrapper}>
-              {offerings?.current ? (
+              {offerings?.current && RevenueCatUI?.Paywall ? (
                 <RevenueCatUI.Paywall
                   options={{ offering: offerings.current }}
                   onPurchaseCompleted={async ({ customerInfo }) => {
