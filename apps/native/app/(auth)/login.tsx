@@ -373,6 +373,51 @@ export default function LoginScreen() {
         </KeyboardAvoidingView>
       </SafeAreaView>
 
+      {/* Diagnostics Modal */}
+      <Modal
+        visible={showDiagnostics}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowDiagnostics(false)}
+      >
+        <View style={styles.diagnosticsOverlay}>
+          <View style={styles.diagnosticsModal}>
+            <Text style={styles.diagnosticsTitle}>Connection Diagnostics</Text>
+            <Text style={styles.diagnosticsLabel}>Base URL</Text>
+            <Text style={styles.diagnosticsValue}>{diagnosticsInfo.baseUrl}</Text>
+            <Text style={styles.diagnosticsLabel}>Source</Text>
+            <Text style={styles.diagnosticsValue}>{diagnosticsInfo.source}</Text>
+            <Text style={styles.diagnosticsLabel}>Login URL</Text>
+            <Text style={styles.diagnosticsValue}>{diagnosticsInfo.loginUrl}</Text>
+
+            <View style={styles.diagnosticsActions}>
+              <TouchableOpacity
+                style={styles.diagnosticsClose}
+                onPress={() => setShowDiagnostics(false)}
+                data-testid="diagnostics-close-button"
+              >
+                <Text style={styles.diagnosticsCloseText}>Close</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.diagnosticsRefresh}
+                onPress={() => {
+                  const info = getApiBaseUrlInfo();
+                  const baseUrl = info.value || 'Not set';
+                  setDiagnosticsInfo({
+                    baseUrl,
+                    source: info.source,
+                    loginUrl: baseUrl === 'Not set' ? 'Not set' : buildApiUrl('/auth/login'),
+                  });
+                }}
+                data-testid="diagnostics-refresh-button"
+              >
+                <Text style={styles.diagnosticsRefreshText}>Refresh</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
       {/* Login Form Modal */}
       <Modal
         visible={showLoginForm}
