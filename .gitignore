@@ -624,3 +624,7 @@ yarn-error.log*
 # Environment files
 *.env
 *.env.*
+-e 
+# Environment files
+*.env
+*.env.*
