@@ -194,16 +194,33 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       const storedUser = await getStorageItem('auth_user');
       const previousUserId = storedUser ? JSON.parse(storedUser).id : null;
       
-      // Call the real backend API
-      const response = await fetch(buildApiUrl('/auth/login'), {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Bypass-Tunnel-Reminder': 'true',
-          'Accept': 'application/json',
-        },
-        body: JSON.stringify(credentials),
-      });
+      // Call the real backend API with retry on network error
+      let response: Response | null = null;
+      let lastFetchError: Error | null = null;
+      for (let attempt = 0; attempt < 2; attempt++) {
+        try {
+          response = await fetch(buildApiUrl('/auth/login'), {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Bypass-Tunnel-Reminder': 'true',
+              'Accept': 'application/json',
+            },
+            body: JSON.stringify(credentials),
+          });
+          lastFetchError = null;
+          break;
+        } catch (fetchErr: any) {
+          lastFetchError = fetchErr;
+          if (attempt === 0) {
+            console.log('[Auth] Retrying login after network error:', fetchErr.message);
+            await new Promise(r => setTimeout(r, 1500));
+          }
+        }
+      }
+      if (lastFetchError || !response) {
+        throw new Error('Unable to reach the server. Please check your connection and try again.');
+      }
 
       const responseText = await response.text();
       let data: any;
