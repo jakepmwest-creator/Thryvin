@@ -6,6 +6,7 @@ import { FloatingCoachButton } from '../src/components/FloatingCoachButton';
 import { SplashScreen } from '../src/components/SplashScreen';
 import { useAuthStore } from '../src/stores/auth-store';
 import { useSubscriptionStore } from '../src/stores/subscription-store';
+import { initializeApiUrl } from '../src/services/env';
 
 export default function RootLayout() {
   const segments = useSegments();
@@ -13,6 +14,12 @@ export default function RootLayout() {
   const user = useAuthStore((state) => state.user);
   const initializeSubscriptions = useSubscriptionStore((state) => state.initialize);
   const [showSplash, setShowSplash] = useState(true);
+  const [apiReady, setApiReady] = useState(false);
+  
+  // Load any saved API URL override from AsyncStorage on mount
+  useEffect(() => {
+    initializeApiUrl().then(() => setApiReady(true));
+  }, []);
   
   // Show coach button only when user is logged in AND not in auth flow
   const inAuthGroup = segments[0] === '(auth)';
