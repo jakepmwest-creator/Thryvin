@@ -12,18 +12,21 @@ import { router } from 'expo-router';
 import { Alert } from 'react-native';
 import { getApiBaseUrl } from './env';
 
-const RAW_API_BASE_URL = getApiBaseUrl();
-const normalizeBaseUrl = (value?: string) => (value || '').replace(/\/+$/, '');
-const BASE_URL = normalizeBaseUrl(RAW_API_BASE_URL);
-const BASE_NO_API = BASE_URL.endsWith('/api') ? BASE_URL.slice(0, -4) : BASE_URL;
+/** Resolve the base URL dynamically on every call (supports runtime override). */
+function getBaseNoApi(): string {
+  const raw = getApiBaseUrl() || '';
+  const normalized = raw.replace(/\/+$/, '');
+  return normalized.endsWith('/api') ? normalized.slice(0, -4) : normalized;
+}
 
 export const buildApiUrl = (endpoint: string) => {
+  const base = getBaseNoApi();
   const path = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
-  if (!BASE_NO_API) return path;
+  if (!base) return path;
   if (path.startsWith('/api/')) {
-    return `${BASE_NO_API}${path}`;
+    return `${base}${path}`;
   }
-  return `${BASE_NO_API}/api${path}`;
+  return `${base}/api${path}`;
 };
 
 // Token storage key
