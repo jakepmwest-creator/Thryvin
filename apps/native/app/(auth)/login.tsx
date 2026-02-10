@@ -735,6 +735,76 @@ const styles = StyleSheet.create({
   loginSectionText: { fontSize: 14, color: COLORS.mediumGray },
   loginLink: { flexDirection: 'row', alignItems: 'center', gap: 4 },
   loginLinkText: { fontSize: 14, fontWeight: '700', color: COLORS.accent },
+
+  diagnosticsButton: {
+    marginTop: 8,
+    alignSelf: 'flex-start',
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 12,
+    backgroundColor: COLORS.lightGray,
+  },
+  diagnosticsButtonText: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: COLORS.mediumGray,
+  },
+  diagnosticsOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 24,
+  },
+  diagnosticsModal: {
+    width: '100%',
+    maxWidth: 340,
+    backgroundColor: COLORS.white,
+    borderRadius: 20,
+    padding: 20,
+  },
+  diagnosticsTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: COLORS.text,
+    marginBottom: 12,
+  },
+  diagnosticsLabel: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: COLORS.mediumGray,
+    marginTop: 8,
+  },
+  diagnosticsValue: {
+    fontSize: 12,
+    color: COLORS.text,
+    marginTop: 4,
+  },
+  diagnosticsActions: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 16,
+  },
+  diagnosticsClose: {
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    borderRadius: 12,
+    backgroundColor: COLORS.lightGray,
+  },
+  diagnosticsCloseText: {
+    color: COLORS.mediumGray,
+    fontWeight: '600',
+  },
+  diagnosticsRefresh: {
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    borderRadius: 12,
+    backgroundColor: COLORS.accent,
+  },
+  diagnosticsRefreshText: {
+    color: COLORS.white,
+    fontWeight: '700',
+  },
   
   // Modal Styles
   modalContainer: { flex: 1, backgroundColor: COLORS.white },
