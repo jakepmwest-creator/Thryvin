@@ -187,10 +187,9 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   login: async (credentials: { email: string; password: string }) => {
     set({ isLoading: true, error: null });
     try {
-      if (!RAW_API_BASE_URL) {
-        throw new Error('API base URL is not configured. Please restart the app.');
+      if (!getApiBaseUrl()) {
+        throw new Error('API base URL is not configured. Open Diagnostics on the login screen to set it.');
       }
-      // Check if this is a DIFFERENT user logging in
       const currentUserId = get().user?.id;
       const storedUser = await getStorageItem('auth_user');
       const previousUserId = storedUser ? JSON.parse(storedUser).id : null;
