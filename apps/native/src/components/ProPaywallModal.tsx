@@ -1,9 +1,15 @@
 import React, { useEffect } from 'react';
 import { Modal, View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import RevenueCatUI from 'react-native-purchases-ui';
 import { Ionicons } from '@expo/vector-icons';
 import { useSubscriptionStore } from '../stores/subscription-store';
+
+let RevenueCatUI: any = null;
+try {
+  RevenueCatUI = require('react-native-purchases-ui').default;
+} catch (e) {
+  // Not available in Expo Go
+}
 
 const COLORS = {
   gradientStart: '#8B5CF6',
