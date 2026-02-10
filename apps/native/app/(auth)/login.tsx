@@ -25,7 +25,7 @@ import { CustomAlert } from '../../src/components/CustomAlert';
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 import { COLORS as THEME_COLORS } from '../../src/constants/colors';
-import { getApiBaseUrlInfo } from '../../src/services/env';
+import { getApiBaseUrlInfo, setApiBaseUrlOverride, clearApiBaseUrlOverride } from '../../src/services/env';
 import { buildApiUrl } from '../../src/services/api-client';
 
 const COLORS = {
