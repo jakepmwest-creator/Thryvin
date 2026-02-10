@@ -144,10 +144,29 @@ export async function apiRequest<T = any>(
   try {
     console.log(`[API] ${options.method || 'GET'} ${endpoint}`);
     
-    const response = await fetch(url, {
-      ...options,
-      headers,
-    });
+    // Retry once on network errors (tunnel may be restarting)
+    let response: Response;
+    let lastError: Error | null = null;
+    for (let attempt = 0; attempt < 2; attempt++) {
+      try {
+        response = await fetch(url, {
+          ...options,
+          headers,
+        });
+        lastError = null;
+        break;
+      } catch (fetchErr: any) {
+        lastError = fetchErr;
+        if (attempt === 0) {
+          console.log(`[API] Retry ${endpoint} after network error: ${fetchErr.message}`);
+          await new Promise(r => setTimeout(r, 1500));
+        }
+      }
+    }
+    
+    if (lastError || !response!) {
+      throw lastError || new Error('Network request failed after retry');
+    }
     
     const contentType = response.headers.get('content-type');
     let data: any;
