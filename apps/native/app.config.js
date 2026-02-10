@@ -1,7 +1,14 @@
 import path from 'path';
 import dotenv from 'dotenv';
 
-dotenv.config({ path: path.resolve(__dirname, '.env') });
+// Load .env from the native app directory
+const envResult = dotenv.config({ path: path.resolve(__dirname, '.env') });
+if (envResult.error) {
+  console.warn('[app.config] Could not load .env:', envResult.error.message);
+}
+
+// Stable tunnel URL as fallback when .env is not loaded by Metro/Expo Go
+const FALLBACK_API_URL = 'https://thryvin-api.loca.lt';
 
 export default {
   expo: {
@@ -39,7 +46,7 @@ export default {
     },
     extra: {
       openaiApiKey: process.env.EXPO_PUBLIC_OPENAI_API_KEY,
-      EXPO_PUBLIC_API_BASE_URL: process.env.EXPO_PUBLIC_API_BASE_URL,
+      EXPO_PUBLIC_API_BASE_URL: process.env.EXPO_PUBLIC_API_BASE_URL || FALLBACK_API_URL,
       EXPO_PUBLIC_REVENUECAT_API_KEY: process.env.EXPO_PUBLIC_REVENUECAT_API_KEY,
     },
   },
