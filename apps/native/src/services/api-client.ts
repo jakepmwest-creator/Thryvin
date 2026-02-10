@@ -119,10 +119,10 @@ export async function apiRequest<T = any>(
   endpoint: string,
   options: RequestInit = {}
 ): Promise<{ ok: boolean; data?: T; error?: string; status: number }> {
-  if (!BASE_NO_API) {
+  if (!getBaseNoApi()) {
     return {
       ok: false,
-      error: 'API base URL is not configured. Please restart the app.',
+      error: 'API base URL is not configured. Open Diagnostics on the login screen to set it.',
       status: 0,
     };
   }
@@ -381,7 +381,7 @@ export interface DiagnosticsInfo {
 export async function getDiagnosticsInfo(): Promise<DiagnosticsInfo> {
   const tokenPresent = await hasToken();
   return {
-    apiBaseUrl: BASE_NO_API,
+    apiBaseUrl: getBaseNoApi(),
     tokenPresent,
     recentErrors,
   };
