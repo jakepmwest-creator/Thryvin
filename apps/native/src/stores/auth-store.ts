@@ -292,8 +292,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   register: async (userData: any) => {
     set({ isLoading: true, error: null });
     try {
-      if (!RAW_API_BASE_URL) {
-        throw new Error('API base URL is not configured. Please restart the app.');
+      if (!getApiBaseUrl()) {
+        throw new Error('API base URL is not configured. Open Diagnostics on the login screen to set it.');
       }
       // CRITICAL: Clear ALL local data FIRST for a completely fresh experience
       console.log('🆕 New user registration - clearing all old data first...');
