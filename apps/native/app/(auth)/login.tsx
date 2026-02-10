@@ -397,25 +397,65 @@ export default function LoginScreen() {
             <Text style={styles.diagnosticsLabel}>Login URL</Text>
             <Text style={styles.diagnosticsValue}>{diagnosticsInfo.loginUrl}</Text>
 
+            {/* Manual URL Override */}
+            <View style={styles.urlOverrideSection}>
+              <Text style={styles.diagnosticsLabel}>Set Server URL Manually</Text>
+              <RNTextInput
+                style={styles.urlInput}
+                placeholder="https://your-server-url.com"
+                placeholderTextColor={COLORS.mediumGray}
+                value={manualUrl}
+                onChangeText={setManualUrl}
+                autoCapitalize="none"
+                autoCorrect={false}
+                keyboardType="url"
+                data-testid="diagnostics-url-input"
+              />
+              {urlSaveStatus ? (
+                <Text style={styles.urlSaveStatus}>{urlSaveStatus}</Text>
+              ) : null}
+              <View style={styles.urlOverrideButtons}>
+                <TouchableOpacity
+                  style={styles.urlSaveButton}
+                  onPress={async () => {
+                    if (!manualUrl.trim()) {
+                      setUrlSaveStatus('Please enter a URL');
+                      return;
+                    }
+                    await setApiBaseUrlOverride(manualUrl.trim());
+                    setUrlSaveStatus('Saved! URL is now active.');
+                    refreshDiagnostics();
+                  }}
+                  data-testid="diagnostics-save-url-button"
+                >
+                  <Text style={styles.urlSaveButtonText}>Save & Use</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.urlClearButton}
+                  onPress={async () => {
+                    await clearApiBaseUrlOverride();
+                    setManualUrl('');
+                    setUrlSaveStatus('Cleared. Using default.');
+                    refreshDiagnostics();
+                  }}
+                  data-testid="diagnostics-clear-url-button"
+                >
+                  <Text style={styles.urlClearButtonText}>Clear</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+
             <View style={styles.diagnosticsActions}>
               <TouchableOpacity
                 style={styles.diagnosticsClose}
-                onPress={() => setShowDiagnostics(false)}
+                onPress={() => { setShowDiagnostics(false); setUrlSaveStatus(''); }}
                 data-testid="diagnostics-close-button"
               >
                 <Text style={styles.diagnosticsCloseText}>Close</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={styles.diagnosticsRefresh}
-                onPress={() => {
-                  const info = getApiBaseUrlInfo();
-                  const baseUrl = info.value || 'Not set';
-                  setDiagnosticsInfo({
-                    baseUrl,
-                    source: info.source,
-                    loginUrl: baseUrl === 'Not set' ? 'Not set' : buildApiUrl('/auth/login'),
-                  });
-                }}
+                onPress={refreshDiagnostics}
                 data-testid="diagnostics-refresh-button"
               >
                 <Text style={styles.diagnosticsRefreshText}>Refresh</Text>
