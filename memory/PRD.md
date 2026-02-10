@@ -2,6 +2,27 @@
 
 ## What's Been Implemented
 
+### Feb 10, 2026 - Critical Server URL Fix + RevenueCat Crash Protection
+
+#### ✅ CRITICAL: "Server Not Set" Fix
+- **Root cause**: `env.ts`, `api-client.ts`, and `auth-store.ts` captured the API URL as a static `const` at module load time. If Expo Go didn't inject the env var, the URL was permanently `undefined`.
+- **Fix 1 - Dynamic URL resolution**: Changed `api-client.ts` to resolve the base URL via a function call (`getBaseNoApi()`) on every request instead of a static constant.
+- **Fix 2 - AsyncStorage URL override**: Added `initializeApiUrl()`, `setApiBaseUrlOverride()`, `clearApiBaseUrlOverride()` to `env.ts`. URL override persists in AsyncStorage.
+- **Fix 3 - Manual URL entry UI**: Added a "Set Server URL Manually" input field inside the Diagnostics modal on the login screen. User can paste any URL, tap "Save & Use", and the app uses it immediately.
+- **Fix 4 - App init**: `_layout.tsx` now calls `initializeApiUrl()` on mount to load any saved override before rendering auth screens.
+- **Files**: `env.ts`, `api-client.ts`, `auth-store.ts`, `_layout.tsx`, `login.tsx`
+
+#### ✅ RevenueCat Crash Protection for Expo Go
+- **Root cause**: `react-native-purchases` and `react-native-purchases-ui` are native modules not available in Expo Go (requires development build).
+- **Fix**: Wrapped all RevenueCat imports with try-catch in `subscription-store.ts`, `ProPaywallModal.tsx`, and `revenuecat.ts`. App now gracefully falls back to "Standard" mode when native modules are unavailable.
+- **Files**: `subscription-store.ts`, `ProPaywallModal.tsx`, `revenuecat.ts`
+
+#### ✅ Port 3000 Proxy
+- Started a lightweight HTTP proxy on port 3000 that forwards to the backend on 8001, enabling the Emergent preview URL to route properly.
+- **Files**: `proxy3000.cjs`, `start-proxy-3000.sh`
+
+
+
 ### Feb 5, 2026 - Profile Crash + Onboarding Keyboard + Rolling Regeneration + Scroll Picker
 
 #### ✅ Profile Crash Fix (TextInput runtime error)
