@@ -57,16 +57,20 @@ export const clearApiBaseUrlOverride = async () => {
   } catch (e) {}
 };
 
+// Stable tunnel URL fallback when env vars aren't injected by Expo Go
+const FALLBACK_API_URL = 'https://thryvin-api.loca.lt';
+
 export const getApiBaseUrlInfo = () => {
   if (_overrideUrl) {
     return { value: _overrideUrl, source: 'override' as const };
   }
   const envValue = process.env.EXPO_PUBLIC_API_BASE_URL;
   const extraValue = getExtraValue('EXPO_PUBLIC_API_BASE_URL');
-  const value = normalizeBase(envValue || extraValue);
+  const raw = envValue || extraValue;
+  const value = normalizeBase(raw) || FALLBACK_API_URL;
   return {
     value,
-    source: envValue ? ('env' as const) : extraValue ? ('extra' as const) : ('missing' as const),
+    source: envValue ? ('env' as const) : extraValue ? ('extra' as const) : ('fallback' as const),
   };
 };
 
