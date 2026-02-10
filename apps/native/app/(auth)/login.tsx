@@ -26,6 +26,7 @@ const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 import { COLORS as THEME_COLORS } from '../../src/constants/colors';
 import { getApiBaseUrlInfo } from '../../src/services/env';
+import { buildApiUrl } from '../../src/services/api-client';
 
 const COLORS = {
   accent: THEME_COLORS.gradientStart,
@@ -43,6 +44,12 @@ const COLORS = {
 export default function LoginScreen() {
   const router = useRouter();
   const { login, isLoading, error } = useAuthStore();
+  const [showDiagnostics, setShowDiagnostics] = useState(false);
+  const [diagnosticsInfo, setDiagnosticsInfo] = useState({
+    baseUrl: 'Not set',
+    source: 'missing',
+    loginUrl: 'Not set',
+  });
   const apiBaseInfo = getApiBaseUrlInfo();
   const rawApiBaseUrl = apiBaseInfo.value || 'Not set';
   const normalizedBase = rawApiBaseUrl === 'Not set'
@@ -51,6 +58,17 @@ export default function LoginScreen() {
   const displayApiUrl = normalizedBase === 'Not set'
     ? normalizedBase
     : (normalizedBase.endsWith('/api') ? normalizedBase : `${normalizedBase}/api`);
+
+  useEffect(() => {
+    if (!showDiagnostics) return;
+    const info = getApiBaseUrlInfo();
+    const baseUrl = info.value || 'Not set';
+    setDiagnosticsInfo({
+      baseUrl,
+      source: info.source,
+      loginUrl: baseUrl === 'Not set' ? 'Not set' : buildApiUrl('/auth/login'),
+    });
+  }, [showDiagnostics]);
   
   const [showLoginForm, setShowLoginForm] = useState(false);
   const [email, setEmail] = useState('');
