@@ -360,6 +360,13 @@ export default function LoginScreen() {
               <Text style={styles.serverLabel}>Server:</Text>
               <Text style={styles.serverValue}>{displayApiUrl}</Text>
               <Text style={styles.serverSource}>Source: {apiBaseInfo.source}</Text>
+              <TouchableOpacity
+                style={styles.diagnosticsButton}
+                onPress={() => setShowDiagnostics(true)}
+                data-testid="login-diagnostics-button"
+              >
+                <Text style={styles.diagnosticsButtonText}>Diagnostics</Text>
+              </TouchableOpacity>
             </View>
           </Animated.View>
           </ScrollView>
