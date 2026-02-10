@@ -852,6 +852,56 @@ const styles = StyleSheet.create({
     color: COLORS.white,
     fontWeight: '700',
   },
+  urlOverrideSection: {
+    marginTop: 16,
+    paddingTop: 16,
+    borderTopWidth: 1,
+    borderTopColor: COLORS.lightGray,
+  },
+  urlInput: {
+    marginTop: 8,
+    height: 44,
+    borderRadius: 10,
+    backgroundColor: COLORS.lightGray,
+    paddingHorizontal: 12,
+    fontSize: 13,
+    color: COLORS.text,
+  },
+  urlSaveStatus: {
+    fontSize: 12,
+    color: COLORS.accent,
+    marginTop: 6,
+    fontWeight: '600',
+  },
+  urlOverrideButtons: {
+    flexDirection: 'row',
+    gap: 10,
+    marginTop: 10,
+  },
+  urlSaveButton: {
+    flex: 1,
+    paddingVertical: 10,
+    borderRadius: 10,
+    backgroundColor: COLORS.accent,
+    alignItems: 'center',
+  },
+  urlSaveButtonText: {
+    color: COLORS.white,
+    fontWeight: '700',
+    fontSize: 13,
+  },
+  urlClearButton: {
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    borderRadius: 10,
+    backgroundColor: COLORS.lightGray,
+    alignItems: 'center',
+  },
+  urlClearButtonText: {
+    color: COLORS.mediumGray,
+    fontWeight: '600',
+    fontSize: 13,
+  },
   
   // Modal Styles
   modalContainer: { flex: 1, backgroundColor: COLORS.white },
