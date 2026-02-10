@@ -45,11 +45,24 @@ export default function LoginScreen() {
   const router = useRouter();
   const { login, isLoading, error } = useAuthStore();
   const [showDiagnostics, setShowDiagnostics] = useState(false);
+  const [manualUrl, setManualUrl] = useState('');
+  const [urlSaveStatus, setUrlSaveStatus] = useState('');
   const [diagnosticsInfo, setDiagnosticsInfo] = useState({
     baseUrl: 'Not set',
     source: 'missing',
     loginUrl: 'Not set',
   });
+
+  const refreshDiagnostics = () => {
+    const info = getApiBaseUrlInfo();
+    const baseUrl = info.value || 'Not set';
+    setDiagnosticsInfo({
+      baseUrl,
+      source: info.source,
+      loginUrl: baseUrl === 'Not set' ? 'Not set' : buildApiUrl('/auth/login'),
+    });
+  };
+
   const apiBaseInfo = getApiBaseUrlInfo();
   const rawApiBaseUrl = apiBaseInfo.value || 'Not set';
   const normalizedBase = rawApiBaseUrl === 'Not set'
@@ -61,13 +74,7 @@ export default function LoginScreen() {
 
   useEffect(() => {
     if (!showDiagnostics) return;
-    const info = getApiBaseUrlInfo();
-    const baseUrl = info.value || 'Not set';
-    setDiagnosticsInfo({
-      baseUrl,
-      source: info.source,
-      loginUrl: baseUrl === 'Not set' ? 'Not set' : buildApiUrl('/auth/login'),
-    });
+    refreshDiagnostics();
   }, [showDiagnostics]);
   
   const [showLoginForm, setShowLoginForm] = useState(false);
