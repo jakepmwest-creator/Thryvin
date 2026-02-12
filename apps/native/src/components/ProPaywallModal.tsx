@@ -106,7 +106,7 @@ export const ProPaywallModal = ({ visible, onClose }: ProPaywallModalProps) => {
                 />
               </View>
             ) : (
-              /* Mock paywall for Expo Go / test mode */
+              /* Navigate to billing page */
               <View style={styles.mockPaywall}>
                 <View style={[styles.pricingCard, styles.pricingCardFeatured]}>
                   <LinearGradient
@@ -115,31 +115,22 @@ export const ProPaywallModal = ({ visible, onClose }: ProPaywallModalProps) => {
                     start={{ x: 0, y: 0 }}
                     end={{ x: 1, y: 0 }}
                   >
-                    <Text style={styles.pricingBadgeText}>MOST POPULAR</Text>
+                    <Text style={styles.pricingBadgeText}>BEST VALUE</Text>
                   </LinearGradient>
-                  <Text style={styles.pricingTitle}>Annual</Text>
+                  <Text style={styles.pricingTitle}>From</Text>
                   <Text style={styles.pricingPrice}>
-                    <Text style={styles.pricingCurrency}>From </Text>
-                    £4.99<Text style={styles.pricingPeriod}>/mo</Text>
+                    $2.92<Text style={styles.pricingPeriod}>/mo</Text>
                   </Text>
-                  <Text style={styles.pricingSave}>Save 40% vs monthly</Text>
-                </View>
-
-                <View style={styles.pricingCard}>
-                  <Text style={styles.pricingTitle}>Monthly</Text>
-                  <Text style={styles.pricingPrice}>
-                    £7.99<Text style={styles.pricingPeriod}>/mo</Text>
-                  </Text>
-                  <Text style={styles.pricingSave}>Cancel anytime</Text>
+                  <Text style={styles.pricingSave}>Billed annually. Cancel anytime.</Text>
                 </View>
 
                 <TouchableOpacity
                   style={styles.mockPurchaseButton}
                   onPress={() => {
-                    setTestPro(true);
                     onClose();
+                    router.push('/billing');
                   }}
-                  data-testid="mock-purchase-pro"
+                  data-testid="paywall-go-to-billing"
                 >
                   <LinearGradient
                     colors={[COLORS.accent, COLORS.accentSecondary]}
@@ -148,14 +139,9 @@ export const ProPaywallModal = ({ visible, onClose }: ProPaywallModalProps) => {
                     end={{ x: 1, y: 1 }}
                   >
                     <Ionicons name="star" size={18} color={COLORS.white} />
-                    <Text style={styles.mockPurchaseText}>Upgrade to Pro</Text>
+                    <Text style={styles.mockPurchaseText}>View Plans & Subscribe</Text>
                   </LinearGradient>
                 </TouchableOpacity>
-
-                <Text style={styles.mockNote}>
-                  In-app purchases available in the production build.{'\n'}
-                  Tap above to simulate upgrading.
-                </Text>
               </View>
             )}
           </ScrollView>
