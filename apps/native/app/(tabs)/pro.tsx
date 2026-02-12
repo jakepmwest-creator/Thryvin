@@ -116,7 +116,7 @@ export default function ProComparisonScreen() {
           </Text>
           <TouchableOpacity
             style={styles.ctaButton}
-            onPress={() => (isPro ? setShowManage(true) : setShowPaywall(true))}
+            onPress={() => router.push('/billing')}
             data-testid={isPro ? 'pro-compare-manage-button' : 'pro-compare-upgrade-button'}
           >
             <Text style={styles.ctaButtonText}>{isPro ? 'Manage Subscription' : 'Unlock Thryvin\' Pro'}</Text>
