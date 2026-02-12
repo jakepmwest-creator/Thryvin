@@ -40,6 +40,7 @@ interface ProPaywallModalProps {
 
 export const ProPaywallModal = ({ visible, onClose }: ProPaywallModalProps) => {
   const { offerings, fetchOfferings, refreshCustomerInfo, nativeAvailable, setTestPro } = useSubscriptionStore();
+  const router = useRouter();
 
   useEffect(() => {
     if (visible && nativeAvailable) {
