@@ -250,6 +250,10 @@ export default function HomeScreen() {
       const completedDate = completed ? new Date(completed) : null;
       const lastShownDate = lastShown ? new Date(lastShown) : null;
 
+      // TIMING RULES:
+      // 1) First trigger: 18 days after join (3 days before initial 3-week plan ends)
+      // 2) Subsequent triggers: every 21 days (3 weeks) after each completion
+      // 3) If dismissed without completing: re-show after 7 days
       if (completedDate) {
         const daysSinceCompleted = Math.floor((Date.now() - completedDate.getTime()) / (1000 * 60 * 60 * 24));
         if (daysSinceCompleted < 21) {
@@ -269,7 +273,7 @@ export default function HomeScreen() {
       joinDate.setDate(joinDate.getDate() - 7);
 
       const daysSinceJoin = Math.floor((Date.now() - joinDate.getTime()) / (1000 * 60 * 60 * 24));
-      // Show just before the 3-week plan ends (day 18+)
+      // First trigger: show 18 days after join (before initial 3-week plan ends)
       if (!completedDate && daysSinceJoin >= 18) {
         const weekNumber = Math.max(3, Math.floor(daysSinceJoin / 7) + 1);
         setRollingWeek(weekNumber);
