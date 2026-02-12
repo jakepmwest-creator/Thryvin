@@ -279,7 +279,7 @@ export default function HomeScreen() {
       }
 
       if (completedDate) {
-        const weekNumber = Math.max(2, Math.floor(daysSinceJoin / 7) + 1);
+        const weekNumber = Math.max(3, Math.floor(daysSinceJoin / 7) + 1);
         setRollingWeek(weekNumber);
         setShowRollingRegeneration(true);
         await AsyncStorage.setItem(lastShownKey, new Date().toISOString());
