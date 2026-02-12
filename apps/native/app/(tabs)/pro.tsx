@@ -15,7 +15,7 @@ const COLORS = {
   text: '#222222',
   lightGray: '#F8F9FA',
   mediumGray: '#8E8E93',
-  card: '#1B1B2E',
+  border: '#E5E5EA',
 };
 
 const STANDARD_FEATURES = [
