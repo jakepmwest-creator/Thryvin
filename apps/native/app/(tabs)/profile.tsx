@@ -645,7 +645,7 @@ export default function ProfileScreen() {
             ) : null}
             <TouchableOpacity
               style={styles.proActionButton}
-              onPress={() => (isPro ? setShowManageSubscription(true) : setShowPaywall(true))}
+              onPress={() => router.push('/billing')}
               data-testid={isPro ? 'manage-subscription-button' : 'upgrade-pro-button'}
             >
               <Text style={styles.proActionText}>
