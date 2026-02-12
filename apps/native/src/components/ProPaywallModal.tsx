@@ -12,12 +12,15 @@ try {
 }
 
 const COLORS = {
-  gradientStart: '#8B5CF6',
-  gradientEnd: '#EC4899',
-  background: '#0F0F1A',
-  card: '#1B1B2E',
-  text: '#FFFFFF',
-  muted: '#A0A0B0',
+  accent: '#A22BF6',
+  accentSecondary: '#FF4EC7',
+  background: '#FFFFFF',
+  cardBg: '#F8F9FA',
+  text: '#222222',
+  textSecondary: '#8E8E93',
+  textMuted: '#C7C7CC',
+  border: '#E5E5EA',
+  white: '#FFFFFF',
 };
 
 const PRO_FEATURES = [
@@ -49,22 +52,37 @@ export const ProPaywallModal = ({ visible, onClose }: ProPaywallModalProps) => {
     <Modal visible={visible} animationType="slide" transparent>
       <View style={styles.overlay}>
         <View style={styles.container}>
+          {/* Gradient accent bar at top */}
           <LinearGradient
-            colors={[COLORS.gradientStart, COLORS.gradientEnd]}
-            style={styles.header}
-          >
+            colors={[COLORS.accent, COLORS.accentSecondary]}
+            style={styles.accentBar}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 0 }}
+          />
+
+          <View style={styles.header}>
             <TouchableOpacity onPress={onClose} style={styles.closeButton} data-testid="pro-paywall-close">
-              <Ionicons name="close" size={20} color={COLORS.text} />
+              <Ionicons name="close" size={20} color={COLORS.textSecondary} />
             </TouchableOpacity>
+            <View style={styles.headerIconContainer}>
+              <LinearGradient
+                colors={[COLORS.accent, COLORS.accentSecondary]}
+                style={styles.headerIcon}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+              >
+                <Ionicons name="star" size={24} color={COLORS.white} />
+              </LinearGradient>
+            </View>
             <Text style={styles.headerTitle}>Thryvin' Pro</Text>
             <Text style={styles.headerSubtitle}>Unlock everything your training deserves</Text>
-          </LinearGradient>
+          </View>
 
           <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
             <View style={styles.featureCard}>
               {PRO_FEATURES.map((feature) => (
                 <View key={feature.text} style={styles.featureRow}>
-                  <Ionicons name={feature.icon} size={18} color={COLORS.gradientEnd} />
+                  <Ionicons name={feature.icon} size={18} color={COLORS.accent} />
                   <Text style={styles.featureText}>{feature.text}</Text>
                 </View>
               ))}
@@ -88,8 +106,15 @@ export const ProPaywallModal = ({ visible, onClose }: ProPaywallModalProps) => {
             ) : (
               /* Mock paywall for Expo Go / test mode */
               <View style={styles.mockPaywall}>
-                <View style={styles.pricingCard}>
-                  <Text style={styles.pricingBadge}>MOST POPULAR</Text>
+                <View style={[styles.pricingCard, styles.pricingCardFeatured]}>
+                  <LinearGradient
+                    colors={[COLORS.accent, COLORS.accentSecondary]}
+                    style={styles.pricingBadgeGradient}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 0 }}
+                  >
+                    <Text style={styles.pricingBadgeText}>MOST POPULAR</Text>
+                  </LinearGradient>
                   <Text style={styles.pricingTitle}>Annual</Text>
                   <Text style={styles.pricingPrice}>
                     <Text style={styles.pricingCurrency}>From </Text>
@@ -98,7 +123,7 @@ export const ProPaywallModal = ({ visible, onClose }: ProPaywallModalProps) => {
                   <Text style={styles.pricingSave}>Save 40% vs monthly</Text>
                 </View>
 
-                <View style={[styles.pricingCard, styles.pricingCardAlt]}>
+                <View style={styles.pricingCard}>
                   <Text style={styles.pricingTitle}>Monthly</Text>
                   <Text style={styles.pricingPrice}>
                     £7.99<Text style={styles.pricingPeriod}>/mo</Text>
@@ -115,18 +140,18 @@ export const ProPaywallModal = ({ visible, onClose }: ProPaywallModalProps) => {
                   data-testid="mock-purchase-pro"
                 >
                   <LinearGradient
-                    colors={[COLORS.gradientStart, COLORS.gradientEnd]}
+                    colors={[COLORS.accent, COLORS.accentSecondary]}
                     style={styles.mockPurchaseGradient}
                     start={{ x: 0, y: 0 }}
                     end={{ x: 1, y: 1 }}
                   >
-                    <Ionicons name="star" size={18} color="#fff" />
-                    <Text style={styles.mockPurchaseText}>Upgrade to Pro (Test)</Text>
+                    <Ionicons name="star" size={18} color={COLORS.white} />
+                    <Text style={styles.mockPurchaseText}>Upgrade to Pro</Text>
                   </LinearGradient>
                 </TouchableOpacity>
 
                 <Text style={styles.mockNote}>
-                  In-app purchases will be available in the production build.
+                  In-app purchases available in the production build.{'\n'}
                   Tap above to simulate upgrading.
                 </Text>
               </View>
@@ -141,7 +166,7 @@ export const ProPaywallModal = ({ visible, onClose }: ProPaywallModalProps) => {
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.6)',
+    backgroundColor: 'rgba(0,0,0,0.4)',
     justifyContent: 'flex-end',
   },
   container: {
@@ -151,23 +176,43 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 24,
     overflow: 'hidden',
   },
+  accentBar: {
+    height: 4,
+  },
   header: {
     padding: 20,
+    alignItems: 'center',
   },
   closeButton: {
     alignSelf: 'flex-end',
-    padding: 4,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: COLORS.cardBg,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  headerIconContainer: {
+    marginTop: 8,
+    marginBottom: 12,
+  },
+  headerIcon: {
+    width: 52,
+    height: 52,
+    borderRadius: 26,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   headerTitle: {
     color: COLORS.text,
     fontSize: 24,
     fontWeight: '700',
-    marginTop: 8,
   },
   headerSubtitle: {
-    color: COLORS.text,
-    opacity: 0.85,
+    color: COLORS.textSecondary,
     marginTop: 6,
+    textAlign: 'center',
+    fontSize: 14,
   },
   content: {
     padding: 20,
@@ -175,22 +220,24 @@ const styles = StyleSheet.create({
     paddingBottom: 40,
   },
   featureCard: {
-    backgroundColor: COLORS.card,
+    backgroundColor: COLORS.cardBg,
     borderRadius: 16,
     padding: 16,
-    gap: 12,
+    gap: 14,
+    borderWidth: 1,
+    borderColor: COLORS.border,
   },
   featureRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
+    gap: 12,
   },
   featureText: {
     color: COLORS.text,
     fontSize: 14,
   },
   paywallWrapper: {
-    backgroundColor: COLORS.card,
+    backgroundColor: COLORS.cardBg,
     borderRadius: 16,
     padding: 12,
   },
@@ -199,22 +246,28 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   pricingCard: {
-    backgroundColor: COLORS.card,
+    backgroundColor: COLORS.cardBg,
     borderRadius: 16,
     padding: 18,
-    borderWidth: 2,
-    borderColor: COLORS.gradientEnd,
+    borderWidth: 1,
+    borderColor: COLORS.border,
     alignItems: 'center',
   },
-  pricingCardAlt: {
-    borderColor: `${COLORS.muted}40`,
+  pricingCardFeatured: {
+    borderColor: COLORS.accent,
+    borderWidth: 2,
   },
-  pricingBadge: {
+  pricingBadgeGradient: {
+    paddingHorizontal: 10,
+    paddingVertical: 3,
+    borderRadius: 10,
+    marginBottom: 8,
+  },
+  pricingBadgeText: {
     fontSize: 10,
     fontWeight: '800',
-    color: COLORS.gradientEnd,
+    color: COLORS.white,
     letterSpacing: 1.5,
-    marginBottom: 6,
   },
   pricingTitle: {
     fontSize: 16,
@@ -230,16 +283,16 @@ const styles = StyleSheet.create({
   pricingCurrency: {
     fontSize: 14,
     fontWeight: '400',
-    color: COLORS.muted,
+    color: COLORS.textSecondary,
   },
   pricingPeriod: {
     fontSize: 14,
     fontWeight: '400',
-    color: COLORS.muted,
+    color: COLORS.textSecondary,
   },
   pricingSave: {
     fontSize: 12,
-    color: COLORS.muted,
+    color: COLORS.textSecondary,
     marginTop: 4,
   },
   mockPurchaseButton: {
@@ -255,13 +308,13 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   mockPurchaseText: {
-    color: '#fff',
+    color: COLORS.white,
     fontSize: 16,
     fontWeight: '700',
   },
   mockNote: {
     fontSize: 11,
-    color: COLORS.muted,
+    color: COLORS.textMuted,
     textAlign: 'center',
     lineHeight: 16,
   },
