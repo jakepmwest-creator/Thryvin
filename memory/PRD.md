@@ -565,3 +565,48 @@ User logs set in workout-hub → POST /api/workout/log-set (with thryvin_access_
 
 ## Architecture Note
 - Backend MUST NOT have a pre-compiled `dist/index.js` in development. The start script will use it if present, running stale code. Always use `npx tsx server/index.ts` for development.
+
+
+---
+
+### Feb 12, 2026 - Coach Personality Overhaul + Billing Page + Health Check
+
+#### Coach AI Personality Overhaul (P0 - VERIFIED)
+- **Issue**: Coach was too strict with fitness-only filtering. Non-fitness questions returned canned "I can only help with fitness" responses. Even some fitness questions (pull-up form) were being incorrectly filtered.
+- **Root Cause**: Hardcoded `FITNESS_KEYWORDS` array acted as a gate. Messages that didn't match any keyword AND were > 15 chars long returned a pre-written response WITHOUT going to OpenAI.
+- **Fix**: 
+  1. Removed the `FITNESS_KEYWORDS` filter entirely — all messages now reach the AI
+  2. Rewrote the system prompt to be a "Coach & Companion" — handles ANY topic naturally
+  3. Fitness questions → deep expert advice with specific cues, sets, reps
+  4. Mental health → genuine empathy, supportive, connects to movement naturally
+  5. Random/fun questions → clever, entertaining response that pivots to fitness
+  6. Greetings → warm, friendly, asks about their training
+  7. Increased max_tokens from 600 to 800 for richer responses
+- **Files Changed**: `/app/server/ai-coach-service.ts`
+- **Testing**: 14/14 backend API tests passed including 4 coach personality tests
+
+#### Billing / Payment Page (NEW - VERIFIED)
+- **Feature**: Dedicated billing page at `/billing` route
+- **Design**: White/light Thryvin theme with plan selector (Monthly $4.99 / 3-Month $11.99 / Yearly $34.99)
+- **Features**: Plan comparison, "Best Value" tag, savings %, monthly equivalent pricing, feature list with gradient icons, restore purchases, legal links, App Store disclaimer
+- **Pro users**: Shows active subscription card with manage/downgrade option
+- **Standard users**: Plan selector + Subscribe CTA button
+- **Navigation**: ProPaywallModal, Profile page, and Pro comparison page all navigate to `/billing`
+- **Test mode**: Simulates subscription for Expo Go testing (real RevenueCat for native build)
+- **Files Created**: `/app/apps/native/app/billing.tsx`
+- **Files Changed**: 
+  - `/app/apps/native/src/components/ProPaywallModal.tsx` — Navigate to billing instead of inline mock
+  - `/app/apps/native/app/(tabs)/profile.tsx` — Upgrade/Manage buttons navigate to billing
+  - `/app/apps/native/app/(tabs)/pro.tsx` — CTA navigates to billing
+
+#### Backend Health Check - COMPLETE
+- All 14 API endpoints tested and passing:
+  - Health, Auth (login/me), Exercises (with video URLs), Coach Chat (4 scenarios), Badges, Rolling Regeneration, Stats, Workout Schedule
+- `dist/` directory removed again (was regenerated) — backend runs from TypeScript source
+- Tunnel URL updated to current cloudflared URL
+
+#### Pending User Verification
+- Profile page buttons (all)
+- Billing page navigation and flow
+- Coach quality in mobile app
+- White theme consistency across all modals
