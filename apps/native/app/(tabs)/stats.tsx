@@ -1018,7 +1018,7 @@ const styles = StyleSheet.create({
   scrollContent: { paddingBottom: 32 },
   loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   loadingText: { marginTop: 16, fontSize: 16, color: COLORS.mediumGray },
-  timePeriodContainer: { flexDirection: 'row', justifyContent: 'center', paddingHorizontal: 24, paddingVertical: 16, gap: 8 },
+  timePeriodContainer: { flexDirection: 'row', justifyContent: 'center', paddingHorizontal: 24, paddingVertical: 16, gap: 8, backgroundColor: COLORS.lightGray, marginHorizontal: 20, borderRadius: 16 },
   timePeriodButton: { flex: 1, borderRadius: 12, overflow: 'hidden' },
   timePeriodButtonInactive: { backgroundColor: COLORS.lightGray },
   timePeriodGradient: { paddingVertical: 12, paddingHorizontal: 20, alignItems: 'center', borderRadius: 12 },
