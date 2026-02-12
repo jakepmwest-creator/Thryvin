@@ -21,10 +21,12 @@ const COLORS = {
 };
 
 const PRO_FEATURES = [
-  'Unlimited AI-generated plans',
-  'Advanced progress analytics',
-  'Coach-level insights & tips',
-  'Priority support + pro workouts',
+  { icon: 'infinite' as const, text: 'Unlimited AI-generated plans' },
+  { icon: 'analytics' as const, text: 'Advanced progress analytics' },
+  { icon: 'bulb' as const, text: 'Coach-level insights & tips' },
+  { icon: 'flash' as const, text: 'Priority support + pro workouts' },
+  { icon: 'refresh' as const, text: 'Rolling plan regeneration' },
+  { icon: 'create' as const, text: 'Edit & customise any workout' },
 ];
 
 interface ProPaywallModalProps {
@@ -33,13 +35,15 @@ interface ProPaywallModalProps {
 }
 
 export const ProPaywallModal = ({ visible, onClose }: ProPaywallModalProps) => {
-  const { offerings, fetchOfferings, refreshCustomerInfo } = useSubscriptionStore();
+  const { offerings, fetchOfferings, refreshCustomerInfo, nativeAvailable, setTestPro } = useSubscriptionStore();
 
   useEffect(() => {
-    if (visible) {
+    if (visible && nativeAvailable) {
       fetchOfferings();
     }
-  }, [visible, fetchOfferings]);
+  }, [visible, fetchOfferings, nativeAvailable]);
+
+  const showNativePaywall = nativeAvailable && offerings?.current && RevenueCatUI?.Paywall;
 
   return (
     <Modal visible={visible} animationType="slide" transparent>
@@ -59,36 +63,74 @@ export const ProPaywallModal = ({ visible, onClose }: ProPaywallModalProps) => {
           <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
             <View style={styles.featureCard}>
               {PRO_FEATURES.map((feature) => (
-                <View key={feature} style={styles.featureRow}>
-                  <Ionicons name="checkmark-circle" size={18} color={COLORS.gradientEnd} />
-                  <Text style={styles.featureText}>{feature}</Text>
+                <View key={feature.text} style={styles.featureRow}>
+                  <Ionicons name={feature.icon} size={18} color={COLORS.gradientEnd} />
+                  <Text style={styles.featureText}>{feature.text}</Text>
                 </View>
               ))}
             </View>
 
-            <View style={styles.paywallWrapper}>
-              {offerings?.current && RevenueCatUI?.Paywall ? (
+            {showNativePaywall ? (
+              <View style={styles.paywallWrapper}>
                 <RevenueCatUI.Paywall
                   options={{ offering: offerings.current }}
-                  onPurchaseCompleted={async ({ customerInfo }) => {
+                  onPurchaseCompleted={async () => {
                     await refreshCustomerInfo();
                     onClose();
                   }}
-                  onRestoreCompleted={async ({ customerInfo }) => {
+                  onRestoreCompleted={async () => {
                     await refreshCustomerInfo();
                     onClose();
                   }}
                   onDismiss={onClose}
                 />
-              ) : (
-                <View style={styles.emptyState}>
-                  <Text style={styles.emptyTitle}>Offers loading…</Text>
-                  <Text style={styles.emptySubtitle}>
-                    If this persists, please check your RevenueCat offerings.
+              </View>
+            ) : (
+              /* Mock paywall for Expo Go / test mode */
+              <View style={styles.mockPaywall}>
+                <View style={styles.pricingCard}>
+                  <Text style={styles.pricingBadge}>MOST POPULAR</Text>
+                  <Text style={styles.pricingTitle}>Annual</Text>
+                  <Text style={styles.pricingPrice}>
+                    <Text style={styles.pricingCurrency}>From </Text>
+                    £4.99<Text style={styles.pricingPeriod}>/mo</Text>
                   </Text>
+                  <Text style={styles.pricingSave}>Save 40% vs monthly</Text>
                 </View>
-              )}
-            </View>
+
+                <View style={[styles.pricingCard, styles.pricingCardAlt]}>
+                  <Text style={styles.pricingTitle}>Monthly</Text>
+                  <Text style={styles.pricingPrice}>
+                    £7.99<Text style={styles.pricingPeriod}>/mo</Text>
+                  </Text>
+                  <Text style={styles.pricingSave}>Cancel anytime</Text>
+                </View>
+
+                <TouchableOpacity
+                  style={styles.mockPurchaseButton}
+                  onPress={() => {
+                    setTestPro(true);
+                    onClose();
+                  }}
+                  data-testid="mock-purchase-pro"
+                >
+                  <LinearGradient
+                    colors={[COLORS.gradientStart, COLORS.gradientEnd]}
+                    style={styles.mockPurchaseGradient}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 1 }}
+                  >
+                    <Ionicons name="star" size={18} color="#fff" />
+                    <Text style={styles.mockPurchaseText}>Upgrade to Pro (Test)</Text>
+                  </LinearGradient>
+                </TouchableOpacity>
+
+                <Text style={styles.mockNote}>
+                  In-app purchases will be available in the production build.
+                  Tap above to simulate upgrading.
+                </Text>
+              </View>
+            )}
           </ScrollView>
         </View>
       </View>
@@ -130,12 +172,13 @@ const styles = StyleSheet.create({
   content: {
     padding: 20,
     gap: 16,
+    paddingBottom: 40,
   },
   featureCard: {
     backgroundColor: COLORS.card,
     borderRadius: 16,
     padding: 16,
-    gap: 10,
+    gap: 12,
   },
   featureRow: {
     flexDirection: 'row',
@@ -151,20 +194,76 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     padding: 12,
   },
-  emptyState: {
-    padding: 20,
+  // Mock paywall styles
+  mockPaywall: {
+    gap: 12,
+  },
+  pricingCard: {
+    backgroundColor: COLORS.card,
+    borderRadius: 16,
+    padding: 18,
+    borderWidth: 2,
+    borderColor: COLORS.gradientEnd,
     alignItems: 'center',
   },
-  emptyTitle: {
-    color: COLORS.text,
-    fontSize: 16,
-    fontWeight: '600',
+  pricingCardAlt: {
+    borderColor: `${COLORS.muted}40`,
   },
-  emptySubtitle: {
+  pricingBadge: {
+    fontSize: 10,
+    fontWeight: '800',
+    color: COLORS.gradientEnd,
+    letterSpacing: 1.5,
+    marginBottom: 6,
+  },
+  pricingTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: COLORS.text,
+    marginBottom: 4,
+  },
+  pricingPrice: {
+    fontSize: 28,
+    fontWeight: '800',
+    color: COLORS.text,
+  },
+  pricingCurrency: {
+    fontSize: 14,
+    fontWeight: '400',
     color: COLORS.muted,
+  },
+  pricingPeriod: {
+    fontSize: 14,
+    fontWeight: '400',
+    color: COLORS.muted,
+  },
+  pricingSave: {
     fontSize: 12,
-    marginTop: 6,
+    color: COLORS.muted,
+    marginTop: 4,
+  },
+  mockPurchaseButton: {
+    borderRadius: 14,
+    overflow: 'hidden',
+    marginTop: 4,
+  },
+  mockPurchaseGradient: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 16,
+    gap: 8,
+  },
+  mockPurchaseText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '700',
+  },
+  mockNote: {
+    fontSize: 11,
+    color: COLORS.muted,
     textAlign: 'center',
+    lineHeight: 16,
   },
 });
 

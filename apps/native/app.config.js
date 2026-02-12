@@ -8,7 +8,7 @@ if (envResult.error) {
 }
 
 // Stable tunnel URL as fallback when .env is not loaded by Metro/Expo Go
-const FALLBACK_API_URL = 'https://thryvin-api.loca.lt';
+const FALLBACK_API_URL = 'https://normal-makes-afterwards-programmers.trycloudflare.com';
 
 export default {
   expo: {

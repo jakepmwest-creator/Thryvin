@@ -20,6 +20,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useAuthStore } from '../../src/stores/auth-store';
+import { useSubscriptionStore } from '../../src/stores/subscription-store';
 import { CustomAlert } from '../../src/components/CustomAlert';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
@@ -44,6 +45,7 @@ const COLORS = {
 export default function LoginScreen() {
   const router = useRouter();
   const { login, isLoading, error } = useAuthStore();
+  const setTestPro = useSubscriptionStore((state) => state.setTestPro);
   const [showDiagnostics, setShowDiagnostics] = useState(false);
   const [manualUrl, setManualUrl] = useState('');
   const [urlSaveStatus, setUrlSaveStatus] = useState('');
@@ -228,6 +230,18 @@ export default function LoginScreen() {
     }
   };
 
+  const handleTestLogin = async (asPro: boolean) => {
+    try {
+      // Set subscription tier first
+      setTestPro(asPro);
+      // Login with test account
+      await login({ email: 'test@example.com', password: 'password123' });
+      router.replace('/(tabs)');
+    } catch (error) {
+      showAlert('error', 'Test Login Failed', error instanceof Error ? error.message : 'Could not log in with test account');
+    }
+  };
+
   return (
     <View style={styles.container}>
       {/* Custom Alert */}
@@ -361,6 +375,40 @@ export default function LoginScreen() {
                     <Text style={styles.loginLinkText}>Sign In</Text>
                     <Ionicons name="arrow-forward" size={14} color={COLORS.accent} />
                   </TouchableOpacity>
+                </View>
+
+                {/* Test User Quick Login */}
+                <View style={styles.testLoginSection}>
+                  <Text style={styles.testLoginTitle}>Test Accounts</Text>
+                  <View style={styles.testLoginButtons}>
+                    <TouchableOpacity
+                      style={styles.testLoginButtonPro}
+                      onPress={() => handleTestLogin(true)}
+                      activeOpacity={0.8}
+                      data-testid="test-login-pro"
+                    >
+                      <LinearGradient
+                        colors={['#FFB800', '#FF8A00']}
+                        style={styles.testLoginGradient}
+                        start={{ x: 0, y: 0 }}
+                        end={{ x: 1, y: 1 }}
+                      >
+                        <Ionicons name="star" size={16} color="#fff" />
+                        <Text style={styles.testLoginButtonText}>Test as Pro</Text>
+                      </LinearGradient>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      style={styles.testLoginButtonStd}
+                      onPress={() => handleTestLogin(false)}
+                      activeOpacity={0.8}
+                      data-testid="test-login-standard"
+                    >
+                      <View style={styles.testLoginStdInner}>
+                        <Ionicons name="person" size={16} color={COLORS.mediumGray} />
+                        <Text style={styles.testLoginStdText}>Test as Standard</Text>
+                      </View>
+                    </TouchableOpacity>
+                  </View>
                 </View>
               </View>
             <View style={styles.serverInfo} data-testid="login-api-base-url">
@@ -901,6 +949,63 @@ const styles = StyleSheet.create({
     color: COLORS.mediumGray,
     fontWeight: '600',
     fontSize: 13,
+  },
+
+  // Test Login Styles
+  testLoginSection: {
+    marginTop: 20,
+    paddingTop: 16,
+    borderTopWidth: 1,
+    borderTopColor: `${COLORS.mediumGray}20`,
+    alignItems: 'center',
+  },
+  testLoginTitle: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: COLORS.mediumGray,
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+    marginBottom: 12,
+  },
+  testLoginButtons: {
+    flexDirection: 'row',
+    gap: 10,
+    width: '100%',
+  },
+  testLoginButtonPro: {
+    flex: 1,
+    borderRadius: 12,
+    overflow: 'hidden',
+  },
+  testLoginGradient: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 12,
+    gap: 6,
+  },
+  testLoginButtonText: {
+    color: '#fff',
+    fontWeight: '700',
+    fontSize: 14,
+  },
+  testLoginButtonStd: {
+    flex: 1,
+    borderRadius: 12,
+    borderWidth: 1.5,
+    borderColor: `${COLORS.mediumGray}40`,
+  },
+  testLoginStdInner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 12,
+    gap: 6,
+  },
+  testLoginStdText: {
+    color: COLORS.mediumGray,
+    fontWeight: '600',
+    fontSize: 14,
   },
   
   // Modal Styles

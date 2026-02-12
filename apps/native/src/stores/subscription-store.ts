@@ -4,8 +4,6 @@ import { REVENUECAT_API_KEY, isThryvinProActive } from '../services/revenuecat';
 // RevenueCat native modules may not be available in Expo Go
 let Purchases: any = null;
 let RevenueCatUI: any = null;
-let PAYWALL_RESULT: any = {};
-let CUSTOMER_CENTER_RESULT: any = {};
 let LOG_LEVEL: any = {};
 
 try {
@@ -13,16 +11,14 @@ try {
   Purchases = purchasesModule.default;
   LOG_LEVEL = purchasesModule.LOG_LEVEL;
 } catch (e) {
-  console.warn('[Subscriptions] react-native-purchases not available (Expo Go?)');
+  // Native module not available (Expo Go)
 }
 
 try {
   const uiModule = require('react-native-purchases-ui');
   RevenueCatUI = uiModule.default;
-  PAYWALL_RESULT = uiModule.PAYWALL_RESULT;
-  CUSTOMER_CENTER_RESULT = uiModule.CUSTOMER_CENTER_RESULT;
 } catch (e) {
-  console.warn('[Subscriptions] react-native-purchases-ui not available (Expo Go?)');
+  // Native UI module not available (Expo Go)
 }
 
 interface SubscriptionState {
@@ -32,12 +28,15 @@ interface SubscriptionState {
   customerInfo: any | null;
   offerings: any | null;
   isPro: boolean;
+  isTestMode: boolean;
+  nativeAvailable: boolean;
   initialize: (appUserId?: string | null) => Promise<void>;
   setAppUser: (appUserId?: string | null) => Promise<void>;
   refreshCustomerInfo: () => Promise<void>;
   fetchOfferings: () => Promise<void>;
   presentPaywall: () => Promise<any>;
   presentCustomerCenter: () => Promise<any>;
+  setTestPro: (isPro: boolean) => void;
 }
 
 export const useSubscriptionStore = create<SubscriptionState>((set, get) => ({
@@ -47,16 +46,21 @@ export const useSubscriptionStore = create<SubscriptionState>((set, get) => ({
   customerInfo: null,
   offerings: null,
   isPro: false,
+  isTestMode: false,
+  nativeAvailable: !!Purchases,
 
   initialize: async (appUserId?: string | null) => {
+    // If in test mode, skip real initialization
+    if (get().isTestMode) return;
+
     if (get().isInitialized) {
       await get().setAppUser(appUserId);
       return;
     }
 
     if (!Purchases) {
-      console.warn('[Subscriptions] RevenueCat SDK not available — running in Standard mode');
-      set({ isInitialized: true, isLoading: false, isPro: false });
+      console.log('[Subscriptions] Native SDK not available — Expo Go mode');
+      set({ isInitialized: true, isLoading: false, isPro: false, nativeAvailable: false });
       return;
     }
 
@@ -73,10 +77,9 @@ export const useSubscriptionStore = create<SubscriptionState>((set, get) => ({
       await Purchases.configure({ apiKey: REVENUECAT_API_KEY });
 
       Purchases.addCustomerInfoUpdateListener((info: any) => {
-        set({
-          customerInfo: info,
-          isPro: isThryvinProActive(info),
-        });
+        if (!get().isTestMode) {
+          set({ customerInfo: info, isPro: isThryvinProActive(info) });
+        }
       });
 
       if (appUserId) {
@@ -93,10 +96,10 @@ export const useSubscriptionStore = create<SubscriptionState>((set, get) => ({
         isLoading: false,
       });
     } catch (error: any) {
-      console.error('RevenueCat init error:', error);
+      console.warn('[Subscriptions] Init error (expected in Expo Go):', error?.message);
       set({
         isInitialized: true,
-        error: error?.message || 'Failed to initialize subscriptions',
+        error: null, // Don't surface this error to the user
         isLoading: false,
         isPro: false,
       });
@@ -104,7 +107,7 @@ export const useSubscriptionStore = create<SubscriptionState>((set, get) => ({
   },
 
   setAppUser: async (appUserId?: string | null) => {
-    if (!Purchases || !get().isInitialized) return;
+    if (!Purchases || !get().isInitialized || get().isTestMode) return;
     try {
       if (appUserId) {
         await Purchases.logIn(String(appUserId));
@@ -113,36 +116,33 @@ export const useSubscriptionStore = create<SubscriptionState>((set, get) => ({
       }
       await get().refreshCustomerInfo();
     } catch (error: any) {
-      console.error('RevenueCat setAppUser error:', error);
-      set({ error: error?.message || 'Failed to sync subscription user' });
+      console.warn('[Subscriptions] setAppUser error:', error?.message);
     }
   },
 
   refreshCustomerInfo: async () => {
-    if (!Purchases) return;
+    if (!Purchases || get().isTestMode) return;
     try {
       const info = await Purchases.getCustomerInfo();
       set({ customerInfo: info, isPro: isThryvinProActive(info) });
     } catch (error: any) {
-      console.error('RevenueCat customer info error:', error);
-      set({ error: error?.message || 'Failed to fetch subscription info' });
+      console.warn('[Subscriptions] Customer info error:', error?.message);
     }
   },
 
   fetchOfferings: async () => {
-    if (!Purchases) return;
+    if (!Purchases || get().isTestMode) return;
     try {
       const offerings = await Purchases.getOfferings();
       set({ offerings });
     } catch (error: any) {
-      console.error('RevenueCat offerings error:', error);
-      set({ error: error?.message || 'Failed to load offerings' });
+      console.warn('[Subscriptions] Offerings error:', error?.message);
     }
   },
 
   presentPaywall: async () => {
     if (!RevenueCatUI) {
-      console.warn('[Subscriptions] Paywall not available in Expo Go');
+      console.log('[Subscriptions] Paywall not available in Expo Go');
       return null;
     }
     try {
@@ -150,15 +150,14 @@ export const useSubscriptionStore = create<SubscriptionState>((set, get) => ({
       await get().refreshCustomerInfo();
       return result;
     } catch (error: any) {
-      console.error('RevenueCat paywall error:', error);
-      set({ error: error?.message || 'Failed to present paywall' });
+      console.warn('[Subscriptions] Paywall error:', error?.message);
       return null;
     }
   },
 
   presentCustomerCenter: async () => {
     if (!RevenueCatUI) {
-      console.warn('[Subscriptions] Customer center not available in Expo Go');
+      console.log('[Subscriptions] Customer center not available in Expo Go');
       return null;
     }
     try {
@@ -166,9 +165,19 @@ export const useSubscriptionStore = create<SubscriptionState>((set, get) => ({
       await get().refreshCustomerInfo();
       return result;
     } catch (error: any) {
-      console.error('RevenueCat customer center error:', error);
-      set({ error: error?.message || 'Failed to open customer center' });
+      console.warn('[Subscriptions] Customer center error:', error?.message);
       return null;
     }
+  },
+
+  // Test mode: manually toggle Pro/Standard without RevenueCat
+  setTestPro: (isPro: boolean) => {
+    set({
+      isTestMode: true,
+      isInitialized: true,
+      isLoading: false,
+      isPro,
+      error: null,
+    });
   },
 }));

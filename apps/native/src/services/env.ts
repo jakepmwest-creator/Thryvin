@@ -58,7 +58,7 @@ export const clearApiBaseUrlOverride = async () => {
 };
 
 // Stable tunnel URL fallback when env vars aren't injected by Expo Go
-const FALLBACK_API_URL = 'https://thryvin-api.loca.lt';
+const FALLBACK_API_URL = 'https://normal-makes-afterwards-programmers.trycloudflare.com';
 
 export const getApiBaseUrlInfo = () => {
   if (_overrideUrl) {
