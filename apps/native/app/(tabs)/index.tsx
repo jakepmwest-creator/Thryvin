@@ -282,6 +282,7 @@ export default function HomeScreen() {
         return;
       }
 
+      // Recurring trigger: 21+ days since last completion → show again
       if (completedDate) {
         const weekNumber = Math.max(3, Math.floor(daysSinceJoin / 7) + 1);
         setRollingWeek(weekNumber);
