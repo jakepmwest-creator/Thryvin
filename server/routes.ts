@@ -2224,6 +2224,11 @@ Respond with ONLY a JSON object (no markdown, no explanation):
     }));
   }
 
+  // Rolling Regeneration - test endpoint
+  app.get("/api/workouts/rolling-regeneration-test", (req, res) => {
+    res.json({ ok: true, message: "rolling regeneration test endpoint" });
+  });
+
   // Rolling Regeneration - refresh upcoming workout block with user feedback
   app.post("/api/workouts/rolling-regeneration", authenticateToken, async (req: AuthenticatedRequest, res) => {
     try {
