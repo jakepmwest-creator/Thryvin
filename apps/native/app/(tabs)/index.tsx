@@ -294,6 +294,7 @@ export default function HomeScreen() {
   const handleRollingRegenerationSubmit = async (feedback: {
     availableDaysWeek1: string[];
     availableDaysWeek2: string[];
+    availableDaysWeek3: string[];
     overallFeeling: string;
     favoriteThing: string;
     leastFavoriteThing: string;
