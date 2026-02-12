@@ -57,7 +57,7 @@
 
 ## 🎯 **STABLE URL**
 ```
-https://bugzapper-55.preview.emergentagent.com
+https://regen-timing-fix.preview.emergentagent.com
 ```
 
 ---

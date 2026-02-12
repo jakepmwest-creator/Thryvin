@@ -6,7 +6,7 @@ Tests for two critical P0 fixes:
 2. Favorites pinning - PUT/GET /api/stats/favorites should persist exercise IDs
 
 Test credentials: test@example.com / password123
-API Base URL: https://workout-data-cleanup.preview.emergentagent.com
+API Base URL: https://regen-timing-fix.preview.emergentagent.com
 """
 
 import pytest
@@ -16,7 +16,7 @@ import time
 import uuid
 
 # API Base URL from environment or default
-BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://workout-data-cleanup.preview.emergentagent.com').rstrip('/')
+BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://regen-timing-fix.preview.emergentagent.com').rstrip('/')
 
 # Test credentials
 TEST_EMAIL = "test@example.com"

@@ -1,0 +1,146 @@
+<analysis>**original_problem_statement**: The user was critically blocked by a Server not set error in the Expo Go mobile app, preventing any testing or development. The primary goal was to fix this connectivity issue. Once resolved, the user wanted to verify numerous backlogged features (AI workout rules, RevenueCat subscriptions, profile page stability) and requested a significant UI overhaul to convert several dark-themed modals to a new white/light theme. The user also requested changes to the logic and timing of the Rolling Regeneration feature.
+
+**User's preferred language**: English
+
+**what currently exists?**
+The application is now functional and accessible via Expo Go. The critical Server not set and subsequent network request failed errors have been resolved by implementing a robust, multi-layered API URL resolution strategy and replacing the unreliable  with a stable  tunnel.
+
+To facilitate testing in Expo Go where native modules are unavailable, a Test as Pro and Test as Standard user toggle has been added to the login screen. This allows the user to see how feature-gating and upsell prompts behave.
+
+A major UI refresh has been completed, converting the , , and  to a white/light theme as requested. The initial trigger for the Rolling Regeneration feature has been updated to 18 days.
+
+**Last working item**:
+- **Last item agent was working**: The user provided a final clarification on the Rolling Regeneration feature's timing. The agent had just implemented the *initial* trigger at 18 days, but the user specified that all *subsequent* triggers should occur every 3 weeks (21 days) thereafter. The agent has not yet implemented this recurring logic.
+- **Status**: IN PROGRESS
+- **Agent Testing Done**: N
+- **Which testing method agent to use?**: Manual testing. The agent will need to modify the trigger logic in .
+- **User Testing Done**: N
+
+**All Pending/In progress Issue list**:
+-   **Issue 1: Implement recurring logic for Rolling Regeneration (P0)**
+-   **Issue 2: Verify Profile page crash fix (P1)**
+-   **Issue 3: Verify Onboarding keyboard behavior (P1)**
+-   **Issue 4: Verify  dependency error fix (P2)**
+
+**Issues Detail**:
+-   **Issue 1: Implement recurring logic for Rolling Regeneration (P0)**
+    -   **Attempted fixes**: The agent set the initial trigger to 18 days in .
+    -   **Next debug checklist**:
+        1.  Modify the logic in  that checks .
+        2.  The current logic is .
+        3.  This needs to be updated to handle the initial 18-day trigger and subsequent 21-day triggers. This might involve storing a flag or checking if a regeneration has ever occurred before.
+    -   **Why fix this issue and what will be achieved with the fix?**: To match the user's specific product requirement for how and when users are prompted to refresh their workout plans.
+    -   **Status**: IN PROGRESS
+    -   **Is recurring issue?**: N
+    -   **Should Test frontend/backend/both after fix?**: Frontend.
+-   **Issue 2: Verify Profile page crash fix (P1)**
+    -   **Attempted fixes**: The agent wrapped native  imports in  blocks and used dynamic  calls to prevent the app from crashing in Expo Go where native modules are not available. The fix is in  and .
+    -   **Next debug checklist**: The user needs to log in (using either test user button) and navigate to the Profile tab to confirm it no longer crashes.
+    -   **Why fix this issue and what will be achieved with the fix?**: The profile page is a key part of the app for managing subscriptions and user settings.
+    -   **Status**: USER VERIFICATION PENDING
+    -   **Is recurring issue?**: Y
+    -   **Should Test frontend/backend/both after fix?**: Frontend.
+-   **Issue 3: Verify Onboarding keyboard behavior (P1)**
+    -   **Attempted fixes**: The agent inspected the code in  and confirmed that the  components already have the  and  props. No changes were made.
+    -   **Next debug checklist**: The user needs to test the onboarding flow to confirm the keyboard behavior is satisfactory.
+    -   **Status**: USER VERIFICATION PENDING
+    -   **Is recurring issue?**: Y
+    -   **Should Test frontend/backend/both after fix?**: Frontend.
+-   **Issue 4: Verify  dependency error fix (P2)**
+    -   **Attempted fixes**: The package was installed in a previous session. The agent has now confirmed the app no longer crashes, implicitly suggesting this is resolved.
+    -   **Next debug checklist**: User needs to navigate the app and confirm no haptics-related errors appear.
+    -   **Status**: USER VERIFICATION PENDING
+    -   **Is recurring issue?**: N
+    -   **Should Test frontend/backend/both after fix?**: Frontend.
+
+**In progress Task List**:
+- None.
+
+**Upcoming and Future Tasks**
+-   **Upcoming Tasks (P1): Full Feature Verification**
+    -   User to test and verify the implemented AI Workout Generation rules.
+    -   User to test the complete Pro vs. Standard feature gating using the new test user toggles.
+    -   User to verify the functionality of the Weekly Summary page.
+-   **Future Tasks (P2/P3)**
+    -   Create an Expo Development Build (env: load .env or EAS Build) to allow for testing the real RevenueCat SDK functionality.
+    -   Sync RevenueCat purchases to the backend database.
+    -   Create UI in  to display special set types (Drop Sets, Super Sets).
+    -   Finalize marketing copy on the  comparison page.
+
+**Completed work in this session**
+-   **CRITICAL BLOCKER: Fixed App Connectivity**: Resolved the Server not set and Network request failed errors, making the app usable in Expo Go.
+    -   Switched from unreliable  to a stable  tunnel for exposing the backend.
+    -   Implemented a robust, multi-layered URL provider ( override ->  ->  -> hardcoded fallback) to ensure the app always has a valid server URL.
+-   **Enabled Expo Go Testing**:
+    -   Fixed a crash caused by  native modules by defensively loading them.
+    -   Added Test as Pro and Test as Standard buttons on the login screen to allow testing of feature-gating without a native build.
+-   **Major UI & UX Refresh**:
+    -   Converted , , and  from a dark theme to a white/light theme.
+    -   Added rounded corners to the stats page banner.
+-   **Rolling Regeneration Logic Update**:
+    -   Changed the initial trigger timing to 18 days.
+    -   Updated the modal to ask for 3 weeks of availability and gather user feedback.
+-   **GitHub Repository Connection Restored**: Re-established the connection to the remote repository without losing local work.
+
+**Known issue recurrence from previous fork**
+-   **Issue recurrence in previous fork**: Unstable backend connectivity (Server not set).
+-   **Recurrence count**: High
+-   **Status**: RESOLVED. The switch to  and the implementation of a dynamic, multi-fallback URL system has fixed this recurring blocker.
+
+**Code Architecture**
+
+
+**Key Technical Concepts**
+-   **Expo Go Limitations**: Native modules (like ) will not work and can crash the app. The pattern is to use  around  or dynamic imports to gracefully disable features.
+-   **Dynamic API URL Resolution**: The  no longer uses a static  for the URL. It calls a function that resolves the URL through a chain of priorities: AsyncStorage (manual override) -> Expo config -> Hardcoded fallback. This makes the app resilient to build configuration issues.
+-   **Tunneling for Development**:  proved unreliable.  (Cloudflare Tunnel) is a more stable solution for exposing the local backend to a mobile device for testing, though it provides a new random URL on each restart.
+
+**All files of reference**
+-   : New file, core of the dynamic URL fix.
+-   : Rewritten to use dynamic URL.
+-   : Heavily modified to include test user buttons and the URL diagnostics/override panel.
+-   : Contains the rolling regeneration trigger logic that needs to be updated.
+-   : Contains the RevenueCat crash protection and the test mode toggle logic.
+-   : UI updated to light theme.
+-   : UI updated to light theme.
+-   : UI updated to light theme and logic updated for 3-week regeneration.
+
+**Critical Info for New Agent**
+1.  **The Connectivity Blocker is FIXED.** The user can log in and use the app via Expo Go. The backend is exposed via a  tunnel.
+2.  **Cloudflare Tunnel URL Changes on Restart.** The  service generates a new, random URL every time the container restarts. You must find the latest URL from the service logs and provide it to the user. The user may need to paste this into the Diagnostics panel on the login screen if their phone has an old URL cached in AsyncStorage.
+3.  **Use the Test User Toggle.** For all testing related to Pro/Standard features, use the Test as Pro and Test as Standard buttons on the login screen. Real RevenueCat functionality requires an Expo Development Build, which is a future task.
+4.  **Immediate Task:** The user's highest priority is to finish the Rolling Regeneration logic. The first trigger is at 18 days, but all subsequent triggers must be every 3 weeks (21 days) after that. This logic needs to be implemented in .
+
+**documents and test reports created in this job**
+-    (updated)
+
+**Last 10 User Messages and any pending HUMAN messages**
+1.  **User:** Requests the rolling regeneration timing be fixed: first trigger at 18 days, then every 3 weeks after that. (PENDING)
+2.  **Agent:** Confirms all UI refresh tasks are complete and ready for review.
+3.  **User:** Gives enthusiastic feedback on the new white-themed UI, confirming it looks great. Provides several new requests: round the stats banner, adjust rolling regen timing, and add a feedback step to the regen modal. (COMPLETED)
+4.  **User:** Reports the GitHub connection has been lost again and asks for a fix without losing work. (COMPLETED)
+5.  **Agent:** Summarizes the completed Phase 1 (crash fix, test user toggle) and confirms it's ready for testing.
+6.  **User:** Approves the plan to fix the RevenueCat crash and add the test user toggle. (COMPLETED)
+7.  **Agent:** Proposes a multi-phase plan: 1) Fix crash & add test toggle, 2) Verify all features, 3) Plan for dev build.
+8.  **User:** Confirms they are in the app, but hit a RevenueCat error. Asks for an explanation and a plan to make it all work. (ADDRESSED)
+9.  **User:** Reports the old  URL is stuck in the app's cache. (ADDRESSED, agent provided instructions to clear it).
+10. **User:** Asks for the server to be restarted and is concerned it will break again. (ADDRESSED, agent restarted and provided the new URL).
+
+**Project Health Check:**
+-   **Mocked**: The application is functional for testing in Expo Go, but critical native functionality (In-App Purchases via RevenueCat) is mocked.
+
+**3rd Party Integrations**
+-   Neon PostgreSQL (Database)
+-   OpenAI GPT-4o (AI Coach)
+-   Cloudinary (Video hosting)
+-   RevenueCat (In-app subscriptions) - SDK integrated but disabled in Expo Go.
+-   **Cloudflare Tunnel ()**: Used for exposing the local backend for mobile testing.
+
+**Testing status**
+-   **Testing agent used after significant changes**: NO
+-   **Troubleshoot agent used after agent stuck in loop**: NO
+-   **Test files created**: []
+-   **Known regressions**: None. Previous regressions (connectivity, profile crash) have been addressed.
+
+**What agent forgot to execute**
+- The agent has not yet implemented the user's final request to make the rolling regeneration trigger occur every 3 weeks *after* the initial 18-day prompt. This is the highest priority pending task.</analysis>

@@ -18,7 +18,7 @@ import time
 import os
 
 # Use the production URL from the test request
-BASE_URL = "https://bugzapper-55.preview.emergentagent.com"
+BASE_URL = "https://regen-timing-fix.preview.emergentagent.com"
 
 
 class TestAICoachHelpfulness:

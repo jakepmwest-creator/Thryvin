@@ -23,7 +23,7 @@ import re
 from typing import Dict, List, Any, Optional
 
 # Configuration - Use external backend URL as specified in review request
-BASE_URL = "https://workout-data-cleanup.preview.emergentagent.com"
+BASE_URL = "https://regen-timing-fix.preview.emergentagent.com"
 API_BASE = f"{BASE_URL}/api"
 
 class ThryvinRESTOnlyPlansTester:
