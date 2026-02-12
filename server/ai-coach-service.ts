@@ -106,19 +106,8 @@ Your job is to be GENUINELY HELPFUL - not just redirect users. When someone asks
   },
 };
 
-// Strict fitness topics - coach should stay focused
-const FITNESS_KEYWORDS = [
-  'workout', 'exercise', 'fitness', 'gym', 'training', 'muscle', 'cardio', 'strength',
-  'weight', 'rep', 'set', 'routine', 'schedule', 'body', 'chest', 'legs', 'arms',
-  'back', 'core', 'abs', 'run', 'jog', 'walk', 'swim', 'bike', 'yoga', 'pilates',
-  'nutrition', 'diet', 'protein', 'calories', 'carbs', 'food', 'meal', 'supplement',
-  'health', 'injury', 'pain', 'stretch', 'rest', 'recovery', 'sleep', 'stress',
-  'goal', 'progress', 'beginner', 'advanced', 'intermediate', 'tone', 'fat', 'gain',
-  'swap', 'switch', 'change', 'modify', 'adjust', 'help', 'tips', 'advice', 'tip',
-  'hi', 'hello', 'hey', 'thanks', 'thank', 'how', 'what', 'should', 'quick',
-  'squat', 'deadlift', 'bench', 'press', 'curl', 'row', 'pull', 'push', 'lunge',
-  'form', 'technique', 'posture', 'breathing', 'warm', 'cool', 'finish', 'done',
-];
+// NOTE: Keyword filtering removed. All messages go to the AI now.
+// The AI system prompt handles topic redirection naturally and conversationally.
 
 export interface WorkoutContext {
   workoutId?: string;
