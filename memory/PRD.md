@@ -373,6 +373,13 @@ User logs set in workout-hub → POST /api/workout/log-set (with thryvin_access_
 - [x] ~~Stats Page Week/Month/Year chart views~~ (COMPLETED - Feb 3, 2026)
 - [x] ~~P0 Empty Workouts in UI~~ (FIXED - Feb 4, 2026)
 - [x] ~~P0 Data Resets on Sign-Out/Sign-In~~ (FIXED - Feb 4, 2026)
+- [x] ~~Coach Personality Overhaul~~ (COMPLETED - Feb 12, 2026)
+- [x] ~~Billing / Payment Page~~ (COMPLETED - Feb 12, 2026)
+- [x] ~~Backend Health Check~~ (COMPLETED - Feb 12, 2026)
+- [ ] Expo Development Build for real RevenueCat (P2)
+- [ ] RevenueCat → backend subscription sync (P2)
+- [ ] Special set type display UI refinements (P3)
+- [ ] Pro page marketing copy polish (P3)
 
 ---
 
