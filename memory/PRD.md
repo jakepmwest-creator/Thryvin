@@ -537,3 +537,31 @@ User logs set in workout-hub → POST /api/workout/log-set (with thryvin_access_
 - **Explore Data**: Exercise counts incorrect (P1)
 - **Muscle Distribution**: Chart not displaying (P1)
 - **UX Improvements**: Keyboard handling, modal redesign (P2)
+
+
+---
+
+### Feb 12, 2026 - Rolling Regeneration Fix + Backend Build Fix
+
+#### CRITICAL FIX: Outdated Compiled Build Blocking Routes (P0 - FIXED)
+- **Issue**: The backend was running from an outdated compiled `dist/index.js` (from Feb 5) instead of the latest TypeScript source. This caused the `/api/workouts/rolling-regeneration` endpoint to return 404.
+- **Root Cause**: The `start-backend-8001.sh` script prioritizes `dist/index.js` over `npx tsx`. The dist file hadn't been rebuilt since Feb 5, so any routes added after that date were missing.
+- **Fix**: Removed the outdated `dist/` directory so the server runs the latest TypeScript source directly via `npx tsx`.
+- **Files Changed**: Deleted `/app/dist/` directory
+
+#### Rolling Regeneration Timing Logic - VERIFIED CORRECT
+- **Timing Rules** (documented in code):
+  1. First trigger: 18 days after join (3 days before initial 3-week plan ends)
+  2. Subsequent triggers: every 21 days (3 weeks) after each completion
+  3. If dismissed without completing: re-show after 7 days
+- **Backend endpoint**: `POST /api/workouts/rolling-regeneration` - verified working with authentication, generates 14 days (2 weeks) of new AI-powered workouts
+- **Files Changed**: Added documentation comments to `/app/apps/native/app/(tabs)/index.tsx`
+- **Status**: COMPLETE
+
+#### Pending User Verification
+- Profile page crash fix
+- Onboarding keyboard behavior
+- expo-haptics dependency error
+
+## Architecture Note
+- Backend MUST NOT have a pre-compiled `dist/index.js` in development. The start script will use it if present, running stale code. Always use `npx tsx server/index.ts` for development.
