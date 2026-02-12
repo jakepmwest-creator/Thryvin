@@ -415,22 +415,9 @@ export async function getUnifiedCoachResponse(request: CoachChatRequest): Promis
     // Get coach character personality (Kai, Titan, Lumi, etc.)
     const coachCharacter = COACH_PERSONALITIES[coach.toLowerCase()] || COACH_PERSONALITIES['default'];
     
-    // Check if message is fitness-related
     const lowerMessage = message.toLowerCase();
-    const matchedKeywords = FITNESS_KEYWORDS.filter(keyword => lowerMessage.includes(keyword));
-    const isFitnessRelated = matchedKeywords.length > 0;
     
-    console.log(`🔍 [COACH] Keyword check: "${message.substring(0,50)}..." matched: [${matchedKeywords.join(', ')}], isFitness: ${isFitnessRelated}`);
-    
-    // Phase 10: Check for burnout keywords (always allow these through)
-    const { checkBurnoutKeywords } = await import('./mental-checkin');
-    const isBurnoutRelated = checkBurnoutKeywords(message);
-    
-    if (isBurnoutRelated) {
-      console.log(`💚 [COACH] Burnout keywords detected - allowing message through`);
-    }
-    
-    // NEW: Check if user is asking about their stats (heaviest bench, max squat, etc.)
+    // Check if user is asking about their stats (heaviest bench, max squat, etc.)
     const statsQuestion = detectStatsQuestion(message);
     let exerciseStatsContext = '';
     
@@ -438,20 +425,6 @@ export async function getUnifiedCoachResponse(request: CoachChatRequest): Promis
       console.log(`📊 [COACH] Stats question detected! Exercise: ${statsQuestion.exerciseName || 'general'}`);
       exerciseStatsContext = await getUserExerciseStats(userId, statsQuestion.exerciseName);
       console.log(`📊 [COACH] Fetched exercise stats for context`);
-    }
-    
-    if (!isFitnessRelated && !isBurnoutRelated && !statsQuestion.isStatsQuestion && lowerMessage.length > 15) {
-      // Smart-witty response that brings it back to fitness with a helpful touch
-      const wittyResponses = [
-        `Ha! That's an interesting one, but my expertise is in the weight room, not that topic! 😄\n\nAs your fitness coach, here's what I CAN help you with:\n• **Your stats**: Ask me "What's my max bench?" or "How's my progress?"\n• **Exercise tips**: "How do I improve my squat form?"\n• **Training advice**: "Should I train to failure?"\n• **Recovery**: "How much sleep do I need for muscle growth?"\n\nWhat fitness question can I dig into for you?`,
-        `I appreciate the curveball! But I'm your fitness expert, not a general knowledge guru. 💪\n\nHere's where I really shine:\n• **Workout programming**: rep ranges, rest times, exercise selection\n• **Form and technique**: cues to lift safer and stronger\n• **Your personal data**: your PRs, progress trends, workout history\n• **Nutrition basics**: protein, calories, meal timing\n\nWhat would you like to know?`,
-        `Now that's thinking outside the gym! But I'm here to help you get stronger and healthier. 🎯\n\nTry asking me things like:\n• "How heavy should I go on bench press?"\n• "What muscles does this exercise work?"\n• "How can I break through my plateau?"\n• "What should I eat after a workout?"\n\nWhat fitness topic shall we tackle?`,
-      ];
-      return {
-        response: wittyResponses[Math.floor(Math.random() * wittyResponses.length)],
-        coach: coachCharacter.name,
-        contextUsed: false,
-      };
     }
     
     // Phase 9.5: Determine context mode
