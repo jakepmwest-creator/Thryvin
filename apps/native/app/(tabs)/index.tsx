@@ -269,8 +269,9 @@ export default function HomeScreen() {
       joinDate.setDate(joinDate.getDate() - 7);
 
       const daysSinceJoin = Math.floor((Date.now() - joinDate.getTime()) / (1000 * 60 * 60 * 24));
-      if (!completedDate && daysSinceJoin >= 14) {
-        const weekNumber = Math.max(2, Math.floor(daysSinceJoin / 7) + 1);
+      // Show just before the 3-week plan ends (day 18+)
+      if (!completedDate && daysSinceJoin >= 18) {
+        const weekNumber = Math.max(3, Math.floor(daysSinceJoin / 7) + 1);
         setRollingWeek(weekNumber);
         setShowRollingRegeneration(true);
         await AsyncStorage.setItem(lastShownKey, new Date().toISOString());
