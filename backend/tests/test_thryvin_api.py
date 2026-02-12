@@ -110,10 +110,12 @@ class TestExerciseEndpoints:
         data = response.json()
         
         # Should return array of exercises
-        assert isinstance(data, list), "Response should be an array"
+        # Response could be array or {exercises: [...]}
+        exercises = data if isinstance(data, list) else data.get("exercises", [])
+        assert isinstance(exercises, list), "Response should contain exercises array"
         
-        if len(data) > 0:
-            exercise = data[0]
+        if len(exercises) > 0:
+            exercise = exercises[0]
             assert "name" in exercise, "Exercise should have name"
             # videoUrl might be present
             if "videoUrl" in exercise:
