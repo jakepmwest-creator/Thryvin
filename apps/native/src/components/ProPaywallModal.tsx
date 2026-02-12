@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import { Modal, View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
 import { useSubscriptionStore } from '../stores/subscription-store';
 
 let RevenueCatUI: any = null;
