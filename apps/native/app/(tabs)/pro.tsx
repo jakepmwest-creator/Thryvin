@@ -175,9 +175,11 @@ const styles = StyleSheet.create({
     borderRadius: 16,
   },
   proCard: {
-    backgroundColor: COLORS.card,
+    backgroundColor: COLORS.white,
     overflow: 'hidden',
     padding: 0,
+    borderWidth: 2,
+    borderColor: COLORS.accent,
   },
   proHeader: {
     padding: 16,
