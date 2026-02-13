@@ -315,11 +315,11 @@ export default function BillingScreen() {
             <Text style={styles.footerLink}>Restore purchases</Text>
           </TouchableOpacity>
           <Text style={styles.footerDivider}>|</Text>
-          <TouchableOpacity data-testid="billing-terms-button">
+          <TouchableOpacity onPress={() => setShowTerms(true)} data-testid="billing-terms-button">
             <Text style={styles.footerLink}>Terms of Use</Text>
           </TouchableOpacity>
           <Text style={styles.footerDivider}>|</Text>
-          <TouchableOpacity data-testid="billing-privacy-button">
+          <TouchableOpacity onPress={() => setShowPrivacy(true)} data-testid="billing-privacy-button">
             <Text style={styles.footerLink}>Privacy Policy</Text>
           </TouchableOpacity>
         </View>
