@@ -8,7 +8,7 @@ if (envResult.error) {
 }
 
 // Stable tunnel URL as fallback when .env is not loaded by Metro/Expo Go
-const FALLBACK_API_URL = 'https://constitution-garcia-ensuring-instantly.trycloudflare.com';
+const FALLBACK_API_URL = 'https://elvis-recall-market-moving.trycloudflare.com';
 
 export default {
   expo: {

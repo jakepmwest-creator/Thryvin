@@ -26,8 +26,6 @@ import { CustomAlert } from '../../src/components/CustomAlert';
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 import { COLORS as THEME_COLORS } from '../../src/constants/colors';
-import { getApiBaseUrlInfo, setApiBaseUrlOverride, clearApiBaseUrlOverride } from '../../src/services/env';
-import { buildApiUrl } from '../../src/services/api-client';
 
 const COLORS = {
   accent: THEME_COLORS.gradientStart,
@@ -46,38 +44,6 @@ export default function LoginScreen() {
   const router = useRouter();
   const { login, isLoading, error } = useAuthStore();
   const setTestPro = useSubscriptionStore((state) => state.setTestPro);
-  const [showDiagnostics, setShowDiagnostics] = useState(false);
-  const [manualUrl, setManualUrl] = useState('');
-  const [urlSaveStatus, setUrlSaveStatus] = useState('');
-  const [diagnosticsInfo, setDiagnosticsInfo] = useState({
-    baseUrl: 'Not set',
-    source: 'missing',
-    loginUrl: 'Not set',
-  });
-
-  const refreshDiagnostics = () => {
-    const info = getApiBaseUrlInfo();
-    const baseUrl = info.value || 'Not set';
-    setDiagnosticsInfo({
-      baseUrl,
-      source: info.source,
-      loginUrl: baseUrl === 'Not set' ? 'Not set' : buildApiUrl('/auth/login'),
-    });
-  };
-
-  const apiBaseInfo = getApiBaseUrlInfo();
-  const rawApiBaseUrl = apiBaseInfo.value || 'Not set';
-  const normalizedBase = rawApiBaseUrl === 'Not set'
-    ? rawApiBaseUrl
-    : rawApiBaseUrl.replace(/\/+$/, '');
-  const displayApiUrl = normalizedBase === 'Not set'
-    ? normalizedBase
-    : (normalizedBase.endsWith('/api') ? normalizedBase : `${normalizedBase}/api`);
-
-  useEffect(() => {
-    if (!showDiagnostics) return;
-    refreshDiagnostics();
-  }, [showDiagnostics]);
   
   const [showLoginForm, setShowLoginForm] = useState(false);
   const [email, setEmail] = useState('');
@@ -411,107 +377,10 @@ export default function LoginScreen() {
                   </View>
                 </View>
               </View>
-            <View style={styles.serverInfo} data-testid="login-api-base-url">
-              <Text style={styles.serverLabel}>Server:</Text>
-              <Text style={styles.serverValue}>{displayApiUrl}</Text>
-              <Text style={styles.serverSource}>Source: {apiBaseInfo.source}</Text>
-              <TouchableOpacity
-                style={styles.diagnosticsButton}
-                onPress={() => setShowDiagnostics(true)}
-                data-testid="login-diagnostics-button"
-              >
-                <Text style={styles.diagnosticsButtonText}>Diagnostics</Text>
-              </TouchableOpacity>
-            </View>
           </Animated.View>
           </ScrollView>
         </KeyboardAvoidingView>
       </SafeAreaView>
-
-      {/* Diagnostics Modal */}
-      <Modal
-        visible={showDiagnostics}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setShowDiagnostics(false)}
-      >
-        <View style={styles.diagnosticsOverlay}>
-          <View style={styles.diagnosticsModal}>
-            <Text style={styles.diagnosticsTitle}>Connection Diagnostics</Text>
-            <Text style={styles.diagnosticsLabel}>Base URL</Text>
-            <Text style={styles.diagnosticsValue}>{diagnosticsInfo.baseUrl}</Text>
-            <Text style={styles.diagnosticsLabel}>Source</Text>
-            <Text style={styles.diagnosticsValue}>{diagnosticsInfo.source}</Text>
-            <Text style={styles.diagnosticsLabel}>Login URL</Text>
-            <Text style={styles.diagnosticsValue}>{diagnosticsInfo.loginUrl}</Text>
-
-            {/* Manual URL Override */}
-            <View style={styles.urlOverrideSection}>
-              <Text style={styles.diagnosticsLabel}>Set Server URL Manually</Text>
-              <RNTextInput
-                style={styles.urlInput}
-                placeholder="https://your-server-url.com"
-                placeholderTextColor={COLORS.mediumGray}
-                value={manualUrl}
-                onChangeText={setManualUrl}
-                autoCapitalize="none"
-                autoCorrect={false}
-                keyboardType="url"
-                data-testid="diagnostics-url-input"
-              />
-              {urlSaveStatus ? (
-                <Text style={styles.urlSaveStatus}>{urlSaveStatus}</Text>
-              ) : null}
-              <View style={styles.urlOverrideButtons}>
-                <TouchableOpacity
-                  style={styles.urlSaveButton}
-                  onPress={async () => {
-                    if (!manualUrl.trim()) {
-                      setUrlSaveStatus('Please enter a URL');
-                      return;
-                    }
-                    await setApiBaseUrlOverride(manualUrl.trim());
-                    setUrlSaveStatus('Saved! URL is now active.');
-                    refreshDiagnostics();
-                  }}
-                  data-testid="diagnostics-save-url-button"
-                >
-                  <Text style={styles.urlSaveButtonText}>Save & Use</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={styles.urlClearButton}
-                  onPress={async () => {
-                    await clearApiBaseUrlOverride();
-                    setManualUrl('');
-                    setUrlSaveStatus('Cleared. Using default.');
-                    refreshDiagnostics();
-                  }}
-                  data-testid="diagnostics-clear-url-button"
-                >
-                  <Text style={styles.urlClearButtonText}>Clear</Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-
-            <View style={styles.diagnosticsActions}>
-              <TouchableOpacity
-                style={styles.diagnosticsClose}
-                onPress={() => { setShowDiagnostics(false); setUrlSaveStatus(''); }}
-                data-testid="diagnostics-close-button"
-              >
-                <Text style={styles.diagnosticsCloseText}>Close</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.diagnosticsRefresh}
-                onPress={refreshDiagnostics}
-                data-testid="diagnostics-refresh-button"
-              >
-                <Text style={styles.diagnosticsRefreshText}>Refresh</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-      </Modal>
 
       {/* Login Form Modal */}
       <Modal
@@ -787,28 +656,6 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     alignItems: 'center',
   },
-  serverInfo: {
-    marginTop: 12,
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    borderRadius: 12,
-    backgroundColor: COLORS.lightGray,
-  },
-  serverLabel: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: COLORS.text,
-    marginBottom: 4,
-  },
-  serverValue: {
-    fontSize: 11,
-    color: COLORS.mediumGray,
-  },
-  serverSource: {
-    fontSize: 10,
-    color: COLORS.mediumGray,
-    marginTop: 2,
-  },
   quickLoginTitle: { fontSize: 14, fontWeight: '600', color: COLORS.text, marginBottom: 12 },
   quickLoginButtons: { flexDirection: 'row', gap: 16 },
   quickLoginButton: { 
@@ -831,125 +678,6 @@ const styles = StyleSheet.create({
   loginLink: { flexDirection: 'row', alignItems: 'center', gap: 4 },
   loginLinkText: { fontSize: 14, fontWeight: '700', color: COLORS.accent },
 
-  diagnosticsButton: {
-    marginTop: 8,
-    alignSelf: 'flex-start',
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 12,
-    backgroundColor: COLORS.lightGray,
-  },
-  diagnosticsButtonText: {
-    fontSize: 11,
-    fontWeight: '600',
-    color: COLORS.mediumGray,
-  },
-  diagnosticsOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 24,
-  },
-  diagnosticsModal: {
-    width: '100%',
-    maxWidth: 340,
-    backgroundColor: COLORS.white,
-    borderRadius: 20,
-    padding: 20,
-  },
-  diagnosticsTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: COLORS.text,
-    marginBottom: 12,
-  },
-  diagnosticsLabel: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: COLORS.mediumGray,
-    marginTop: 8,
-  },
-  diagnosticsValue: {
-    fontSize: 12,
-    color: COLORS.text,
-    marginTop: 4,
-  },
-  diagnosticsActions: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginTop: 16,
-  },
-  diagnosticsClose: {
-    paddingVertical: 10,
-    paddingHorizontal: 16,
-    borderRadius: 12,
-    backgroundColor: COLORS.lightGray,
-  },
-  diagnosticsCloseText: {
-    color: COLORS.mediumGray,
-    fontWeight: '600',
-  },
-  diagnosticsRefresh: {
-    paddingVertical: 10,
-    paddingHorizontal: 16,
-    borderRadius: 12,
-    backgroundColor: COLORS.accent,
-  },
-  diagnosticsRefreshText: {
-    color: COLORS.white,
-    fontWeight: '700',
-  },
-  urlOverrideSection: {
-    marginTop: 16,
-    paddingTop: 16,
-    borderTopWidth: 1,
-    borderTopColor: COLORS.lightGray,
-  },
-  urlInput: {
-    marginTop: 8,
-    height: 44,
-    borderRadius: 10,
-    backgroundColor: COLORS.lightGray,
-    paddingHorizontal: 12,
-    fontSize: 13,
-    color: COLORS.text,
-  },
-  urlSaveStatus: {
-    fontSize: 12,
-    color: COLORS.accent,
-    marginTop: 6,
-    fontWeight: '600',
-  },
-  urlOverrideButtons: {
-    flexDirection: 'row',
-    gap: 10,
-    marginTop: 10,
-  },
-  urlSaveButton: {
-    flex: 1,
-    paddingVertical: 10,
-    borderRadius: 10,
-    backgroundColor: COLORS.accent,
-    alignItems: 'center',
-  },
-  urlSaveButtonText: {
-    color: COLORS.white,
-    fontWeight: '700',
-    fontSize: 13,
-  },
-  urlClearButton: {
-    paddingVertical: 10,
-    paddingHorizontal: 16,
-    borderRadius: 10,
-    backgroundColor: COLORS.lightGray,
-    alignItems: 'center',
-  },
-  urlClearButtonText: {
-    color: COLORS.mediumGray,
-    fontWeight: '600',
-    fontSize: 13,
-  },
 
   // Test Login Styles
   testLoginSection: {

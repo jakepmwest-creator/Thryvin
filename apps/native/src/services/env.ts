@@ -58,7 +58,7 @@ export const clearApiBaseUrlOverride = async () => {
 };
 
 // Stable tunnel URL fallback when env vars aren't injected by Expo Go
-const FALLBACK_API_URL = 'https://constitution-garcia-ensuring-instantly.trycloudflare.com';
+const FALLBACK_API_URL = 'https://elvis-recall-market-moving.trycloudflare.com';
 
 export const getApiBaseUrlInfo = () => {
   if (_overrideUrl) {
