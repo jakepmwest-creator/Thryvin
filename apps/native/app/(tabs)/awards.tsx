@@ -1151,6 +1151,10 @@ Transform your fitness journey with personalized workouts and gamified progressi
         title: `${selectedBadge.name} - Thryvin Achievement`,
         url: 'https://thryvin.app',
       });
+      
+      // Track the share for badge progress
+      const { trackBadgeShared } = useAwardsStore.getState();
+      await trackBadgeShared();
     } catch (error) { 
       console.error('Error sharing:', error); 
     }
