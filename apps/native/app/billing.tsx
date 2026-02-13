@@ -13,6 +13,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useSubscriptionStore } from '../src/stores/subscription-store';
+import { LegalModal } from '../src/components/LegalModal';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
