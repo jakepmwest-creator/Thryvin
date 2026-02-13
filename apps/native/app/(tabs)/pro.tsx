@@ -266,13 +266,17 @@ const styles = StyleSheet.create({
   },
   ctaButton: {
     marginTop: 12,
-    backgroundColor: COLORS.accent,
-    paddingVertical: 12,
     borderRadius: 12,
+    overflow: 'hidden',
+  },
+  ctaGradient: {
+    paddingVertical: 14,
     alignItems: 'center',
+    borderRadius: 12,
   },
   ctaButtonText: {
     color: COLORS.white,
     fontWeight: '700',
+    fontSize: 15,
   },
 });
