@@ -223,7 +223,7 @@ export default function BillingScreen() {
                     <Text style={styles.planPeriod}>{plan.period}</Text>
                     {plan.monthlyEquiv && (
                       <Text style={styles.monthlyEquiv}>
-                        ${plan.monthlyEquiv}/mo
+                        £{plan.monthlyEquiv}/mo
                       </Text>
                     )}
                     {isSelected && (
