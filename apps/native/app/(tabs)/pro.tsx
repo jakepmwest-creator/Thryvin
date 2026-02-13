@@ -119,9 +119,17 @@ export default function ProComparisonScreen() {
             onPress={() => router.push('/billing')}
             data-testid={isPro ? 'pro-compare-manage-button' : 'pro-compare-upgrade-button'}
           >
-            <Text style={styles.ctaButtonText}>{isPro ? 'Manage Subscription' : 'Unlock Thryvin\' Pro'}</Text>
+            <LinearGradient
+              colors={[COLORS.accent, COLORS.accentSecondary]}
+              style={styles.ctaGradient}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+            >
+              <Text style={styles.ctaButtonText}>{isPro ? 'Manage Subscription' : 'Unlock Thryvin\' Pro'}</Text>
+            </LinearGradient>
           </TouchableOpacity>
         </View>
+        <View style={{ height: 40 }} />
       </ScrollView>
 
       <ProPaywallModal visible={showPaywall} onClose={() => setShowPaywall(false)} />
