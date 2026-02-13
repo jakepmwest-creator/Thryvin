@@ -211,13 +211,13 @@ export default function BillingScreen() {
                           isSelected && styles.planPriceSelected,
                         ]}
                       >
-                        {plan.price}
+                        {plan.monthlyEquiv || plan.price}
                       </Text>
                     </View>
-                    <Text style={styles.planPeriod}>{plan.period}</Text>
+                    <Text style={styles.planPeriod}>/month</Text>
                     {plan.monthlyEquiv && (
                       <Text style={styles.monthlyEquiv}>
-                        £{plan.monthlyEquiv}/mo
+                        Billed £{plan.price}{plan.period}
                       </Text>
                     )}
                     {isSelected && (
