@@ -8751,7 +8751,7 @@ Respond with a complete workout in JSON format:
   // GET /api/exercises - Fetch exercises with video URLs
   app.get("/api/exercises", async (req, res) => {
     try {
-      const { category, difficulty, equipment, search, limit = 2000 } = req.query;
+      const { category, difficulty, equipment, search, names, limit = 2000 } = req.query;
       
       console.log('📚 Fetching exercises from database...');
       
