@@ -330,6 +330,9 @@ export default function BillingScreen() {
           current period. Manage or cancel in your device settings.
         </Text>
       </ScrollView>
+
+      <LegalModal visible={showPrivacy} onClose={() => setShowPrivacy(false)} type="privacy" />
+      <LegalModal visible={showTerms} onClose={() => setShowTerms(false)} type="terms" />
     </SafeAreaView>
   );
 }
