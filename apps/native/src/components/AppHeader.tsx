@@ -225,15 +225,15 @@ const styles = StyleSheet.create({
     height: 30,
   },
   proBadge: {
-    paddingHorizontal: 8,
+    paddingHorizontal: 10,
     paddingVertical: 4,
-    borderRadius: 8,
+    borderRadius: 12,
   },
   proText: {
-    fontSize: 11,
-    fontWeight: '700',
+    fontSize: 10,
+    fontWeight: '800',
     color: COLORS.white,
-    letterSpacing: 0.5,
+    letterSpacing: 1,
   },
   rightSection: {
     flexDirection: 'row',
