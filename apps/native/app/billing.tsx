@@ -74,6 +74,8 @@ export default function BillingScreen() {
   const { isPro, nativeAvailable, setTestPro } = useSubscriptionStore();
   const [selectedPlan, setSelectedPlan] = useState('quarterly');
   const [processing, setProcessing] = useState(false);
+  const [showPrivacy, setShowPrivacy] = useState(false);
+  const [showTerms, setShowTerms] = useState(false);
 
   const handleSubscribe = async () => {
     setProcessing(true);
