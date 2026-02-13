@@ -300,7 +300,7 @@ export default function BillingScreen() {
               <Text style={styles.ctaText}>
                 {processing
                   ? 'Processing...'
-                  : `Subscribe — $${selected.price}${selected.period}`}
+                  : `Subscribe — £${selected.price}${selected.period}`}
               </Text>
             </LinearGradient>
           </TouchableOpacity>
