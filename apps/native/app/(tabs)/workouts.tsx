@@ -20,6 +20,8 @@ import { useCoachStore } from '../../src/stores/coach-store';
 import { LikedDislikedModal } from '../../src/components/LikedDislikedModal';
 import { ViewAllWeeksModal } from '../../src/components/ViewAllWeeksModal';
 import { EditPlanScreen } from '../../src/components/EditPlanScreen';
+import { useSubscriptionStore } from '../../src/stores/subscription-store';
+import { ProPaywallModal } from '../../src/components/ProPaywallModal';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -100,6 +102,8 @@ export default function WorkoutsScreen() {
   const [workoutCategories, setWorkoutCategories] = useState(DEFAULT_CATEGORIES);
   const [showAllWeeks, setShowAllWeeks] = useState(false);
   const [showEditPlan, setShowEditPlan] = useState(false);
+  const [showProPaywall, setShowProPaywall] = useState(false);
+  const { isPro } = useSubscriptionStore();
   
   const { currentWorkout, todayWorkout, weekWorkouts, completedWorkouts, isLoading, fetchTodayWorkout, fetchWeekWorkouts } = useWorkoutStore();
   
@@ -602,7 +606,13 @@ export default function WorkoutsScreen() {
             
             <TouchableOpacity 
               style={styles.programButtonSmall}
-              onPress={() => setShowEditPlan(true)}
+              onPress={() => {
+                if (!isPro) {
+                  setShowProPaywall(true);
+                  return;
+                }
+                setShowEditPlan(true);
+              }}
             >
               <LinearGradient
                 colors={[COLORS.gradientEnd, COLORS.gradientStart]}
