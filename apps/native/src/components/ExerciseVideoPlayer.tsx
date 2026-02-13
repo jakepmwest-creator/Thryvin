@@ -159,6 +159,9 @@ export function ExerciseVideoPlayer({
       setLoopCount(0);
       setIsLoading(true);
       
+      // Track video watched for badge progress
+      try { useAwardsStore.getState().trackVideoWatched(); } catch {}
+      
       if (videoRef.current) {
         await videoRef.current.setPositionAsync(0);
         await videoRef.current.playAsync();
