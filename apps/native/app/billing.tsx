@@ -270,7 +270,12 @@ export default function BillingScreen() {
               >
                 <Ionicons name={f.icon as any} size={16} color={COLORS.white} />
               </LinearGradient>
-              <Text style={styles.featureText}>{f.text}</Text>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.featureText}>{f.text}</Text>
+                {'subtitle' in f && f.subtitle ? (
+                  <Text style={{ fontSize: 11, color: COLORS.muted, marginTop: 1 }}>{f.subtitle}</Text>
+                ) : null}
+              </View>
             </View>
           ))}
         </View>
