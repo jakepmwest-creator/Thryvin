@@ -725,6 +725,10 @@ export default function WorkoutHubScreen() {
 
   // Handle opening the Edit Workout modal
   const handleEditWorkout = () => {
+    if (!isPro) {
+      setShowProPaywall(true);
+      return;
+    }
     setEditableWorkout(currentWorkout);
     setShowEditModal(true);
   };
