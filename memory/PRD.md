@@ -576,7 +576,39 @@ User logs set in workout-hub → POST /api/workout/log-set (with thryvin_access_
 
 ---
 
-### Feb 12, 2026 - Coach Personality Overhaul + Billing Page + Health Check
+### Feb 13, 2026 - Network Fix + Video Matching + Billing Update + Profile Cleanup
+
+#### Network Error Fix (P0 - COMPLETE)
+- **Issue**: App throwing "Network request failed" on every screen - stale tunnel URL in fallback code
+- **Fix**: Updated all 3 locations: `env.ts` FALLBACK_API_URL, `app.config.js` FALLBACK_API_URL, `.env` EXPO_PUBLIC_API_BASE_URL
+- **New tunnel**: `https://constitution-garcia-ensuring-instantly.trycloudflare.com`
+
+#### Video Inconsistency Fix (P0 - COMPLETE)
+- **Root Cause**: AI-generated exercise names don't match DB names exactly (word order differs)
+- **Fix**: Added fuzzy name matching to `GET /api/exercises?names=...` endpoint using word overlap scoring
+- **Also fixed**: Wrong video URLs in DB — "Overhead Tricep Extension" (was band→now cable), "Lateral Raise" (was cable→now dumbbell)
+- **Files**: `/app/server/routes.ts` (backend fuzzy matching), `/app/apps/native/app/workout-hub.tsx` (frontend fuzzy matching)
+
+#### Coach AI Personality Overhaul (P0 - COMPLETE)  
+- Removed strict `FITNESS_KEYWORDS` filter — all messages reach OpenAI
+- Updated system prompt: fitness (expert), mental health (empathetic), random topics (clever spin), greetings (warm)
+- Max tokens increased 600→800
+
+#### Billing Page Pricing Update (COMPLETE)
+- Monthly: £7.99, 3-Month: £19.99 (Save 16%), Yearly: £68.99 (Save 28%)
+- Terms of Use and Privacy Policy now linked via LegalModal
+
+#### Profile Cleanup (COMPLETE)
+- Removed PIN Code section
+- Removed Coach Style section (universal coach for now)
+
+#### Pro Comparison Page (COMPLETE)  
+- Bottom CTA button now uses gradient (purple→pink)
+- Added scroll padding so button is reachable
+
+#### Badge Tracking Wired Up (COMPLETE)
+- `trackVideoWatched()` now called when user plays exercise video in `ExerciseVideoPlayer.tsx`
+- `trackBadgeShared()` now called after badge share in `awards.tsx`
 
 #### Coach AI Personality Overhaul (P0 - VERIFIED)
 - **Issue**: Coach was too strict with fitness-only filtering. Non-fitness questions returned canned "I can only help with fitness" responses. Even some fitness questions (pull-up form) were being incorrectly filtered.
