@@ -33,7 +33,7 @@ const PLANS = [
   {
     id: 'monthly',
     name: 'Monthly',
-    price: '4.99',
+    price: '7.99',
     period: '/month',
     savings: null,
     popular: false,
@@ -41,20 +41,20 @@ const PLANS = [
   {
     id: 'quarterly',
     name: '3-Month',
-    price: '11.99',
+    price: '19.99',
     period: '/3 months',
-    savings: 'Save 20%',
+    savings: 'Save 16%',
     popular: true,
-    monthlyEquiv: '3.99',
+    monthlyEquiv: '6.66',
   },
   {
     id: 'yearly',
     name: 'Yearly',
-    price: '34.99',
+    price: '68.99',
     period: '/year',
-    savings: 'Save 42%',
+    savings: 'Save 28%',
     popular: false,
-    monthlyEquiv: '2.92',
+    monthlyEquiv: '5.75',
   },
 ];
 
