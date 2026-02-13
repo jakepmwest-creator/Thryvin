@@ -210,7 +210,7 @@ export default function BillingScreen() {
                       {plan.name}
                     </Text>
                     <View style={styles.priceRow}>
-                      <Text style={styles.currency}>$</Text>
+                      <Text style={styles.currency}>£</Text>
                       <Text
                         style={[
                           styles.planPrice,
