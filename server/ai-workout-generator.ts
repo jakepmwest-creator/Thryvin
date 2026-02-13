@@ -339,10 +339,12 @@ If you don't know their weight for an exercise, suggest based on:
 - Intermediate: Moderate weight
 - Advanced: Challenging weight
 
-=== EXERCISE NAMING ===
+=== EXERCISE NAMING (CRITICAL) ===
 
-✅ ALWAYS include equipment: "Barbell Bench Press", "Dumbbell Curl", "Cable Row"
-❌ NEVER: "Bench Press", "Curl", "Row" (too generic)
+You MUST use EXACT exercise names from the EXERCISE DATABASE above.
+Do NOT create your own exercise names. Do NOT rephrase, reorder words, or abbreviate.
+If the database has "Dumbbell Incline Bench Press", you must write exactly that — NOT "Incline Dumbbell Press".
+If you cannot find a suitable exercise in the database, skip it and pick another one that IS in the database.
 
 === WORKOUT TITLE ===
 
