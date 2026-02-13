@@ -973,14 +973,14 @@ export const useAwardsStore = create<AwardsState>((set, get) => ({
     const newTotalXP = totalXP + xpGained;
     let newIsland = currentIsland;
     
-    // Check if user can advance to next island (80% completion of current island)
+    // Check if user can advance to next island (100% completion of current island)
     const currentIslandBadges = BADGE_DEFINITIONS.filter(b => b.island === currentIsland);
     const completedOnCurrentIsland = updatedBadges.filter(ub => {
       const badge = BADGE_DEFINITIONS.find(b => b.id === ub.badgeId && b.island === currentIsland);
       return badge && ub.completed;
     }).length;
     
-    const requiredForNextIsland = Math.ceil(currentIslandBadges.length * 0.8);
+    const requiredForNextIsland = currentIslandBadges.length;
     
     if (completedOnCurrentIsland >= requiredForNextIsland && currentIsland < ISLANDS.length) {
       newIsland = currentIsland + 1;
