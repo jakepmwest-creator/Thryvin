@@ -1137,6 +1137,11 @@ export default function HomeScreen() {
         visible={showAllWeeks}
         onClose={() => setShowAllWeeks(false)}
         onEditPress={() => {
+          if (!isPro) {
+            setShowAllWeeks(false);
+            setShowProPaywall(true);
+            return;
+          }
           setShowAllWeeks(false);
           setShowEditPlan(true);
         }}
