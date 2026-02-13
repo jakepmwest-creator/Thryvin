@@ -28,13 +28,12 @@ const STANDARD_FEATURES = [
 ];
 
 const PRO_FEATURES = [
-  '2‑week check‑ins + rolling regeneration',
+  '2-week check-ins + rolling regeneration',
   'Deep exercise stats & trends',
-  'Coach personality + richer guidance',
   'Plan editing & workout swaps',
   'Drop/super/giant sets support',
   'Priority support',
-  'Nutrition (coming soon)',
+  'Nutrition & social (coming soon)',
 ];
 
 export default function ProComparisonScreen() {
@@ -86,10 +85,10 @@ export default function ProComparisonScreen() {
               style={styles.proHeader}
             >
               <Text style={styles.planTitlePro}>Pro</Text>
-              <Text style={styles.planPricePro}>From £x/mo*</Text>
+              <Text style={styles.planPricePro}>From £6.25/mo*</Text>
               <Text style={styles.planSubtext}>*Billed annually. Cancel anytime.</Text>
               <View style={styles.planChips}>
-                {['Monthly', '3‑Month', 'Yearly'].map((label) => (
+                {['Monthly', 'Yearly'].map((label) => (
                   <View key={label} style={styles.planChip}>
                     <Text style={styles.planChipText}>{label}</Text>
                   </View>

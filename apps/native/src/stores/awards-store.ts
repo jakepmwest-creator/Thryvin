@@ -34,7 +34,7 @@ export const ISLANDS: Island[] = [
     subtitle: 'First gains unlocked', 
     emoji: '💪', 
     gradient: ['#A22BF6', '#FF4EC7'],
-    requiredBadges: 16, // ~80% of Island 1's 20 badges
+    requiredBadges: 20, // 100% of Island 1's 20 badges
     xpMultiplier: 1.25,
     landscapeColors: { sky: '#98D8C8', ground: '#7CB342', accent: '#8BC34A' },
   },
