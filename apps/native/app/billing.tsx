@@ -54,10 +54,10 @@ const INCLUDED_FEATURES = [
   { icon: 'infinite', text: 'Unlimited AI-generated workout plans' },
   { icon: 'refresh', text: 'Rolling plan regeneration every 3 weeks' },
   { icon: 'analytics', text: 'Deep exercise stats & trends' },
-  { icon: 'person-circle', text: 'Coach personality selection' },
   { icon: 'create', text: 'Edit & customise any workout' },
   { icon: 'flash', text: 'Drop, super & giant set support' },
   { icon: 'headset', text: 'Priority support' },
+  { icon: 'sparkles', text: 'Nutrition & social features', subtitle: 'Coming soon' },
 ];
 
 export default function BillingScreen() {
