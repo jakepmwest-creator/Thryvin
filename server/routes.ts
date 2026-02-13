@@ -8808,53 +8808,23 @@ Respond with a complete workout in JSON format:
         );
       }
 
-      // Fuzzy name matching: when frontend sends specific exercise names from AI-generated plans,
-      // find the best DB match for each name (handles word order differences like
-      // "Incline Dumbbell Press" → "Dumbbell Incline Bench Press")
+      // Exact name matching: when frontend sends specific exercise names,
+      // find exact matches only (no fuzzy/approximate matching)
       if (names) {
         const requestedNames = String(names).split(',').map(n => n.trim()).filter(Boolean);
         const matchedExercises: typeof filteredExercises = [];
         
-        const getWords = (name: string) => name.toLowerCase().replace(/[^a-z0-9\s]/g, '').split(/\s+/).filter(w => w.length > 1);
-        
         for (const reqName of requestedNames) {
-          const reqWords = getWords(reqName);
-          
-          // Try exact match first
           const exact = filteredExercises.find(ex => ex.name?.toLowerCase() === reqName.toLowerCase());
           if (exact) {
             matchedExercises.push(exact);
-            continue;
-          }
-          
-          // Score all exercises by word overlap
-          let bestMatch: typeof filteredExercises[0] | null = null;
-          let bestScore = 0;
-          
-          for (const ex of filteredExercises) {
-            if (!ex.name) continue;
-            const exWords = getWords(ex.name);
-            
-            // Count matching words
-            const matchCount = reqWords.filter(w => exWords.some(ew => ew.includes(w) || w.includes(ew))).length;
-            // Penalize extra words in DB name
-            const precision = matchCount / Math.max(exWords.length, 1);
-            const recall = matchCount / Math.max(reqWords.length, 1);
-            const score = recall * 0.7 + precision * 0.3;
-            
-            if (score > bestScore && score > 0.4) {
-              bestScore = score;
-              bestMatch = ex;
-            }
-          }
-          
-          if (bestMatch) {
-            matchedExercises.push(bestMatch);
+          } else {
+            console.log(`⚠️ No exact match for exercise: "${reqName}"`);
           }
         }
         
         filteredExercises = matchedExercises;
-        console.log(`🔍 Fuzzy matched ${matchedExercises.length}/${requestedNames.length} exercise names`);
+        console.log(`🔍 Exact matched ${matchedExercises.length}/${requestedNames.length} exercise names`);
       }
       
       // Transform to frontend-expected format with proper tips array
