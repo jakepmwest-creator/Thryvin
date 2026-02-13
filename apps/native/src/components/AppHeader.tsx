@@ -4,6 +4,8 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 
+import { useSubscriptionStore } from '../stores/subscription-store';
+
 interface AppHeaderProps {
   mode?: 'fitness' | 'nutrition';
 }
@@ -127,6 +129,7 @@ const comingSoonStyles = StyleSheet.create({
 export function AppHeader({ mode = 'fitness' }: AppHeaderProps) {
   const router = useRouter();
   const [showSocialModal, setShowSocialModal] = useState(false);
+  const { isPro } = useSubscriptionStore();
   const accentColor = mode === 'fitness' ? COLORS.fitnessAccent : COLORS.nutritionAccent;
 
   // PRIORITY 2: 7-tap counter for diagnostics screen access
@@ -160,9 +163,16 @@ export function AppHeader({ mode = 'fitness' }: AppHeaderProps) {
           style={styles.logo}
           resizeMode="contain"
         />
-        <View style={[styles.proBadge, { backgroundColor: accentColor }]}>
-          <Text style={styles.proText}>PRO</Text>
-        </View>
+        {isPro && (
+          <LinearGradient
+            colors={[COLORS.fitnessAccent, COLORS.fitnessSecondary]}
+            style={styles.proBadge}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 0 }}
+          >
+            <Text style={styles.proText}>PRO</Text>
+          </LinearGradient>
+        )}
       </TouchableOpacity>
 
       {/* Right buttons */}
