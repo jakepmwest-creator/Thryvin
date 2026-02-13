@@ -273,7 +273,7 @@ export default function BillingScreen() {
               <View style={{ flex: 1 }}>
                 <Text style={styles.featureText}>{f.text}</Text>
                 {'subtitle' in f && f.subtitle ? (
-                  <Text style={{ fontSize: 11, color: COLORS.muted, marginTop: 1 }}>{f.subtitle}</Text>
+                  <Text style={{ fontSize: 11, color: COLORS.textMuted, marginTop: 1 }}>{f.subtitle}</Text>
                 ) : null}
               </View>
             </View>
