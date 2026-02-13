@@ -119,7 +119,7 @@ export const ProPaywallModal = ({ visible, onClose }: ProPaywallModalProps) => {
                   </LinearGradient>
                   <Text style={styles.pricingTitle}>From</Text>
                   <Text style={styles.pricingPrice}>
-                    $2.92<Text style={styles.pricingPeriod}>/mo</Text>
+                    £5.75<Text style={styles.pricingPeriod}>/mo</Text>
                   </Text>
                   <Text style={styles.pricingSave}>Billed annually. Cancel anytime.</Text>
                 </View>
