@@ -63,7 +63,7 @@ const INCLUDED_FEATURES = [
 export default function BillingScreen() {
   const router = useRouter();
   const { isPro, nativeAvailable, setTestPro } = useSubscriptionStore();
-  const [selectedPlan, setSelectedPlan] = useState('quarterly');
+  const [selectedPlan, setSelectedPlan] = useState('yearly');
   const [processing, setProcessing] = useState(false);
   const [showPrivacy, setShowPrivacy] = useState(false);
   const [showTerms, setShowTerms] = useState(false);
