@@ -664,6 +664,11 @@ export default function WorkoutsScreen() {
         visible={showAllWeeks}
         onClose={() => setShowAllWeeks(false)}
         onEditPress={() => {
+          if (!isPro) {
+            setShowAllWeeks(false);
+            setShowProPaywall(true);
+            return;
+          }
           setShowAllWeeks(false);
           setShowEditPlan(true);
         }}
@@ -672,6 +677,11 @@ export default function WorkoutsScreen() {
       <EditPlanScreen
         visible={showEditPlan}
         onClose={() => setShowEditPlan(false)}
+      />
+
+      <ProPaywallModal
+        visible={showProPaywall}
+        onClose={() => setShowProPaywall(false)}
       />
     </SafeAreaView>
   );
