@@ -310,7 +310,6 @@ export default function WorkoutHubScreen() {
         if (data?.exercises) {
           data.exercises.forEach((ex: any) => {
             if (ex && ex.videoUrl && ex.videoUrl.includes('cloudinary')) {
-              // Map by name (case-insensitive)
               if (ex.name) {
                 videoMap.set(ex.name.toLowerCase(), ex.videoUrl);
               }
@@ -318,32 +317,11 @@ export default function WorkoutHubScreen() {
           });
         }
         
-        // Build a fuzzy lookup: for each workout exercise, find the best matching DB exercise
-        const getWords = (name: string) => name.toLowerCase().replace(/[^a-z0-9\s]/g, '').split(/\s+/).filter((w: string) => w.length > 1);
-        
+        // Exact match only: map video URLs by exercise name
         const updatedExercises = workoutExercises.map((ex: any) => {
           if (!ex.name) return ex;
-          
-          // Try exact match first
           const exactUrl = videoMap.get(ex.name.toLowerCase());
           if (exactUrl) return { ...ex, videoUrl: exactUrl };
-          
-          // Fuzzy match: find best word overlap
-          const exWords = getWords(ex.name);
-          let bestUrl = '';
-          let bestScore = 0;
-          
-          videoMap.forEach((url, dbName) => {
-            const dbWords = getWords(dbName);
-            const matchCount = exWords.filter((w: string) => dbWords.some((dw: string) => dw.includes(w) || w.includes(dw))).length;
-            const score = matchCount / Math.max(exWords.length, 1);
-            if (score > bestScore && score > 0.5) {
-              bestScore = score;
-              bestUrl = url;
-            }
-          });
-          
-          if (bestUrl) return { ...ex, videoUrl: bestUrl };
           return ex;
         });
         
