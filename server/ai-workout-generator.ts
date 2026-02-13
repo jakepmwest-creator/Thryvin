@@ -152,7 +152,7 @@ export async function generateAIWorkout(
 ): Promise<GeneratedWorkout> {
   console.log('🤖 Generating AI workout for user profile:', userProfile, 'Week:', weekNumber);
   
-  // Step 1: Fetch sample exercises for AI context
+  // Step 1: Fetch ALL exercises from DB so AI can ONLY use exact names
   const sampleExercises = await db
     .select({
       name: exercises.name,
@@ -161,9 +161,9 @@ export async function generateAIWorkout(
       difficulty: exercises.difficulty,
     })
     .from(exercises)
-    .limit(100);
+    .limit(2000);
   
-  console.log(`  Found ${sampleExercises.length} sample exercises`);
+  console.log(`  Loaded ${sampleExercises.length} exercises from DB for AI constraint`);
   
   // Step 1.5: Get COMPREHENSIVE user context for full personalization
   let fullUserContext = "No previous workout history available.";
@@ -271,8 +271,13 @@ Your goal is to be like a real personal trainer who KNOWS their client intimatel
 
 ${fullUserContext}
 
-Exercise database includes 1,800+ exercises with videos.
-Sample exercises: ${sampleExercises.slice(0, 20).map(e => e.name).join(', ')}...
+=== EXERCISE DATABASE (MANDATORY — USE ONLY THESE EXACT NAMES) ===
+You MUST choose exercises ONLY from this list. Do NOT invent or rephrase names.
+Copy-paste the name exactly as it appears below. Any exercise not in this list will fail to load a video.
+
+${sampleExercises.map(e => e.name).join('\n')}
+
+=== END OF EXERCISE DATABASE ===
 
 === PERSONALIZATION RULES (CRITICAL - READ ALL USER DATA ABOVE) ===
 
