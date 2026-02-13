@@ -40,22 +40,13 @@ const PLANS = [
     popular: false,
   },
   {
-    id: 'quarterly',
-    name: '3-Month',
-    price: '19.99',
-    period: '/3 months',
-    savings: 'Save 16%',
-    popular: true,
-    monthlyEquiv: '6.66',
-  },
-  {
     id: 'yearly',
     name: 'Yearly',
-    price: '68.99',
+    price: '74.99',
     period: '/year',
-    savings: 'Save 28%',
-    popular: false,
-    monthlyEquiv: '5.75',
+    savings: 'Save 22%',
+    popular: true,
+    monthlyEquiv: '6.25',
   },
 ];
 
