@@ -31,6 +31,8 @@ const PRO_FEATURES = [
   { icon: 'flash' as const, text: 'Priority support + pro workouts' },
   { icon: 'refresh' as const, text: 'Rolling plan regeneration' },
   { icon: 'create' as const, text: 'Edit & customise any workout' },
+  { icon: 'layers' as const, text: 'Drop, super & giant set support' },
+  { icon: 'sparkles' as const, text: 'Nutrition & social features', subtitle: 'Coming soon' },
 ];
 
 interface ProPaywallModalProps {
@@ -85,7 +87,12 @@ export const ProPaywallModal = ({ visible, onClose }: ProPaywallModalProps) => {
               {PRO_FEATURES.map((feature) => (
                 <View key={feature.text} style={styles.featureRow}>
                   <Ionicons name={feature.icon} size={18} color={COLORS.accent} />
-                  <Text style={styles.featureText}>{feature.text}</Text>
+                  <View style={{ flex: 1 }}>
+                    <Text style={styles.featureText}>{feature.text}</Text>
+                    {'subtitle' in feature && feature.subtitle ? (
+                      <Text style={{ fontSize: 11, color: COLORS.textMuted, marginTop: 1 }}>{feature.subtitle}</Text>
+                    ) : null}
+                  </View>
                 </View>
               ))}
             </View>
@@ -119,7 +126,7 @@ export const ProPaywallModal = ({ visible, onClose }: ProPaywallModalProps) => {
                   </LinearGradient>
                   <Text style={styles.pricingTitle}>From</Text>
                   <Text style={styles.pricingPrice}>
-                    £5.75<Text style={styles.pricingPeriod}>/mo</Text>
+                    £6.25<Text style={styles.pricingPeriod}>/mo</Text>
                   </Text>
                   <Text style={styles.pricingSave}>Billed annually. Cancel anytime.</Text>
                 </View>

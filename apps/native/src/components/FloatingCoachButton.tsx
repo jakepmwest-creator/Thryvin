@@ -493,8 +493,8 @@ export function FloatingCoachButton({
       return { handled: false };
     }
     
-    // Help / capabilities
-    if (lower.includes('what can you do') || lower.includes('help') || lower.includes('commands')) {
+    // Help / capabilities - only match explicit requests, not conversational usage
+    if (lower === 'help' || lower === 'commands' || lower.includes('what can you do') || lower.includes('what do you do') || lower.includes('how can you help me')) {
       return {
         handled: true,
         response: "🏋️ I'm your fitness coach! Here's what I can help with:\n\n💬 **Ask Me Anything:**\n• Exercise form & technique tips\n• Weight recommendations\n• Nutrition & recovery advice\n• Your workout schedule & stats\n\n🔧 **Want to Modify Your Plan?**\nHead to **Edit Plan** on your Workouts tab for:\n• Swap workout days\n• Skip a day\n• Make workouts harder/easier\n• Add new workouts\n\n📱 **Settings & Profile**\nGo to **Profile** tab to:\n• Change coach personality\n• Update your info\n• Adjust notifications\n\nWhat fitness topic can I help you with?"
