@@ -57,7 +57,7 @@
 
 ## 🎯 **STABLE URL**
 ```
-https://regen-timing-fix.preview.emergentagent.com
+https://exercise-video-fix.preview.emergentagent.com
 ```
 
 ---

@@ -36,7 +36,7 @@ NODE_ENV=development
 
 **Native (apps/native/.env):**
 ```
-EXPO_PUBLIC_API_BASE_URL=https://regen-timing-fix.preview.emergentagent.com
+EXPO_PUBLIC_API_BASE_URL=https://exercise-video-fix.preview.emergentagent.com
 EXPO_PUBLIC_ENV=development
 EXPO_PUBLIC_OPENAI_API_KEY=sk-proj-5gxv...[NEW KEY]
 EXPO_PUBLIC_AI_MODEL=gpt-4o

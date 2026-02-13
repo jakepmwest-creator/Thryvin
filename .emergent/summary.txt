@@ -1,146 +1,150 @@
-<analysis>**original_problem_statement**: The user was critically blocked by a Server not set error in the Expo Go mobile app, preventing any testing or development. The primary goal was to fix this connectivity issue. Once resolved, the user wanted to verify numerous backlogged features (AI workout rules, RevenueCat subscriptions, profile page stability) and requested a significant UI overhaul to convert several dark-themed modals to a new white/light theme. The user also requested changes to the logic and timing of the Rolling Regeneration feature.
+<analysis>**original_problem_statement**: The user, after testing the application, reported a series of critical issues. The most significant problems were widespread Network request failed errors, major inconsistencies with exercise videos (showing incorrect videos for given exercises), and incorrect pricing on the newly created billing page. Additionally, the user requested several UI cleanups, including the removal of Set pin code and Coach Style options from the profile, UI adjustments on the Compare Plans page, and fixing non-functional award/badge tracking. The user also provided feedback on the AI coach's overly robotic and strict behavior and requested a new billing page be created. In the most recent feedback, the user rejected the agent's fuzzy matching fix for videos, insisting the AI must be constrained to use exact exercise names from the database, and requested further changes to the subscription pricing.
 
 **User's preferred language**: English
 
 **what currently exists?**
-The application is now functional and accessible via Expo Go. The critical Server not set and subsequent network request failed errors have been resolved by implementing a robust, multi-layered API URL resolution strategy and replacing the unreliable  with a stable  tunnel.
-
-To facilitate testing in Expo Go where native modules are unavailable, a Test as Pro and Test as Standard user toggle has been added to the login screen. This allows the user to see how feature-gating and upsell prompts behave.
-
-A major UI refresh has been completed, converting the , , and  to a white/light theme as requested. The initial trigger for the Rolling Regeneration feature has been updated to 18 days.
+The application is a React Native (Expo) fitness app with a FastAPI backend. A significant overhaul of the AI coach's personality has been completed, making it more conversational and removing a restrictive keyword filter. A new billing page has been created and integrated into the app's navigation. Several UI/UX improvements have been made, including removing obsolete items from the profile page, polishing the pro comparison page button, and fixing broken legal links. The underlying Network request failed errors have been addressed by updating stale API URLs. The agent also implemented tracking calls for the awards system, which were previously missing. An attempt was made to fix video inconsistency by implementing fuzzy matching on the backend and correcting some database entries, but this approach was deemed incorrect by the user.
 
 **Last working item**:
-- **Last item agent was working**: The user provided a final clarification on the Rolling Regeneration feature's timing. The agent had just implemented the *initial* trigger at 18 days, but the user specified that all *subsequent* triggers should occur every 3 weeks (21 days) thereafter. The agent has not yet implemented this recurring logic.
+- **Last item agent was working**: The agent was processing two critical pieces of feedback from the user right before the session ended:
+    1.  **Correcting Exercise Video Logic:** The user rejected the agent's fuzzy matching solution, which incorrectly mapped AI-generated exercise names like Incline Dumbbell Press to different database entries like Dumbbell Incline Bench Press. The user wants the AI to be forced to use only the exact exercise names that exist in the database.
+    2.  **Updating Subscription Pricing:** The user requested to remove the 3-month subscription plan entirely and change the yearly plan's discount from 28% to 22%.
 - **Status**: IN PROGRESS
 - **Agent Testing Done**: N
-- **Which testing method agent to use?**: Manual testing. The agent will need to modify the trigger logic in .
+- **Which testing method agent to use?**: Backend testing agent for the AI prompt changes, and manual testing (screenshot) for the frontend pricing UI change.
 - **User Testing Done**: N
 
 **All Pending/In progress Issue list**:
--   **Issue 1: Implement recurring logic for Rolling Regeneration (P0)**
--   **Issue 2: Verify Profile page crash fix (P1)**
--   **Issue 3: Verify Onboarding keyboard behavior (P1)**
--   **Issue 4: Verify  dependency error fix (P2)**
+-   **Issue 1: Incorrect Exercise Video Matching Logic (P0)**
+-   **Issue 2: Verify Awards/Badges System (P1)**
 
 **Issues Detail**:
--   **Issue 1: Implement recurring logic for Rolling Regeneration (P0)**
-    -   **Attempted fixes**: The agent set the initial trigger to 18 days in .
+-   **Issue 1: Incorrect Exercise Video Matching Logic (P0)**
+    -   **Attempted fixes**: The agent implemented fuzzy name matching in . This was incorrect as it matched similar-sounding but functionally different exercises.
     -   **Next debug checklist**:
-        1.  Modify the logic in  that checks .
-        2.  The current logic is .
-        3.  This needs to be updated to handle the initial 18-day trigger and subsequent 21-day triggers. This might involve storing a flag or checking if a regeneration has ever occurred before.
-    -   **Why fix this issue and what will be achieved with the fix?**: To match the user's specific product requirement for how and when users are prompted to refresh their workout plans.
+        1.  Remove the flawed fuzzy matching logic from the  endpoint in .
+        2.  Modify the AI workout generation prompt (likely in  or ).
+        3.  The prompt must be updated to include the full list of valid exercise names from the database and be strictly instructed to **only** use names from that list when creating workout plans.
+    -   **Why fix this issue and what will be achieved with the fix?**: This is critical for user trust and safety. Showing the correct exercise form is a core function of the app. This fix will ensure 100% video accuracy.
     -   **Status**: IN PROGRESS
-    -   **Is recurring issue?**: N
-    -   **Should Test frontend/backend/both after fix?**: Frontend.
--   **Issue 2: Verify Profile page crash fix (P1)**
-    -   **Attempted fixes**: The agent wrapped native  imports in  blocks and used dynamic  calls to prevent the app from crashing in Expo Go where native modules are not available. The fix is in  and .
-    -   **Next debug checklist**: The user needs to log in (using either test user button) and navigate to the Profile tab to confirm it no longer crashes.
-    -   **Why fix this issue and what will be achieved with the fix?**: The profile page is a key part of the app for managing subscriptions and user settings.
+    -   **Is recurring issue?**: Y
+    -   **Should Test frontend/backend/both after fix?**: Both
+-   **Issue 2: Verify Awards/Badges System (P1)**
+    -   **Attempted fixes**: The agent added the previously missing  and  function calls in  and . Previous failures were also caused by network errors, which are now resolved.
+    -   **Next debug checklist**: The user needs to re-test this functionality. If it still fails, the agent must add logs to the  endpoint and the corresponding frontend store () to trace the API calls.
+    -   **Why fix this issue and what will be achieved with the fix?**: To make the gamification features work, which is key for user engagement and retention.
     -   **Status**: USER VERIFICATION PENDING
     -   **Is recurring issue?**: Y
-    -   **Should Test frontend/backend/both after fix?**: Frontend.
--   **Issue 3: Verify Onboarding keyboard behavior (P1)**
-    -   **Attempted fixes**: The agent inspected the code in  and confirmed that the  components already have the  and  props. No changes were made.
-    -   **Next debug checklist**: The user needs to test the onboarding flow to confirm the keyboard behavior is satisfactory.
-    -   **Status**: USER VERIFICATION PENDING
-    -   **Is recurring issue?**: Y
-    -   **Should Test frontend/backend/both after fix?**: Frontend.
--   **Issue 4: Verify  dependency error fix (P2)**
-    -   **Attempted fixes**: The package was installed in a previous session. The agent has now confirmed the app no longer crashes, implicitly suggesting this is resolved.
-    -   **Next debug checklist**: User needs to navigate the app and confirm no haptics-related errors appear.
-    -   **Status**: USER VERIFICATION PENDING
-    -   **Is recurring issue?**: N
-    -   **Should Test frontend/backend/both after fix?**: Frontend.
+    -   **Should Test frontend/backend/both after fix?**: Both
 
 **In progress Task List**:
-- None.
+-   **Task 1: Update Billing Page Pricing & Options (P0)**
+
+**Task Detail**:
+-   **Task 1: Update Billing Page Pricing & Options (P0)**
+    -   **Where to resume**: Modify the pricing structure in  and potentially .
+    -   **What will be achieved with this?**: The subscription options will be updated to show only Monthly and Yearly plans. The Yearly plan will offer a 22% discount compared to the base monthly price of £7.99.
+    -   **Status**: IN PROGRESS
+    -   **Should Test frontend/backend/both after fix?**: Frontend
+    -   **Blocked on something**: No
 
 **Upcoming and Future Tasks**
--   **Upcoming Tasks (P1): Full Feature Verification**
-    -   User to test and verify the implemented AI Workout Generation rules.
-    -   User to test the complete Pro vs. Standard feature gating using the new test user toggles.
-    -   User to verify the functionality of the Weekly Summary page.
--   **Future Tasks (P2/P3)**
-    -   Create an Expo Development Build (env: load .env or EAS Build) to allow for testing the real RevenueCat SDK functionality.
-    -   Sync RevenueCat purchases to the backend database.
-    -   Create UI in  to display special set types (Drop Sets, Super Sets).
-    -   Finalize marketing copy on the  comparison page.
+-   **Upcoming Tasks**:
+    -   **(P1) App Tour Re-implementation**: User wants to revisit and implement an onboarding tour for new users.
+    -   **(P2) Special Set Type UI**: The UI in  to display special sets (e.g., Drop Sets, Super Sets) has not been built yet.
+-   **Future Tasks**:
+    -   **(P2) Coach Memory Enhancement**: Implement persistence so the AI coach can remember past conversations, an idea the user approved.
+    -   **(P3) Finalize Marketing Copy**: The text on the  comparison page needs finalization.
+    -   **(P3) Full RevenueCat Native Integration**: This involves creating an Expo Development Build, testing the real purchase flow, and syncing purchase data to the backend.
 
 **Completed work in this session**
--   **CRITICAL BLOCKER: Fixed App Connectivity**: Resolved the Server not set and Network request failed errors, making the app usable in Expo Go.
-    -   Switched from unreliable  to a stable  tunnel for exposing the backend.
-    -   Implemented a robust, multi-layered URL provider ( override ->  ->  -> hardcoded fallback) to ensure the app always has a valid server URL.
--   **Enabled Expo Go Testing**:
-    -   Fixed a crash caused by  native modules by defensively loading them.
-    -   Added Test as Pro and Test as Standard buttons on the login screen to allow testing of feature-gating without a native build.
--   **Major UI & UX Refresh**:
-    -   Converted , , and  from a dark theme to a white/light theme.
-    -   Added rounded corners to the stats page banner.
--   **Rolling Regeneration Logic Update**:
-    -   Changed the initial trigger timing to 18 days.
-    -   Updated the modal to ask for 3 weeks of availability and gather user feedback.
--   **GitHub Repository Connection Restored**: Re-established the connection to the remote repository without losing local work.
+-   **AI Coach Personality Overhaul**: Removed the hardcoded keyword filter and revamped the system prompt in  to make the coach more conversational and empathetic.
+-   **Billing Page Creation**: Created a new  screen and integrated it into the app's navigation from the profile, paywall, and pro comparison pages.
+-   **Network Error Resolution**: Fixed widespread Network request failed errors by updating a stale fallback URL in .
+-   **Profile Page UI Cleanup**: Removed the Set pin code and Coach Style sections from .
+-   **Awards System Fix**: Implemented the missing tracking calls for watching videos and sharing badges in  and .
+-   **Legal Links Fixed**: Connected the Terms of Use and Privacy Policy links on the  page to the existing  component.
+
+**Earlier issues found/mentioned but not fixed**
+-   None. The agent has been actively working through the user's feedback list.
 
 **Known issue recurrence from previous fork**
--   **Issue recurrence in previous fork**: Unstable backend connectivity (Server not set).
+-   **Issue recurrence in previous fork**: Unstable backend connectivity due to unreliable tunneling and stale URLs.
 -   **Recurrence count**: High
--   **Status**: RESOLVED. The switch to  and the implementation of a dynamic, multi-fallback URL system has fixed this recurring blocker.
+-   **Status**: RESOLVED. The architecture is more robust now with  and a dynamic URL provider. The last recurrence was due to a stale hardcoded fallback URL, which has since been updated.
 
 **Code Architecture**
 
 
 **Key Technical Concepts**
--   **Expo Go Limitations**: Native modules (like ) will not work and can crash the app. The pattern is to use  around  or dynamic imports to gracefully disable features.
--   **Dynamic API URL Resolution**: The  no longer uses a static  for the URL. It calls a function that resolves the URL through a chain of priorities: AsyncStorage (manual override) -> Expo config -> Hardcoded fallback. This makes the app resilient to build configuration issues.
--   **Tunneling for Development**:  proved unreliable.  (Cloudflare Tunnel) is a more stable solution for exposing the local backend to a mobile device for testing, though it provides a new random URL on each restart.
+-   **AI Prompt Engineering**: The current priority demonstrates the need to constrain an LLM's output to a known, valid dataset (the list of exercise names) rather than attempting to interpret its freeform output with post-processing (like fuzzy matching).
+-   **Data Integrity**: The video issues are a mix of flawed code (matching logic) and incorrect data (wrong video URLs in the DB). Both must be addressed for a reliable feature.
+
+**key DB schema**
+-   : { : string, : string }
+
+**changes in tech stack**
+-   None.
 
 **All files of reference**
--   : New file, core of the dynamic URL fix.
--   : Rewritten to use dynamic URL.
--   : Heavily modified to include test user buttons and the URL diagnostics/override panel.
--   : Contains the rolling regeneration trigger logic that needs to be updated.
--   : Contains the RevenueCat crash protection and the test mode toggle logic.
--   : UI updated to light theme.
--   : UI updated to light theme.
--   : UI updated to light theme and logic updated for 3-week regeneration.
+-   : Contains the AI coach logic and the video fetching endpoint where the incorrect fuzzy matching must be removed.
+-   : The likely location for the AI workout generation prompt that needs to be updated with the list of valid exercise names.
+-   : The new billing page where pricing and subscription options must be updated.
+-   : Where  was added.
+-   : Where  was added.
+-   : The profile screen where UI elements were removed.
+
+**Areas that need refactoring**:
+-   The video fetching logic in  requires a complete rewrite. The fuzzy matching approach should be discarded in favor of a prompt engineering solution that guarantees the AI only generates exercise names that exist in the database.
+
+**key api endpoints**
+-   : Fetches videos for exercises. This endpoint's logic is the source of the video inconsistency bug.
+-   : Handles chat interactions with the AI coach.
+-   : Endpoint to record user actions for the awards system.
 
 **Critical Info for New Agent**
-1.  **The Connectivity Blocker is FIXED.** The user can log in and use the app via Expo Go. The backend is exposed via a  tunnel.
-2.  **Cloudflare Tunnel URL Changes on Restart.** The  service generates a new, random URL every time the container restarts. You must find the latest URL from the service logs and provide it to the user. The user may need to paste this into the Diagnostics panel on the login screen if their phone has an old URL cached in AsyncStorage.
-3.  **Use the Test User Toggle.** For all testing related to Pro/Standard features, use the Test as Pro and Test as Standard buttons on the login screen. Real RevenueCat functionality requires an Expo Development Build, which is a future task.
-4.  **Immediate Task:** The user's highest priority is to finish the Rolling Regeneration logic. The first trigger is at 18 days, but all subsequent triggers must be every 3 weeks (21 days) after that. This logic needs to be implemented in .
+1.  **Fix Videos Correctly**: The top priority is the exercise video inconsistency. **Do not** attempt fuzzy matching again. The correct solution is to modify the AI's system prompt, providing it with the complete list of exercise names from the database and instructing it to *only* use names from that list.
+2.  **Update Pricing**: The second priority is to implement the user's latest pricing request: remove the 3-month option and set the yearly discount to 22% on the  page.
+3.  **User Verification is Key**: Many fixes were implemented (badge tracking, UI cleanup, network stability) but have not been verified by the user yet. After deploying the next set of fixes, it will be crucial for the user to do a full test of the app.
+4.  **Backend Restart**: Remember to restart the backend supervisor service after making changes to backend routes or services to ensure they take effect.
 
 **documents and test reports created in this job**
--    (updated)
+-   
+-   
 
 **Last 10 User Messages and any pending HUMAN messages**
-1.  **User:** Requests the rolling regeneration timing be fixed: first trigger at 18 days, then every 3 weeks after that. (PENDING)
-2.  **Agent:** Confirms all UI refresh tasks are complete and ready for review.
-3.  **User:** Gives enthusiastic feedback on the new white-themed UI, confirming it looks great. Provides several new requests: round the stats banner, adjust rolling regen timing, and add a feedback step to the regen modal. (COMPLETED)
-4.  **User:** Reports the GitHub connection has been lost again and asks for a fix without losing work. (COMPLETED)
-5.  **Agent:** Summarizes the completed Phase 1 (crash fix, test user toggle) and confirms it's ready for testing.
-6.  **User:** Approves the plan to fix the RevenueCat crash and add the test user toggle. (COMPLETED)
-7.  **Agent:** Proposes a multi-phase plan: 1) Fix crash & add test toggle, 2) Verify all features, 3) Plan for dev build.
-8.  **User:** Confirms they are in the app, but hit a RevenueCat error. Asks for an explanation and a plan to make it all work. (ADDRESSED)
-9.  **User:** Reports the old  URL is stuck in the app's cache. (ADDRESSED, agent provided instructions to clear it).
-10. **User:** Asks for the server to be restarted and is concerned it will break again. (ADDRESSED, agent restarted and provided the new URL).
+1.  **User (Latest/Pending):** Criticized the fuzzy matching logic for videos as incorrect (Incline Dumbbell Press is not Dumbbell Incline Bench Press). Demanded the AI be forced to use exact DB names. Requested pricing change: remove 3-month plan, set yearly discount to 22%.
+2.  **Agent:** Presented a summary of all implemented fixes, including the flawed video fix.
+3.  **User:** Reported widespread network errors, major video inconsistencies, incorrect pricing, and a list of UI cleanup tasks and broken features (awards).
+4.  **Agent:** Acknowledged the feedback and planned to investigate the network error first.
+5.  **User:** Confirmed the app's status and prepared for testing.
+6.  **Agent:** Finished a work cycle, summarizing the coach overhaul and billing page creation.
+7.  **User:** Approved the plan to fix the coach and create the billing page, providing detailed requirements for the coach's personality.
+8.  **Agent:** Proposed a new plan based on user feedback (Fix Coach, Build Billing Page, Health Check).
+9.  **User:** Provided more detail on the desired Thriven style for the billing page and elaborated on making the AI coach less robotic.
+10. **Agent:** Responded with a detailed plan after analyzing the codebase.
 
 **Project Health Check:**
--   **Mocked**: The application is functional for testing in Expo Go, but critical native functionality (In-App Purchases via RevenueCat) is mocked.
+-   **Broken**: The core functionality of displaying correct exercise videos is a regression and is currently not working reliably.
+-   **Mocked**: In-App Purchases via RevenueCat are still mocked and non-functional in the Expo Go testing environment.
 
 **3rd Party Integrations**
 -   Neon PostgreSQL (Database)
 -   OpenAI GPT-4o (AI Coach)
 -   Cloudinary (Video hosting)
--   RevenueCat (In-app subscriptions) - SDK integrated but disabled in Expo Go.
--   **Cloudflare Tunnel ()**: Used for exposing the local backend for mobile testing.
+-   RevenueCat (In-app subscriptions) - Mocked.
+-   Cloudflare Tunnel () (Development)
 
 **Testing status**
--   **Testing agent used after significant changes**: NO
+-   **Testing agent used after significant changes**: YES, for backend API and coach personality verification.
 -   **Troubleshoot agent used after agent stuck in loop**: NO
 -   **Test files created**: []
--   **Known regressions**: None. Previous regressions (connectivity, profile crash) have been addressed.
+-   **Known regressions**: The exercise video matching functionality has regressed and is worse than before, according to the user.
+
+**Credentials to test flow:**
+-   Use the Test as Pro and Test as Standard buttons on the login screen, which call the  endpoint.
 
 **What agent forgot to execute**
-- The agent has not yet implemented the user's final request to make the rolling regeneration trigger occur every 3 weeks *after* the initial 18-day prompt. This is the highest priority pending task.</analysis>
+-   The agent has not yet implemented the user's two most recent requests from their last message:
+    1.  Fixing the video matching logic by constraining the AI's prompt instead of using fuzzy matching.
+    2.  Updating the billing page to remove the 3-month plan and adjust the yearly discount to 22%.</analysis>

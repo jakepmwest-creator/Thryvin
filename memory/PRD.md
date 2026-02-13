@@ -501,7 +501,7 @@ User logs set in workout-hub → POST /api/workout/log-set (with thryvin_access_
 - Database: Neon PostgreSQL
 - Frontend: React Native/Expo
 - AI: OpenAI GPT-4o for coach and workout generation
-- Stable Preview URL: `https://regen-timing-fix.preview.emergentagent.com`
+- Stable Preview URL: `https://exercise-video-fix.preview.emergentagent.com`
 
 ---
 

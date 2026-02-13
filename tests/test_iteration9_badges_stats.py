@@ -30,7 +30,7 @@ import os
 import time
 
 # API Base URL from environment
-BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://regen-timing-fix.preview.emergentagent.com').rstrip('/')
+BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://exercise-video-fix.preview.emergentagent.com').rstrip('/')
 
 print(f"Testing against: {BASE_URL}")
 

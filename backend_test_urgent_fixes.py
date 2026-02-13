@@ -28,7 +28,7 @@ import time
 from typing import Dict, List, Any, Optional
 
 # Configuration - Use production URL from environment
-BASE_URL = "https://regen-timing-fix.preview.emergentagent.com"
+BASE_URL = "https://exercise-video-fix.preview.emergentagent.com"
 API_BASE = f"{BASE_URL}/api"
 
 class ThryvinUrgentFixesTester:
