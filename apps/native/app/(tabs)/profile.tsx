@@ -728,24 +728,6 @@ export default function ProfileScreen() {
           </View>
         </View>
 
-        <View style={styles.menuSection}>
-          <Text style={styles.sectionTitle}>Program</Text>
-          <View style={styles.menuContainer}>
-            <MenuButton
-              icon="person-circle"
-              title="Coach Style"
-              subtitle={`Current: ${COACH_PERSONALITIES.find(p => p.id === coachPersonality)?.name || 'Friendly'}`}
-              onPress={() => {
-                if (!isPro) {
-                  setShowPaywall(true);
-                  return;
-                }
-                setShowCoachPersonality(true);
-              }}
-              dataTestId="profile-coach-style-button"
-            />
-          </View>
-        </View>
 
         <View style={styles.menuSection}>
           <Text style={styles.sectionTitle}>Legal</Text>
