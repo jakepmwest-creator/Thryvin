@@ -118,6 +118,7 @@ export default function HomeScreen() {
   const [selectedExercise, setSelectedExercise] = useState(null);
   const [refreshing, setRefreshing] = useState(false);
   const scrollX = useMemo(() => new Animated.Value(0), []);
+  const todayWorkoutRef = useRef<View>(null);
   
   // Advanced Questionnaire state
   const [showAdvancedQuestionnaire, setShowAdvancedQuestionnaire] = useState(false);

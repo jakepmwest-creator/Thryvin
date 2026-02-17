@@ -1332,7 +1332,7 @@ Transform your fitness journey with personalized workouts and gamified progressi
           </View>
         )}
         
-        <View style={{ height: 32 }} />
+        <View style={{ height: 120 }} />
       </ScrollView>
       
       <IslandJourneyModal visible={showIslandSelector} onClose={() => setShowIslandSelector(false)} currentIsland={currentIsland} completedCount={completedCount} userBadges={userBadges} />
