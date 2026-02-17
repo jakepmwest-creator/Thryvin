@@ -1,31 +1,48 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   Modal,
   TouchableOpacity,
-  ScrollView,
+  FlatList,
   TextInput,
   Dimensions,
+  Image,
+  ActivityIndicator,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
+import { BlurView } from 'expo-blur';
 import { PreviewVideoPlayer, isValidVideoUrl } from './ExerciseVideoPlayer';
 import { usePreferencesStore } from '../stores/preferences-store';
 import { getApiBaseUrl } from '../services/env';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const API_BASE_URL = getApiBaseUrl();
+const TILE_GAP = 10;
+const TILE_WIDTH = (SCREEN_WIDTH - 48 - TILE_GAP) / 2;
 
 const COLORS = {
+  bg: '#0D0D0D',
+  card: '#1A1A1A',
+  cardBorder: '#2A2A2A',
   accent: '#A22BF6',
   accentSecondary: '#FF4EC7',
-  white: '#ffffff',
-  text: '#222222',
-  lightGray: '#F8F9FA',
-  mediumGray: '#8E8E93',
-  success: '#34C759',
+  white: '#FFFFFF',
+  text: '#F5F5F5',
+  textSecondary: '#9E9E9E',
+  liked: '#34C759',
+  disliked: '#FF3B30',
+  filterBg: '#1E1E1E',
+};
+
+// Cloudinary thumbnail helper
+const getThumbUrl = (videoUrl: string) => {
+  if (!videoUrl?.includes('cloudinary')) return null;
+  return videoUrl
+    .replace('/video/upload/', '/video/upload/so_0,f_jpg,w_400,h_400,c_fill,g_center/')
+    .replace('.mp4', '.jpg');
 };
 
 interface ExploreWorkoutsModalProps {
@@ -35,81 +52,27 @@ interface ExploreWorkoutsModalProps {
   categoryGradient: string[];
 }
 
-const ExerciseCard = ({ exercise, onPress }: { exercise: any; onPress: () => void }) => {
-  const { getPreference, likeExercise, dislikeExercise } = usePreferencesStore();
-  const preference = getPreference(exercise.id);
-  
-  const handleLike = (e: any) => {
-    e.stopPropagation();
-    if (preference === 'liked') {
-      usePreferencesStore.getState().removePreference(exercise.id);
-    } else {
-      likeExercise(exercise.id, exercise.name);
-    }
-  };
-  
-  const handleDislike = (e: any) => {
-    e.stopPropagation();
-    if (preference === 'disliked') {
-      usePreferencesStore.getState().removePreference(exercise.id);
-    } else {
-      dislikeExercise(exercise.id, exercise.name);
-    }
-  };
-  
-  return (
-    <TouchableOpacity style={styles.exerciseCard} onPress={onPress} activeOpacity={0.7}>
-      <View style={styles.exerciseIcon}>
-        <Ionicons name="barbell" size={24} color={COLORS.accent} />
-      </View>
-      <View style={styles.exerciseInfo}>
-        <Text style={styles.exerciseName} numberOfLines={1}>{exercise.name}</Text>
-        <Text style={styles.exerciseMeta} numberOfLines={1}>
-          {exercise.muscleGroups?.join(', ') || exercise.bodyPart || 'Full Body'} • {exercise.difficulty}
-        </Text>
-      </View>
-      
-      <View style={styles.preferencesContainer}>
-        <TouchableOpacity onPress={handleLike} style={styles.preferenceButton}>
-          <Ionicons 
-            name={preference === 'liked' ? 'heart' : 'heart-outline'} 
-            size={20} 
-            color={preference === 'liked' ? COLORS.success : COLORS.mediumGray} 
-          />
-        </TouchableOpacity>
-        <TouchableOpacity onPress={handleDislike} style={styles.preferenceButton}>
-          <Ionicons 
-            name={preference === 'disliked' ? 'thumbs-down' : 'thumbs-down-outline'} 
-            size={20} 
-            color={preference === 'disliked' ? '#FF3B30' : COLORS.mediumGray} 
-          />
-        </TouchableOpacity>
-      </View>
-    </TouchableOpacity>
-  );
-};
-
-// Equipment filter options
-const EQUIPMENT_FILTERS: { [key: string]: { id: string; label: string }[] } = {
-  'Weights': [
+// Equipment filter options per category
+const EQUIPMENT_FILTERS: Record<string, { id: string; label: string }[]> = {
+  Weights: [
     { id: 'all', label: 'All' },
     { id: 'dumbbell', label: 'Dumbbells' },
     { id: 'barbell', label: 'Barbells' },
     { id: 'machine', label: 'Machines' },
     { id: 'cable', label: 'Cables' },
   ],
-  'Calisthenics': [
+  Calisthenics: [
     { id: 'all', label: 'All' },
     { id: 'bodyweight', label: 'Bodyweight' },
     { id: 'bar', label: 'Pull-up Bar' },
     { id: 'rings', label: 'Rings' },
   ],
-  'Cardio': [
+  Cardio: [
     { id: 'all', label: 'All' },
     { id: 'machine', label: 'Machines' },
     { id: 'outdoor', label: 'Outdoor' },
   ],
-  'Flexibility': [
+  Flexibility: [
     { id: 'all', label: 'All' },
     { id: 'static', label: 'Static' },
     { id: 'dynamic', label: 'Dynamic' },
@@ -117,331 +80,421 @@ const EQUIPMENT_FILTERS: { [key: string]: { id: string; label: string }[] } = {
   ],
 };
 
+const DIFFICULTY_OPTIONS = ['All', 'Beginner', 'Intermediate', 'Advanced'] as const;
+
+// ---------- Tile Component ----------
+const ExerciseTile = React.memo(({ exercise, onPress }: { exercise: any; onPress: () => void }) => {
+  const { getPreference, likeExercise, dislikeExercise, removePreference } = usePreferencesStore();
+  const preference = getPreference(exercise.id);
+  const thumbUrl = getThumbUrl(exercise.videoUrl);
+  const hasVideo = isValidVideoUrl(exercise.videoUrl);
+
+  const handleLike = () => {
+    if (preference === 'liked') removePreference(exercise.id);
+    else likeExercise(exercise.id, exercise.name);
+  };
+  const handleDislike = () => {
+    if (preference === 'disliked') removePreference(exercise.id);
+    else dislikeExercise(exercise.id, exercise.name);
+  };
+
+  return (
+    <TouchableOpacity
+      style={styles.tile}
+      onPress={onPress}
+      activeOpacity={0.85}
+      data-testid={`exercise-tile-${exercise.id}`}
+    >
+      {/* Thumbnail / Placeholder */}
+      <View style={styles.tileThumb}>
+        {hasVideo && thumbUrl ? (
+          <Image source={{ uri: thumbUrl }} style={styles.tileImage} resizeMode="cover" />
+        ) : (
+          <LinearGradient colors={['#222', '#333']} style={styles.tilePlaceholder}>
+            <Ionicons name="barbell-outline" size={28} color="rgba(255,255,255,0.3)" />
+          </LinearGradient>
+        )}
+        {/* Difficulty badge */}
+        {exercise.difficulty && (
+          <View style={[
+            styles.diffBadge,
+            exercise.difficulty === 'Beginner' && { backgroundColor: '#34C75930' },
+            exercise.difficulty === 'Advanced' && { backgroundColor: '#FF3B3030' },
+          ]}>
+            <Text style={[
+              styles.diffText,
+              exercise.difficulty === 'Beginner' && { color: '#34C759' },
+              exercise.difficulty === 'Advanced' && { color: '#FF3B30' },
+            ]}>
+              {exercise.difficulty}
+            </Text>
+          </View>
+        )}
+      </View>
+
+      {/* Info */}
+      <View style={styles.tileInfo}>
+        <Text style={styles.tileName} numberOfLines={2}>{exercise.name}</Text>
+        <Text style={styles.tileMeta} numberOfLines={1}>
+          {exercise.muscleGroups?.join(', ') || exercise.bodyPart || 'Full Body'}
+        </Text>
+      </View>
+
+      {/* Like / Dislike row */}
+      <View style={styles.tileActions}>
+        <TouchableOpacity onPress={handleLike} style={styles.tileActionBtn} data-testid={`like-btn-${exercise.id}`}>
+          <Ionicons
+            name={preference === 'liked' ? 'heart' : 'heart-outline'}
+            size={18}
+            color={preference === 'liked' ? COLORS.liked : COLORS.textSecondary}
+          />
+        </TouchableOpacity>
+        <TouchableOpacity onPress={handleDislike} style={styles.tileActionBtn} data-testid={`dislike-btn-${exercise.id}`}>
+          <Ionicons
+            name={preference === 'disliked' ? 'thumbs-down' : 'thumbs-down-outline'}
+            size={18}
+            color={preference === 'disliked' ? COLORS.disliked : COLORS.textSecondary}
+          />
+        </TouchableOpacity>
+      </View>
+    </TouchableOpacity>
+  );
+});
+
+// ---------- Filter Sheet ----------
+const FilterSheet = ({
+  visible,
+  onClose,
+  difficulty,
+  setDifficulty,
+  equipment,
+  setEquipment,
+  equipmentOptions,
+}: any) => {
+  if (!visible) return null;
+  return (
+    <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
+      <TouchableOpacity style={styles.filterOverlay} activeOpacity={1} onPress={onClose}>
+        <View style={styles.filterSheet}>
+          <View style={styles.filterHandle} />
+          <Text style={styles.filterTitle}>Filter Exercises</Text>
+
+          <Text style={styles.filterLabel}>Difficulty</Text>
+          <View style={styles.filterRow}>
+            {DIFFICULTY_OPTIONS.map(d => (
+              <TouchableOpacity
+                key={d}
+                style={[styles.filterChip, difficulty === d && styles.filterChipActive]}
+                onPress={() => setDifficulty(d)}
+              >
+                <Text style={[styles.filterChipText, difficulty === d && styles.filterChipTextActive]}>{d}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+
+          <Text style={styles.filterLabel}>Equipment</Text>
+          <View style={styles.filterRow}>
+            {equipmentOptions.map((eq: any) => (
+              <TouchableOpacity
+                key={eq.id}
+                style={[styles.filterChip, equipment === eq.id && styles.filterChipActive]}
+                onPress={() => setEquipment(eq.id)}
+              >
+                <Text style={[styles.filterChipText, equipment === eq.id && styles.filterChipTextActive]}>{eq.label}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+
+          <TouchableOpacity style={styles.filterApplyBtn} onPress={onClose}>
+            <LinearGradient
+              colors={[COLORS.accent, COLORS.accentSecondary]}
+              style={styles.filterApplyGradient}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+            >
+              <Text style={styles.filterApplyText}>Apply</Text>
+            </LinearGradient>
+          </TouchableOpacity>
+        </View>
+      </TouchableOpacity>
+    </Modal>
+  );
+};
+
+// ---------- Detail Dropdown ----------
+const ExerciseDetail = ({ exercise, categoryGradient, onClose }: any) => {
+  const hasVideo = isValidVideoUrl(exercise?.videoUrl);
+  if (!exercise) return null;
+
+  return (
+    <Modal visible={!!exercise} transparent animationType="slide" onRequestClose={onClose}>
+      <View style={styles.detailOverlay}>
+        <View style={styles.detailSheet}>
+          <TouchableOpacity onPress={onClose} style={styles.detailCloseBtn}>
+            <Ionicons name="close" size={22} color={COLORS.textSecondary} />
+          </TouchableOpacity>
+
+          {/* Video or Header */}
+          {hasVideo ? (
+            <View style={styles.detailVideo}>
+              <PreviewVideoPlayer videoUrl={exercise.videoUrl} exerciseName={exercise.name} />
+            </View>
+          ) : (
+            <LinearGradient colors={categoryGradient} style={styles.detailHeaderGradient}>
+              <Ionicons name="barbell" size={36} color={COLORS.white} />
+            </LinearGradient>
+          )}
+
+          <View style={styles.detailBody}>
+            <Text style={styles.detailName}>{exercise.name}</Text>
+
+            <View style={styles.detailTags}>
+              {exercise.difficulty && (
+                <View style={styles.detailTag}>
+                  <Ionicons name="speedometer-outline" size={14} color={COLORS.accent} />
+                  <Text style={styles.detailTagText}>{exercise.difficulty}</Text>
+                </View>
+              )}
+              <View style={styles.detailTag}>
+                <Ionicons name="body-outline" size={14} color={COLORS.accent} />
+                <Text style={styles.detailTagText}>
+                  {exercise.muscleGroups?.join(', ') || exercise.bodyPart || 'Full Body'}
+                </Text>
+              </View>
+              {exercise.equipment && (
+                <View style={styles.detailTag}>
+                  <Ionicons name="fitness-outline" size={14} color={COLORS.accent} />
+                  <Text style={styles.detailTagText}>
+                    {Array.isArray(exercise.equipment) ? exercise.equipment.join(', ') : exercise.equipment}
+                  </Text>
+                </View>
+              )}
+            </View>
+
+            <Text style={styles.detailDesc}>
+              {exercise.description || 'Perform this exercise with proper form and controlled movements. Focus on muscle engagement throughout the full range of motion.'}
+            </Text>
+
+            {exercise.tips && exercise.tips.length > 0 && (
+              <View style={styles.tipsSection}>
+                <Text style={styles.tipsHeader}>Form Tips</Text>
+                {exercise.tips.map((tip: string, i: number) => (
+                  <View key={i} style={styles.tipRow}>
+                    <View style={styles.tipNum}>
+                      <Text style={styles.tipNumText}>{i + 1}</Text>
+                    </View>
+                    <Text style={styles.tipText}>{tip}</Text>
+                  </View>
+                ))}
+              </View>
+            )}
+          </View>
+        </View>
+      </View>
+    </Modal>
+  );
+};
+
+// ---------- Main Modal ----------
 export const ExploreWorkoutsModal = ({ visible, onClose, category, categoryGradient }: ExploreWorkoutsModalProps) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedExercise, setSelectedExercise] = useState<any | null>(null);
-  const [filterDifficulty, setFilterDifficulty] = useState<'All' | 'Beginner' | 'Intermediate' | 'Advanced'>('All');
-  const [filterEquipment, setFilterEquipment] = useState<string>('all');
+  const [filterDifficulty, setFilterDifficulty] = useState<typeof DIFFICULTY_OPTIONS[number]>('All');
+  const [filterEquipment, setFilterEquipment] = useState('all');
+  const [showFilter, setShowFilter] = useState(false);
   const [exercises, setExercises] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [totalInDatabase, setTotalInDatabase] = useState(0);
-  
-  // Fetch exercises from API
+
+  // Fetch exercises
   useEffect(() => {
-    const fetchExercises = async () => {
+    if (!visible) return;
+    let cancelled = false;
+    (async () => {
       try {
         setIsLoading(true);
-        const response = await fetch(`${API_BASE_URL}/api/exercises?limit=2000`);
-        const data = await response.json();
-        setExercises(data.exercises || []);
-        setTotalInDatabase(data.totalInDatabase || data.total || 0);
-      } catch (error) {
-        console.error('Failed to fetch exercises:', error);
+        const res = await fetch(`${API_BASE_URL}/api/exercises?limit=2000`);
+        const data = await res.json();
+        if (!cancelled) setExercises(data.exercises || []);
+      } catch (e) {
+        console.error('Failed to fetch exercises:', e);
       } finally {
-        setIsLoading(false);
+        if (!cancelled) setIsLoading(false);
       }
-    };
-    
-    if (visible) {
-      fetchExercises();
+    })();
+    return () => { cancelled = true; };
+  }, [visible]);
+
+  // Reset filters when closing
+  useEffect(() => {
+    if (!visible) {
+      setSearchQuery('');
+      setFilterDifficulty('All');
+      setFilterEquipment('all');
+      setSelectedExercise(null);
     }
   }, [visible]);
-  
-  // Filter exercises by category, search, difficulty, and equipment
+
+  // Category-specific keyword lists
+  const equipmentKeywords = ['dumbbell', 'barbell', 'cable', 'machine', 'kettlebell', 'smith', 'ez bar', 'bench press', 'lat pull', 'pulldown', 'leg press', 'chest press', 'shoulder press', 'weight', 'weighted', 'press', 'curl', 'fly', 'row', 'pullover', 'extension', 'raise'];
+  const cardioKeywords = ['cardio', 'running', 'cycling', 'rowing', 'swimming', 'jump rope', 'treadmill', 'elliptical', 'stair', 'hiit', 'jumping jack', 'burpee', 'mountain climber'];
+  const flexKeywords = ['stretch', 'yoga', 'mobility', 'warmup', 'warm-up', 'recovery', 'foam roll', 'flexibility'];
+
   const filteredExercises = useMemo(() => {
     if (isLoading) return [];
-    
     let filtered = exercises;
-    
-    // Equipment keywords to detect in exercise names - includes weight, cables, etc.
-    const equipmentKeywords = ['dumbbell', 'barbell', 'cable', 'machine', 'kettlebell', 'smith', 'ez bar', 'ez-bar', 'resistance band', 'band', 'bench press', 'lat pull', 'pulldown', 'leg press', 'chest press', 'shoulder press', 'weight', 'weighted', 'rack', 'bar', 'press', 'curl', 'fly', 'row', 'pullover', 'extension', 'raise'];
-    const cardioKeywords = ['cardio', 'running', 'cycling', 'rowing', 'swimming', 'jump rope', 'treadmill', 'elliptical', 'stair', 'hiit', 'jumping jack', 'burpee', 'mountain climber'];
-    const flexKeywords = ['stretch', 'yoga', 'mobility', 'warmup', 'warm-up', 'recovery', 'foam roll', 'flexibility'];
-    
-    // Filter by category
+
+    // Category filter
     if (category && category !== 'All') {
       filtered = filtered.filter(ex => {
-        const exCategory = (ex.category || '').toLowerCase();
+        const exCat = (ex.category || '').toLowerCase();
         const exName = (ex.name || '').toLowerCase();
-        const equipmentArr = Array.isArray(ex.equipment) ? ex.equipment : [];
-        const equipmentStr = equipmentArr.map((e: any) => String(e).toLowerCase()).join(' ');
-        
-        const nameHasEquipment = equipmentKeywords.some(kw => exName.includes(kw));
-        const fieldHasEquipment = equipmentArr.length > 0 && !equipmentStr.includes('bodyweight');
-        const isCardio = cardioKeywords.some(kw => exCategory.includes(kw) || exName.includes(kw));
-        const isFlex = flexKeywords.some(kw => exCategory.includes(kw) || exName.includes(kw));
-        
-        if (category === 'Weights') {
-          return (nameHasEquipment || fieldHasEquipment) && !isCardio && !isFlex;
-        }
-        
-        if (category === 'Calisthenics') {
-          return !nameHasEquipment && !fieldHasEquipment && !isCardio && !isFlex;
-        }
-        
-        if (category === 'Cardio') {
-          return isCardio;
-        }
-        
-        if (category === 'Flexibility') {
-          return isFlex;
-        }
-        
+        const eqArr = Array.isArray(ex.equipment) ? ex.equipment : [];
+        const eqStr = eqArr.map((e: any) => String(e).toLowerCase()).join(' ');
+        const nameHasEq = equipmentKeywords.some(kw => exName.includes(kw));
+        const fieldHasEq = eqArr.length > 0 && !eqStr.includes('bodyweight');
+        const isCardio = cardioKeywords.some(kw => exCat.includes(kw) || exName.includes(kw));
+        const isFlex = flexKeywords.some(kw => exCat.includes(kw) || exName.includes(kw));
+        if (category === 'Weights') return (nameHasEq || fieldHasEq) && !isCardio && !isFlex;
+        if (category === 'Calisthenics') return !nameHasEq && !fieldHasEq && !isCardio && !isFlex;
+        if (category === 'Cardio') return isCardio;
+        if (category === 'Flexibility') return isFlex;
         return true;
       });
     }
-    
-    // Filter by search
+
+    // Search
     if (searchQuery) {
-      const searchLower = searchQuery.toLowerCase();
-      filtered = filtered.filter(ex => 
-        ex.name?.toLowerCase().includes(searchLower) ||
-        ex.muscleGroups?.some((mg: string) => mg.toLowerCase().includes(searchLower)) ||
-        ex.bodyPart?.toLowerCase().includes(searchLower) ||
-        ex.category?.toLowerCase().includes(searchLower)
+      const q = searchQuery.toLowerCase();
+      filtered = filtered.filter(ex =>
+        ex.name?.toLowerCase().includes(q) ||
+        ex.muscleGroups?.some((mg: string) => mg.toLowerCase().includes(q)) ||
+        ex.bodyPart?.toLowerCase().includes(q)
       );
     }
-    
-    // Filter by difficulty
+
+    // Difficulty
     if (filterDifficulty !== 'All') {
-      filtered = filtered.filter(ex => 
-        ex.difficulty?.toLowerCase() === filterDifficulty.toLowerCase()
-      );
+      filtered = filtered.filter(ex => ex.difficulty?.toLowerCase() === filterDifficulty.toLowerCase());
     }
-    
-    // Filter by equipment - check both equipment array AND exercise name
+
+    // Equipment
     if (filterEquipment !== 'all') {
       filtered = filtered.filter(ex => {
-        const exEquipment = Array.isArray(ex.equipment) ? ex.equipment : [];
+        const eqArr = Array.isArray(ex.equipment) ? ex.equipment : [];
         const exName = (ex.name || '').toLowerCase();
-        
-        // Check equipment array
-        const hasInEquipment = exEquipment.some((eq: string) => 
-          eq?.toLowerCase().includes(filterEquipment.toLowerCase())
-        );
-        
-        // Also check exercise name for equipment keyword
-        const hasInName = exName.includes(filterEquipment.toLowerCase());
-        
-        return hasInEquipment || hasInName;
+        return eqArr.some((eq: string) => eq?.toLowerCase().includes(filterEquipment.toLowerCase())) || exName.includes(filterEquipment.toLowerCase());
       });
     }
-    
+
     return filtered;
   }, [exercises, searchQuery, filterDifficulty, filterEquipment, category, isLoading]);
 
-  // Use shared video URL validation function
-  const hasValidVideo = (exercise: any) => isValidVideoUrl(exercise?.videoUrl);
+  const activeFilterCount = (filterDifficulty !== 'All' ? 1 : 0) + (filterEquipment !== 'all' ? 1 : 0);
+  const equipmentOptions = EQUIPMENT_FILTERS[category] || EQUIPMENT_FILTERS['Weights'];
+
+  const renderTile = useCallback(({ item }: { item: any }) => (
+    <ExerciseTile exercise={item} onPress={() => setSelectedExercise(item)} />
+  ), []);
+
+  const keyExtractor = useCallback((item: any) => item.id?.toString(), []);
 
   return (
     <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose}>
       <View style={styles.overlay}>
         <View style={styles.container}>
-          {/* Header */}
+          {/* Gradient Banner */}
           <LinearGradient
             colors={categoryGradient as any}
-            style={styles.header}
+            style={styles.banner}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
           >
-            <TouchableOpacity onPress={onClose} style={styles.closeButton}>
-              <Ionicons name="close" size={24} color={COLORS.white} />
+            <TouchableOpacity onPress={onClose} style={styles.backBtn} data-testid="explore-close-btn">
+              <Ionicons name="chevron-back" size={24} color={COLORS.white} />
             </TouchableOpacity>
-            <View style={styles.headerContent}>
-              <Text style={styles.headerTitle}>{category}</Text>
-              <Text style={styles.headerSubtitle}>
-                {isLoading ? 'Loading...' : `${filteredExercises.length} exercises`}
-              </Text>
-            </View>
+            <Text style={styles.bannerTitle}>{category}</Text>
+            <Text style={styles.bannerSub}>
+              {isLoading ? 'Loading...' : `${filteredExercises.length} exercises`}
+            </Text>
           </LinearGradient>
-          
-          {/* Search Bar */}
-          <View style={styles.searchContainer}>
-            <Ionicons name="search" size={18} color={COLORS.mediumGray} />
-            <TextInput
-              style={styles.searchInput}
-              placeholder={`Search ${category.toLowerCase()}...`}
-              placeholderTextColor={COLORS.mediumGray}
-              value={searchQuery}
-              onChangeText={setSearchQuery}
-            />
-            {searchQuery.length > 0 && (
-              <TouchableOpacity onPress={() => setSearchQuery('')}>
-                <Ionicons name="close-circle" size={18} color={COLORS.mediumGray} />
-              </TouchableOpacity>
-            )}
-          </View>
-          
-          {/* Difficulty Filter - COMPACT */}
-          <View style={styles.filterContainer}>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filterScroll}>
-              {(['All', 'Beginner', 'Intermediate', 'Advanced'] as const).map(level => (
-                <TouchableOpacity
-                  key={level}
-                  style={[styles.filterChip, filterDifficulty === level && styles.filterChipActiveWrapper]}
-                  onPress={() => setFilterDifficulty(level)}
-                >
-                  {filterDifficulty === level ? (
-                    <LinearGradient
-                      colors={[COLORS.accent, COLORS.accentSecondary]}
-                      style={styles.filterChipGradient}
-                      start={{ x: 0, y: 0 }}
-                      end={{ x: 1, y: 1 }}
-                    >
-                      <Text style={styles.filterChipTextActive}>{level}</Text>
-                    </LinearGradient>
-                  ) : (
-                    <Text style={styles.filterChipText}>{level}</Text>
-                  )}
+
+          {/* Search + Filter row */}
+          <View style={styles.searchRow}>
+            <View style={styles.searchBox}>
+              <Ionicons name="search" size={18} color={COLORS.textSecondary} />
+              <TextInput
+                style={styles.searchInput}
+                placeholder={`Search ${category.toLowerCase()}...`}
+                placeholderTextColor={COLORS.textSecondary}
+                value={searchQuery}
+                onChangeText={setSearchQuery}
+                data-testid="explore-search-input"
+              />
+              {searchQuery.length > 0 && (
+                <TouchableOpacity onPress={() => setSearchQuery('')}>
+                  <Ionicons name="close-circle" size={18} color={COLORS.textSecondary} />
                 </TouchableOpacity>
-              ))}
-            </ScrollView>
-          </View>
-          
-          {/* Equipment Filter - COMPACT */}
-          <View style={styles.filterContainer}>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filterScroll}>
-              {(EQUIPMENT_FILTERS[category] || EQUIPMENT_FILTERS['Weights']).map(equip => (
-                <TouchableOpacity
-                  key={equip.id}
-                  style={[styles.filterChip, filterEquipment === equip.id && styles.filterChipActiveWrapper]}
-                  onPress={() => setFilterEquipment(equip.id)}
-                >
-                  {filterEquipment === equip.id ? (
-                    <LinearGradient
-                      colors={[COLORS.accent, COLORS.accentSecondary]}
-                      style={styles.filterChipGradient}
-                      start={{ x: 0, y: 0 }}
-                      end={{ x: 1, y: 1 }}
-                    >
-                      <Text style={styles.filterChipTextActive}>{equip.label}</Text>
-                    </LinearGradient>
-                  ) : (
-                    <Text style={styles.filterChipText}>{equip.label}</Text>
-                  )}
-                </TouchableOpacity>
-              ))}
-            </ScrollView>
-          </View>
-          
-          {/* Exercise List */}
-          <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-            {isLoading ? (
-              <View style={styles.emptyState}>
-                <Ionicons name="fitness" size={48} color={COLORS.accent} />
-                <Text style={styles.emptyStateText}>Loading exercises...</Text>
-              </View>
-            ) : filteredExercises.length === 0 ? (
-              <View style={styles.emptyState}>
-                <Ionicons name="search" size={48} color={COLORS.lightGray} />
-                <Text style={styles.emptyStateText}>No exercises found</Text>
-                <Text style={styles.emptyStateSubtext}>Try adjusting your filters</Text>
-              </View>
-            ) : (
-              filteredExercises.map(exercise => (
-                <ExerciseCard 
-                  key={exercise.id} 
-                  exercise={exercise} 
-                  onPress={() => setSelectedExercise(exercise)}
-                />
-              ))
-            )}
-            <View style={{ height: 40 }} />
-          </ScrollView>
-          
-          {/* Exercise Detail Modal */}
-          {selectedExercise && (
-            <Modal visible={!!selectedExercise} animationType="slide" transparent>
-              <View style={styles.detailOverlay}>
-                <View style={styles.detailContainer}>
-                  <TouchableOpacity 
-                    style={styles.detailClose} 
-                    onPress={() => setSelectedExercise(null)}
-                  >
-                    <Ionicons name="close" size={24} color={COLORS.mediumGray} />
-                  </TouchableOpacity>
-                  
-                  <LinearGradient
-                    colors={categoryGradient as any}
-                    style={styles.detailHeader}
-                  >
-                    <View style={styles.detailIconLarge}>
-                      <Ionicons name="barbell" size={40} color={COLORS.white} />
-                    </View>
-                  </LinearGradient>
-                  
-                  <ScrollView style={styles.detailContent}>
-                    <Text style={styles.detailTitle}>{selectedExercise.name}</Text>
-                    
-                    <View style={styles.detailMeta}>
-                      <View style={styles.detailMetaItem}>
-                        <Ionicons name="body" size={16} color={COLORS.accent} />
-                        <Text style={styles.detailMetaText}>
-                          {selectedExercise.muscleGroups?.join(', ') || selectedExercise.bodyPart || 'Full Body'}
-                        </Text>
-                      </View>
-                      <View style={styles.detailMetaItem}>
-                        <Ionicons name="fitness" size={16} color={COLORS.accent} />
-                        <Text style={styles.detailMetaText}>
-                          {Array.isArray(selectedExercise.equipment) 
-                            ? selectedExercise.equipment.join(', ') 
-                            : selectedExercise.equipment || 'Bodyweight'}
-                        </Text>
-                      </View>
-                      <View style={styles.detailMetaItem}>
-                        <Ionicons name="speedometer" size={16} color={COLORS.accent} />
-                        <Text style={styles.detailMetaText}>{selectedExercise.difficulty}</Text>
-                      </View>
-                    </View>
-                    
-                    <Text style={styles.detailDescription}>
-                      {selectedExercise.description || 'Perform this exercise with proper form and controlled movements.'}
-                    </Text>
-                    
-                    {/* Video - Thumbnail first, click to play, loops 3x */}
-                    {hasValidVideo(selectedExercise) ? (
-                      <View style={styles.videoContainer}>
-                        <PreviewVideoPlayer
-                          videoUrl={selectedExercise.videoUrl}
-                          exerciseName={selectedExercise.name}
-                        />
-                      </View>
-                    ) : (
-                      <View style={styles.videoPlaceholder}>
-                        <LinearGradient
-                          colors={['#1a1a1a', '#333']}
-                          style={styles.videoGradient}
-                        >
-                          <Ionicons name="videocam-outline" size={48} color="rgba(255,255,255,0.5)" />
-                          <Text style={styles.videoComingSoon}>Video Coming Soon</Text>
-                          <Text style={styles.videoComingSoonSub}>
-                            We're working on adding a video for this exercise
-                          </Text>
-                        </LinearGradient>
-                      </View>
-                    )}
-                    
-                    {/* Tips */}
-                    {selectedExercise.tips && selectedExercise.tips.length > 0 && (
-                      <>
-                        <Text style={styles.tipsTitle}>Pro Tips</Text>
-                        {selectedExercise.tips.map((tip: string, index: number) => (
-                          <View key={index} style={styles.tipItem}>
-                            <View style={styles.tipBullet}>
-                              <Text style={styles.tipBulletText}>{index + 1}</Text>
-                            </View>
-                            <Text style={styles.tipText}>{tip}</Text>
-                          </View>
-                        ))}
-                      </>
-                    )}
-                    
-                    <View style={{ height: 40 }} />
-                  </ScrollView>
+              )}
+            </View>
+            <TouchableOpacity
+              style={styles.filterBtn}
+              onPress={() => setShowFilter(true)}
+              data-testid="explore-filter-btn"
+            >
+              <Ionicons name="options" size={20} color={COLORS.white} />
+              {activeFilterCount > 0 && (
+                <View style={styles.filterBadge}>
+                  <Text style={styles.filterBadgeText}>{activeFilterCount}</Text>
                 </View>
-              </View>
-            </Modal>
+              )}
+            </TouchableOpacity>
+          </View>
+
+          {/* Tile Grid */}
+          {isLoading ? (
+            <View style={styles.loadingContainer}>
+              <ActivityIndicator size="large" color={COLORS.accent} />
+              <Text style={styles.loadingText}>Loading exercises...</Text>
+            </View>
+          ) : filteredExercises.length === 0 ? (
+            <View style={styles.emptyContainer}>
+              <Ionicons name="search-outline" size={48} color={COLORS.textSecondary} />
+              <Text style={styles.emptyText}>No exercises found</Text>
+              <Text style={styles.emptySubtext}>Try adjusting your search or filters</Text>
+            </View>
+          ) : (
+            <FlatList
+              data={filteredExercises}
+              renderItem={renderTile}
+              keyExtractor={keyExtractor}
+              numColumns={2}
+              columnWrapperStyle={styles.gridRow}
+              contentContainerStyle={styles.gridContent}
+              showsVerticalScrollIndicator={false}
+              initialNumToRender={10}
+              maxToRenderPerBatch={10}
+              windowSize={5}
+              removeClippedSubviews
+            />
           )}
+
+          {/* Filter Sheet */}
+          <FilterSheet
+            visible={showFilter}
+            onClose={() => setShowFilter(false)}
+            difficulty={filterDifficulty}
+            setDifficulty={setFilterDifficulty}
+            equipment={filterEquipment}
+            setEquipment={setFilterEquipment}
+            equipmentOptions={equipmentOptions}
+          />
+
+          {/* Exercise Detail */}
+          <ExerciseDetail
+            exercise={selectedExercise}
+            categoryGradient={categoryGradient}
+            onClose={() => setSelectedExercise(null)}
+          />
         </View>
       </View>
     </Modal>
@@ -449,94 +502,78 @@ export const ExploreWorkoutsModal = ({ visible, onClose, category, categoryGradi
 };
 
 const styles = StyleSheet.create({
-  overlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)' },
-  container: { flex: 1, backgroundColor: COLORS.white, marginTop: 50, borderTopLeftRadius: 28, borderTopRightRadius: 28, overflow: 'hidden' },
-  
-  header: { padding: 20, paddingTop: 16 },
-  closeButton: { position: 'absolute', top: 16, right: 16, zIndex: 10, padding: 4 },
-  headerContent: { marginTop: 8 },
-  headerTitle: { fontSize: 26, fontWeight: '800', color: COLORS.white, letterSpacing: -0.5 },
-  headerSubtitle: { fontSize: 14, color: 'rgba(255,255,255,0.8)', marginTop: 4 },
-  
-  searchContainer: { 
-    flexDirection: 'row', 
-    alignItems: 'center', 
-    backgroundColor: COLORS.lightGray, 
-    margin: 16, 
-    marginBottom: 8, 
-    borderRadius: 10, 
-    paddingHorizontal: 12, 
-    gap: 8 
-  },
-  searchInput: { flex: 1, paddingVertical: 12, fontSize: 15, color: COLORS.text },
-  
-  filterContainer: { paddingLeft: 16, marginTop: 8 },
-  filterScroll: { paddingRight: 16 },
-  // COMPACT filter chips
-  filterChip: { 
-    paddingHorizontal: 12, 
-    paddingVertical: 6, 
-    borderRadius: 16, 
-    backgroundColor: COLORS.lightGray, 
-    marginRight: 8, 
-    overflow: 'hidden' 
-  },
-  filterChipActiveWrapper: { padding: 0, backgroundColor: 'transparent' },
-  filterChipGradient: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 16 },
-  filterChipText: { fontSize: 13, fontWeight: '500', color: COLORS.mediumGray },
+  overlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.6)' },
+  container: { flex: 1, backgroundColor: COLORS.bg, marginTop: 40, borderTopLeftRadius: 24, borderTopRightRadius: 24, overflow: 'hidden' },
+
+  // Banner
+  banner: { paddingTop: 16, paddingBottom: 20, paddingHorizontal: 20 },
+  backBtn: { width: 36, height: 36, borderRadius: 18, backgroundColor: 'rgba(255,255,255,0.15)', justifyContent: 'center', alignItems: 'center', marginBottom: 12 },
+  bannerTitle: { fontSize: 28, fontWeight: '800', color: COLORS.white, letterSpacing: -0.5 },
+  bannerSub: { fontSize: 14, color: 'rgba(255,255,255,0.75)', marginTop: 2 },
+
+  // Search + Filter
+  searchRow: { flexDirection: 'row', paddingHorizontal: 16, paddingVertical: 12, gap: 10 },
+  searchBox: { flex: 1, flexDirection: 'row', alignItems: 'center', backgroundColor: COLORS.filterBg, borderRadius: 12, paddingHorizontal: 12, gap: 8, borderWidth: 1, borderColor: COLORS.cardBorder },
+  searchInput: { flex: 1, paddingVertical: 10, fontSize: 15, color: COLORS.text },
+  filterBtn: { width: 44, height: 44, borderRadius: 12, backgroundColor: COLORS.accent, justifyContent: 'center', alignItems: 'center' },
+  filterBadge: { position: 'absolute', top: -4, right: -4, width: 18, height: 18, borderRadius: 9, backgroundColor: COLORS.accentSecondary, justifyContent: 'center', alignItems: 'center' },
+  filterBadgeText: { fontSize: 10, fontWeight: '700', color: COLORS.white },
+
+  // Grid
+  gridContent: { paddingHorizontal: 16, paddingBottom: 120 },
+  gridRow: { justifyContent: 'space-between', marginBottom: TILE_GAP },
+
+  // Tile
+  tile: { width: TILE_WIDTH, backgroundColor: COLORS.card, borderRadius: 14, overflow: 'hidden', borderWidth: 1, borderColor: COLORS.cardBorder },
+  tileThumb: { width: '100%', height: TILE_WIDTH * 0.75, backgroundColor: '#222' },
+  tileImage: { width: '100%', height: '100%' },
+  tilePlaceholder: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+  diffBadge: { position: 'absolute', top: 6, right: 6, backgroundColor: 'rgba(162,43,246,0.25)', paddingHorizontal: 7, paddingVertical: 2, borderRadius: 6 },
+  diffText: { fontSize: 10, fontWeight: '700', color: COLORS.accent },
+  tileInfo: { paddingHorizontal: 10, paddingTop: 8, paddingBottom: 4 },
+  tileName: { fontSize: 13, fontWeight: '700', color: COLORS.text, lineHeight: 17 },
+  tileMeta: { fontSize: 11, color: COLORS.textSecondary, marginTop: 2 },
+  tileActions: { flexDirection: 'row', paddingHorizontal: 8, paddingBottom: 8, paddingTop: 4, gap: 4 },
+  tileActionBtn: { padding: 4 },
+
+  // Loading / Empty
+  loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', gap: 12 },
+  loadingText: { fontSize: 14, color: COLORS.textSecondary },
+  emptyContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', paddingTop: 80, gap: 8 },
+  emptyText: { fontSize: 16, fontWeight: '600', color: COLORS.text },
+  emptySubtext: { fontSize: 13, color: COLORS.textSecondary },
+
+  // Filter Sheet
+  filterOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' },
+  filterSheet: { backgroundColor: COLORS.card, borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 24, paddingBottom: 40 },
+  filterHandle: { width: 40, height: 4, borderRadius: 2, backgroundColor: COLORS.cardBorder, alignSelf: 'center', marginBottom: 20 },
+  filterTitle: { fontSize: 20, fontWeight: '700', color: COLORS.text, marginBottom: 20 },
+  filterLabel: { fontSize: 14, fontWeight: '600', color: COLORS.textSecondary, marginBottom: 10, marginTop: 8 },
+  filterRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 8 },
+  filterChip: { paddingHorizontal: 14, paddingVertical: 8, borderRadius: 10, backgroundColor: COLORS.filterBg, borderWidth: 1, borderColor: COLORS.cardBorder },
+  filterChipActive: { backgroundColor: COLORS.accent, borderColor: COLORS.accent },
+  filterChipText: { fontSize: 13, fontWeight: '500', color: COLORS.textSecondary },
   filterChipTextActive: { fontSize: 13, fontWeight: '600', color: COLORS.white },
-  
-  content: { flex: 1, paddingHorizontal: 16, marginTop: 12 },
-  
-  exerciseCard: { 
-    flexDirection: 'row', 
-    alignItems: 'center', 
-    backgroundColor: COLORS.lightGray, 
-    borderRadius: 14, 
-    padding: 14, 
-    marginBottom: 10 
-  },
-  exerciseIcon: { 
-    width: 44, 
-    height: 44, 
-    borderRadius: 22, 
-    backgroundColor: `${COLORS.accent}15`, 
-    justifyContent: 'center', 
-    alignItems: 'center' 
-  },
-  exerciseInfo: { flex: 1, marginLeft: 12 },
-  exerciseName: { fontSize: 15, fontWeight: '600', color: COLORS.text },
-  exerciseMeta: { fontSize: 12, color: COLORS.mediumGray, marginTop: 2 },
-  preferencesContainer: { flexDirection: 'row', marginLeft: 8, gap: 2 },
-  preferenceButton: { padding: 6 },
-  
-  emptyState: { alignItems: 'center', paddingVertical: 60 },
-  emptyStateText: { fontSize: 16, color: COLORS.mediumGray, marginTop: 12 },
-  emptyStateSubtext: { fontSize: 14, color: COLORS.mediumGray, marginTop: 4, opacity: 0.7 },
-  
-  // Detail modal
-  detailOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.6)', justifyContent: 'flex-end' },
-  detailContainer: { backgroundColor: COLORS.white, borderTopLeftRadius: 28, borderTopRightRadius: 28, maxHeight: '90%' },
-  detailClose: { position: 'absolute', top: 16, right: 16, zIndex: 10, padding: 4 },
-  detailHeader: { height: 100, justifyContent: 'center', alignItems: 'center' },
-  detailIconLarge: { width: 64, height: 64, borderRadius: 32, backgroundColor: 'rgba(255,255,255,0.2)', justifyContent: 'center', alignItems: 'center' },
-  detailContent: { padding: 20 },
-  detailTitle: { fontSize: 22, fontWeight: '700', color: COLORS.text, textAlign: 'center' },
-  detailMeta: { flexDirection: 'row', justifyContent: 'center', flexWrap: 'wrap', gap: 14, marginTop: 14, marginBottom: 16 },
-  detailMetaItem: { flexDirection: 'row', alignItems: 'center', gap: 5 },
-  detailMetaText: { fontSize: 13, color: COLORS.mediumGray },
-  detailDescription: { fontSize: 14, color: COLORS.text, lineHeight: 21, textAlign: 'center', marginBottom: 20 },
-  
-  videoPlaceholder: { borderRadius: 14, overflow: 'hidden', marginBottom: 20 },
-  videoGradient: { height: 180, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 20 },
-  videoComingSoon: { color: 'rgba(255,255,255,0.9)', marginTop: 12, fontSize: 16, fontWeight: '600' },
-  videoComingSoonSub: { color: 'rgba(255,255,255,0.5)', marginTop: 6, fontSize: 13, textAlign: 'center' },
-  videoContainer: { borderRadius: 14, overflow: 'hidden', marginBottom: 20, backgroundColor: '#000' },
-  videoPlayer: { width: '100%', aspectRatio: 16/9 },
-  
-  tipsTitle: { fontSize: 17, fontWeight: '700', color: COLORS.text, marginBottom: 12, marginTop: 8 },
-  tipItem: { flexDirection: 'row', alignItems: 'flex-start', marginBottom: 10, gap: 10 },
-  tipBullet: { width: 22, height: 22, borderRadius: 11, backgroundColor: `${COLORS.accent}15`, justifyContent: 'center', alignItems: 'center' },
-  tipBulletText: { fontSize: 11, fontWeight: '700', color: COLORS.accent },
-  tipText: { flex: 1, fontSize: 14, color: COLORS.text, lineHeight: 20 },
+  filterApplyBtn: { marginTop: 20, borderRadius: 14, overflow: 'hidden' },
+  filterApplyGradient: { paddingVertical: 14, alignItems: 'center', borderRadius: 14 },
+  filterApplyText: { fontSize: 16, fontWeight: '700', color: COLORS.white },
+
+  // Detail
+  detailOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.7)', justifyContent: 'flex-end' },
+  detailSheet: { backgroundColor: COLORS.card, borderTopLeftRadius: 24, borderTopRightRadius: 24, maxHeight: '90%' },
+  detailCloseBtn: { position: 'absolute', top: 14, right: 14, zIndex: 10, padding: 6, backgroundColor: 'rgba(255,255,255,0.1)', borderRadius: 16 },
+  detailVideo: { borderTopLeftRadius: 24, borderTopRightRadius: 24, overflow: 'hidden', backgroundColor: '#000' },
+  detailHeaderGradient: { height: 100, justifyContent: 'center', alignItems: 'center', borderTopLeftRadius: 24, borderTopRightRadius: 24 },
+  detailBody: { padding: 20, paddingBottom: 40 },
+  detailName: { fontSize: 22, fontWeight: '700', color: COLORS.text, textAlign: 'center' },
+  detailTags: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', gap: 10, marginTop: 14, marginBottom: 16 },
+  detailTag: { flexDirection: 'row', alignItems: 'center', gap: 5, backgroundColor: COLORS.filterBg, paddingHorizontal: 10, paddingVertical: 5, borderRadius: 8 },
+  detailTagText: { fontSize: 12, color: COLORS.textSecondary },
+  detailDesc: { fontSize: 14, color: COLORS.textSecondary, lineHeight: 21, textAlign: 'center', marginBottom: 20 },
+  tipsSection: { marginTop: 4 },
+  tipsHeader: { fontSize: 16, fontWeight: '700', color: COLORS.text, marginBottom: 12 },
+  tipRow: { flexDirection: 'row', alignItems: 'flex-start', marginBottom: 10, gap: 10 },
+  tipNum: { width: 22, height: 22, borderRadius: 11, backgroundColor: 'rgba(162,43,246,0.15)', justifyContent: 'center', alignItems: 'center' },
+  tipNumText: { fontSize: 11, fontWeight: '700', color: COLORS.accent },
+  tipText: { flex: 1, fontSize: 14, color: COLORS.textSecondary, lineHeight: 20 },
 });
