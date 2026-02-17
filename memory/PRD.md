@@ -6,28 +6,48 @@
 - AI: OpenAI GPT-4o (coach, workout gen), GPT-4o-mini (memory summaries)
 - Video: Cloudinary | Subscriptions: RevenueCat (MOCKED) | Tunnel: Cloudflare
 
-## Implemented (Feb 13, 2026)
+## Implemented (Feb 17, 2026)
 
-### Batch 3: Full Feature Round
-1. **Video Inconsistency Fix (P0)** — Removed ALL fuzzy matching from `ai-workout-generator.ts` enrichment step. Only exact name match → correct video. AI prompt includes all 1806 exercise names.
-2. **App Tour / Onboarding (P1)** — 8-step guided tour covering Home, Workouts (inc. Begin Workout flow), Stats, Awards, Profile. Tour lives in `_layout.tsx` and navigates between tabs. Auto-triggers on first launch, re-triggerable from Profile.
-3. **Drop Set UI (P2)** — 3 drop rows with Weight + Reps inputs each. Data saved as "Drop set: 80x10 → 60x8 → 40x12" in notes.
-4. **Coach Memory (P2)** — `coach_memory` DB table stores AI-summarized conversation summaries with mood detection. Loaded into system prompt on next chat. Saves asynchronously after each response.
-5. **Marketing Copy (P3)** — Pro comparison hero: "Your training, your way". CTA: "Ready to level up?". Features updated, copy polished.
+### Batch 4: Bug Fixes + Explore Redesign
+1. **todayWorkoutRef crash fix (P0)** — Added missing `useRef<View>` declaration for `todayWorkoutRef` in index.tsx that was causing "ref doesn't exist" crash after workout generation
+2. **Workout regeneration guard (P0)** — Added early-return guard in `fetchWeekWorkouts` that skips regeneration if 21 workouts already exist in state for the current week
+3. **Explore Workouts redesign (P1)** — Complete rewrite of ExploreWorkoutsModal with:
+   - Dark theme tile layout (2-column grid)
+   - Cloudinary video thumbnails on each tile
+   - Single "Filter" button replacing difficulty tabs
+   - Filter sheet modal for difficulty + equipment
+   - Like/dislike buttons directly on tiles
+   - Tap-to-expand exercise detail with video player, form tips
+   - FlatList with virtualization for performance
+4. **Awards bottom padding (P3)** — Increased from 32px to 120px for tab bar clearance
+5. **Liked/Disliked button styling** — Heart + thumbs-down icons on workouts explore section
+
+### Batch 3: Full Feature Round (Feb 13, 2026)
+1. Video Inconsistency Fix (P0) — Removed ALL fuzzy matching
+2. App Tour / Onboarding (P1) — 8-step guided tour
+3. Drop Set UI (P2) — 3 drop rows
+4. Coach Memory (P2) — conversation summaries
+5. Marketing Copy (P3) — Pro comparison hero
 
 ### Batch 2: Coach + Pro Gating + UI
-- Coach canned response fix, Pro badge conditional, all edit paths gated, pricing updates, awards 100%, removed coach personality from features
+- Coach canned response fix, Pro badge conditional, edit paths gated, pricing updates, awards 100%
 
 ### Batch 1: Exercise Videos + Billing
-- Exact-only exercise matching, AI prompt with full DB, billing: 2 plans (monthly £7.99, yearly £74.99)
+- Exact-only exercise matching, AI prompt with full DB, billing: 2 plans
 
 ### Earlier Sessions
-- Coach personality overhaul, billing page creation, network fixes, profile cleanup, badge tracking
+- Coach personality overhaul, billing page, network fixes, profile cleanup, badge tracking
 
-## Remaining
-- [ ] Full RevenueCat Native Integration (P3) — Needs Expo Dev Build
-- [ ] Verify badges work end-to-end with user testing
+## Remaining / Backlog
+- [ ] **P1 — AI Coach Compassion** — Refine system prompt for empathy using conversation memory
+- [ ] **P2 — Tour Expansion** — Steps inside active workout, tour before questionnaire, Pro-gate questionnaire
+- [ ] **P2 — Special Set AI Integration** — Backend AI prompt to generate drop sets/supersets
+- [ ] **P2 — Pro/Paywall UI** — Nicer plan boxes, matching paywall modal, onboarding paywall screen
+- [ ] **P3 — Marketing Copy Review** — User to approve pro.tsx copy
+- [ ] **P3 — Full RevenueCat Integration** — Needs Expo Dev Build
+- [ ] **P3 — Badge end-to-end verification**
 
 ## Known Issues
 - RevenueCat MOCKED in Expo Go
 - Tunnel URL changes on pod restart (update .env, env.ts fallback, app.config.js)
+- Video inconsistency fix awaiting user verification
