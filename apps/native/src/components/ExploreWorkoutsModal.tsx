@@ -13,7 +13,6 @@ import {
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
-import { BlurView } from 'expo-blur';
 import { PreviewVideoPlayer, isValidVideoUrl } from './ExerciseVideoPlayer';
 import { usePreferencesStore } from '../stores/preferences-store';
 import { getApiBaseUrl } from '../services/env';
