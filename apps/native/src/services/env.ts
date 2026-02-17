@@ -30,7 +30,7 @@ export const initializeApiUrl = async () => {
 };
 
 // Stable tunnel URL fallback when env vars aren't injected by Expo Go
-const FALLBACK_API_URL = 'https://elvis-recall-market-moving.trycloudflare.com';
+const FALLBACK_API_URL = 'https://induced-raised-polymer-protect.trycloudflare.com';
 
 export const getApiBaseUrlInfo = () => {
   const envValue = process.env.EXPO_PUBLIC_API_BASE_URL;

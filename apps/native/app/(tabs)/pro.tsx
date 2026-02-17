@@ -59,9 +59,9 @@ export default function ProComparisonScreen() {
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
         >
-          <Text style={styles.heroTitle}>Choose how you want to train</Text>
+          <Text style={styles.heroTitle}>Your training, your way</Text>
           <Text style={styles.heroSubtitle}>
-            Standard keeps you moving. Pro adapts everything to you.
+            Standard gets you started. Pro unlocks your full potential.
           </Text>
         </LinearGradient>
 
@@ -107,11 +107,11 @@ export default function ProComparisonScreen() {
         </View>
 
         <View style={styles.ctaCard}>
-          <Text style={styles.ctaTitle}>{isPro ? 'You’re already Pro' : 'Upgrade when you’re ready'}</Text>
+          <Text style={styles.ctaTitle}>{isPro ? "You're on Pro" : 'Ready to level up?'}</Text>
           <Text style={styles.ctaSubtitle}>
             {isPro
-              ? 'Manage your subscription or explore what’s coming next.'
-              : 'Get the full Thryvin experience with smart check‑ins and pro‑level planning.'}
+              ? "Manage your subscription or explore what's coming next."
+              : 'Join thousands getting smarter training with rolling plans, deep stats, and full workout control.'}
           </Text>
           <TouchableOpacity
             style={styles.ctaButton}

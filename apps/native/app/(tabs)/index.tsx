@@ -35,8 +35,6 @@ import Svg, { Circle, Defs, LinearGradient as SvgLinearGradient, Stop } from 're
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 import { COLORS, CARD_SHADOW } from '../../src/constants/colors';
-import { OnboardingTour } from '../../src/components/OnboardingTour';
-import { useTour } from '../../src/hooks/useTour';
 import { WelcomeBannerWithInsight } from '../../src/components/WelcomeBannerWithInsight';
 import { CoachNudgeCard } from '../../src/components/CoachNudgeCard';
 import { useCoachNudges } from '../../src/hooks/useCoachNudges';
@@ -133,9 +131,6 @@ export default function HomeScreen() {
   const [rollingRegenerationSubmitting, setRollingRegenerationSubmitting] = useState(false);
   const [showProPaywall, setShowProPaywall] = useState(false);
   
-  // Tour refs for highlighting
-  const todayWorkoutRef = useRef(null);
-
   const { user } = useAuthStore();
   const { openChat } = useCoachStore();
   const { isPro } = useSubscriptionStore();
@@ -148,16 +143,6 @@ export default function HomeScreen() {
     hasNudges: hasHomeNudge,
   } = useCoachNudges({ location: 'home', autoFetch: true });
   
-  const {
-    showTour,
-    currentStep,
-    tourSteps,
-    registerElement,
-    updateStepPosition,
-    nextStep,
-    skipTour,
-    completeTour,
-  } = useTour();
   // Subscribe to specific store slices for better reactivity
   const todayWorkout = useWorkoutStore(state => state.todayWorkout);
   const weekWorkouts = useWorkoutStore(state => state.weekWorkouts);
@@ -550,17 +535,6 @@ export default function HomeScreen() {
     totalWorkouts: stats?.totalWorkouts || 0,
     totalMinutes: stats?.totalMinutes || 0,
   }), [stats, statsVersion]);
-  
-  // Register tour elements and update positions
-  useEffect(() => {
-    if (showTour && todayWorkoutRef.current) {
-      registerElement('home-workout', todayWorkoutRef);
-      // Update position for the workout card step
-      setTimeout(() => {
-        updateStepPosition('home-workout', 'home-workout');
-      }, 500);
-    }
-  }, [showTour, isLoading]);
 
   const onRefresh = async () => {
     setRefreshing(true);
@@ -577,44 +551,6 @@ export default function HomeScreen() {
     setRingDetailsVisible(label);
     setTimeout(() => setRingDetailsVisible(null), 3000);
   };
-  
-  const handleTourNavigation = (stepId) => {
-    console.log('🎯 Tour navigation:', stepId);
-    
-    if (stepId === 'tap-workouts-tab') {
-      // Navigate to workouts tab
-      router.push('/(tabs)/workouts');
-      setTimeout(() => nextStep(), 300);
-    }
-  };
-  
-  // Watch for tour step changes and trigger actions
-  useEffect(() => {
-    if (!showTour) return;
-    
-    console.log('🎯 Tour step:', currentStep);
-    
-    switch (currentStep) {
-      case 7:
-        // Close any modals, navigate to stats
-        console.log('Going to stats');
-        setModalVisible(false);
-        setTimeout(() => router.push('/(tabs)/stats'), 500);
-        break;
-        
-      case 8:
-        // Navigate to awards
-        console.log('Going to awards');
-        setTimeout(() => router.push('/(tabs)/awards'), 500);
-        break;
-        
-      case 9:
-        // Back to home for completion
-        console.log('Back to home');
-        setTimeout(() => router.push('/(tabs)/'), 500);
-        break;
-    }
-  }, [currentStep, showTour]);
 
   const handleActivityCardPress = (action) => {
     switch (action) {
@@ -1082,17 +1018,6 @@ export default function HomeScreen() {
           setSelectedExerciseId(undefined);
         }}
         initialExerciseId={selectedExerciseId}
-      />
-      
-      {/* Onboarding Tour */}
-      <OnboardingTour
-        visible={showTour}
-        steps={tourSteps}
-        currentStep={currentStep}
-        onNext={nextStep}
-        onSkip={skipTour}
-        onComplete={completeTour}
-        onNavigate={handleTourNavigation}
       />
       
       {/* Advanced Questionnaire Modal */}

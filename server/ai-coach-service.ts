@@ -9,6 +9,9 @@
  */
 
 import OpenAI from 'openai';
+import { db } from './db';
+import { coachMemory } from '@shared/schema';
+import { eq, desc } from 'drizzle-orm';
 import { buildAiContext } from './ai-user-context';
 import { 
   buildUserCoachSummary, 
@@ -402,6 +405,73 @@ async function getUserExerciseStats(userId: number, exerciseName?: string): Prom
   }
 }
 
+
+// ── Coach Memory System ──
+
+async function getCoachMemories(userId: number, limit = 5): Promise<string> {
+  try {
+    const memories = await db
+      .select({ summary: coachMemory.summary, topics: coachMemory.topics, mood: coachMemory.mood, createdAt: coachMemory.createdAt })
+      .from(coachMemory)
+      .where(eq(coachMemory.userId, userId))
+      .orderBy(desc(coachMemory.createdAt))
+      .limit(limit);
+
+    if (!memories.length) return '';
+
+    const lines = memories.map(m => {
+      const date = new Date(m.createdAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
+      return `[${date}] ${m.summary}${m.mood ? ` (mood: ${m.mood})` : ''}`;
+    });
+    return `\n=== PAST CONVERSATION MEMORY ===\nYou remember these things about the user from previous chats:\n${lines.join('\n')}\nUse this memory naturally — reference past topics when relevant, but don't force it.\n=== END MEMORY ===\n`;
+  } catch (e) {
+    console.log('⚠️ Could not load coach memories:', e);
+    return '';
+  }
+}
+
+async function saveCoachMemory(userId: number, userMessage: string, coachResponse: string): Promise<void> {
+  try {
+    // Use AI to generate a concise summary of what was discussed
+    const summaryPrompt = `Summarize this conversation in 1-2 sentences. Focus on: what the user asked/said, any goals mentioned, mood, or personal details worth remembering.
+User: "${userMessage.slice(0, 300)}"
+Coach: "${coachResponse.slice(0, 300)}"
+Summary:`;
+
+    const result = await openai.chat.completions.create({
+      model: 'gpt-4o-mini',
+      messages: [{ role: 'user', content: summaryPrompt }],
+      max_tokens: 100,
+      temperature: 0.3,
+    });
+
+    const summary = result.choices[0]?.message?.content?.trim();
+    if (!summary) return;
+
+    // Detect mood
+    const moodPrompt = `What is the user's mood in one word? Options: happy, motivated, tired, stressed, sad, neutral, excited, frustrated. User message: "${userMessage.slice(0, 200)}"`;
+    const moodResult = await openai.chat.completions.create({
+      model: 'gpt-4o-mini',
+      messages: [{ role: 'user', content: moodPrompt }],
+      max_tokens: 10,
+      temperature: 0,
+    });
+    const mood = moodResult.choices[0]?.message?.content?.trim()?.toLowerCase() || 'neutral';
+
+    await db.insert(coachMemory).values({
+      userId,
+      summary,
+      mood,
+      topics: null,
+    });
+    console.log(`💾 Saved coach memory for user ${userId}: "${summary.slice(0, 50)}..."`);
+  } catch (e) {
+    // Non-critical — don't let memory save failure break the chat
+    console.log('⚠️ Could not save coach memory:', e);
+  }
+}
+
+
 /**
  * Get coach response with full user context
  * This is the ONLY function that should be called for coach interactions
@@ -515,6 +585,14 @@ export async function getUnifiedCoachResponse(request: CoachChatRequest): Promis
     // NEW: Add exercise stats context if user is asking about their performance
     if (exerciseStatsContext) {
       systemPrompt += `\n\n${exerciseStatsContext}\n\nIMPORTANT: The user is asking about their exercise stats. Use the EXACT numbers from the stats above in your response. Be specific and cite the actual weights/reps from the data.`;
+    }
+
+    // Load past conversation memories for context
+    if (userId) {
+      const memoryContext = await getCoachMemories(userId);
+      if (memoryContext) {
+        systemPrompt += memoryContext;
+      }
     }
     
     // Add strict fitness-only instruction
@@ -632,6 +710,11 @@ FOR APP MODIFICATIONS (redirect WITH value):
     const aiResponse = response.choices[0].message.content || 
       "I'm here to help with your fitness journey! What would you like to know?";
     
+    // Save memory in background (don't block the response)
+    if (userId) {
+      saveCoachMemory(userId, message, aiResponse).catch(() => {});
+    }
+
     return {
       response: aiResponse,
       coach: coachCharacter.name,

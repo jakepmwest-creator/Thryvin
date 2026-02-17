@@ -1024,7 +1024,7 @@ export const useAwardsStore = create<AwardsState>((set, get) => ({
       return badge && ub.completed;
     }).length;
     
-    const required = Math.ceil(currentIslandBadges.length * 0.8);
+    const required = currentIslandBadges.length;
     const percentage = Math.min(Math.round((completedCount / required) * 100), 100);
     
     return { current: completedCount, required, percentage };

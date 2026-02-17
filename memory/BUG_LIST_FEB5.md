@@ -57,7 +57,7 @@
 
 ## 🎯 **STABLE URL**
 ```
-https://exercise-video-fix.preview.emergentagent.com
+https://drop-set-feature.preview.emergentagent.com
 ```
 
 ---

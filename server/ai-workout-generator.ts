@@ -631,154 +631,19 @@ Create a balanced workout respecting these limits and the DAY FOCUS above.`;
   
   console.log(`  Loaded ${exerciseData.length} exercises for matching`);
   
-  const exerciseMap = new Map(exerciseData.map(e => [e.name.toLowerCase(), e]));
-  
-  // Create normalized lookup for better matching
-  const normalizeExerciseName = (name: string): string => {
-    return name.toLowerCase()
-      // Remove equipment prefixes AND suffixes
-      .replace(/^(barbell|dumbbell|cable|machine|bodyweight|kettlebell|resistance\s*band|ez\s*bar|smith)\s+/i, '')
-      .replace(/\s+(machine|cable|barbell|dumbbell|bodyweight)$/i, '')
-      // Remove common position modifiers
-      .replace(/\s+(standing|seated|lying|incline|decline|wide\s*grip|close\s*grip|narrow\s*grip)\s*/gi, ' ')
-      // Normalize plurals
-      .replace(/push-?ups?/gi, 'push-ups')
-      .replace(/pull-?ups?/gi, 'pull-ups')
-      .replace(/sit-?ups?/gi, 'sit-ups')
-      .replace(/chin-?ups?/gi, 'chin-ups')
-      .replace(/squats?/gi, 'squat')
-      .replace(/lunges?/gi, 'lunge')
-      .replace(/rows?/gi, 'row')
-      .replace(/curls?/gi, 'curl')
-      .replace(/presses?/gi, 'press')
-      .replace(/raises?/gi, 'raise')
-      .replace(/extensions?/gi, 'extension')
-      .replace(/flies|flyes|fly/gi, 'fly')
-      .replace(/deadlifts?/gi, 'deadlift')
-      .replace(/bridges?/gi, 'bridge')
-      .replace(/dips?/gi, 'dip')
-      .replace(/planks?/gi, 'plank')
-      .replace(/pulldowns?/gi, 'pulldown')
-      .replace(/shrugs?/gi, 'shrug')
-      .replace(/crunches/gi, 'crunch')
-      // Clean up
-      .replace(/\s+/g, ' ')
-      .trim();
-  };
-  
-  // Build multiple lookup indexes for better matching
   const exercisesByName = new Map(exerciseData.map(e => [e.name.toLowerCase(), e]));
-  const exercisesByNormalized = new Map<string, typeof exerciseData[0]>();
-  const exercisesByKeywords = new Map<string, typeof exerciseData[0]>();
   
-  for (const ex of exerciseData) {
-    const normalized = normalizeExerciseName(ex.name);
-    if (!exercisesByNormalized.has(normalized)) {
-      exercisesByNormalized.set(normalized, ex);
-    }
-    // Also index by key exercise words
-    const keywords = normalized.split(' ').filter(w => w.length > 2);
-    for (const kw of keywords) {
-      if (!exercisesByKeywords.has(kw)) {
-        exercisesByKeywords.set(kw, ex);
-      }
-    }
-  }
-  
-  // Step 6: Enrich with videos using smart matching
+  // Step 6: Enrich exercises with videos — EXACT match only
+  // The AI prompt forces exact DB names, so fuzzy matching is not needed
+  // Better to show no video than the wrong exercise's video
   const enrichedExercises = workoutPlan.exercises.map((ex: any, index: number) => {
     const aiName = ex.name.toLowerCase();
-    const aiNormalized = normalizeExerciseName(ex.name);
-    let dbExercise: typeof exerciseData[0] | undefined;
+    const dbExercise = exercisesByName.get(aiName);
     
-    // 1. Try exact match first
-    dbExercise = exercisesByName.get(aiName);
     if (dbExercise) {
       console.log(`  ✓ Exact match: "${ex.name}" → "${dbExercise.name}"`);
-    }
-    
-    // 2. Try normalized match
-    if (!dbExercise) {
-      dbExercise = exercisesByNormalized.get(aiNormalized);
-      if (dbExercise) {
-        console.log(`  ✓ Normalized match: "${ex.name}" → "${dbExercise.name}"`);
-      }
-    }
-    
-    // 3. Try partial normalized match (AI name contains DB name or vice versa)
-    if (!dbExercise) {
-      for (const [dbNorm, dbEx] of exercisesByNormalized.entries()) {
-        if (aiNormalized.includes(dbNorm) || dbNorm.includes(aiNormalized)) {
-          dbExercise = dbEx;
-          console.log(`  ✓ Partial match: "${ex.name}" → "${dbEx.name}"`);
-          break;
-        }
-      }
-    }
-    
-    // 4. Try keyword matching - find exercise with most matching keywords
-    if (!dbExercise) {
-      const aiKeywords = aiNormalized.split(' ').filter(w => w.length > 2);
-      let bestMatch: { exercise: typeof exerciseData[0], score: number } | null = null;
-      
-      for (const dbEx of exerciseData) {
-        const dbNorm = normalizeExerciseName(dbEx.name);
-        const dbKeywords = dbNorm.split(' ').filter(w => w.length > 2);
-        
-        // Count matching keywords
-        const matchingKeywords = aiKeywords.filter(kw => 
-          dbKeywords.some(dbkw => dbkw.includes(kw) || kw.includes(dbkw))
-        );
-        
-        const score = matchingKeywords.length / Math.max(aiKeywords.length, dbKeywords.length);
-        
-        if (score > 0.5 && (!bestMatch || score > bestMatch.score)) {
-          bestMatch = { exercise: dbEx, score };
-        }
-      }
-      
-      if (bestMatch) {
-        dbExercise = bestMatch.exercise;
-        console.log(`  ✓ Keyword match: "${ex.name}" → "${dbExercise.name}" (${Math.round(bestMatch.score * 100)}%)`);
-      }
-    }
-    
-    // 5. Try core exercise type matching as last resort
-    if (!dbExercise) {
-      const coreMatches: { [key: string]: string } = {
-        'press': 'Bench Press',
-        'pulldown': 'Lat Pulldown',
-        'row': 'Bent Over Row',
-        'curl': 'Bicep Curl',
-        'extension': 'Tricep Extension',
-        'raise': 'Front Raise',
-        'fly': 'Chest Fly',
-        'squat': 'Squat',
-        'deadlift': 'Deadlift',
-        'lunge': 'Lunges',
-        'bridge': 'Glute Bridge',
-        'plank': 'Plank',
-        'crunch': 'Crunches',
-        'dip': 'Dips',
-        'pull-up': 'Pull-Ups',
-        'push-up': 'Push-Ups',
-        'face pull': 'Face Pulls',
-        'shrug': 'Shrugs',
-      };
-      
-      for (const [keyword, dbName] of Object.entries(coreMatches)) {
-        if (aiNormalized.includes(keyword)) {
-          dbExercise = exercisesByName.get(dbName.toLowerCase());
-          if (dbExercise) {
-            console.log(`  ✓ Core match: "${ex.name}" → "${dbExercise.name}"`);
-            break;
-          }
-        }
-      }
-    }
-    
-    if (!dbExercise) {
-      console.log(`  ⚠ No match found for: "${ex.name}"`);
+    } else {
+      console.log(`  ⚠ No exact match for: "${ex.name}" — skipping video`);
     }
     
     return {

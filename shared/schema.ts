@@ -3,6 +3,17 @@ import { pgTable, text, serial, integer, boolean, timestamp, unique, index, json
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
+// Coach conversation memory — stores summaries for long-term recall
+export const coachMemory = pgTable("coach_memory", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull(),
+  summary: text("summary").notNull(), // AI-generated summary of the conversation
+  topics: text("topics"), // Comma-separated topics discussed
+  mood: text("mood"), // User's mood detected in conversation
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+
 // User model
 export const users = pgTable("users", {
   id: serial("id").primaryKey(),

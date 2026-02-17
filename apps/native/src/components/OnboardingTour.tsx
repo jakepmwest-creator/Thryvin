@@ -33,7 +33,8 @@ export interface TourStep {
   placement: 'top' | 'bottom' | 'center';
   action?: 'tap' | 'none';
   icon?: string;
-  requiresInteraction?: boolean; // If true, user must tap the highlighted element
+  requiresInteraction?: boolean;
+  tab?: string; // Tab to navigate to for this step
 }
 
 interface OnboardingTourProps {

@@ -20,7 +20,7 @@ import json
 import os
 
 # API Base URL from environment
-BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://exercise-video-fix.preview.emergentagent.com').rstrip('/')
+BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://drop-set-feature.preview.emergentagent.com').rstrip('/')
 
 class TestBadgesAndTrainingDays:
     """Test suite for badges and training days functionality"""

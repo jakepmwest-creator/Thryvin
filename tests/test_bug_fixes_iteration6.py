@@ -14,7 +14,7 @@ import time
 import uuid
 
 # API Base URL from environment
-BASE_URL = os.environ.get('EXPO_PUBLIC_API_BASE_URL', 'https://exercise-video-fix.preview.emergentagent.com')
+BASE_URL = os.environ.get('EXPO_PUBLIC_API_BASE_URL', 'https://drop-set-feature.preview.emergentagent.com')
 
 # Test user credentials - unique per test run
 TEST_EMAIL = f"test_user_{uuid.uuid4().hex[:8]}@thryvin.test"

@@ -18,7 +18,7 @@ import time
 import os
 
 # Use the production URL from the test request
-BASE_URL = "https://exercise-video-fix.preview.emergentagent.com"
+BASE_URL = "https://drop-set-feature.preview.emergentagent.com"
 
 
 class TestAICoachHelpfulness:

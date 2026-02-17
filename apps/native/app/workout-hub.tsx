@@ -72,8 +72,11 @@ export default function WorkoutHubScreen() {
   const [reps, setReps] = useState('');
   const [setNotes, setSetNotes] = useState('');
   const [setType, setSetType] = useState<'normal' | 'drop' | 'super' | 'giant'>('normal');
-  const [dropWeight, setDropWeight] = useState('');
-  const [dropReps, setDropReps] = useState('');
+  const [drops, setDrops] = useState<Array<{weight: string, reps: string}>>([
+    { weight: '', reps: '' },
+    { weight: '', reps: '' },
+    { weight: '', reps: '' },
+  ]);
   const [showTips, setShowTips] = useState(false);
   const [showCelebration, setShowCelebration] = useState(false);
   const [weightUnit, setWeightUnit] = useState<'lbs' | 'kg'>('lbs');
@@ -186,10 +189,15 @@ export default function WorkoutHubScreen() {
   };
 
   const parseDropSetDetails = (note?: string) => {
-    if (!note) return { dropWeight: '', dropReps: '' };
-    const match = note.match(/drop set:\s*\d+(?:\.\d+)?x\d+\s*→\s*(\d+(?:\.\d+)?)x(\d+)/i);
-    if (!match) return { dropWeight: '', dropReps: '' };
-    return { dropWeight: match[1] || '', dropReps: match[2] || '' };
+    if (!note) return [];
+    const match = note.match(/drop set:\s*[\w.]+x\d+\s*→\s*(.*?)(?:\s*•|$)/i);
+    if (!match) return [];
+    // Parse "60x10 → 50x8 → 40x6" format
+    const dropParts = match[1].split('→').map(s => s.trim());
+    return dropParts.map(part => {
+      const m = part.match(/([\d.]+)x(\d+)/);
+      return m ? { weight: m[1], reps: m[2] } : { weight: '', reps: '' };
+    });
   };
 
   const stripSetTypePrefix = (note?: string) => {
@@ -496,8 +504,8 @@ export default function WorkoutHubScreen() {
         showAlert('warning', 'Missing Data', 'Please enter reps');
         return;
       }
-      if (setType === 'drop' && (!dropWeight || !dropReps)) {
-        showAlert('warning', 'Missing Data', 'Please enter drop set weight and reps');
+      if (setType === 'drop' && !drops.some(d => d.weight || d.reps)) {
+        showAlert('warning', 'Missing Data', 'Please enter at least one drop set');
         return;
       }
     } else if (exerciseType === 'cardio') {
@@ -535,8 +543,10 @@ export default function WorkoutHubScreen() {
 
     const setTypePrefix = (() => {
       if (setType === 'drop') {
-        const topWeightLabel = weight ? weight : 'bodyweight';
-        return `Drop set: ${topWeightLabel}x${reps} → ${dropWeight}x${dropReps}`;
+        const topWeightLabel = weight ? weight : 'BW';
+        const filledDrops = drops.filter(d => d.weight || d.reps);
+        const dropLabels = filledDrops.map(d => `${d.weight || 'BW'}x${d.reps || '?'}`).join(' → ');
+        return `Drop set: ${topWeightLabel}x${reps}${dropLabels ? ` → ${dropLabels}` : ''}`;
       }
       if (setType === 'super') {
         return `Superset${exercise?.supersetWith ? ` with ${exercise.supersetWith}` : ''}`;
@@ -608,11 +618,15 @@ export default function WorkoutHubScreen() {
     setSetType(nextSetType);
     if (nextSetType === 'drop') {
       const parsed = parseDropSetDetails(setData.note);
-      setDropWeight(parsed.dropWeight);
-      setDropReps(parsed.dropReps);
+      const newDrops = [
+        { weight: '', reps: '' },
+        { weight: '', reps: '' },
+        { weight: '', reps: '' },
+      ];
+      parsed.forEach((d, i) => { if (i < 3) newDrops[i] = d; });
+      setDrops(newDrops);
     } else {
-      setDropWeight('');
-      setDropReps('');
+      setDrops([{ weight: '', reps: '' }, { weight: '', reps: '' }, { weight: '', reps: '' }]);
     }
     setSetNotes(stripSetTypePrefix(setData.note));
   };
@@ -1303,8 +1317,7 @@ export default function WorkoutHubScreen() {
                                               const nextType = type as 'normal' | 'drop' | 'super' | 'giant';
                                               setSetType(nextType);
                                               if (nextType !== 'drop') {
-                                                setDropWeight('');
-                                                setDropReps('');
+                                                setDrops([{ weight: '', reps: '' }, { weight: '', reps: '' }, { weight: '', reps: '' }]);
                                               }
                                             }}
                                             data-testid={`workout-set-type-${type}`}
@@ -1421,35 +1434,48 @@ export default function WorkoutHubScreen() {
                               )}
 
                               {(exType === 'strength' || exType === 'hiit') && setType === 'drop' && isPro && (
-                                <View style={styles.inputRow}>
-                                  <View style={styles.inputWrapper}>
-                                    <Text style={styles.inputLabel}>Drop Weight</Text>
-                                    <NumberScrollPicker
-                                      value={dropWeight}
-                                      onValueChange={setDropWeight}
-                                      label="Drop Weight"
-                                      unit={weightUnit}
-                                      min={0}
-                                      max={weightUnit === 'lbs' ? 500 : 250}
-                                      step={weightUnit === 'lbs' ? 2.5 : 1}
-                                      decimals={weightUnit === 'lbs'}
-                                      testId="workout-drop-weight-picker"
-                                      inputVariant="light"
-                                    />
-                                  </View>
-                                  <View style={styles.inputWrapper}>
-                                    <Text style={styles.inputLabel}>Drop Reps</Text>
-                                    <NumberScrollPicker
-                                      value={dropReps}
-                                      onValueChange={setDropReps}
-                                      label="Drop Reps"
-                                      min={0}
-                                      max={50}
-                                      step={1}
-                                      testId="workout-drop-reps-picker"
-                                      inputVariant="light"
-                                    />
-                                  </View>
+                                <View style={styles.dropSetsContainer}>
+                                  <Text style={styles.dropSetsTitle}>Drop Sets</Text>
+                                  {drops.map((drop, i) => (
+                                    <View key={i} style={styles.dropRow}>
+                                      <Text style={styles.dropLabel}>Drop {i + 1}</Text>
+                                      <View style={styles.dropInputs}>
+                                        <View style={styles.dropInputWrapper}>
+                                          <Text style={styles.dropInputLabel}>Weight</Text>
+                                          <TextInput
+                                            style={styles.dropInput}
+                                            placeholder="0"
+                                            placeholderTextColor={COLORS.mediumGray}
+                                            keyboardType="numeric"
+                                            value={drop.weight}
+                                            onChangeText={(val) => {
+                                              const updated = [...drops];
+                                              updated[i] = { ...updated[i], weight: val };
+                                              setDrops(updated);
+                                            }}
+                                            data-testid={`workout-drop-${i}-weight`}
+                                          />
+                                        </View>
+                                        <Text style={styles.dropX}>x</Text>
+                                        <View style={styles.dropInputWrapper}>
+                                          <Text style={styles.dropInputLabel}>Reps</Text>
+                                          <TextInput
+                                            style={styles.dropInput}
+                                            placeholder="0"
+                                            placeholderTextColor={COLORS.mediumGray}
+                                            keyboardType="numeric"
+                                            value={drop.reps}
+                                            onChangeText={(val) => {
+                                              const updated = [...drops];
+                                              updated[i] = { ...updated[i], reps: val };
+                                              setDrops(updated);
+                                            }}
+                                            data-testid={`workout-drop-${i}-reps`}
+                                          />
+                                        </View>
+                                      </View>
+                                    </View>
+                                  ))}
                                 </View>
                               )}
 
@@ -2140,6 +2166,61 @@ const styles = StyleSheet.create({
     marginTop: 6,
     fontSize: 12,
     color: COLORS.mediumGray,
+  },
+  dropSetsContainer: {
+    marginTop: 8,
+    marginBottom: 8,
+    padding: 12,
+    borderRadius: 14,
+    backgroundColor: COLORS.lightGray,
+  },
+  dropSetsTitle: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: COLORS.text,
+    marginBottom: 10,
+  },
+  dropRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 8,
+    gap: 8,
+  },
+  dropLabel: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: COLORS.gradientStart,
+    width: 50,
+  },
+  dropInputs: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  dropInputWrapper: {
+    flex: 1,
+  },
+  dropInputLabel: {
+    fontSize: 10,
+    color: COLORS.mediumGray,
+    marginBottom: 2,
+  },
+  dropInput: {
+    height: 38,
+    borderRadius: 10,
+    backgroundColor: COLORS.white,
+    paddingHorizontal: 10,
+    fontSize: 14,
+    fontWeight: '600',
+    color: COLORS.text,
+    textAlign: 'center',
+  },
+  dropX: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: COLORS.mediumGray,
+    marginTop: 12,
   },
   inputWrapper: {
     flex: 1,

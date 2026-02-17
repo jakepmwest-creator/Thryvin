@@ -1,60 +1,33 @@
-# Thryvin AI Fitness Coach - Product Requirements Document
-
-## Original Problem Statement
-AI fitness coaching app with workout generation, exercise videos, coach chat, badge/awards system, billing/subscriptions, and social features.
+# Thryvin AI Fitness Coach - PRD
 
 ## Architecture
-- Backend: Express.js + TypeScript on port 8001 (Neon PostgreSQL)
-- Frontend: React Native / Expo  
-- AI: OpenAI GPT-4o for coach and workout generation
-- Video hosting: Cloudinary
-- Subscriptions: RevenueCat (MOCKED in Expo Go)
-- Dev tunnel: Cloudflare Tunnel
+- Backend: Express.js + TypeScript (Neon PostgreSQL)
+- Frontend: React Native / Expo
+- AI: OpenAI GPT-4o (coach, workout gen), GPT-4o-mini (memory summaries)
+- Video: Cloudinary | Subscriptions: RevenueCat (MOCKED) | Tunnel: Cloudflare
 
-## What's Been Implemented
+## Implemented (Feb 13, 2026)
 
-### Feb 13, 2026 - Exercise Video Fix + Billing Pricing Update
+### Batch 3: Full Feature Round
+1. **Video Inconsistency Fix (P0)** — Removed ALL fuzzy matching from `ai-workout-generator.ts` enrichment step. Only exact name match → correct video. AI prompt includes all 1806 exercise names.
+2. **App Tour / Onboarding (P1)** — 8-step guided tour covering Home, Workouts (inc. Begin Workout flow), Stats, Awards, Profile. Tour lives in `_layout.tsx` and navigates between tabs. Auto-triggers on first launch, re-triggerable from Profile.
+3. **Drop Set UI (P2)** — 3 drop rows with Weight + Reps inputs each. Data saved as "Drop set: 80x10 → 60x8 → 40x12" in notes.
+4. **Coach Memory (P2)** — `coach_memory` DB table stores AI-summarized conversation summaries with mood detection. Loaded into system prompt on next chat. Saves asynchronously after each response.
+5. **Marketing Copy (P3)** — Pro comparison hero: "Your training, your way". CTA: "Ready to level up?". Features updated, copy polished.
 
-#### Exercise Video Matching (P0 - FIXED & TESTED)
-- **Root Cause**: AI generated exercise names not matching DB exactly (e.g. "Incline Dumbbell Press" vs "Dumbbell Incline Bench Press"). Previous fuzzy matching made it WORSE by mapping to wrong exercises.
-- **Fix**:
-  1. Updated `ai-workout-generator.ts` to load ALL 1806 exercise names from DB and include them in the AI prompt with strict instructions: "You MUST use EXACT exercise names from the EXERCISE DATABASE. Do NOT rephrase or reorder words."
-  2. Removed fuzzy matching from `GET /api/exercises` endpoint in `routes.ts` - now exact match only
-  3. Removed fuzzy matching from frontend `workout-hub.tsx` - now exact match only
-- **Files Changed**: `ai-workout-generator.ts`, `routes.ts`, `workout-hub.tsx`
-- **Testing**: 16/16 tests passed. Critical test verified: "Incline Dumbbell Press" does NOT match "Dumbbell Incline Bench Press"
+### Batch 2: Coach + Pro Gating + UI
+- Coach canned response fix, Pro badge conditional, all edit paths gated, pricing updates, awards 100%, removed coach personality from features
 
-#### Billing Page Pricing Update (P0 - FIXED & TESTED)
-- Removed 3-month plan entirely
-- Updated yearly plan: £74.99/year (22% discount, £6.25/mo equiv)
-- Yearly plan now marked as "Best Value" (popular: true)
-- Default selection changed to yearly
-- **Files Changed**: `billing.tsx`
-- **Testing**: 6/6 code review tests passed
+### Batch 1: Exercise Videos + Billing
+- Exact-only exercise matching, AI prompt with full DB, billing: 2 plans (monthly £7.99, yearly £74.99)
 
-### Previous Sessions (Summary)
-- AI Coach personality overhaul (removed keyword filter, more conversational)
-- Billing page creation with legal links
-- Network error fixes (stale tunnel URLs)
-- Profile cleanup (removed PIN code, Coach Style)
-- Badge/award tracking wired up
-- Rolling regeneration system
-- Workout persistence fixes
-- Coach stats query capability
-- Training days scheduling
-- And more (see CHANGELOG for full history)
+### Earlier Sessions
+- Coach personality overhaul, billing page creation, network fixes, profile cleanup, badge tracking
 
-## Pending / In Progress
-- [ ] Awards/Badges system verification by user (P1)
-- [ ] App Tour / Onboarding re-implementation (P1)
-- [ ] Special Set Type UI (Drop Sets, Super Sets) display (P2)
-
-## Backlog / Future
-- [ ] Coach Memory Enhancement (P2) - persistence for past conversations
-- [ ] Finalize Marketing Copy on Pro page (P3)
-- [ ] Full RevenueCat Native Integration (P3) - Expo Development Build required
-- [ ] Expo Development Build for real purchases (P3)
+## Remaining
+- [ ] Full RevenueCat Native Integration (P3) — Needs Expo Dev Build
+- [ ] Verify badges work end-to-end with user testing
 
 ## Known Issues
-- RevenueCat in-app purchases are MOCKED in Expo Go
-- OpenAI API key may be rate-limited
+- RevenueCat MOCKED in Expo Go
+- Tunnel URL changes on pod restart (update .env, env.ts fallback, app.config.js)

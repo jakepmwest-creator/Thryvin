@@ -1,132 +1,129 @@
-<analysis>**original_problem_statement**: The user, after testing the application, reported a series of critical issues. The most significant problems were widespread Network request failed errors, major inconsistencies with exercise videos (showing incorrect videos for given exercises), and incorrect pricing on the newly created billing page. Additionally, the user requested several UI cleanups, including the removal of Set pin code and Coach Style options from the profile, UI adjustments on the Compare Plans page, and fixing non-functional award/badge tracking. The user also provided feedback on the AI coach's overly robotic and strict behavior and requested a new billing page be created. In the most recent feedback, the user rejected the agent's fuzzy matching fix for videos, insisting the AI must be constrained to use exact exercise names from the database, and requested further changes to the subscription pricing.
+<analysis>**original_problem_statement**: The user has provided extensive feedback after multiple rounds of testing. The core remaining issues are: persistent video-to-exercise mismatches within AI-generated workouts; the AI coach's lack of compassion in its responses; and several UI/UX and feature requests. Specifically, the user wants a comprehensive, multi-tab app tour, a UI to support special set types (e.g., drop sets), stricter paywall gating for edit features, and UI/copy improvements on the billing and pro-upgrade pages. The user also approved future work on enhancing coach memory and implementing full native in-app purchases.
 
 **User's preferred language**: English
 
 **what currently exists?**
-The application is a React Native (Expo) fitness app with a FastAPI backend. A significant overhaul of the AI coach's personality has been completed, making it more conversational and removing a restrictive keyword filter. A new billing page has been created and integrated into the app's navigation. Several UI/UX improvements have been made, including removing obsolete items from the profile page, polishing the pro comparison page button, and fixing broken legal links. The underlying Network request failed errors have been addressed by updating stale API URLs. The agent also implemented tracking calls for the awards system, which were previously missing. An attempt was made to fix video inconsistency by implementing fuzzy matching on the backend and correcting some database entries, but this approach was deemed incorrect by the user.
+The application is a full-stack fitness app with a React Native (Expo) frontend and a FastAPI backend. The agent has implemented a significant number of features and fixes:
+- **Backend**: The agent has completely removed the flawed fuzzy matching logic for video lookups in favor of a strict, prompt-driven approach where the AI must use exact exercise names from the database. A persistent memory system for the AI coach has been built, using a new  table in the PostgreSQL database to store and retrieve conversation summaries.
+- **Frontend**: A robust, app-wide onboarding tour that navigates between tabs has been implemented, replacing the old single-screen version. The workout logger UI has been upgraded to support drop sets with up to 3 drops. Pro-gating has been tightened on various edit workout buttons. The billing and pro-upgrade pages have been redesigned with updated feature lists and marketing-oriented pricing displays. The PRO badge on the home screen is now conditional on subscription status.
+- **Bug Fixes**: Critical network and login errors caused by stale backend URLs and a faulty client-side override system have been resolved. The AI coach's tendency to give a canned help response has been fixed by making the frontend keyword trigger more specific. The awards system threshold for island progression was updated to 100%.
 
 **Last working item**:
-- **Last item agent was working**: The agent was processing two critical pieces of feedback from the user right before the session ended:
-    1.  **Correcting Exercise Video Logic:** The user rejected the agent's fuzzy matching solution, which incorrectly mapped AI-generated exercise names like Incline Dumbbell Press to different database entries like Dumbbell Incline Bench Press. The user wants the AI to be forced to use only the exact exercise names that exist in the database.
-    2.  **Updating Subscription Pricing:** The user requested to remove the 3-month subscription plan entirely and change the yearly plan's discount from 28% to 22%.
-- **Status**: IN PROGRESS
-- **Agent Testing Done**: N
-- **Which testing method agent to use?**: Backend testing agent for the AI prompt changes, and manual testing (screenshot) for the frontend pricing UI change.
-- **User Testing Done**: N
+- **Last item agent was working**: Responding to the user's request to reset the server at the start of a new day. This is an environment check rather than a feature development task.
+- **Status**: NOT STARTED
+- **Agent Testing Done**: N/A
+- **Which testing method agent to use?**:  to run backend                          RUNNING   pid 48, uptime 0:00:12 and check logs with  to confirm the server is running correctly before starting new work.
+- **User Testing Done**: N/A
 
 **All Pending/In progress Issue list**:
--   **Issue 1: Incorrect Exercise Video Matching Logic (P0)**
--   **Issue 2: Verify Awards/Badges System (P1)**
+-   **Issue 1: Video Inconsistency in AI-Generated Workouts (P0)**
+-   **Issue 2: AI Coach Compassion (P1)**
 
 **Issues Detail**:
--   **Issue 1: Incorrect Exercise Video Matching Logic (P0)**
-    -   **Attempted fixes**: The agent implemented fuzzy name matching in . This was incorrect as it matched similar-sounding but functionally different exercises.
-    -   **Next debug checklist**:
-        1.  Remove the flawed fuzzy matching logic from the  endpoint in .
-        2.  Modify the AI workout generation prompt (likely in  or ).
-        3.  The prompt must be updated to include the full list of valid exercise names from the database and be strictly instructed to **only** use names from that list when creating workout plans.
-    -   **Why fix this issue and what will be achieved with the fix?**: This is critical for user trust and safety. Showing the correct exercise form is a core function of the app. This fix will ensure 100% video accuracy.
-    -   **Status**: IN PROGRESS
-    -   **Is recurring issue?**: Y
-    -   **Should Test frontend/backend/both after fix?**: Both
--   **Issue 2: Verify Awards/Badges System (P1)**
-    -   **Attempted fixes**: The agent added the previously missing  and  function calls in  and . Previous failures were also caused by network errors, which are now resolved.
-    -   **Next debug checklist**: The user needs to re-test this functionality. If it still fails, the agent must add logs to the  endpoint and the corresponding frontend store () to trace the API calls.
-    -   **Why fix this issue and what will be achieved with the fix?**: To make the gamification features work, which is key for user engagement and retention.
+-   **Issue 1: Video Inconsistency in AI-Generated Workouts (P0)**
+    -   **Attempted fixes**: The agent removed all fuzzy matching and normalization logic from the video enrichment step in . The system now relies exclusively on the AI providing exact exercise names from the database.
+    -   **Next debug checklist**: This fix needs to be verified by the user. The agent must ask the user to test the AI workout generation and confirm if the videos are now consistently correct. If the issue persists, the investigation should focus on the AI prompt in  to ensure it's successfully constraining the AI's output. NO MORE FUZZY MATCHING.
+    -   **Why fix this issue and what will be achieved with the fix?**: This is the most critical and persistent bug. Fixing it is essential for user trust, safety, and core app functionality.
     -   **Status**: USER VERIFICATION PENDING
     -   **Is recurring issue?**: Y
     -   **Should Test frontend/backend/both after fix?**: Both
+-   **Issue 2: AI Coach Compassion (P1)**
+    -   **Attempted fixes**: The agent implemented a backend memory system in  to provide conversation history to the AI.
+    -   **Next debug checklist**: Refine the main system prompt for the coach in . Instruct the AI to explicitly use the provided conversation summary to inform its tone and generate more empathetic, less generic responses, especially when the user expresses negative feelings (e.g., feeling weak).
+    -   **Why fix this issue and what will be achieved with the fix?**: To meet the user's requirement for a more human-like, supportive AI coach, which is a key part of the Thriven brand style and will improve user engagement.
+    -   **Status**: IN PROGRESS
+    -   **Is recurring issue?**: Y
+    -   **Should Test frontend/backend/both after fix?**: Backend
 
 **In progress Task List**:
--   **Task 1: Update Billing Page Pricing & Options (P0)**
-
-**Task Detail**:
--   **Task 1: Update Billing Page Pricing & Options (P0)**
-    -   **Where to resume**: Modify the pricing structure in  and potentially .
-    -   **What will be achieved with this?**: The subscription options will be updated to show only Monthly and Yearly plans. The Yearly plan will offer a 22% discount compared to the base monthly price of £7.99.
-    -   **Status**: IN PROGRESS
-    -   **Should Test frontend/backend/both after fix?**: Frontend
-    -   **Blocked on something**: No
+-   None.
 
 **Upcoming and Future Tasks**
 -   **Upcoming Tasks**:
-    -   **(P1) App Tour Re-implementation**: User wants to revisit and implement an onboarding tour for new users.
-    -   **(P2) Special Set Type UI**: The UI in  to display special sets (e.g., Drop Sets, Super Sets) has not been built yet.
+    -   **(P1) App Tour Expansion**: Enhance the existing app tour (, ) to include steps that guide the user *inside* an active workout, showing them how to view exercise videos and log sets, as requested by the user.
+    -   **(P2) Special Set AI Integration**: The UI for drop sets exists (), but the AI workout generator in  needs to be updated to be able to include special sets like drop sets or supersets in the plans it creates.
 -   **Future Tasks**:
-    -   **(P2) Coach Memory Enhancement**: Implement persistence so the AI coach can remember past conversations, an idea the user approved.
-    -   **(P3) Finalize Marketing Copy**: The text on the  comparison page needs finalization.
-    -   **(P3) Full RevenueCat Native Integration**: This involves creating an Expo Development Build, testing the real purchase flow, and syncing purchase data to the backend.
+    -   **(P2) Finalize Marketing Copy**: User to review the polished copy on the  page and provide final approval or changes.
+    -   **(P3) Full RevenueCat Native Integration**: This is a major pending task that requires creating an Expo Development Build to test the real purchase flow and sync purchase data to the backend.
 
 **Completed work in this session**
--   **AI Coach Personality Overhaul**: Removed the hardcoded keyword filter and revamped the system prompt in  to make the coach more conversational and empathetic.
--   **Billing Page Creation**: Created a new  screen and integrated it into the app's navigation from the profile, paywall, and pro comparison pages.
--   **Network Error Resolution**: Fixed widespread Network request failed errors by updating a stale fallback URL in .
--   **Profile Page UI Cleanup**: Removed the Set pin code and Coach Style sections from .
--   **Awards System Fix**: Implemented the missing tracking calls for watching videos and sharing badges in  and .
--   **Legal Links Fixed**: Connected the Terms of Use and Privacy Policy links on the  page to the existing  component.
+-   **Video Inconsistency Fix**: Removed all fuzzy matching logic from workout generation in .
+-   **Coach Memory Implementation**: Created a  table () and integrated save/load logic into .
+-   **App-wide Onboarding Tour**: Implemented a multi-tab tour by moving logic to  and enhancing .
+-   **Drop Set UI Upgrade**: Reworked  to support logging up to 3 drops per set.
+-   **Pro Gating Hardened**: Added subscription checks to  and  to block edit functions for standard users.
+-   **UI/UX Overhaul**: Redesigned  and updated  and  with consistent features and marketing-focused pricing.
+-   **PRO Badge Fix**: Made the PRO badge on the home screen () conditional and improved its styling.
+-   **Awards Logic Fix**: Updated the island progression requirement to 100% in  and .
+-   **Network/Login Stability**: Resolved critical login failures by removing a faulty URL override system from .
 
 **Earlier issues found/mentioned but not fixed**
--   None. The agent has been actively working through the user's feedback list.
+-   None. The agent has addressed all user-reported issues, though some are pending final verification.
 
 **Known issue recurrence from previous fork**
--   **Issue recurrence in previous fork**: Unstable backend connectivity due to unreliable tunneling and stale URLs.
+-   **Issue recurrence in previous fork**: Incorrect Exercise Video Matching Logic.
 -   **Recurrence count**: High
--   **Status**: RESOLVED. The architecture is more robust now with  and a dynamic URL provider. The last recurrence was due to a stale hardcoded fallback URL, which has since been updated.
+-   **Status**: USER VERIFICATION PENDING. The latest fix (removing all fuzzy logic) is the most significant attempt and awaits user testing.
 
 **Code Architecture**
-
+coach_conversations
 
 **Key Technical Concepts**
--   **AI Prompt Engineering**: The current priority demonstrates the need to constrain an LLM's output to a known, valid dataset (the list of exercise names) rather than attempting to interpret its freeform output with post-processing (like fuzzy matching).
--   **Data Integrity**: The video issues are a mix of flawed code (matching logic) and incorrect data (wrong video URLs in the DB). Both must be addressed for a reliable feature.
+-   **AI Prompt Engineering**: The core strategy is now to strictly constrain LLM output to a known dataset (exercise names) via the prompt, completely removing unreliable post-processing like fuzzy matching. The next phase involves using prompts to influence AI tone and empathy.
+-   **Database Migration (Drizzle)**: The agent used This command is deprecated, please use updated 'push' command (see https://orm.drizzle.team/kit-docs/upgrade-21#how-to-migrate-to-0210) to apply schema changes and create the new  table.
+-   **Global State & Navigation (React Native)**: The app tour was refactored to live in the root , allowing it to persist across tabs and trigger navigation using the  hook from .
+-   **Complex Frontend State**: The  component manages complex local state for different set types (normal, drop set), including dynamic inputs and array-based data structures.
 
 **key DB schema**
 -   : { : string, : string }
+-   : { uid=0(root) gid=0(root) groups=0(root): serial, : varchar, : text, : timestamp } // NEW
 
 **changes in tech stack**
 -   None.
 
 **All files of reference**
--   : Contains the AI coach logic and the video fetching endpoint where the incorrect fuzzy matching must be removed.
--   : The likely location for the AI workout generation prompt that needs to be updated with the list of valid exercise names.
--   : The new billing page where pricing and subscription options must be updated.
--   : Where  was added.
--   : Where  was added.
--   : The profile screen where UI elements were removed.
+-   : Contains the critical video matching logic.
+-   : Contains the coach personality prompt and new memory system.
+-   : The new home for the global app tour.
+-   : The logic driving the multi-tab tour.
+-   : The UI for logging standard and drop sets.
+-   : The redesigned billing screen.
 
 **Areas that need refactoring**:
--   The video fetching logic in  requires a complete rewrite. The fuzzy matching approach should be discarded in favor of a prompt engineering solution that guarantees the AI only generates exercise names that exist in the database.
+-   : This file is becoming a monolith for all AI coach logic (fetching user stats, memory, prompt construction, API calls). It could be broken down into smaller, more specialized modules.
+-   : This component is very large and handles significant state and logic for various set types. It could be split into smaller sub-components.
 
 **key api endpoints**
--   : Fetches videos for exercises. This endpoint's logic is the source of the video inconsistency bug.
--   : Handles chat interactions with the AI coach.
--   : Endpoint to record user actions for the awards system.
+-   : Main endpoint for AI coach interaction. Now loads and saves conversation history.
+-   : Creates workouts for users. The video enrichment logic within this flow was the source of the recurring video bug.
 
 **Critical Info for New Agent**
-1.  **Fix Videos Correctly**: The top priority is the exercise video inconsistency. **Do not** attempt fuzzy matching again. The correct solution is to modify the AI's system prompt, providing it with the complete list of exercise names from the database and instructing it to *only* use names from that list.
-2.  **Update Pricing**: The second priority is to implement the user's latest pricing request: remove the 3-month option and set the yearly discount to 22% on the  page.
-3.  **User Verification is Key**: Many fixes were implemented (badge tracking, UI cleanup, network stability) but have not been verified by the user yet. After deploying the next set of fixes, it will be crucial for the user to do a full test of the app.
-4.  **Backend Restart**: Remember to restart the backend supervisor service after making changes to backend routes or services to ensure they take effect.
+1.  **Verify Server First**: The user's last request was to reset the server. Begin the session by checking the backend status (backend                          RUNNING   pid 48, uptime 0:00:15) to ensure a healthy environment.
+2.  **Video Fix is P0 & Awaiting Verification**: The most critical bug is video inconsistency. The latest fix (removing all fuzzy matching from ) is a major change. Your first interaction with the user should be to ask them to test this and confirm if it's finally resolved. DO NOT re-introduce any form of fuzzy matching.
+3.  **Follow the User's Plan**: The user has laid out a clear set of priorities in messages #143 and #273, which were confirmed in #276. The next items to tackle after video verification are enhancing the AI coach's compassion and expanding the app tour.
+4.  **Special Sets are Half-Done**: The frontend UI for drop sets is complete (), but the backend AI in  does not yet generate them. This is a pending upcoming task.
+5.  **Coach Memory Needs Prompt Work**: The backend infrastructure for coach memory is done. The task now is creative prompt engineering in  to make the AI use that memory to be more empathetic.
 
 **documents and test reports created in this job**
 -   
 -   
+-   
 
 **Last 10 User Messages and any pending HUMAN messages**
-1.  **User (Latest/Pending):** Criticized the fuzzy matching logic for videos as incorrect (Incline Dumbbell Press is not Dumbbell Incline Bench Press). Demanded the AI be forced to use exact DB names. Requested pricing change: remove 3-month plan, set yearly discount to 22%.
-2.  **Agent:** Presented a summary of all implemented fixes, including the flawed video fix.
-3.  **User:** Reported widespread network errors, major video inconsistencies, incorrect pricing, and a list of UI cleanup tasks and broken features (awards).
-4.  **Agent:** Acknowledged the feedback and planned to investigate the network error first.
-5.  **User:** Confirmed the app's status and prepared for testing.
-6.  **Agent:** Finished a work cycle, summarizing the coach overhaul and billing page creation.
-7.  **User:** Approved the plan to fix the coach and create the billing page, providing detailed requirements for the coach's personality.
-8.  **Agent:** Proposed a new plan based on user feedback (Fix Coach, Build Billing Page, Health Check).
-9.  **User:** Provided more detail on the desired Thriven style for the billing page and elaborated on making the AI coach less robotic.
-10. **Agent:** Responded with a detailed plan after analyzing the codebase.
+1.  **[PENDING] Msg 469**: User asks agent to reset the server as it's a new day.
+2.  **Msg 276**: User approves the agent's plan for fixing videos, improving the app tour, and other tasks.
+3.  **Msg 275 (Agent Plan)**: Agent asks for approval on a detailed plan to address the user's latest feedback list.
+4.  **Msg 273**: User provides a large list of new feedback and tasks: video inconsistency is still happening in generated workouts, requests an expanded app tour, UI for special sets, and approves future tasks.
+5.  **Msg 272 (Agent Finish)**: Agent summarizes the completion of a large batch of work (coach fixes, UI updates, gating, etc.).
+6.  **Msg 146**: User gives the go-ahead to start on the agent's proposed plan.
+7.  **Msg 145 (Agent Plan)**: Agent presents a comprehensive plan to address UI issues, Pro gating, and coach behavior.
+8.  **Msg 143**: User provides a massive list of bugs and feedback after testing: un-empathetic coach, wrong pricing on paywall, UI requests, awards requirement change, persistent video issues, and Pro gating loopholes.
+9.  **Msg 142 (Agent Response)**: Agent explains the fix for a critical login error (stale URL in local storage) and instructs the user to restart their app.
+10. **Msg 131**: User expresses frustration over a Login failed. Error unable to reach server message.
 
 **Project Health Check:**
--   **Broken**: The core functionality of displaying correct exercise videos is a regression and is currently not working reliably.
--   **Mocked**: In-App Purchases via RevenueCat are still mocked and non-functional in the Expo Go testing environment.
+-   **Broken**: Video-to-exercise matching in AI-generated workouts is still considered broken pending user verification of the latest fix.
+-   **Mocked**: Full native In-App Purchase flow with RevenueCat is not yet implemented.
 
 **3rd Party Integrations**
 -   Neon PostgreSQL (Database)
@@ -136,15 +133,13 @@ The application is a React Native (Expo) fitness app with a FastAPI backend. A s
 -   Cloudflare Tunnel () (Development)
 
 **Testing status**
--   **Testing agent used after significant changes**: YES, for backend API and coach personality verification.
+-   **Testing agent used after significant changes**: YES
 -   **Troubleshoot agent used after agent stuck in loop**: NO
--   **Test files created**: []
--   **Known regressions**: The exercise video matching functionality has regressed and is worse than before, according to the user.
+-   **Test files created**: , 
+-   **Known regressions**: Video inconsistency in AI-generated workouts has been a persistent regression, which the latest fix aims to solve permanently.
 
 **Credentials to test flow:**
--   Use the Test as Pro and Test as Standard buttons on the login screen, which call the  endpoint.
+-   Use the Test as Pro and Test as Standard buttons on the login screen, which use the  endpoint.
 
 **What agent forgot to execute**
--   The agent has not yet implemented the user's two most recent requests from their last message:
-    1.  Fixing the video matching logic by constraining the AI's prompt instead of using fuzzy matching.
-    2.  Updating the billing page to remove the 3-month plan and adjust the yearly discount to 22%.</analysis>
+-   The user's last request to check/reset the server is the immediate pending action. Otherwise, the agent has been actively addressing the user's comprehensive feedback lists.</analysis>
