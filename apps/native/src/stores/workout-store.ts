@@ -450,6 +450,20 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
 
   // Fetch 3 weeks of workouts (21 days, AI-generated with caching)
   fetchWeekWorkouts: async () => {
+    // GUARD: If we already have 21 workouts in state for the current week, skip entirely
+    const existingWorkouts = get().weekWorkouts;
+    if (existingWorkouts.length >= 21) {
+      const today = new Date();
+      const mondayCheck = getMondayOfWeek(today);
+      const weekKey = mondayCheck.toDateString();
+      const cachedWeekDate = await getStorageItem('week_workouts_date');
+      if (cachedWeekDate === weekKey) {
+        console.log('✅ [3-WEEK] Already have 21 workouts in state for this week, skipping generation');
+        set({ isLoading: false });
+        return;
+      }
+    }
+    
     // Prevent double generation with timeout-based lock (5 minute timeout)
     const lockData = await getStorageItem('workout_generation_lock');
     if (lockData) {
