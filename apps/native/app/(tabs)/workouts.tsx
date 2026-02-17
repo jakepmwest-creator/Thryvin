@@ -553,12 +553,22 @@ export default function WorkoutsScreen() {
         <View style={styles.section}>
           <View style={styles.exploreTitleRow}>
             <Text style={styles.sectionTitle}>Explore Workouts</Text>
-            <TouchableOpacity 
-              onPress={() => setLikedDislikedModalVisible(true)}
-              style={styles.heartButton}
-            >
-              <Ionicons name="heart" size={24} color={COLORS.accent} />
-            </TouchableOpacity>
+            <View style={{ flexDirection: 'row', gap: 8 }}>
+              <TouchableOpacity 
+                onPress={() => { setLikedDislikedModalVisible(true); }}
+                style={styles.prefButton}
+                data-testid="liked-exercises-btn"
+              >
+                <Ionicons name="heart" size={20} color="#34C759" />
+              </TouchableOpacity>
+              <TouchableOpacity 
+                onPress={() => { setLikedDislikedModalVisible(true); }}
+                style={styles.prefButton}
+                data-testid="disliked-exercises-btn"
+              >
+                <Ionicons name="thumbs-down" size={20} color="#FF3B30" />
+              </TouchableOpacity>
+            </View>
           </View>
           <View style={styles.categoriesGrid}>
             {workoutCategories.map((category) => (
