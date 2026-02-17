@@ -744,7 +744,7 @@ const styles = StyleSheet.create({
   categoryNameWhite: { fontSize: 16, fontWeight: '700', color: COLORS.white, marginBottom: 4 },
   categoryCountWhite: { fontSize: 13, fontWeight: '500', color: COLORS.white, opacity: 0.9 },
   exploreTitleRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 },
-  heartButton: { padding: 8, backgroundColor: COLORS.lightGray, borderRadius: 12 },
+  prefButton: { padding: 8, backgroundColor: COLORS.lightGray, borderRadius: 12, borderWidth: 1, borderColor: '#E8E8E8' },
   restDayAskButton: { borderRadius: 12, overflow: 'hidden', marginTop: 16 },
   restDayAskGradient: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingVertical: 12, gap: 8 },
   restDayAskText: { fontSize: 14, fontWeight: '600', color: COLORS.white },
