@@ -59,9 +59,9 @@ export default function ProComparisonScreen() {
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
         >
-          <Text style={styles.heroTitle}>Your training, your way</Text>
+          <Text style={styles.heroTitle}>Train smarter. Progress faster.</Text>
           <Text style={styles.heroSubtitle}>
-            Standard gets you started. Pro unlocks your full potential.
+            Standard keeps you moving. Pro takes you further — with AI-powered plans, deep stats, and full control.
           </Text>
         </LinearGradient>
 
