@@ -109,8 +109,8 @@ export default function ProComparisonScreen() {
           <Text style={styles.ctaTitle}>{isPro ? "You're on Pro" : 'Ready to level up?'}</Text>
           <Text style={styles.ctaSubtitle}>
             {isPro
-              ? "Manage your subscription or explore what's coming next."
-              : 'Join thousands getting smarter training with rolling plans, deep stats, and full workout control.'}
+              ? "All Pro features are unlocked. Manage or cancel anytime."
+              : 'Unlock rolling plans, workout editing, advanced stats, and more. Try 3 weeks free.'}
           </Text>
           <TouchableOpacity
             style={styles.ctaButton}
