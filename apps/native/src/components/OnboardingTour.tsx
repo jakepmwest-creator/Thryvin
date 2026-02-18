@@ -158,8 +158,8 @@ export function OnboardingTour({
     const spaceBelow = SCREEN_HEIGHT - elementBottom;
     
     // Always prefer showing tooltip where there's more space
-    // Tooltip needs ~300px minimum
-    const tooltipHeight = 300;
+    // Tooltip needs ~220px minimum (compact card)
+    const tooltipHeight = 220;
     
     if (step.placement === 'bottom' || spaceBelow > tooltipHeight) {
       // Show below if explicitly set or if there's enough space
