@@ -25,13 +25,12 @@ const COLORS = {
 };
 
 const PRO_FEATURES = [
-  { icon: 'infinite' as const, text: 'Unlimited AI-generated plans' },
-  { icon: 'analytics' as const, text: 'Advanced progress analytics' },
-  { icon: 'bulb' as const, text: 'Coach-level insights & tips' },
-  { icon: 'flash' as const, text: 'Priority support + pro workouts' },
-  { icon: 'refresh' as const, text: 'Rolling plan regeneration' },
+  { icon: 'infinite' as const, text: 'Unlimited AI-generated workout plans' },
+  { icon: 'refresh' as const, text: 'Rolling plan regeneration every 3 weeks' },
+  { icon: 'analytics' as const, text: 'Deep exercise stats & trends' },
   { icon: 'create' as const, text: 'Edit & customise any workout' },
-  { icon: 'layers' as const, text: 'Drop, super & giant set support' },
+  { icon: 'flash' as const, text: 'Drop, super & giant set support' },
+  { icon: 'headset' as const, text: 'Priority support' },
   { icon: 'sparkles' as const, text: 'Nutrition & social features', subtitle: 'Coming soon' },
 ];
 
