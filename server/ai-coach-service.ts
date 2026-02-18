@@ -11,7 +11,7 @@
 import OpenAI from 'openai';
 import { db } from './db';
 import { coachMemory } from '@shared/schema';
-import { eq, desc } from 'drizzle-orm';
+import { eq, desc, sql } from 'drizzle-orm';
 import { buildAiContext } from './ai-user-context';
 import { 
   buildUserCoachSummary, 
@@ -21,8 +21,6 @@ import {
   type CoachPersonality,
   type ContextMode as CoachContextMode 
 } from './coach-memory';
-import { db } from './db';
-import { sql } from 'drizzle-orm';
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
