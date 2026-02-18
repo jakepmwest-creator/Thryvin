@@ -176,38 +176,47 @@ const styles = StyleSheet.create({
     gap: 16,
   },
   planCard: {
-    backgroundColor: COLORS.lightGray,
+    backgroundColor: '#F0F0F0',
     padding: 16,
-    borderRadius: 16,
+    borderRadius: 18,
+    borderWidth: 1,
+    borderColor: '#E0E0E0',
+  },
+  divider: {
+    height: 1,
+    backgroundColor: '#E0E0E0',
+    marginVertical: 12,
   },
   proCard: {
-    backgroundColor: COLORS.white,
+    backgroundColor: '#0D0D0D',
     overflow: 'hidden',
     padding: 0,
     borderWidth: 2,
     borderColor: COLORS.accent,
   },
   proHeader: {
-    padding: 16,
+    padding: 18,
   },
   planTitle: {
     fontSize: 18,
     fontWeight: '700',
-    color: COLORS.text,
+    color: '#999999',
   },
   planPrice: {
-    fontSize: 16,
-    color: COLORS.mediumGray,
+    fontSize: 22,
+    color: '#AAAAAA',
+    fontWeight: '800',
     marginTop: 4,
   },
   planTitlePro: {
-    fontSize: 18,
-    fontWeight: '700',
+    fontSize: 20,
+    fontWeight: '800',
     color: COLORS.white,
   },
   planPricePro: {
-    fontSize: 16,
+    fontSize: 22,
     color: COLORS.white,
+    fontWeight: '800',
     marginTop: 4,
   },
   planSubtext: {
@@ -216,22 +225,19 @@ const styles = StyleSheet.create({
     opacity: 0.85,
     marginTop: 4,
   },
-  planChips: {
-    flexDirection: 'row',
-    gap: 8,
+  trialBadge: {
     marginTop: 10,
-    flexWrap: 'wrap',
-  },
-  planChip: {
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 12,
+    alignSelf: 'flex-start',
     backgroundColor: 'rgba(255,255,255,0.2)',
+    paddingHorizontal: 12,
+    paddingVertical: 5,
+    borderRadius: 10,
   },
-  planChipText: {
+  trialBadgeText: {
     color: COLORS.white,
     fontSize: 11,
-    fontWeight: '600',
+    fontWeight: '800',
+    letterSpacing: 0.5,
   },
   featureList: {
     marginTop: 12,
@@ -246,6 +252,15 @@ const styles = StyleSheet.create({
   featureText: {
     color: COLORS.text,
     fontSize: 13,
+  },
+  featureTextBoring: {
+    color: '#999999',
+    fontSize: 13,
+  },
+  featureTextPro: {
+    color: COLORS.white,
+    fontSize: 13,
+    fontWeight: '500',
   },
   ctaCard: {
     marginTop: 20,
