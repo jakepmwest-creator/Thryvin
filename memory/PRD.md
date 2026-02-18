@@ -6,43 +6,28 @@
 - AI: OpenAI GPT-4o (coach, workout gen), GPT-4o-mini (memory summaries)
 - Video: Cloudinary | Subscriptions: RevenueCat (MOCKED) | Tunnel: Cloudflare
 
-## Implemented (Feb 17, 2026)
+## Implemented (Feb 17-18, 2026)
 
-### Batch 4: Bug Fixes + Explore Redesign
-1. **todayWorkoutRef crash fix (P0)** — Added missing `useRef<View>` declaration for `todayWorkoutRef` in index.tsx that was causing "ref doesn't exist" crash after workout generation
-2. **Workout regeneration guard (P0)** — Added early-return guard in `fetchWeekWorkouts` that skips regeneration if 21 workouts already exist in state for the current week
-3. **Explore Workouts redesign (P1)** — Complete rewrite of ExploreWorkoutsModal with:
-   - Dark theme tile layout (2-column grid)
-   - Cloudinary video thumbnails on each tile
-   - Single "Filter" button replacing difficulty tabs
-   - Filter sheet modal for difficulty + equipment
-   - Like/dislike buttons directly on tiles
-   - Tap-to-expand exercise detail with video player, form tips
-   - FlatList with virtualization for performance
-4. **Awards bottom padding (P3)** — Increased from 32px to 120px for tab bar clearance
-5. **Liked/Disliked button styling** — Heart + thumbs-down icons on workouts explore section
+### Batch 5: Coach Compassion + Tour + Paywall + Special Sets (Feb 18)
+1. **P1 — AI Coach Compassion** — Added detailed empathy directives to system prompt: validates feelings first, shares relatable perspective, offers gentle options. Never dismissive or pushy. Increased max tokens to 1000 for richer responses. Uses conversation memory naturally.
+2. **P2 — Tour Improvements** — Compact tooltip (smaller padding, font, icon), 9 steps including in-workout guidance. Tour card doesn't block screen as much.
+3. **P2 — Pro/Paywall UI Thriven Style** — Dark plan cards on billing page (£ white on black). Pro comparison: Standard looks boring (gray, remove-circle icons), Pro looks premium (dark card, gradient header, checkmark icons, "3 WEEKS FREE" badge). Paywall modal: matching dark pricing card with trial tag. Features list consistent across all 3 surfaces.
+4. **P2 — Advanced Questionnaire Pro-Gated** — Only shows for Pro users on home screen.
+5. **P2 — Special Set AI Integration** — Already present in ai-workout-generator.ts prompt (drop/super/giant set types). Confirmed working in tests.
+6. **Code cleanup**: Removed duplicate `db` import in ai-coach-service.ts.
 
-### Batch 3: Full Feature Round (Feb 13, 2026)
-1. Video Inconsistency Fix (P0) — Removed ALL fuzzy matching
-2. App Tour / Onboarding (P1) — 8-step guided tour
-3. Drop Set UI (P2) — 3 drop rows
-4. Coach Memory (P2) — conversation summaries
-5. Marketing Copy (P3) — Pro comparison hero
+### Batch 4: Bug Fixes + Explore Redesign (Feb 17)
+1. todayWorkoutRef crash fix (P0)
+2. Workout regeneration guard (P0)
+3. Explore Workouts tile layout redesign (P1)
+4. Awards bottom padding (P3)
+5. Liked/Disliked button styling
 
-### Batch 2: Coach + Pro Gating + UI
-- Coach canned response fix, Pro badge conditional, edit paths gated, pricing updates, awards 100%
-
-### Batch 1: Exercise Videos + Billing
-- Exact-only exercise matching, AI prompt with full DB, billing: 2 plans
-
-### Earlier Sessions
-- Coach personality overhaul, billing page, network fixes, profile cleanup, badge tracking
+### Earlier Batches
+- Video fuzzy matching removal, coach memory, app tour, drop set UI, Pro gating, billing/marketing redesign, PRO badge fix, awards 100%, network stability
 
 ## Remaining / Backlog
-- [ ] **P1 — AI Coach Compassion** — Refine system prompt for empathy using conversation memory
-- [ ] **P2 — Tour Expansion** — Steps inside active workout, tour before questionnaire, Pro-gate questionnaire
-- [ ] **P2 — Special Set AI Integration** — Backend AI prompt to generate drop sets/supersets
-- [ ] **P2 — Pro/Paywall UI** — Nicer plan boxes, matching paywall modal, onboarding paywall screen
+- [ ] **P2 — Onboarding Paywall Screen** — After coach selection in signup flow, show Pro vs Standard choice screen with 3-week free trial for Pro
 - [ ] **P3 — Marketing Copy Review** — User to approve pro.tsx copy
 - [ ] **P3 — Full RevenueCat Integration** — Needs Expo Dev Build
 - [ ] **P3 — Badge end-to-end verification**
