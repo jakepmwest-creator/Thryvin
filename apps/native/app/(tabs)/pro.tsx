@@ -66,40 +66,39 @@ export default function ProComparisonScreen() {
         </LinearGradient>
 
         <View style={styles.cardRow}>
+          {/* Standard - intentionally boring */}
           <View style={styles.planCard}>
             <Text style={styles.planTitle}>Standard</Text>
             <Text style={styles.planPrice}>Free</Text>
+            <View style={styles.divider} />
             <View style={styles.featureList}>
               {STANDARD_FEATURES.map(feature => (
                 <View key={feature} style={styles.featureRow}>
-                  <Ionicons name="checkmark-circle" size={16} color={COLORS.accent} />
-                  <Text style={styles.featureText}>{feature}</Text>
+                  <Ionicons name="remove-circle-outline" size={16} color="#CCCCCC" />
+                  <Text style={styles.featureTextBoring}>{feature}</Text>
                 </View>
               ))}
             </View>
           </View>
 
+          {/* Pro - premium dark card */}
           <View style={[styles.planCard, styles.proCard]}>
             <LinearGradient
               colors={[COLORS.accentSecondary, COLORS.accent]}
               style={styles.proHeader}
             >
               <Text style={styles.planTitlePro}>Pro</Text>
-              <Text style={styles.planPricePro}>From £6.25/mo*</Text>
-              <Text style={styles.planSubtext}>*Billed annually. Cancel anytime.</Text>
-              <View style={styles.planChips}>
-                {['Monthly', 'Yearly'].map((label) => (
-                  <View key={label} style={styles.planChip}>
-                    <Text style={styles.planChipText}>{label}</Text>
-                  </View>
-                ))}
+              <Text style={styles.planPricePro}>From £6.25/mo</Text>
+              <Text style={styles.planSubtext}>Billed annually. Cancel anytime.</Text>
+              <View style={styles.trialBadge}>
+                <Text style={styles.trialBadgeText}>3 WEEKS FREE</Text>
               </View>
             </LinearGradient>
             <View style={styles.featureList}>
               {PRO_FEATURES.map(feature => (
                 <View key={feature} style={styles.featureRow}>
-                  <Ionicons name="sparkles" size={16} color={COLORS.accentSecondary} />
-                  <Text style={styles.featureText}>{feature}</Text>
+                  <Ionicons name="checkmark-circle" size={16} color={COLORS.accentSecondary} />
+                  <Text style={styles.featureTextPro}>{feature}</Text>
                 </View>
               ))}
             </View>
