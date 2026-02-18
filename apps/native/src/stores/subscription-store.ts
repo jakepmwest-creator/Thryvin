@@ -37,6 +37,8 @@ interface SubscriptionState {
   presentPaywall: () => Promise<any>;
   presentCustomerCenter: () => Promise<any>;
   setTestPro: (isPro: boolean) => void;
+  restorePurchases: () => Promise<boolean>;
+  purchasePackage: (pkg: any) => Promise<boolean>;
 }
 
 export const useSubscriptionStore = create<SubscriptionState>((set, get) => ({
