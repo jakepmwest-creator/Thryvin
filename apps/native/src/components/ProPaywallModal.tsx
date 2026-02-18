@@ -238,27 +238,23 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     padding: 12,
   },
-  // Mock paywall styles
+  // Mock paywall styles — Thriven dark style
   mockPaywall: {
     gap: 12,
   },
-  pricingCard: {
-    backgroundColor: COLORS.cardBg,
-    borderRadius: 16,
-    padding: 18,
-    borderWidth: 1,
-    borderColor: COLORS.border,
+  pricingCardDark: {
+    backgroundColor: '#0D0D0D',
+    borderRadius: 20,
+    padding: 20,
+    borderWidth: 2,
+    borderColor: COLORS.accent,
     alignItems: 'center',
   },
-  pricingCardFeatured: {
-    borderColor: COLORS.accent,
-    borderWidth: 2,
-  },
   pricingBadgeGradient: {
-    paddingHorizontal: 10,
-    paddingVertical: 3,
+    paddingHorizontal: 12,
+    paddingVertical: 4,
     borderRadius: 10,
-    marginBottom: 8,
+    marginBottom: 10,
   },
   pricingBadgeText: {
     fontSize: 10,
@@ -266,31 +262,39 @@ const styles = StyleSheet.create({
     color: COLORS.white,
     letterSpacing: 1.5,
   },
-  pricingTitle: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: COLORS.text,
-    marginBottom: 4,
+  pricingFrom: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#9E9E9E',
+    marginBottom: 2,
   },
-  pricingPrice: {
-    fontSize: 28,
+  pricingPriceBig: {
+    fontSize: 34,
     fontWeight: '800',
-    color: COLORS.text,
+    color: COLORS.white,
   },
-  pricingCurrency: {
-    fontSize: 14,
+  pricingPeriodSmall: {
+    fontSize: 16,
     fontWeight: '400',
-    color: COLORS.textSecondary,
+    color: '#9E9E9E',
   },
-  pricingPeriod: {
-    fontSize: 14,
-    fontWeight: '400',
-    color: COLORS.textSecondary,
-  },
-  pricingSave: {
+  pricingSaveNote: {
     fontSize: 12,
-    color: COLORS.textSecondary,
+    color: '#9E9E9E',
     marginTop: 4,
+  },
+  trialTag: {
+    marginTop: 10,
+    backgroundColor: 'rgba(162, 43, 246, 0.2)',
+    paddingHorizontal: 14,
+    paddingVertical: 6,
+    borderRadius: 10,
+  },
+  trialTagText: {
+    color: COLORS.accent,
+    fontSize: 11,
+    fontWeight: '800',
+    letterSpacing: 0.5,
   },
   mockPurchaseButton: {
     borderRadius: 14,
