@@ -114,7 +114,7 @@ export const ProPaywallModal = ({ visible, onClose }: ProPaywallModalProps) => {
             ) : (
               /* Navigate to billing page */
               <View style={styles.mockPaywall}>
-                <View style={[styles.pricingCard, styles.pricingCardFeatured]}>
+                <View style={styles.pricingCardDark}>
                   <LinearGradient
                     colors={[COLORS.accent, COLORS.accentSecondary]}
                     style={styles.pricingBadgeGradient}
@@ -123,11 +123,14 @@ export const ProPaywallModal = ({ visible, onClose }: ProPaywallModalProps) => {
                   >
                     <Text style={styles.pricingBadgeText}>BEST VALUE</Text>
                   </LinearGradient>
-                  <Text style={styles.pricingTitle}>From</Text>
-                  <Text style={styles.pricingPrice}>
-                    £6.25<Text style={styles.pricingPeriod}>/mo</Text>
+                  <Text style={styles.pricingFrom}>From</Text>
+                  <Text style={styles.pricingPriceBig}>
+                    £6.25<Text style={styles.pricingPeriodSmall}>/mo</Text>
                   </Text>
-                  <Text style={styles.pricingSave}>Billed annually. Cancel anytime.</Text>
+                  <Text style={styles.pricingSaveNote}>Billed annually. Cancel anytime.</Text>
+                  <View style={styles.trialTag}>
+                    <Text style={styles.trialTagText}>3 WEEKS FREE TRIAL</Text>
+                  </View>
                 </View>
 
                 <TouchableOpacity
