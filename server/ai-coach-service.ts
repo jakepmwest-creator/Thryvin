@@ -721,7 +721,7 @@ FOR APP MODIFICATIONS (redirect WITH value):
     messages.push({ role: 'user', content: message });
     
     // Phase 9.5: Adjust max_tokens based on context mode to enforce length limits
-    let maxTokens = 800; // Rich, conversational responses
+    let maxTokens = 1000; // Rich, conversational, empathetic responses
     if (effectiveMode === 'in_workout') {
       maxTokens = 150; // Short but helpful - 2-4 quick tips
     } else if (effectiveMode === 'home') {
