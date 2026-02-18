@@ -60,7 +60,7 @@ export default ({ config }) => ({
     EXPO_PUBLIC_REVENUECAT_API_KEY:
       process.env.EXPO_PUBLIC_REVENUECAT_API_KEY,
     eas: {
-      projectId: '9a0a1623-6467-47dd-bbed-127a48489da7',
+      projectId: '',
     },
   },
 });
