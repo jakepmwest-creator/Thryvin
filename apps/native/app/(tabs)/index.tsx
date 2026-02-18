@@ -184,6 +184,13 @@ export default function HomeScreen() {
         return;
       }
       
+      // PRO GATE: Only show advanced questionnaire to Pro users
+      if (!isPro) {
+        console.log('📋 Skipping questionnaire - user is not Pro');
+        setHasCheckedQuestionnaire(true);
+        return;
+      }
+      
       // Check if questionnaire was already completed or skipped (user-specific key)
       const completed = await AsyncStorage.getItem(`advancedQuestionnaire_${userId}`);
       const skipped = await AsyncStorage.getItem(`advancedQuestionnaireSkipped_${userId}`);
@@ -204,7 +211,7 @@ export default function HomeScreen() {
       
       if (hasNoWorkouts && !globalCompleted && !globalSkipped) {
         // Show questionnaire popup IMMEDIATELY for new users
-        console.log('📋 New user detected - showing Advanced Questionnaire IMMEDIATELY');
+        console.log('📋 New Pro user detected - showing Advanced Questionnaire IMMEDIATELY');
         setShowAdvancedQuestionnaire(true);
       }
       
