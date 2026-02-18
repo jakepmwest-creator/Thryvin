@@ -27,6 +27,7 @@ export default ({ config }) => ({
   },
 
   ios: {
+    bundleIdentifier: "com.thryvin.app",
     supportsTablet: true,
   },
 
