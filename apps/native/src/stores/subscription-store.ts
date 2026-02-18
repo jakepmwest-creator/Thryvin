@@ -180,4 +180,40 @@ export const useSubscriptionStore = create<SubscriptionState>((set, get) => ({
       error: null,
     });
   },
+
+  // Production: Restore previous purchases
+  restorePurchases: async () => {
+    if (!Purchases || get().isTestMode) return false;
+    try {
+      set({ isLoading: true });
+      const info = await Purchases.restorePurchases();
+      const isPro = isThryvinProActive(info);
+      set({ customerInfo: info, isPro, isLoading: false });
+      return isPro;
+    } catch (error: any) {
+      console.warn('[Subscriptions] Restore error:', error?.message);
+      set({ isLoading: false });
+      return false;
+    }
+  },
+
+  // Production: Purchase a specific package
+  purchasePackage: async (pkg: any) => {
+    if (!Purchases || get().isTestMode) return false;
+    try {
+      set({ isLoading: true });
+      const { customerInfo } = await Purchases.purchasePackage(pkg);
+      const isPro = isThryvinProActive(customerInfo);
+      set({ customerInfo, isPro, isLoading: false });
+      return isPro;
+    } catch (error: any) {
+      if (error?.userCancelled) {
+        set({ isLoading: false });
+        return false;
+      }
+      console.warn('[Subscriptions] Purchase error:', error?.message);
+      set({ isLoading: false, error: error?.message });
+      return false;
+    }
+  },
 }));
