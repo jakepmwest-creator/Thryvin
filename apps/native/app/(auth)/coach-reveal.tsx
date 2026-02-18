@@ -194,8 +194,9 @@ export default function CoachRevealScreen() {
 
   const handleContinue = () => {
     router.push({
-      pathname: '/(auth)/quick-signup',
+      pathname: '/(auth)/plan-selection',
       params: { 
+        coachName,
         onboardingData: JSON.stringify({ ...onboardingData, coachName }),
       },
     });
