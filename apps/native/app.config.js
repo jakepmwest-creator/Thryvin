@@ -8,7 +8,7 @@ if (envResult.error) {
 }
 
 // Stable tunnel URL as fallback when .env is not loaded by Metro/Expo Go
-const FALLBACK_API_URL = 'https://induced-raised-polymer-protect.trycloudflare.com';
+const FALLBACK_API_URL = 'https://conventional-isa-equality-submitting.trycloudflare.com';
 
 export default {
   expo: {
