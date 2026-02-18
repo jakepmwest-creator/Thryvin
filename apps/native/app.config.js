@@ -31,6 +31,7 @@ export default ({ config }) => ({
   },
 
   android: {
+    package: "com.thryvin.app",
     adaptiveIcon: {
       foregroundImage: './assets/adaptive-icon.png',
       backgroundColor: '#ffffff',
