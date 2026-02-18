@@ -11,8 +11,8 @@ const FALLBACK_API_URL =
 
 export default ({ config }) => ({
   ...config,
-  name: 'native',
-  slug: 'native',
+  name: 'Thryvin',
+  slug: 'thryvin',
   version: '1.0.0',
   orientation: 'portrait',
   icon: './assets/icon.png',
