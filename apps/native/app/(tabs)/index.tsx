@@ -220,7 +220,7 @@ export default function HomeScreen() {
       console.error('Error checking questionnaire status:', error);
       setHasCheckedQuestionnaire(true);
     }
-  }, [user?.id, weekWorkouts.length, completedWorkouts.length, hasCheckedQuestionnaire]);
+  }, [user?.id, weekWorkouts.length, completedWorkouts.length, hasCheckedQuestionnaire, isPro]);
 
   const checkRollingRegeneration = useCallback(async () => {
     if (hasCheckedRollingRegeneration) return;
