@@ -7,7 +7,7 @@ if (envResult.error) {
 }
 
 const FALLBACK_API_URL =
-  'https://conventional-isa-equality-submitting.trycloudflare.com';
+  'https://thryvin-production-fbdd.up.railway.app';
 
 export default ({ config }) => ({
   ...config,
