@@ -17,7 +17,7 @@ export default ({ config }) => ({
   orientation: 'portrait',
   icon: './assets/icon.png',
   userInterfaceStyle: 'light',
-  newArchEnabled: true,
+  newArchEnabled: false,
   scheme: 'thryvin',
 
   splash: {
@@ -48,8 +48,8 @@ export default ({ config }) => ({
   plugins: ['expo-router'],
 
   experiments: {
-    bridgeless: true,
-    turboModules: true,
+    bridgeless: false,
+    turboModules: false,
   },
 
   extra: {
