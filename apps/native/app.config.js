@@ -48,8 +48,8 @@ export default ({ config }) => ({
   plugins: ['expo-router'],
 
   experiments: {
-    bridgeless: false,
-    turboModules: false,
+    bridgeless: true,
+    turboModules: true,
   },
 
   extra: {
