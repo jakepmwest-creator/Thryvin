@@ -2,23 +2,18 @@ const { getDefaultConfig } = require('expo/metro-config');
 const path = require('path');
 
 const projectRoot = __dirname;
+const monorepoRoot = path.resolve(projectRoot, '../..');
 
 /** @type {import('expo/metro-config').MetroConfig} */
-const config = getDefaultConfig(__dirname);
+const config = getDefaultConfig(projectRoot);
 
-// Simplified config - only watch this project's files
-// Removed monorepo support to reduce file watchers
-config.watchFolders = [projectRoot];
+// Monorepo: watch both project and root for hoisted packages
+config.watchFolders = [monorepoRoot];
 
-// Resolve packages from local node_modules only
-config.resolver = {
-  ...config.resolver,
-  nodeModulesPaths: [
-    path.resolve(projectRoot, 'node_modules'),
-  ],
-  // Fix Metro package exports issue with Expo SDK 54
-  // This resolves ERR_PACKAGE_PATH_NOT_EXPORTED errors
-  unstable_enablePackageExports: false,
-};
+// Monorepo: resolve from both local and root node_modules
+config.resolver.nodeModulesPaths = [
+  path.resolve(projectRoot, 'node_modules'),
+  path.resolve(monorepoRoot, 'node_modules'),
+];
 
 module.exports = config;
