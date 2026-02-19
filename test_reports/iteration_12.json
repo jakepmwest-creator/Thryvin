@@ -1,0 +1,92 @@
+{
+  "summary": "All backend API tests passed. Code review verified 22/23 items correctly implemented. One issue found: awards-store.ts getIslandProgress() still uses 0.8 multiplier at line 1027.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [],
+    "code_review_issues": [
+      {
+        "file": "/app/apps/native/src/stores/awards-store.ts",
+        "line": 1027,
+        "issue": "getIslandProgress() uses 0.8 multiplier: `const required = Math.ceil(currentIslandBadges.length * 0.8);` - should use full count per requirements",
+        "priority": "MEDIUM",
+        "note": "The actual island ADVANCEMENT logic at line 983 is correct (100%). This is only affecting the progress DISPLAY function."
+      }
+    ]
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_iteration12.py",
+    "/app/test_reports/pytest/pytest_iteration12.xml"
+  ],
+  "action_items": [
+    "Fix awards-store.ts line 1027: Change `const required = Math.ceil(currentIslandBadges.length * 0.8);` to `const required = currentIslandBadges.length;` to match the 100% requirement"
+  ],
+  "critical_code_review_comments": [
+    "✅ FloatingCoachButton.tsx line 497: 'help' keyword uses strict equality (===), not .includes('help') - correctly avoids matching 'Can you help?'",
+    "✅ ProPaywallModal.tsx: Price shows £6.25/mo (not £5.75), includes 'Nutrition & social features' with 'Coming soon', no 'Coach personality selection'",
+    "✅ billing.tsx: Only 2 plans (Monthly £7.99, Yearly £74.99), yearly shows £6.25/month equivalent, no quarterly plan, no 'Coach personality selection'",
+    "✅ AppHeader.tsx: Pro badge is conditional on isPro && with LinearGradient",
+    "✅ workout-hub.tsx handleEditWorkout: Checks !isPro and shows paywall",
+    "✅ workouts.tsx: Edit Plan button and ViewAllWeeksModal onEditPress both gated with isPro check",
+    "✅ index.tsx: ViewAllWeeksModal onEditPress gated with isPro check",
+    "✅ awards-store.ts: Island 2 requiredBadges=20 (100%), island ADVANCEMENT at line 983 uses full count",
+    "⚠️ awards-store.ts: getIslandProgress() at line 1027 still uses 0.8 multiplier for DISPLAY",
+    "✅ pro.tsx: PRO_FEATURES has no 'Coach personality', plan chips only 'Monthly' and 'Yearly', price 'From £6.25/mo*'"
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_iteration12.py"
+  ],
+  "success_rate": {
+    "backend": "100% (4/4 API tests passed: health, exercises exact match, coach chat auth, coach chat response)",
+    "frontend": "N/A - React Native app, code review only (22/23 passed)"
+  },
+  "test_credentials": {
+    "test_user": "test@example.com / password123",
+    "note": "Test user login returns accessToken for Bearer auth"
+  },
+  "seed_data_creation": "No seed data needed - used existing test user",
+  "retest_needed": false,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "All features verified except one code issue in awards-store.ts. The /api/auth/login-test-user endpoint mentioned in request does NOT exist - use /api/auth/login with test@example.com / password123 instead. Coach chat API works with Bearer token auth. RevenueCat MOCKED in Expo Go.",
+  "tests_passed": {
+    "API_Tests": [
+      "test_health_returns_ok",
+      "test_exact_match_barbell_bench_press",
+      "test_coach_chat_requires_auth",
+      "test_coach_chat_with_auth_returns_response"
+    ],
+    "Code_Review_Tests": [
+      "test_help_keyword_matching",
+      "test_pricing_shows_correct_amount",
+      "test_features_include_nutrition_social",
+      "test_no_coach_personality_selection",
+      "test_only_two_plans",
+      "test_yearly_shows_as_monthly_equivalent",
+      "test_billing_features_no_coach_personality",
+      "test_billing_features_include_nutrition_social",
+      "test_pro_badge_conditional_on_ispro",
+      "test_pro_badge_uses_linear_gradient",
+      "test_handle_edit_workout_checks_ispro",
+      "test_edit_plan_button_gated",
+      "test_view_all_weeks_modal_edit_gated",
+      "test_index_view_all_weeks_modal_edit_gated",
+      "test_island_2_requires_20_badges",
+      "test_pro_features_no_coach_personality",
+      "test_plan_chips_only_monthly_and_yearly",
+      "test_price_from_6_25_mo"
+    ]
+  },
+  "tests_failed": {
+    "Code_Review_Tests": [
+      "test_island_progression_uses_full_count - awards-store.ts line 1027 still uses 0.8 multiplier"
+    ]
+  },
+  "mocked_apis": {
+    "RevenueCat": "MOCKED - In-app purchases mocked in Expo Go environment"
+  },
+  "note_on_login_test_user": "The /api/auth/login-test-user endpoint mentioned in test request does NOT exist. Correct approach is /api/auth/login with {email: 'test@example.com', password: 'password123'}"
+}

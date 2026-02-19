@@ -1,0 +1,80 @@
+{
+  "summary": "Coach Button Refactor backend testing completed. Code review PASSED - all implementations correct. API tests partially failed due to OpenAI quota exceeded (external dependency issue, not code issue).",
+  "backend_issues": {
+    "critical": [
+      {
+        "endpoint": "/api/coach/chat",
+        "issue": "OpenAI API quota exceeded - returns 'I'm having trouble connecting' error. This is an EXTERNAL DEPENDENCY issue, not a code bug.",
+        "priority": "HIGH",
+        "root_cause": "OpenAI API key has exceeded its quota limit (429 RateLimitError)",
+        "recommendation": "Check OpenAI billing/plan or use a different API key"
+      }
+    ],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/tests/test_coach_refactor.py",
+    "/app/test_reports/pytest/pytest_coach_refactor.xml"
+  ],
+  "action_items": [
+    "CRITICAL: OpenAI API quota exceeded - need to check billing or use different API key",
+    "Once OpenAI API is working, re-run coach API tests to verify READ-ONLY behavior"
+  ],
+  "critical_code_review_comments": [
+    "✅ ai-coach-service.ts correctly implements READ-ONLY behavior with CRITICAL RULES at lines 361-381",
+    "✅ ai-coach-service.ts has 'NEVER use profanity' rule at line 374",
+    "✅ ai-coach-service.ts has witty response handling for non-fitness questions at lines 247-256",
+    "✅ ai-coach-service.ts correctly directs users to Edit Plan, Profile, etc. at lines 376-380",
+    "✅ FloatingCoachButton.tsx has planModificationKeywords array at line 320 including 'feeling energetic'",
+    "✅ FloatingCoachButton.tsx correctly redirects all modification requests to Edit Plan",
+    "✅ onboarding.tsx does NOT include 'nutritionGoals' step (removed)",
+    "✅ onboarding.tsx does NOT include 'coaching' step (removed)",
+    "✅ Onboarding has correct 11 steps: name, gender, birthdate, measurements, experience, fitnessGoals, equipment, frequency, duration, trainingSchedule, injuries"
+  ],
+  "updated_files": [
+    "/app/tests/test_coach_refactor.py"
+  ],
+  "success_rate": {
+    "backend": "59% (13/22 passed - 9 failed due to OpenAI quota)",
+    "code_review": "100% - All code implementations verified correct"
+  },
+  "test_credentials": {
+    "email": "test@example.com",
+    "password": "password123"
+  },
+  "seed_data_creation": "None - used existing test user",
+  "retest_needed": true,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Coach Button Refactor code is correctly implemented. All 9 API test failures are due to OpenAI API quota exceeded (429 RateLimitError), NOT code bugs. Once OpenAI API is working, re-run /app/tests/test_coach_refactor.py to verify: 1) Coach redirects modification requests to Edit Plan, 2) Coach returns witty responses for non-fitness questions, 3) Coach never uses profanity, 4) Coach directs users to appropriate app sections. Code review tests (13/13) all passed confirming correct implementation.",
+  "code_verification_results": {
+    "ai_coach_service_ts": {
+      "READ_ONLY_behavior": "VERIFIED - Lines 361-363",
+      "Edit_Plan_redirects": "VERIFIED - Lines 364-367",
+      "witty_responses": "VERIFIED - Lines 247-256, 368-370",
+      "no_profanity_rule": "VERIFIED - Lines 374-375",
+      "app_section_directions": "VERIFIED - Lines 376-380"
+    },
+    "FloatingCoachButton_tsx": {
+      "planModificationKeywords": "VERIFIED - Lines 320-334",
+      "feeling_energetic_handling": "VERIFIED - Line 331, 343-345",
+      "Edit_Plan_redirects": "VERIFIED - Lines 338-372",
+      "Profile_redirects": "VERIFIED - Lines 374-398"
+    },
+    "onboarding_tsx": {
+      "nutritionGoals_removed": "VERIFIED - Not in ONBOARDING_STEPS",
+      "coaching_removed": "VERIFIED - Not in ONBOARDING_STEPS",
+      "correct_steps_count": "VERIFIED - 11 steps"
+    }
+  },
+  "external_dependency_issue": {
+    "service": "OpenAI API",
+    "error": "429 RateLimitError - You exceeded your current quota",
+    "impact": "Coach chat API returns fallback error message instead of AI response",
+    "resolution": "Check OpenAI billing/plan or use different API key"
+  }
+}

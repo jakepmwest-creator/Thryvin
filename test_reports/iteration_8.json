@@ -1,0 +1,102 @@
+{
+  "summary": "Badges and Training Days Bug Fix Testing - Iteration 8. All 20 tests PASSED. Verified that: 1) Badge tracking works correctly for coach messages, video watched, profile edit, badge shared actions. 2) Badge progress is saved and loaded correctly from server. 3) Training days selected during onboarding (preferredTrainingDays) are now correctly used for workout scheduling. The training days bug was caused by the backend not rebuilding after code changes - the fix was already in place but not compiled.",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {
+        "endpoint": "/api/badges/progress",
+        "issue": "Returns empty badges array for new users - frontend must initialize badges locally",
+        "priority": "LOW",
+        "note": "This is by design - the frontend awards-store.ts initializes badges when server returns empty array"
+      }
+    ]
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/tests/test_badges_and_training_days.py",
+    "/app/test_reports/pytest/pytest_badges_training_days_v2.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "✅ Badge tracking endpoints (/api/badges/track, /api/badges/progress, /api/badges/stats) all working correctly",
+    "✅ Training days are stored correctly during registration (preferredTrainingDays field)",
+    "✅ Week generation now correctly uses user's preferredTrainingDays to determine rest days",
+    "✅ The split-planner.ts correctly schedules workouts only on user's selected gym days",
+    "NOTE: Backend uses compiled JavaScript (dist/index.js) - changes to .ts files require 'yarn build' to take effect"
+  ],
+  "updated_files": [],
+  "success_rate": {
+    "backend": "100% (20/20 tests passed)"
+  },
+  "test_credentials": {
+    "note": "Test users created dynamically with unique UUIDs per test run"
+  },
+  "seed_data_creation": "Test users created via /api/auth/register with selectedDays=['mon','wed','fri']",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Both badge tracking and training days features are working correctly. Badge tracking: POST /api/badges/track with action='coachMessage'|'videoWatched'|'profileEdit'|'badgeShared' increments counters in user_badge_stats table. Training days: User's preferredTrainingDays from registration are correctly parsed and passed to the split-planner which schedules workouts only on those days.",
+  "verified_features": {
+    "badge_tracking": {
+      "coachMessage": "VERIFIED - Increments totalCoachMessages counter",
+      "videoWatched": "VERIFIED - Increments totalVideosWatched counter",
+      "profileEdit": "VERIFIED - Sets hasEditedProfile to true",
+      "badgeShared": "VERIFIED - Increments totalBadgesShared counter"
+    },
+    "badge_progress": {
+      "save": "VERIFIED - PUT /api/badges/progress saves badges array, totalXP, currentIsland",
+      "load": "VERIFIED - GET /api/badges/progress returns saved data",
+      "reset": "VERIFIED - POST /api/badges/reset clears all badge progress"
+    },
+    "training_days": {
+      "storage": "VERIFIED - preferredTrainingDays stored as JSON string during registration",
+      "parsing": "VERIFIED - Day names ('mon','wed','fri') converted to indices (1,3,5)",
+      "week_generation": "VERIFIED - Workouts scheduled only on user's selected days, rest days on other days"
+    }
+  },
+  "test_results_summary": {
+    "TestBadgesAndTrainingDays": {
+      "test_01_health_check": "PASSED",
+      "test_02_register_with_training_days": "PASSED - preferredTrainingDays stored correctly",
+      "test_03_login_success": "PASSED",
+      "test_04_badges_initialized_for_new_user": "PASSED - Server returns empty array, frontend initializes",
+      "test_05_track_coach_message": "PASSED",
+      "test_06_badge_stats_after_tracking": "PASSED - 3 messages tracked correctly",
+      "test_07_track_video_watched": "PASSED",
+      "test_08_track_profile_edit": "PASSED",
+      "test_09_track_badge_shared": "PASSED",
+      "test_10_track_invalid_action": "PASSED - Returns 400 for invalid actions",
+      "test_11_save_badge_progress": "PASSED",
+      "test_12_load_saved_badge_progress": "PASSED - Data persisted correctly",
+      "test_13_generate_week_uses_training_days": "PASSED - Workouts on Mon/Wed/Fri, rest on other days",
+      "test_14_user_profile_contains_training_days": "PASSED",
+      "test_15_badge_reset": "PASSED",
+      "test_16_badges_progress_requires_auth": "PASSED - Returns 401",
+      "test_17_badges_track_requires_auth": "PASSED - Returns 401",
+      "test_18_badges_stats_requires_auth": "PASSED - Returns 401"
+    },
+    "TestWorkoutCompletionBadges": {
+      "test_01_log_workout_set": "PASSED",
+      "test_02_complete_workout_updates_stats": "PASSED"
+    }
+  },
+  "rca_of_the_issue": {
+    "training_days_bug": {
+      "root_cause": "The fix for training days was already in the code (routes.ts lines 6931-6988) but the backend was running compiled JavaScript (dist/index.js) that didn't include the fix. The TypeScript changes were not compiled.",
+      "reproduction_steps": [
+        "1. Register user with selectedDays=['mon','wed','fri']",
+        "2. Call POST /api/v1/workouts/generate-week",
+        "3. Observe workouts generated on wrong days (Tue/Thu/Sun instead of Mon/Wed/Fri)"
+      ],
+      "fix_applied": "Ran 'yarn build' to compile TypeScript to JavaScript, then restarted backend",
+      "verification": "Week generation now correctly schedules workouts on Mon/Wed/Fri and rest days on other days"
+    },
+    "badges_bug": {
+      "root_cause": "The badge tracking endpoints were working correctly. The issue may have been on the frontend side - the awards-store.ts needs to call the tracking endpoints when actions occur.",
+      "note": "Backend badge tracking is fully functional. If badges are not being triggered, check that the frontend is calling /api/badges/track with the correct action parameter."
+    }
+  }
+}
