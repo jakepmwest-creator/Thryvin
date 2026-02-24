@@ -47,11 +47,6 @@ export default ({ config }) => ({
 
   plugins: ['expo-router'],
 
-  experiments: {
-    bridgeless: false,
-    turboModules: false,
-  },
-
   extra: {
     ...config.extra,
     openaiApiKey: process.env.EXPO_PUBLIC_OPENAI_API_KEY,
