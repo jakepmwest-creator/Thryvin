@@ -6,19 +6,16 @@
   "build": {
     "development": {
       "developmentClient": true,
-      "distribution": "internal",
-      "workingDirectory": "apps/native"
+      "distribution": "internal"
     },
     "preview": {
       "distribution": "internal",
       "developmentClient": false,
-      "workingDirectory": "apps/native",
       "android": { "buildType": "apk" }
     },
     "production": {
       "distribution": "store",
       "autoIncrement": true,
-      "workingDirectory": "apps/native",
       "android": { "buildType": "app-bundle" }
     }
   }
