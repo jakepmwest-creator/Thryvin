@@ -12,6 +12,10 @@
     "node": ">=20.0.0"
   },
   "dependencies": {
+    "@babel/plugin-transform-template-literals": "^7.27.1",
+    "@expo/cli": "^55.0.14",
+    "@expo/metro-config": "^55.0.9",
+    "@expo/schema-utils": "^55.0.2",
     "@expo/vector-icons": "^15.0.2",
     "@react-native-async-storage/async-storage": "2.2.0",
     "@react-native-community/datetimepicker": "8.4.4",
