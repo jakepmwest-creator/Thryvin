@@ -32,6 +32,9 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ onAnimationComplete 
   const glowAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
+    console.log('[SPLASH] Starting splash animation...');
+    
+    try {
     // Continuous subtle glow animation
     Animated.loop(
       Animated.sequence([
@@ -111,8 +114,13 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ onAnimationComplete 
         useNativeDriver: true,
       }),
     ]).start(() => {
+      console.log('[SPLASH] Animation complete, calling onAnimationComplete');
       onAnimationComplete?.();
     });
+    } catch (e) {
+      console.log('[SPLASH] Animation error (non-fatal):', e);
+      onAnimationComplete?.(); // Continue anyway
+    }
   }, []);
 
   const glowOpacity = glowAnim.interpolate({

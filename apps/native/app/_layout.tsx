@@ -7,6 +7,14 @@ import { SplashScreen } from '../src/components/SplashScreen';
 import { useAuthStore } from '../src/stores/auth-store';
 import { useSubscriptionStore } from '../src/stores/subscription-store';
 import { initializeApiUrl } from '../src/services/env';
+import { LogBox } from 'react-native';
+
+// Ignore specific warnings in development
+LogBox.ignoreLogs([
+  'Non-serializable values were found in the navigation state',
+]);
+
+console.log('[APP] RootLayout starting...');
 
 export default function RootLayout() {
   const segments = useSegments();
@@ -18,7 +26,14 @@ export default function RootLayout() {
   
   // Load any saved API URL override from AsyncStorage on mount
   useEffect(() => {
-    initializeApiUrl().then(() => setApiReady(true));
+    console.log('[APP] Initializing API URL...');
+    initializeApiUrl().then(() => {
+      console.log('[APP] API URL initialized');
+      setApiReady(true);
+    }).catch(err => {
+      console.log('[APP] API URL init error (non-fatal):', err);
+      setApiReady(true); // Continue anyway
+    });
   }, []);
   
   // Show coach button only when user is logged in AND not in auth flow
@@ -31,10 +46,21 @@ export default function RootLayout() {
   const contextMode = isInWorkout ? 'in_workout' : 'home';
 
   const handleSplashComplete = () => {
+    console.log('[APP] Splash animation complete');
     setShowSplash(false);
   };
 
+  // Failsafe: auto-hide splash after 5 seconds even if animation doesn't complete
   useEffect(() => {
+    const timer = setTimeout(() => {
+      console.log('[APP] Splash timeout - hiding splash');
+      setShowSplash(false);
+    }, 5000);
+    return () => clearTimeout(timer);
+  }, []);
+
+  useEffect(() => {
+    console.log('[APP] Initializing subscriptions for user:', user?.id);
     initializeSubscriptions(user?.id ? String(user.id) : null);
   }, [user?.id, initializeSubscriptions]);
 
