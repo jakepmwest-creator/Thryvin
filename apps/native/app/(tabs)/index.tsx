@@ -736,8 +736,24 @@ export default function HomeScreen() {
                   Your AI coach is creating personalized workouts for the next 3 weeks. This may take a minute...
                 </Text>
                 <Text style={styles.generatingNotice}>
-                  We'll let you know when it's finished ✨
+                  We'll let you know when it's finished
                 </Text>
+              </View>
+            </View>
+          ) : !actualTodayWorkout && !workoutError ? (
+            <View style={styles.todayWorkoutCard}>
+              <View style={styles.workoutContent}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+                  <Text style={styles.sectionLabel}>TODAY'S WORKOUT</Text>
+                </View>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+                  <View style={{ flex: 1, gap: 8 }}>
+                    <View style={{ height: 18, width: '70%', backgroundColor: '#F3F0FF', borderRadius: 8 }} />
+                    <View style={{ height: 14, width: '50%', backgroundColor: '#F3F0FF', borderRadius: 6 }} />
+                  </View>
+                  <ActivityIndicator size="small" color={COLORS.gradientStart} />
+                </View>
+                <Text style={{ fontSize: 12, color: COLORS.mediumGray, marginTop: 10, fontStyle: 'italic' }}>Preparing your session...</Text>
               </View>
             </View>
           ) : workoutError ? (

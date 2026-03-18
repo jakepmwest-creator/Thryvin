@@ -48,9 +48,12 @@ const flexKeywords = ['stretch', 'yoga', 'mobility', 'warmup', 'warm-up', 'recov
 
 function getThumbUrl(exercise: any): string | null {
   if (!exercise) return null;
-  if (exercise.thumbnailUrl) return exercise.thumbnailUrl;
+  const thumb = exercise.thumbnailUrl;
+  if (thumb && typeof thumb === 'string' && thumb.startsWith('http') && (thumb.endsWith('.jpg') || thumb.endsWith('.png') || thumb.endsWith('.webp'))) {
+    return thumb;
+  }
   const videoUrl = exercise.videoUrl;
-  if (isValidVideoUrl(videoUrl)) {
+  if (isValidVideoUrl(videoUrl) && videoUrl.includes('cloudinary')) {
     return videoUrl.replace('/upload/', '/upload/w_400,h_300,c_fill,so_1/').replace('.mp4', '.jpg');
   }
   return null;

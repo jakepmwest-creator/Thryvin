@@ -34,9 +34,14 @@ const T = {
 
 function getThumbUrl(exercise: any): string | null {
   if (!exercise) return null;
-  if (exercise.thumbnailUrl) return exercise.thumbnailUrl;
+  // Only use thumbnailUrl if it's actually an image (not .mp4)
+  const thumb = exercise.thumbnailUrl;
+  if (thumb && typeof thumb === 'string' && thumb.startsWith('http') && (thumb.endsWith('.jpg') || thumb.endsWith('.png') || thumb.endsWith('.webp'))) {
+    return thumb;
+  }
+  // Generate from Cloudinary video URL
   const videoUrl = exercise.videoUrl;
-  if (isValidVideoUrl(videoUrl)) {
+  if (isValidVideoUrl(videoUrl) && videoUrl.includes('cloudinary')) {
     return videoUrl.replace('/upload/', '/upload/w_600,h_400,c_fill,so_1/').replace('.mp4', '.jpg');
   }
   return null;
@@ -47,9 +52,10 @@ const ExerciseDetailSheet = memo(({ exercise, visible, onClose }: {
   exercise: any; visible: boolean; onClose: () => void;
 }) => {
   const hasVideo = isValidVideoUrl(exercise?.videoUrl);
-  const { getPreference, likeExercise, dislikeExercise, removePreference, isStarred, starExercise, unstarExercise } = usePreferencesStore();
+  const { getPreference, likeExercise, dislikeExercise, removePreference, isStarred, starExercise, unstarExercise, getStarredExercises, replaceStarred } = usePreferencesStore();
   const [stats, setStats] = useState<any>(null);
   const [statsLoading, setStatsLoading] = useState(false);
+  const [pendingStar, setPendingStar] = useState(false);
   const preference = exercise ? getPreference(exercise.id) : null;
   const starred = exercise ? isStarred(exercise.id) : false;
 
@@ -74,8 +80,9 @@ const ExerciseDetailSheet = memo(({ exercise, visible, onClose }: {
     else likeExercise(exercise.id, exercise.name);
   };
   const handleStar = async () => {
-    if (starred) unstarExercise(exercise.id);
-    else await starExercise(exercise.id, exercise.name, exercise.videoUrl);
+    if (starred) { unstarExercise(exercise.id); return; }
+    const added = await starExercise(exercise.id, exercise.name, exercise.videoUrl);
+    if (!added) setPendingStar(true);
   };
   const hasHistory = stats?.history?.length > 0;
   const latestSession = hasHistory ? stats.history[0] : null;
@@ -156,6 +163,29 @@ const ExerciseDetailSheet = memo(({ exercise, visible, onClose }: {
           </ScrollView>
         </View>
       </View>
+
+      {/* Replace Star Modal */}
+      {pendingStar && exercise && (
+        <Modal visible={pendingStar} transparent animationType="fade" onRequestClose={() => setPendingStar(false)}>
+          <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'center', padding: 24 }}>
+            <View style={{ backgroundColor: T.bg, borderRadius: 20, padding: 20 }}>
+              <Text style={{ fontSize: 18, fontWeight: '700', color: T.text, marginBottom: 6 }}>Replace a Favourite</Text>
+              <Text style={{ fontSize: 13, color: T.textSecondary, lineHeight: 19, marginBottom: 16 }}>
+                You have 3 starred exercises. Replace one with <Text style={{ fontWeight: '700', color: G.start }}>{exercise.name}</Text>?
+              </Text>
+              {getStarredExercises().map(s => (
+                <TouchableOpacity key={s.exerciseId} onPress={async () => { await replaceStarred(s.exerciseId, exercise.id, exercise.name, exercise.videoUrl); setPendingStar(false); }}
+                  style={{ flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 12, paddingHorizontal: 12, backgroundColor: T.surface, borderRadius: 12, marginBottom: 8, borderWidth: 1, borderColor: T.cardBorder }}>
+                  <Ionicons name="star" size={18} color={T.starred} /><Text style={{ flex: 1, fontSize: 14, fontWeight: '600', color: T.text }}>{s.exerciseName}</Text><Ionicons name="swap-horizontal" size={18} color={T.textMuted} />
+                </TouchableOpacity>
+              ))}
+              <TouchableOpacity onPress={() => setPendingStar(false)} style={{ marginTop: 8, alignItems: 'center', paddingVertical: 12 }}>
+                <Text style={{ fontSize: 14, fontWeight: '600', color: T.textMuted }}>Cancel</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </Modal>
+      )}
     </Modal>
   );
 });
