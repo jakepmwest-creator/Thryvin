@@ -5,25 +5,40 @@ import {
   StyleSheet,
   Modal,
   TouchableOpacity,
-  ScrollView,
+  FlatList,
+  Image,
   Dimensions,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
-import { Video, ResizeMode } from 'expo-av';
 import { usePreferencesStore } from '../stores/preferences-store';
+import { isValidVideoUrl } from './ExerciseVideoPlayer';
+import { getApiBaseUrl } from '../services/env';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
+const API_BASE_URL = getApiBaseUrl();
+const TILE_GAP = 10;
+const TILE_WIDTH = (SCREEN_WIDTH - 48 - TILE_GAP) / 2;
 
 const COLORS = {
+  bg: '#0D0D0D',
+  card: '#1A1A1A',
+  cardBorder: '#2A2A2A',
   accent: '#A22BF6',
   accentSecondary: '#FF4EC7',
-  white: '#ffffff',
-  text: '#222222',
-  lightGray: '#F8F9FA',
-  mediumGray: '#8E8E93',
-  success: '#34C759',
-  error: '#FF3B30',
+  white: '#FFFFFF',
+  text: '#F5F5F5',
+  textSecondary: '#9E9E9E',
+  liked: '#34C759',
+  disliked: '#FF3B30',
+};
+
+// Cloudinary thumbnail helper
+const getThumbUrl = (videoUrl: string | undefined) => {
+  if (!videoUrl?.includes('cloudinary')) return null;
+  return videoUrl
+    .replace('/video/upload/', '/video/upload/so_0,f_jpg,w_400,h_400,c_fill,g_center/')
+    .replace('.mp4', '.jpg');
 };
 
 interface LikedDislikedModalProps {
@@ -31,169 +46,179 @@ interface LikedDislikedModalProps {
   onClose: () => void;
 }
 
-export function LikedDislikedModal({ visible, onClose }: LikedDislikedModalProps) {
-  const [activeTab, setActiveTab] = useState<'liked' | 'disliked'>('liked');
-  const { preferences, loadPreferences, removePreference } = usePreferencesStore();
-  
+// Individual tile for liked/disliked exercises
+const PrefTile = React.memo(({ item, onRemove }: { item: any; onRemove: () => void }) => {
+  const thumbUrl = item.videoUrl ? getThumbUrl(item.videoUrl) : null;
+  const isLiked = item.preference === 'liked';
+
+  return (
+    <View style={styles.tile}>
+      <View style={styles.tileThumb}>
+        {thumbUrl ? (
+          <Image source={{ uri: thumbUrl }} style={styles.tileImage} resizeMode="cover" />
+        ) : (
+          <LinearGradient colors={['#222', '#333']} style={styles.tilePlaceholder}>
+            <Ionicons name="barbell-outline" size={24} color="rgba(255,255,255,0.3)" />
+          </LinearGradient>
+        )}
+        {/* Status badge */}
+        <View style={[styles.statusBadge, isLiked ? styles.likedBadge : styles.dislikedBadge]}>
+          <Ionicons
+            name={isLiked ? 'heart' : 'thumbs-down'}
+            size={10}
+            color={COLORS.white}
+          />
+        </View>
+      </View>
+      <View style={styles.tileInfo}>
+        <Text style={styles.tileName} numberOfLines={2}>{item.exerciseName}</Text>
+      </View>
+      <TouchableOpacity onPress={onRemove} style={styles.removeBtn}>
+        <Ionicons name="close-circle" size={18} color={COLORS.textSecondary} />
+      </TouchableOpacity>
+    </View>
+  );
+});
+
+export const LikedDislikedModal = ({ visible, onClose }: LikedDislikedModalProps) => {
+  const { getLikedExercises, getDislikedExercises, removePreference } = usePreferencesStore();
+  const [tab, setTab] = useState<'liked' | 'disliked'>('liked');
+  const [exercises, setExercises] = useState<any[]>([]);
+  const [exerciseMap, setExerciseMap] = useState<Record<string, any>>({});
+
+  // Fetch exercise data (for video URLs)
   useEffect(() => {
-    if (visible) {
-      loadPreferences();
-    }
+    if (!visible) return;
+    (async () => {
+      try {
+        const res = await fetch(`${API_BASE_URL}/api/exercises?limit=2000`);
+        const data = await res.json();
+        const map: Record<string, any> = {};
+        (data.exercises || []).forEach((ex: any) => {
+          map[ex.id] = ex;
+          map[ex.name?.toLowerCase()] = ex;
+        });
+        setExerciseMap(map);
+      } catch (e) {
+        console.error('Failed to load exercises for modal:', e);
+      }
+    })();
   }, [visible]);
-  
-  const likedExercises = preferences.filter(p => p.preference === 'liked');
-  const dislikedExercises = preferences.filter(p => p.preference === 'disliked');
-  
-  const currentList = activeTab === 'liked' ? likedExercises : dislikedExercises;
-  
-  // Group by category
-  const groupedByCategory = currentList.reduce((acc, pref) => {
-    // Simple categorization based on exercise name
-    let category = 'Other';
-    const name = pref.exerciseName.toLowerCase();
-    
-    if (name.includes('squat') || name.includes('deadlift') || name.includes('press') || name.includes('row') || name.includes('pull')) {
-      category = 'Strength';
-    } else if (name.includes('burpee') || name.includes('jump') || name.includes('sprint') || name.includes('mountain climber')) {
-      category = 'HIIT';
-    } else if (name.includes('run') || name.includes('jog') || name.includes('cycle') || name.includes('cardio')) {
-      category = 'Cardio';
-    } else if (name.includes('yoga') || name.includes('stretch') || name.includes('flexibility')) {
-      category = 'Flexibility';
-    }
-    
-    if (!acc[category]) {
-      acc[category] = [];
-    }
-    acc[category].push(pref);
-    return acc;
-  }, {} as Record<string, typeof currentList>);
-  
+
+  const currentList = tab === 'liked' ? getLikedExercises() : getDislikedExercises();
+  const likedCount = getLikedExercises().length;
+  const dislikedCount = getDislikedExercises().length;
+
+  // Enrich preferences with video URLs
+  const enrichedList = currentList.map(pref => {
+    const match = exerciseMap[pref.exerciseId] || exerciseMap[pref.exerciseName?.toLowerCase()];
+    return {
+      ...pref,
+      videoUrl: match?.videoUrl,
+    };
+  });
+
   return (
     <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose}>
       <View style={styles.overlay}>
         <View style={styles.container}>
           {/* Header */}
-          <LinearGradient
-            colors={[COLORS.accent, COLORS.accentSecondary]}
-            style={styles.header}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-          >
-            <TouchableOpacity onPress={onClose} style={styles.closeButton}>
-              <Ionicons name="close" size={24} color={COLORS.white} />
+          <View style={styles.header}>
+            <TouchableOpacity onPress={onClose} style={styles.backBtn}>
+              <Ionicons name="chevron-back" size={24} color={COLORS.white} />
             </TouchableOpacity>
-            <View style={styles.headerContent}>
-              <Text style={styles.headerTitle}>My Preferences</Text>
-              <Text style={styles.headerSubtitle}>
-                {likedExercises.length} liked • {dislikedExercises.length} disliked
-              </Text>
-            </View>
-          </LinearGradient>
-          
-          {/* Toggle */}
-          <View style={styles.toggleContainer}>
+            <Text style={styles.headerTitle}>Your Exercises</Text>
+          </View>
+
+          {/* Tabs */}
+          <View style={styles.tabRow}>
             <TouchableOpacity
-              style={[styles.toggleButton, activeTab === 'liked' && styles.toggleButtonActive]}
-              onPress={() => setActiveTab('liked')}
+              style={[styles.tab, tab === 'liked' && styles.tabActive]}
+              onPress={() => setTab('liked')}
+              data-testid="liked-tab"
             >
-              <Ionicons 
-                name={activeTab === 'liked' ? 'heart' : 'heart-outline'} 
-                size={20} 
-                color={activeTab === 'liked' ? COLORS.white : COLORS.accent} 
-              />
-              <Text style={[styles.toggleText, activeTab === 'liked' && styles.toggleTextActive]}>
-                Liked ({likedExercises.length})
+              <Ionicons name="heart" size={16} color={tab === 'liked' ? COLORS.liked : COLORS.textSecondary} />
+              <Text style={[styles.tabText, tab === 'liked' && styles.tabTextActive]}>
+                Liked ({likedCount})
               </Text>
             </TouchableOpacity>
-            
             <TouchableOpacity
-              style={[styles.toggleButton, activeTab === 'disliked' && styles.toggleButtonActive]}
-              onPress={() => setActiveTab('disliked')}
+              style={[styles.tab, tab === 'disliked' && styles.tabActive]}
+              onPress={() => setTab('disliked')}
+              data-testid="disliked-tab"
             >
-              <Ionicons 
-                name={activeTab === 'disliked' ? 'thumbs-down' : 'thumbs-down-outline'} 
-                size={20} 
-                color={activeTab === 'disliked' ? COLORS.white : COLORS.error} 
-              />
-              <Text style={[styles.toggleText, activeTab === 'disliked' && styles.toggleTextActive]}>
-                Disliked ({dislikedExercises.length})
+              <Ionicons name="thumbs-down" size={16} color={tab === 'disliked' ? COLORS.disliked : COLORS.textSecondary} />
+              <Text style={[styles.tabText, tab === 'disliked' && { color: COLORS.disliked }]}>
+                Disliked ({dislikedCount})
               </Text>
             </TouchableOpacity>
           </View>
-          
-          {/* Content */}
-          <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-            {currentList.length === 0 ? (
-              <View style={styles.emptyState}>
-                <Ionicons 
-                  name={activeTab === 'liked' ? 'heart-outline' : 'thumbs-down-outline'} 
-                  size={64} 
-                  color={COLORS.lightGray} 
-                />
-                <Text style={styles.emptyText}>
-                  No {activeTab} exercises yet
-                </Text>
-                <Text style={styles.emptySubtext}>
-                  {activeTab === 'liked' 
-                    ? 'Tap the heart on exercises you enjoy!' 
-                    : 'Tap thumbs down on exercises you want to avoid'}
-                </Text>
-              </View>
-            ) : (
-              Object.entries(groupedByCategory).map(([category, exercises]) => (
-                <View key={category} style={styles.categorySection}>
-                  <Text style={styles.categoryTitle}>{category}</Text>
-                  {exercises.map((pref) => (
-                    <View key={pref.exerciseId} style={styles.exerciseCard}>
-                      <View style={styles.exerciseInfo}>
-                        <Ionicons 
-                          name={activeTab === 'liked' ? 'heart' : 'thumbs-down'} 
-                          size={20} 
-                          color={activeTab === 'liked' ? COLORS.success : COLORS.error} 
-                        />
-                        <Text style={styles.exerciseName}>{pref.exerciseName}</Text>
-                      </View>
-                      <TouchableOpacity
-                        onPress={() => removePreference(pref.exerciseId)}
-                        style={styles.removeButton}
-                      >
-                        <Ionicons name="close-circle" size={24} color={COLORS.mediumGray} />
-                      </TouchableOpacity>
-                    </View>
-                  ))}
-                </View>
-              ))
-            )}
-            <View style={{ height: 40 }} />
-          </ScrollView>
+
+          {/* Grid */}
+          {enrichedList.length === 0 ? (
+            <View style={styles.emptyContainer}>
+              <Ionicons
+                name={tab === 'liked' ? 'heart-outline' : 'thumbs-down-outline'}
+                size={48}
+                color={COLORS.textSecondary}
+              />
+              <Text style={styles.emptyText}>
+                No {tab} exercises yet
+              </Text>
+              <Text style={styles.emptySub}>
+                {tab === 'liked' ? 'Like exercises in Explore to see them here' : 'Disliked exercises will appear here'}
+              </Text>
+            </View>
+          ) : (
+            <FlatList
+              data={enrichedList}
+              keyExtractor={(item) => item.exerciseId}
+              numColumns={2}
+              columnWrapperStyle={styles.gridRow}
+              contentContainerStyle={styles.gridContent}
+              showsVerticalScrollIndicator={false}
+              renderItem={({ item }) => (
+                <PrefTile item={item} onRemove={() => removePreference(item.exerciseId)} />
+              )}
+            />
+          )}
         </View>
       </View>
     </Modal>
   );
-}
+};
 
 const styles = StyleSheet.create({
-  overlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' },
-  container: { backgroundColor: COLORS.white, height: '85%', borderTopLeftRadius: 24, borderTopRightRadius: 24 },
-  header: { padding: 20, paddingTop: 24, borderTopLeftRadius: 24, borderTopRightRadius: 24 },
-  closeButton: { alignSelf: 'flex-end', padding: 8, backgroundColor: 'rgba(255,255,255,0.2)', borderRadius: 20 },
-  headerContent: { marginTop: 16 },
-  headerTitle: { fontSize: 28, fontWeight: '700', color: COLORS.white },
-  headerSubtitle: { fontSize: 14, color: COLORS.white, opacity: 0.9, marginTop: 4 },
-  toggleContainer: { flexDirection: 'row', padding: 16, gap: 12 },
-  toggleButton: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingVertical: 12, borderRadius: 12, backgroundColor: COLORS.lightGray, gap: 8 },
-  toggleButtonActive: { backgroundColor: COLORS.accent },
-  toggleText: { fontSize: 14, fontWeight: '600', color: COLORS.accent },
-  toggleTextActive: { color: COLORS.white },
-  content: { flex: 1, paddingHorizontal: 16 },
-  emptyState: { alignItems: 'center', justifyContent: 'center', paddingTop: 80 },
-  emptyText: { fontSize: 20, fontWeight: '600', color: COLORS.text, marginTop: 16 },
-  emptySubtext: { fontSize: 14, color: COLORS.mediumGray, marginTop: 8, textAlign: 'center', paddingHorizontal: 40 },
-  categorySection: { marginBottom: 24 },
-  categoryTitle: { fontSize: 18, fontWeight: '700', color: COLORS.text, marginBottom: 12 },
-  exerciseCard: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: COLORS.lightGray, padding: 16, borderRadius: 12, marginBottom: 8 },
-  exerciseInfo: { flexDirection: 'row', alignItems: 'center', gap: 12, flex: 1 },
-  exerciseName: { fontSize: 16, fontWeight: '500', color: COLORS.text, flex: 1 },
-  removeButton: { padding: 4 },
+  overlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.6)' },
+  container: { flex: 1, backgroundColor: COLORS.bg, marginTop: 40, borderTopLeftRadius: 24, borderTopRightRadius: 24, overflow: 'hidden' },
+
+  header: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingTop: 16, paddingBottom: 12, gap: 12 },
+  backBtn: { width: 36, height: 36, borderRadius: 18, backgroundColor: 'rgba(255,255,255,0.1)', justifyContent: 'center', alignItems: 'center' },
+  headerTitle: { fontSize: 22, fontWeight: '700', color: COLORS.text },
+
+  tabRow: { flexDirection: 'row', paddingHorizontal: 16, gap: 10, marginBottom: 12 },
+  tab: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, paddingVertical: 10, borderRadius: 12, backgroundColor: COLORS.card, borderWidth: 1, borderColor: COLORS.cardBorder },
+  tabActive: { borderColor: COLORS.accent, backgroundColor: 'rgba(162,43,246,0.1)' },
+  tabText: { fontSize: 14, fontWeight: '600', color: COLORS.textSecondary },
+  tabTextActive: { color: COLORS.liked },
+
+  gridContent: { paddingHorizontal: 16, paddingBottom: 120 },
+  gridRow: { justifyContent: 'space-between', marginBottom: TILE_GAP },
+
+  tile: { width: TILE_WIDTH, backgroundColor: COLORS.card, borderRadius: 14, overflow: 'hidden', borderWidth: 1, borderColor: COLORS.cardBorder },
+  tileThumb: { width: '100%', height: TILE_WIDTH * 0.75, backgroundColor: '#222' },
+  tileImage: { width: '100%', height: '100%' },
+  tilePlaceholder: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+  statusBadge: { position: 'absolute', top: 6, left: 6, width: 22, height: 22, borderRadius: 11, justifyContent: 'center', alignItems: 'center' },
+  likedBadge: { backgroundColor: COLORS.liked },
+  dislikedBadge: { backgroundColor: COLORS.disliked },
+  tileInfo: { paddingHorizontal: 10, paddingTop: 8, paddingBottom: 8 },
+  tileName: { fontSize: 13, fontWeight: '700', color: COLORS.text, lineHeight: 17 },
+  removeBtn: { position: 'absolute', top: 6, right: 6, padding: 2 },
+
+  emptyContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', paddingTop: 80, gap: 8 },
+  emptyText: { fontSize: 16, fontWeight: '600', color: COLORS.text },
+  emptySub: { fontSize: 13, color: COLORS.textSecondary, textAlign: 'center', paddingHorizontal: 40 },
 });
+
+export default LikedDislikedModal;

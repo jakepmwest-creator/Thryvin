@@ -82,9 +82,10 @@ const EQUIPMENT_FILTERS: Record<string, { id: string; label: string }[]> = {
 const DIFFICULTY_OPTIONS = ['All', 'Beginner', 'Intermediate', 'Advanced'] as const;
 
 // ---------- Tile Component ----------
-const ExerciseTile = React.memo(({ exercise, onPress }: { exercise: any; onPress: () => void }) => {
-  const { getPreference, likeExercise, dislikeExercise, removePreference } = usePreferencesStore();
+const ExerciseTile = React.memo(({ exercise, onPress, onStarPress }: { exercise: any; onPress: () => void; onStarPress: (exercise: any) => void }) => {
+  const { getPreference, likeExercise, dislikeExercise, removePreference, isStarred } = usePreferencesStore();
   const preference = getPreference(exercise.id);
+  const starred = isStarred(exercise.id);
   const thumbUrl = getThumbUrl(exercise.videoUrl);
   const hasVideo = isValidVideoUrl(exercise.videoUrl);
 
@@ -139,7 +140,7 @@ const ExerciseTile = React.memo(({ exercise, onPress }: { exercise: any; onPress
         </Text>
       </View>
 
-      {/* Like / Dislike row */}
+      {/* Like / Dislike / Star row */}
       <View style={styles.tileActions}>
         <TouchableOpacity onPress={handleLike} style={styles.tileActionBtn} data-testid={`like-btn-${exercise.id}`}>
           <Ionicons
@@ -153,6 +154,14 @@ const ExerciseTile = React.memo(({ exercise, onPress }: { exercise: any; onPress
             name={preference === 'disliked' ? 'thumbs-down' : 'thumbs-down-outline'}
             size={18}
             color={preference === 'disliked' ? COLORS.disliked : COLORS.textSecondary}
+          />
+        </TouchableOpacity>
+        <View style={{ flex: 1 }} />
+        <TouchableOpacity onPress={() => onStarPress(exercise)} style={styles.tileActionBtn} data-testid={`star-btn-${exercise.id}`}>
+          <Ionicons
+            name={starred ? 'star' : 'star-outline'}
+            size={20}
+            color={starred ? '#FFB800' : COLORS.textSecondary}
           />
         </TouchableOpacity>
       </View>
@@ -303,6 +312,28 @@ export const ExploreWorkoutsModal = ({ visible, onClose, category, categoryGradi
   const [showFilter, setShowFilter] = useState(false);
   const [exercises, setExercises] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [pendingStar, setPendingStar] = useState<any | null>(null);
+  const { starExercise, unstarExercise, isStarred, getStarredExercises, replaceStarred } = usePreferencesStore();
+
+  // Star handler with replace prompt
+  const handleStarPress = useCallback(async (exercise: any) => {
+    if (isStarred(exercise.id)) {
+      unstarExercise(exercise.id);
+      return;
+    }
+    const added = await starExercise(exercise.id, exercise.name, exercise.videoUrl);
+    if (!added) {
+      // Max reached — show replace prompt
+      setPendingStar(exercise);
+    }
+  }, [isStarred, starExercise, unstarExercise]);
+
+  const handleReplace = useCallback(async (oldId: string) => {
+    if (pendingStar) {
+      await replaceStarred(oldId, pendingStar.id, pendingStar.name, pendingStar.videoUrl);
+      setPendingStar(null);
+    }
+  }, [pendingStar, replaceStarred]);
 
   // Fetch exercises
   useEffect(() => {
@@ -392,8 +423,8 @@ export const ExploreWorkoutsModal = ({ visible, onClose, category, categoryGradi
   const equipmentOptions = EQUIPMENT_FILTERS[category] || EQUIPMENT_FILTERS['Weights'];
 
   const renderTile = useCallback(({ item }: { item: any }) => (
-    <ExerciseTile exercise={item} onPress={() => setSelectedExercise(item)} />
-  ), []);
+    <ExerciseTile exercise={item} onPress={() => setSelectedExercise(item)} onStarPress={handleStarPress} />
+  ), [handleStarPress]);
 
   const keyExtractor = useCallback((item: any) => item.id?.toString(), []);
 
@@ -494,6 +525,35 @@ export const ExploreWorkoutsModal = ({ visible, onClose, category, categoryGradi
             categoryGradient={categoryGradient}
             onClose={() => setSelectedExercise(null)}
           />
+
+          {/* Replace Star Modal */}
+          {pendingStar && (
+            <Modal visible={!!pendingStar} transparent animationType="fade" onRequestClose={() => setPendingStar(null)}>
+              <View style={styles.replaceOverlay}>
+                <View style={styles.replaceSheet}>
+                  <Text style={styles.replaceTitle}>Replace a Favourite</Text>
+                  <Text style={styles.replaceSub}>
+                    You already have 3 starred exercises. Which one would you like to replace with{' '}
+                    <Text style={{ fontWeight: '700', color: COLORS.accent }}>{pendingStar.name}</Text>?
+                  </Text>
+                  {getStarredExercises().map(s => (
+                    <TouchableOpacity
+                      key={s.exerciseId}
+                      style={styles.replaceItem}
+                      onPress={() => handleReplace(s.exerciseId)}
+                    >
+                      <Ionicons name="star" size={18} color="#FFB800" />
+                      <Text style={styles.replaceItemText}>{s.exerciseName}</Text>
+                      <Ionicons name="swap-horizontal" size={18} color={COLORS.textSecondary} />
+                    </TouchableOpacity>
+                  ))}
+                  <TouchableOpacity style={styles.replaceCancelBtn} onPress={() => setPendingStar(null)}>
+                    <Text style={styles.replaceCancelText}>Cancel</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            </Modal>
+          )}
         </View>
       </View>
     </Modal>
@@ -575,4 +635,14 @@ const styles = StyleSheet.create({
   tipNum: { width: 22, height: 22, borderRadius: 11, backgroundColor: 'rgba(162,43,246,0.15)', justifyContent: 'center', alignItems: 'center' },
   tipNumText: { fontSize: 11, fontWeight: '700', color: COLORS.accent },
   tipText: { flex: 1, fontSize: 14, color: COLORS.textSecondary, lineHeight: 20 },
+
+  // Replace Star Modal
+  replaceOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.6)', justifyContent: 'center', padding: 24 },
+  replaceSheet: { backgroundColor: COLORS.card, borderRadius: 20, padding: 20 },
+  replaceTitle: { fontSize: 18, fontWeight: '700', color: COLORS.text, marginBottom: 6 },
+  replaceSub: { fontSize: 13, color: COLORS.textSecondary, lineHeight: 19, marginBottom: 16 },
+  replaceItem: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 12, paddingHorizontal: 12, backgroundColor: COLORS.filterBg, borderRadius: 12, marginBottom: 8 },
+  replaceItemText: { flex: 1, fontSize: 14, fontWeight: '600', color: COLORS.text },
+  replaceCancelBtn: { marginTop: 8, alignItems: 'center', paddingVertical: 12 },
+  replaceCancelText: { fontSize: 14, fontWeight: '600', color: COLORS.textSecondary },
 });
