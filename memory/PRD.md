@@ -5,23 +5,19 @@
 - Frontend: React Native / Expo
 - Production URL: https://thryvin-production-fbdd.up.railway.app
 
-## Latest Changes
+## Latest Changes (Feb 18, 2026)
 
-### Unified Explore + Stats (Latest)
-1. **"View All" opens Explore** — Favorites card "View All" now opens ExploreWorkoutsModal instead of a separate stats modal
-2. **Exercise detail shows stats** — When you tap an exercise in Explore: video, form tips, AND your personal stats (PB, est. 1RM, sessions, last sets). Shows "Never completed this exercise" if no history.
-3. **Like button with AI note** — Detail view has like toggle + "Liked exercises influence your AI-generated workouts"
+### Bug Fixes
+1. **Silent background generation** — When user already has 14+ workouts, existing workouts show immediately. Missing days generate silently in the background — no "Generating workouts" screen unless starting from scratch.
+2. **Island progression text** — Fixed hardcoded "80% required" to "complete all to unlock next island" (store logic was already 100%, only the display text was wrong)
+3. **Starred favorites on home page** — FavoriteExercisesCard now reads from starred exercises (preferences store) instead of old API endpoint. Shows video thumbnails, PB stats, trend arrows, and empty "+" slots for unfilled stars.
 
-### Star/Favourite System
-- Max 3 starred exercises, replace prompt when full
-- Star button on every Explore tile alongside like/dislike
-
-### Liked/Disliked Tile Layout
-- Rewritten with 2-column grid, Cloudinary video thumbnails, matching Explore style
-
-### Tester-Ready
-- Railway URL everywhere, test accounts removed, all users default to Pro
-- Coach compassion, tour improvements, Thriven-style paywall cards, onboarding paywall screen
+### Recent Features
+- Star system (max 3 + replace prompt)
+- Unified Explore + Stats (video, form tips, stats in one place)
+- Like button with "influences AI" note
+- Liked/Disliked tile layout with thumbnails
+- Tester-ready: Railway URL, Pro for all, test accounts removed
 
 ## Known Issues
 - RevenueCat MOCKED (needs EAS build)
