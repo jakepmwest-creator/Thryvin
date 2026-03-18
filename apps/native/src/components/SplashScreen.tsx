@@ -22,7 +22,6 @@ interface SplashScreenProps {
 }
 
 export const SplashScreen: React.FC<SplashScreenProps> = ({ onAnimationComplete }) => {
-  // Animation values
   const logoScale = useRef(new Animated.Value(0.5)).current;
   const logoOpacity = useRef(new Animated.Value(0)).current;
   const logoBounce = useRef(new Animated.Value(0)).current;
@@ -30,10 +29,16 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ onAnimationComplete 
   const circleOpacity = useRef(new Animated.Value(0)).current;
   const containerOpacity = useRef(new Animated.Value(1)).current;
   const glowAnim = useRef(new Animated.Value(0)).current;
+  const completedRef = useRef(false);
 
   useEffect(() => {
-    // Continuous subtle glow animation
-    Animated.loop(
+    const finish = () => {
+      if (completedRef.current) return;
+      completedRef.current = true;
+      onAnimationComplete?.();
+    };
+
+    const glowLoop = Animated.loop(
       Animated.sequence([
         Animated.timing(glowAnim, {
           toValue: 1,
@@ -48,11 +53,11 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ onAnimationComplete 
           useNativeDriver: true,
         }),
       ])
-    ).start();
+    );
 
-    // Main animation sequence
-    Animated.sequence([
-      // White circle appears
+    glowLoop.start();
+
+    const splashSequence = Animated.sequence([
       Animated.parallel([
         Animated.spring(circleScale, {
           toValue: 1,
@@ -66,8 +71,6 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ onAnimationComplete 
           useNativeDriver: true,
         }),
       ]),
-      
-      // Logo appears and bounces
       Animated.parallel([
         Animated.spring(logoScale, {
           toValue: 1,
@@ -81,8 +84,6 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ onAnimationComplete 
           useNativeDriver: true,
         }),
       ]),
-
-      // Bounce animation (3 times)
       Animated.loop(
         Animated.sequence([
           Animated.timing(logoBounce, {
@@ -100,20 +101,28 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ onAnimationComplete 
         ]),
         { iterations: 3 }
       ),
-
-      // Hold for a moment
       Animated.delay(400),
-
-      // Fade out
       Animated.timing(containerOpacity, {
         toValue: 0,
         duration: 400,
         useNativeDriver: true,
       }),
-    ]).start(() => {
-      onAnimationComplete?.();
+    ]);
+
+    splashSequence.start(() => {
+      finish();
     });
-  }, []);
+
+    const fallbackTimeout = setTimeout(() => {
+      finish();
+    }, 5000);
+
+    return () => {
+      clearTimeout(fallbackTimeout);
+      glowLoop.stop();
+      splashSequence.stop();
+    };
+  }, [circleOpacity, circleScale, containerOpacity, glowAnim, logoBounce, logoOpacity, logoScale, onAnimationComplete]);
 
   const glowOpacity = glowAnim.interpolate({
     inputRange: [0, 1],
@@ -133,11 +142,9 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ onAnimationComplete 
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
       >
-        {/* Animated background circles */}
         <Animated.View style={[styles.bgCircle, styles.bgCircle1, { opacity: glowOpacity }]} />
         <Animated.View style={[styles.bgCircle, styles.bgCircle2, { opacity: glowOpacity }]} />
 
-        {/* Content - Just logo on white circle */}
         <View style={styles.content}>
           <Animated.View
             style={[
@@ -148,7 +155,6 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ onAnimationComplete 
               },
             ]}
           >
-            {/* Animated glow */}
             <Animated.View
               style={[
                 styles.logoGlow,
@@ -159,19 +165,14 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ onAnimationComplete 
               ]}
             />
 
-            {/* White circle background */}
             <View style={styles.whiteCircle} />
 
-            {/* Your actual Thryvin logo */}
             <Animated.View
               style={[
                 styles.logoWrapper,
                 {
                   opacity: logoOpacity,
-                  transform: [
-                    { scale: logoScale },
-                    { translateY: logoBounce },
-                  ],
+                  transform: [{ scale: logoScale }, { translateY: logoBounce }],
                 },
               ]}
             >
