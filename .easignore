@@ -1,19 +1,18 @@
-# Keep EAS uploads focused on the Expo app inside apps/native.
-# This avoids the root .gitignore's broad *.json rule from interfering
-# with package manifests/config during remote packaging.
-*
-
-# Include the native Expo app and EAS metadata
-!apps/
-!apps/native/
-!apps/native/**
-!.easignore
-!.gitignore
-
-# Exclude local dependency/build artefacts inside the app
-apps/native/node_modules/
-apps/native/.expo/
-apps/native/dist/
-apps/native/web-build/
-apps/native/android/
-apps/native/ios/
+# Exclude heavy/unnecessary directories
+node_modules/
+.git/
+.expo/
+dist/
+web-build/
+android/
+ios/
+backend/
+server/
+tests/
+test_reports/
+memory/
+.emergent/
+*.py
+*.patch
+*.md
+launch-crash-fix.patch
