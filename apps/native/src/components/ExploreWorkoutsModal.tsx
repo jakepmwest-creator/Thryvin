@@ -10,6 +10,7 @@ import {
   Dimensions,
   Image,
   ActivityIndicator,
+  ScrollView,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
@@ -229,15 +230,49 @@ const FilterSheet = ({
   );
 };
 
-// ---------- Detail Dropdown ----------
+// ---------- Detail with Stats ----------
 const ExerciseDetail = ({ exercise, categoryGradient, onClose }: any) => {
   const hasVideo = isValidVideoUrl(exercise?.videoUrl);
+  const { getPreference, likeExercise, removePreference } = usePreferencesStore();
+  const [stats, setStats] = useState<any>(null);
+  const [statsLoading, setStatsLoading] = useState(false);
+  const preference = exercise ? getPreference(exercise.id) : null;
+
+  // Fetch exercise stats when detail opens
+  useEffect(() => {
+    if (!exercise?.id) { setStats(null); return; }
+    let cancelled = false;
+    (async () => {
+      setStatsLoading(true);
+      try {
+        const res = await fetch(`${API_BASE_URL}/api/stats/exercise/${exercise.id}`);
+        if (res.ok) {
+          const data = await res.json();
+          if (!cancelled) setStats(data);
+        }
+      } catch {
+        // stats not available — that's fine
+      } finally {
+        if (!cancelled) setStatsLoading(false);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [exercise?.id]);
+
   if (!exercise) return null;
+
+  const handleLikeToggle = () => {
+    if (preference === 'liked') removePreference(exercise.id);
+    else likeExercise(exercise.id, exercise.name);
+  };
+
+  const hasHistory = stats?.history && stats.history.length > 0;
+  const latestSession = hasHistory ? stats.history[0] : null;
 
   return (
     <Modal visible={!!exercise} transparent animationType="slide" onRequestClose={onClose}>
       <View style={styles.detailOverlay}>
-        <View style={styles.detailSheet}>
+        <ScrollView style={styles.detailSheet} contentContainerStyle={{ paddingBottom: 40 }} showsVerticalScrollIndicator={false}>
           <TouchableOpacity onPress={onClose} style={styles.detailCloseBtn}>
             <Ionicons name="close" size={22} color={COLORS.textSecondary} />
           </TouchableOpacity>
@@ -256,6 +291,22 @@ const ExerciseDetail = ({ exercise, categoryGradient, onClose }: any) => {
           <View style={styles.detailBody}>
             <Text style={styles.detailName}>{exercise.name}</Text>
 
+            {/* Like button with AI note */}
+            <TouchableOpacity onPress={handleLikeToggle} style={styles.likeRow}>
+              <Ionicons
+                name={preference === 'liked' ? 'heart' : 'heart-outline'}
+                size={20}
+                color={preference === 'liked' ? '#34C759' : COLORS.textSecondary}
+              />
+              <Text style={[styles.likeText, preference === 'liked' && { color: '#34C759' }]}>
+                {preference === 'liked' ? 'Liked' : 'Like this exercise'}
+              </Text>
+            </TouchableOpacity>
+            <Text style={styles.aiNote}>
+              Liked exercises influence your AI-generated workouts
+            </Text>
+
+            {/* Tags */}
             <View style={styles.detailTags}>
               {exercise.difficulty && (
                 <View style={styles.detailTag}>
@@ -279,10 +330,12 @@ const ExerciseDetail = ({ exercise, categoryGradient, onClose }: any) => {
               )}
             </View>
 
+            {/* Description */}
             <Text style={styles.detailDesc}>
               {exercise.description || 'Perform this exercise with proper form and controlled movements. Focus on muscle engagement throughout the full range of motion.'}
             </Text>
 
+            {/* Form Tips */}
             {exercise.tips && exercise.tips.length > 0 && (
               <View style={styles.tipsSection}>
                 <Text style={styles.tipsHeader}>Form Tips</Text>
@@ -296,8 +349,45 @@ const ExerciseDetail = ({ exercise, categoryGradient, onClose }: any) => {
                 ))}
               </View>
             )}
+
+            {/* Stats Section */}
+            <View style={styles.statsSection}>
+              <Text style={styles.statsHeader}>Your Stats</Text>
+              {statsLoading ? (
+                <ActivityIndicator size="small" color={COLORS.accent} style={{ marginTop: 12 }} />
+              ) : hasHistory ? (
+                <View style={styles.statsGrid}>
+                  <View style={styles.statBox}>
+                    <Ionicons name="trophy" size={18} color="#FFB800" />
+                    <Text style={styles.statValue}>{stats.personalBest?.weight || latestSession?.maxWeight || '—'} kg</Text>
+                    <Text style={styles.statLabel}>Personal Best</Text>
+                  </View>
+                  <View style={styles.statBox}>
+                    <Ionicons name="analytics" size={18} color={COLORS.accent} />
+                    <Text style={styles.statValue}>{Math.round(stats.personalBest?.estimatedOneRM || latestSession?.estimatedOneRM || 0)} kg</Text>
+                    <Text style={styles.statLabel}>Est. 1RM</Text>
+                  </View>
+                  <View style={styles.statBox}>
+                    <Ionicons name="calendar" size={18} color={COLORS.accentSecondary} />
+                    <Text style={styles.statValue}>{stats.history.length}</Text>
+                    <Text style={styles.statLabel}>Sessions</Text>
+                  </View>
+                  <View style={styles.statBox}>
+                    <Ionicons name="barbell" size={18} color="#34C759" />
+                    <Text style={styles.statValue}>{latestSession?.totalSets || '—'}</Text>
+                    <Text style={styles.statLabel}>Last Sets</Text>
+                  </View>
+                </View>
+              ) : (
+                <View style={styles.noStats}>
+                  <Ionicons name="fitness-outline" size={28} color={COLORS.textSecondary} />
+                  <Text style={styles.noStatsText}>Never completed this exercise</Text>
+                  <Text style={styles.noStatsSub}>Stats will appear here once you log it</Text>
+                </View>
+              )}
+            </View>
           </View>
-        </View>
+        </ScrollView>
       </View>
     </Modal>
   );
@@ -619,7 +709,7 @@ const styles = StyleSheet.create({
 
   // Detail
   detailOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.7)', justifyContent: 'flex-end' },
-  detailSheet: { backgroundColor: COLORS.card, borderTopLeftRadius: 24, borderTopRightRadius: 24, maxHeight: '90%' },
+  detailSheet: { backgroundColor: COLORS.card, borderTopLeftRadius: 24, borderTopRightRadius: 24, maxHeight: '90%', flex: 1, marginTop: 60 },
   detailCloseBtn: { position: 'absolute', top: 14, right: 14, zIndex: 10, padding: 6, backgroundColor: 'rgba(255,255,255,0.1)', borderRadius: 16 },
   detailVideo: { borderTopLeftRadius: 24, borderTopRightRadius: 24, overflow: 'hidden', backgroundColor: '#000' },
   detailHeaderGradient: { height: 100, justifyContent: 'center', alignItems: 'center', borderTopLeftRadius: 24, borderTopRightRadius: 24 },
@@ -635,6 +725,22 @@ const styles = StyleSheet.create({
   tipNum: { width: 22, height: 22, borderRadius: 11, backgroundColor: 'rgba(162,43,246,0.15)', justifyContent: 'center', alignItems: 'center' },
   tipNumText: { fontSize: 11, fontWeight: '700', color: COLORS.accent },
   tipText: { flex: 1, fontSize: 14, color: COLORS.textSecondary, lineHeight: 20 },
+
+  // Like row + AI note
+  likeRow: { flexDirection: 'row', alignItems: 'center', gap: 8, alignSelf: 'center', marginTop: 12, paddingVertical: 6, paddingHorizontal: 14, backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: 10 },
+  likeText: { fontSize: 14, fontWeight: '600', color: COLORS.textSecondary },
+  aiNote: { fontSize: 11, color: '#666', textAlign: 'center', marginTop: 4, marginBottom: 12, fontStyle: 'italic' },
+
+  // Stats section
+  statsSection: { marginTop: 8, paddingTop: 16, borderTopWidth: 1, borderTopColor: COLORS.cardBorder },
+  statsHeader: { fontSize: 16, fontWeight: '700', color: COLORS.text, marginBottom: 12 },
+  statsGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
+  statBox: { width: '47%', backgroundColor: COLORS.filterBg, borderRadius: 14, padding: 14, alignItems: 'center', gap: 4 },
+  statValue: { fontSize: 20, fontWeight: '800', color: COLORS.text },
+  statLabel: { fontSize: 11, color: COLORS.textSecondary, fontWeight: '500' },
+  noStats: { alignItems: 'center', paddingVertical: 20, gap: 6 },
+  noStatsText: { fontSize: 14, fontWeight: '600', color: COLORS.textSecondary },
+  noStatsSub: { fontSize: 12, color: '#555' },
 
   // Replace Star Modal
   replaceOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.6)', justifyContent: 'center', padding: 24 },

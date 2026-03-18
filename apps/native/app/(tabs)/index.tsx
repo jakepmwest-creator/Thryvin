@@ -22,6 +22,7 @@ import { PersonalBestChart } from '../../src/components/PersonalBestChart';
 import { AdvancedQuestionnaireModal, AdvancedQuestionnaireData } from '../../src/components/AdvancedQuestionnaireModal';
 import { WeeklyScheduleCheckModal } from '../../src/components/WeeklyScheduleCheckModal';
 import { FavoriteExercisesCard } from '../../src/components/FavoriteExercisesCard';
+import { ExploreWorkoutsModal } from '../../src/components/ExploreWorkoutsModal';
 import { ExerciseStatsModal } from '../../src/components/ExerciseStatsModal';
 import { useWorkoutStore } from '../../src/stores/workout-store';
 import { useAuthStore } from '../../src/stores/auth-store';
@@ -163,6 +164,7 @@ export default function HomeScreen() {
   // Exercise stats modal state
   const [showExerciseStats, setShowExerciseStats] = useState(false);
   const [selectedExerciseId, setSelectedExerciseId] = useState<string | undefined>(undefined);
+  const [showExploreFromFavorites, setShowExploreFromFavorites] = useState(false);
   
   const openExerciseStats = (exerciseId?: string) => {
     if (!isPro) {
@@ -171,6 +173,10 @@ export default function HomeScreen() {
     }
     setSelectedExerciseId(exerciseId);
     setShowExerciseStats(true);
+  };
+
+  const openExploreAll = () => {
+    setShowExploreFromFavorites(true);
   };
 
   // Check if user should see Advanced Questionnaire - MUST show for new users BEFORE workouts
@@ -1012,7 +1018,7 @@ export default function HomeScreen() {
         {/* Favorite Exercises - Pin your top exercises */}
         <View style={[styles.section, { paddingBottom: 100 }]}>
           <FavoriteExercisesCard
-            onViewAll={() => openExerciseStats()}
+            onViewAll={() => openExploreAll()}
             onExercisePress={(exerciseId) => openExerciseStats(exerciseId)}
           />
         </View>
@@ -1026,6 +1032,14 @@ export default function HomeScreen() {
           setSelectedExerciseId(undefined);
         }}
         initialExerciseId={selectedExerciseId}
+      />
+
+      {/* Explore All from Favorites */}
+      <ExploreWorkoutsModal
+        visible={showExploreFromFavorites}
+        onClose={() => setShowExploreFromFavorites(false)}
+        category="Weights"
+        categoryGradient={['#A22BF6', '#FF4EC7']}
       />
       
       {/* Advanced Questionnaire Modal */}
