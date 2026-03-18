@@ -351,7 +351,7 @@ export default function WorkoutsScreen() {
                 </View>
                 <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
                   <View style={{ flex: 1 }}>
-                    <Text style={styles.workoutName}>{actualTodayWorkout?.title || 'Loading...'}</Text>
+                    <Text style={styles.workoutName}>{actualTodayWorkout?.title || 'Your Workout'}</Text>
                     <Text style={styles.workoutMeta}>
                       {actualTodayWorkout?.duration || 45} min • {actualTodayWorkout?.exercises?.length || 0} exercises • {actualTodayWorkout?.difficulty || 'Intermediate'}
                     </Text>

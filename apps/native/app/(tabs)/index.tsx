@@ -815,7 +815,7 @@ export default function HomeScreen() {
                         {actualTodayWorkout?.completed ? 'COMPLETED ✓' : 'TODAY\'S WORKOUT'}
                       </Text>
                     </View>
-                    <Text style={styles.workoutTitle}>{actualTodayWorkout?.title || 'Loading...'}</Text>
+                    <Text style={styles.workoutTitle}>{actualTodayWorkout?.title || 'Your Workout'}</Text>
                     <Text style={styles.workoutMeta}>
                       {actualTodayWorkout?.duration || 45} min • {actualTodayWorkout?.exercises?.length || 0} exercises • {actualTodayWorkout?.difficulty || 'Intermediate'}
                     </Text>

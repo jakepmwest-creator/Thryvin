@@ -10,11 +10,9 @@ import { getApiBaseUrl } from '../services/env';
 
 const API_BASE_URL = getApiBaseUrl();
 
-// ─── Theme ───
 const T = {
-  accent: '#7C3AED',
-  accentLight: '#EDE9FE',
-  accentSecondary: '#A855F7',
+  gradientStart: '#A22BF6',
+  gradientEnd: '#FF4EC7',
   text: '#1F1F1F',
   textSecondary: '#6B7280',
   textMuted: '#9CA3AF',
@@ -22,6 +20,7 @@ const T = {
   white: '#FFFFFF',
   surface: '#F8F7FC',
   cardBorder: '#EDE8F5',
+  accentLight: '#EDE9FE',
 };
 
 interface FavoriteExercisesCardProps {
@@ -34,7 +33,6 @@ export const FavoriteExercisesCard = ({ onViewAll }: FavoriteExercisesCardProps)
   const [stats, setStats] = useState<Record<string, any>>({});
   const [loadingStats, setLoadingStats] = useState(false);
 
-  // Fetch stats for all starred exercises
   useEffect(() => {
     if (starred.length === 0) return;
     let cancelled = false;
@@ -45,17 +43,11 @@ export const FavoriteExercisesCard = ({ onViewAll }: FavoriteExercisesCardProps)
         starred.map(async (s) => {
           try {
             const res = await fetch(`${API_BASE_URL}/api/stats/exercise/${s.exerciseId}`);
-            if (res.ok) {
-              const data = await res.json();
-              results[s.exerciseId] = data;
-            }
+            if (res.ok) results[s.exerciseId] = await res.json();
           } catch { /* skip */ }
         })
       );
-      if (!cancelled) {
-        setStats(results);
-        setLoadingStats(false);
-      }
+      if (!cancelled) { setStats(results); setLoadingStats(false); }
     })();
     return () => { cancelled = true; };
   }, [starred.length]);
@@ -71,7 +63,7 @@ export const FavoriteExercisesCard = ({ onViewAll }: FavoriteExercisesCardProps)
           {onViewAll && (
             <TouchableOpacity onPress={onViewAll} style={styles.viewAllBtn} data-testid="fav-view-all-btn">
               <Text style={styles.viewAllText}>View All</Text>
-              <Ionicons name="arrow-forward" size={14} color={T.accent} />
+              <Ionicons name="arrow-forward" size={14} color={T.gradientStart} />
             </TouchableOpacity>
           )}
         </View>
@@ -94,7 +86,7 @@ export const FavoriteExercisesCard = ({ onViewAll }: FavoriteExercisesCardProps)
         {onViewAll && (
           <TouchableOpacity onPress={onViewAll} style={styles.viewAllBtn} data-testid="fav-view-all-btn">
             <Text style={styles.viewAllText}>View All</Text>
-            <Ionicons name="arrow-forward" size={14} color={T.accent} />
+            <Ionicons name="arrow-forward" size={14} color={T.gradientStart} />
           </TouchableOpacity>
         )}
       </View>
@@ -103,7 +95,7 @@ export const FavoriteExercisesCard = ({ onViewAll }: FavoriteExercisesCardProps)
         {starred.map((exercise) => {
           const hasVideo = isValidVideoUrl(exercise.videoUrl);
           const thumbUrl = hasVideo
-            ? `${exercise.videoUrl?.replace('/upload/', '/upload/w_300,h_300,c_fill,so_1/')?.replace('.mp4', '.jpg')}`
+            ? `${exercise.videoUrl?.replace('/upload/', '/upload/w_300,h_400,c_fill,so_1/')?.replace('.mp4', '.jpg')}`
             : null;
           const stat = stats[exercise.exerciseId];
           const hasHistory = stat?.history && stat.history.length > 0;
@@ -111,38 +103,28 @@ export const FavoriteExercisesCard = ({ onViewAll }: FavoriteExercisesCardProps)
 
           return (
             <View key={exercise.exerciseId} style={styles.exerciseItem}>
-              {/* Purple ring around thumbnail */}
-              <View style={styles.thumbRing}>
-                <LinearGradient
-                  colors={[T.accent, T.accentSecondary]}
-                  style={styles.thumbRingGradient}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 1 }}
-                >
-                  <View style={styles.thumbInner}>
-                    {thumbUrl ? (
-                      <Image source={{ uri: thumbUrl }} style={styles.thumbImage} resizeMode="cover" />
-                    ) : (
-                      <View style={styles.thumbPlaceholder}>
-                        <Ionicons name="barbell-outline" size={22} color={T.textMuted} />
-                      </View>
-                    )}
-                  </View>
-                </LinearGradient>
-                {/* Star icon */}
-                <View style={styles.starIcon}>
-                  <Ionicons name="star" size={10} color={T.starred} />
+              <LinearGradient
+                colors={[T.gradientStart, T.gradientEnd]}
+                style={styles.thumbRing}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+              >
+                <View style={styles.thumbInner}>
+                  {thumbUrl ? (
+                    <Image source={{ uri: thumbUrl }} style={styles.thumbImage} resizeMode="cover" />
+                  ) : (
+                    <View style={styles.thumbPlaceholder}>
+                      <Ionicons name="barbell-outline" size={20} color={T.textMuted} />
+                    </View>
+                  )}
                 </View>
+              </LinearGradient>
+              <View style={styles.starBadge}>
+                <Ionicons name="star" size={9} color={T.starred} />
               </View>
-
-              {/* Name */}
-              <Text style={styles.exerciseName} numberOfLines={2}>
-                {exercise.exerciseName}
-              </Text>
-
-              {/* Weight or "Not yet" */}
+              <Text style={styles.exerciseName} numberOfLines={2}>{exercise.exerciseName}</Text>
               {loadingStats ? (
-                <ActivityIndicator size="small" color={T.accent} style={{ marginTop: 2 }} />
+                <ActivityIndicator size="small" color={T.gradientStart} style={{ marginTop: 2 }} />
               ) : pb ? (
                 <View style={styles.weightBadge}>
                   <Ionicons name="trophy" size={10} color={T.starred} />
@@ -155,12 +137,11 @@ export const FavoriteExercisesCard = ({ onViewAll }: FavoriteExercisesCardProps)
           );
         })}
 
-        {/* Empty slots */}
         {Array.from({ length: 3 - starred.length }).map((_, i) => (
           <View key={`empty-${i}`} style={styles.exerciseItem}>
             <View style={styles.thumbRingEmpty}>
               <View style={styles.thumbInnerEmpty}>
-                <Ionicons name="add" size={22} color={T.textMuted} />
+                <Ionicons name="add" size={20} color={T.textMuted} />
               </View>
             </View>
             <Text style={styles.emptySlotText}>Empty slot</Text>
@@ -171,8 +152,11 @@ export const FavoriteExercisesCard = ({ onViewAll }: FavoriteExercisesCardProps)
   );
 };
 
-const THUMB_SIZE = 72;
-const RING_SIZE = THUMB_SIZE + 6;
+const THUMB_W = 72;
+const THUMB_H = 88;
+const RING_W = THUMB_W + 6;
+const RING_H = THUMB_H + 6;
+const BORDER_RADIUS = 16;
 
 const styles = StyleSheet.create({
   container: { marginHorizontal: 16, marginBottom: 16 },
@@ -180,33 +164,27 @@ const styles = StyleSheet.create({
   headerLeft: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   headerTitle: { fontSize: 16, fontWeight: '700', color: T.text },
   viewAllBtn: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingVertical: 4, paddingHorizontal: 10, borderRadius: 14, backgroundColor: T.accentLight },
-  viewAllText: { fontSize: 13, fontWeight: '600', color: T.accent },
+  viewAllText: { fontSize: 13, fontWeight: '600', color: T.gradientStart },
 
   exercisesRow: { flexDirection: 'row', justifyContent: 'space-around', gap: 8 },
+  exerciseItem: { alignItems: 'center', width: 90, position: 'relative' },
 
-  exerciseItem: { alignItems: 'center', width: (1 / 3) * 100 + '%' as any, maxWidth: 110 },
-
-  // Purple ring
-  thumbRing: { width: RING_SIZE, height: RING_SIZE, borderRadius: RING_SIZE / 2, position: 'relative' },
-  thumbRingGradient: { width: RING_SIZE, height: RING_SIZE, borderRadius: RING_SIZE / 2, justifyContent: 'center', alignItems: 'center' },
-  thumbInner: { width: THUMB_SIZE, height: THUMB_SIZE, borderRadius: THUMB_SIZE / 2, overflow: 'hidden', backgroundColor: T.surface, borderWidth: 2, borderColor: T.white },
+  // Rounded rectangle ring (purple-to-pink gradient border)
+  thumbRing: { width: RING_W, height: RING_H, borderRadius: BORDER_RADIUS + 2, justifyContent: 'center', alignItems: 'center' },
+  thumbInner: { width: THUMB_W, height: THUMB_H, borderRadius: BORDER_RADIUS, overflow: 'hidden', backgroundColor: T.surface, borderWidth: 2, borderColor: T.white },
   thumbImage: { width: '100%', height: '100%' },
   thumbPlaceholder: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: T.surface },
-  starIcon: { position: 'absolute', bottom: -2, right: -2, backgroundColor: '#FEF3C7', width: 20, height: 20, borderRadius: 10, justifyContent: 'center', alignItems: 'center', borderWidth: 2, borderColor: T.white },
+  starBadge: { position: 'absolute', top: -3, right: 6, backgroundColor: '#FEF3C7', width: 18, height: 18, borderRadius: 9, justifyContent: 'center', alignItems: 'center', borderWidth: 2, borderColor: T.white },
 
-  // Empty ring
-  thumbRingEmpty: { width: RING_SIZE, height: RING_SIZE, borderRadius: RING_SIZE / 2, borderWidth: 2, borderColor: T.cardBorder, borderStyle: 'dashed', justifyContent: 'center', alignItems: 'center' },
-  thumbInnerEmpty: { width: THUMB_SIZE, height: THUMB_SIZE, borderRadius: THUMB_SIZE / 2, justifyContent: 'center', alignItems: 'center', backgroundColor: T.surface },
+  thumbRingEmpty: { width: RING_W, height: RING_H, borderRadius: BORDER_RADIUS + 2, borderWidth: 2, borderColor: T.cardBorder, borderStyle: 'dashed', justifyContent: 'center', alignItems: 'center' },
+  thumbInnerEmpty: { width: THUMB_W, height: THUMB_H, borderRadius: BORDER_RADIUS, justifyContent: 'center', alignItems: 'center', backgroundColor: T.surface },
 
   exerciseName: { fontSize: 11, fontWeight: '600', color: T.text, textAlign: 'center', marginTop: 6, lineHeight: 14 },
-
   weightBadge: { flexDirection: 'row', alignItems: 'center', gap: 3, marginTop: 3, paddingHorizontal: 8, paddingVertical: 2, borderRadius: 8, backgroundColor: '#FEF3C7' },
   weightText: { fontSize: 10, fontWeight: '700', color: '#B45309' },
-
   notYetText: { fontSize: 10, color: T.textMuted, marginTop: 3, fontStyle: 'italic' },
   emptySlotText: { fontSize: 10, color: T.textMuted, marginTop: 6 },
 
-  // Empty card
   emptyCard: { backgroundColor: T.surface, borderRadius: 16, padding: 24, alignItems: 'center', gap: 6, borderWidth: 1, borderColor: T.cardBorder },
   emptyText: { fontSize: 14, fontWeight: '600', color: T.textSecondary },
   emptySub: { fontSize: 12, color: T.textMuted, textAlign: 'center' },
