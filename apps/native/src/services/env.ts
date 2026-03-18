@@ -29,8 +29,8 @@ export const initializeApiUrl = async () => {
   }
 };
 
-// Stable tunnel URL fallback when env vars aren't injected by Expo Go
-const FALLBACK_API_URL = 'https://conventional-isa-equality-submitting.trycloudflare.com';
+// Production Railway URL — used when env vars aren't injected by Expo
+const FALLBACK_API_URL = 'https://thryvin-production-fbdd.up.railway.app';
 
 export const getApiBaseUrlInfo = () => {
   const envValue = process.env.EXPO_PUBLIC_API_BASE_URL;

@@ -7,8 +7,8 @@ if (envResult.error) {
   console.warn('[app.config] Could not load .env:', envResult.error.message);
 }
 
-// Stable tunnel URL as fallback when .env is not loaded by Metro/Expo Go
-const FALLBACK_API_URL = 'https://conventional-isa-equality-submitting.trycloudflare.com';
+// Production Railway URL — used when .env is not loaded by Metro/Expo Go
+const FALLBACK_API_URL = 'https://thryvin-production-fbdd.up.railway.app';
 
 export default {
   expo: {
