@@ -1,7 +1,6 @@
 import { create } from 'zustand';
 import * as SecureStore from 'expo-secure-store';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { notificationService } from '../services/notificationService';
 import { useWorkoutStore } from './workout-store';
 import { useAwardsStore } from './awards-store';
 import { storeToken, clearToken, getToken, buildApiUrl } from '../services/api-client';
@@ -144,6 +143,7 @@ async function clearAllLocalData(): Promise<void> {
 
 interface AuthState {
   user: User | null;
+  isLoggedIn: boolean;
   isLoading: boolean;
   error: string | null;
   login: (credentials: { email: string; password: string }) => Promise<void>;
@@ -158,12 +158,13 @@ interface AuthState {
 
 export const useAuthStore = create<AuthState>((set, get) => ({
   user: null,
+  isLoggedIn: false,
   isLoading: false,
   error: null,
 
   // QA helper - directly set user state (for Fast Tester Login)
   setUserDirectly: async (userData: User) => {
-    set({ user: userData, isLoading: false, error: null });
+    set({ user: userData, isLoggedIn: true, isLoading: false, error: null });
     await setStorageItem('auth_user', JSON.stringify(userData));
     await setStorageItem('user_email', userData.email);
     console.log('✅ User set directly (QA mode):', userData.name);
@@ -260,7 +261,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         trialEndsAt: data.user.trialEndsAt,
       };
 
-      set({ user: userData, isLoading: false });
+      set({ user: userData, isLoggedIn: true, isLoading: false });
 
       // Store JWT access token for Bearer auth
       if (data.accessToken) {
@@ -369,7 +370,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         createdAt: new Date().toISOString(),
       };
 
-      set({ user: newUser, isLoading: false });
+      set({ user: newUser, isLoggedIn: true, isLoading: false });
 
       // Store JWT access token for Bearer auth
       if (data.accessToken) {
@@ -446,11 +447,11 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         keysToRemove.forEach(key => window.localStorage.removeItem(key));
       }
       
-      set({ user: null, isLoading: false });
+      set({ user: null, isLoggedIn: false, isLoading: false });
       console.log('✅ Logout successful - ALL user data cleared');
     } catch (error) {
       console.error('Logout failed:', error);
-      set({ user: null, isLoading: false }); // Clear user anyway
+      set({ user: null, isLoggedIn: false, isLoading: false }); // Clear user anyway
     }
   },
 
@@ -461,14 +462,14 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       const storedUser = await getStorageItem('auth_user');
       if (storedUser) {
         const userData = JSON.parse(storedUser);
-        set({ user: userData, isLoading: false });
+        set({ user: userData, isLoggedIn: true, isLoading: false });
         console.log('User authenticated from storage:', userData.name);
       } else {
-        set({ user: null, isLoading: false });
+        set({ user: null, isLoggedIn: false, isLoading: false });
       }
     } catch (error) {
       console.log('User not authenticated');
-      set({ user: null, isLoading: false });
+      set({ user: null, isLoggedIn: false, isLoading: false });
     }
   },
 
@@ -478,7 +479,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       if (!currentUser) return;
 
       const updatedUser = { ...currentUser, ...updates };
-      set({ user: updatedUser });
+      set({ user: updatedUser, isLoggedIn: true });
 
       // Save to storage
       await setStorageItem('auth_user', JSON.stringify(updatedUser));
