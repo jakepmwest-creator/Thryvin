@@ -965,7 +965,6 @@ export default function StatsScreen() {
         <View style={styles.section}>
           <FavoriteExercisesCard
             onViewAll={() => setShowExploreFromStats(true)}
-            onExercisePress={(exerciseId) => openExerciseStats(exerciseId)}
           />
         </View>
 
@@ -1011,8 +1010,7 @@ export default function StatsScreen() {
       <ExploreWorkoutsModal
         visible={showExploreFromStats}
         onClose={() => setShowExploreFromStats(false)}
-        category="Weights"
-        categoryGradient={['#A22BF6', '#FF4EC7']}
+        initialCategory="All"
       />
 
       <ProPaywallModal

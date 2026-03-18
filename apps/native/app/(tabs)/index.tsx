@@ -448,8 +448,8 @@ export default function HomeScreen() {
   const [statsVersion, setStatsVersion] = useState(0);
 
   const loadAllData = async () => {
-    // Load preferences from backend/local
-    usePreferencesStore.getState().loadPreferences();
+    // Load preferences from backend/local (await to ensure data is ready)
+    await usePreferencesStore.getState().loadPreferences();
     
     // First check if advanced questionnaire needs to be shown
     const completed = await AsyncStorage.getItem('advancedQuestionnaire');
@@ -727,7 +727,7 @@ export default function HomeScreen() {
           >
             <Text style={styles.sectionTitle}>Today&apos;s Workout</Text>
           </TouchableOpacity>
-          {isLoading || weekWorkouts.length < 21 ? (
+          {isLoading && weekWorkouts.length === 0 ? (
             <View style={styles.todayWorkoutCard}>
               <View style={styles.generatingContainer}>
                 <ActivityIndicator size="large" color={COLORS.gradientStart} />
@@ -1023,7 +1023,6 @@ export default function HomeScreen() {
         <View style={[styles.section, { paddingBottom: 100 }]}>
           <FavoriteExercisesCard
             onViewAll={() => openExploreAll()}
-            onExercisePress={(exerciseId) => openExerciseStats(exerciseId)}
           />
         </View>
       </ScrollView>
@@ -1042,8 +1041,7 @@ export default function HomeScreen() {
       <ExploreWorkoutsModal
         visible={showExploreFromFavorites}
         onClose={() => setShowExploreFromFavorites(false)}
-        category="Weights"
-        categoryGradient={['#A22BF6', '#FF4EC7']}
+        initialCategory="All"
       />
       
       {/* Advanced Questionnaire Modal */}

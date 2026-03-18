@@ -4850,11 +4850,7 @@ Respond with ONLY a JSON object (no markdown, no explanation):
   });
 
   // Get active nudges for a location
-  app.get("/api/coach/nudges", async (req, res) => {
-    if (!req.isAuthenticated()) {
-      return res.sendStatus(401);
-    }
-
+  app.get("/api/coach/nudges", authenticateToken, async (req: AuthenticatedRequest, res) => {
     try {
       const userId = req.user!.id;
       const location = (req.query.location as string) || 'home';
@@ -4870,11 +4866,7 @@ Respond with ONLY a JSON object (no markdown, no explanation):
   });
 
   // Mark nudge as seen
-  app.post("/api/coach/nudges/:nudgeId/seen", async (req, res) => {
-    if (!req.isAuthenticated()) {
-      return res.sendStatus(401);
-    }
-
+  app.post("/api/coach/nudges/:nudgeId/seen", authenticateToken, async (req: AuthenticatedRequest, res) => {
     try {
       const nudgeId = parseInt(req.params.nudgeId);
       const { markNudgeSeen } = await import('./learning-engine');
@@ -4888,11 +4880,7 @@ Respond with ONLY a JSON object (no markdown, no explanation):
   });
 
   // Resolve nudge (accept, reject, dismiss)
-  app.post("/api/coach/nudges/:nudgeId/resolve", async (req, res) => {
-    if (!req.isAuthenticated()) {
-      return res.sendStatus(401);
-    }
-
+  app.post("/api/coach/nudges/:nudgeId/resolve", authenticateToken, async (req: AuthenticatedRequest, res) => {
     try {
       const nudgeId = parseInt(req.params.nudgeId);
       const { resolution } = req.body;
@@ -4913,11 +4901,7 @@ Respond with ONLY a JSON object (no markdown, no explanation):
   });
 
   // Generate nudges for workout/exercise start
-  app.post("/api/coach/nudges/generate", async (req, res) => {
-    if (!req.isAuthenticated()) {
-      return res.sendStatus(401);
-    }
-
+  app.post("/api/coach/nudges/generate", authenticateToken, async (req: AuthenticatedRequest, res) => {
     try {
       const userId = req.user!.id;
       const { context, exerciseInfo } = req.body;
