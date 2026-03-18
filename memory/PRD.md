@@ -1,34 +1,33 @@
 # Thryvin AI Fitness Coach - PRD
 
 ## Architecture
-- Backend: Express.js + TypeScript (Neon PostgreSQL) — deployed on Railway
+- Backend: Express.js + TypeScript (Neon PostgreSQL) — Railway
 - Frontend: React Native / Expo
-- AI: OpenAI GPT-4o (coach, workout gen)
-- Video: Cloudinary | Subscriptions: RevenueCat (MOCKED) | Backend: Railway
+- Production URL: https://thryvin-production-fbdd.up.railway.app
 
-## Production URL
-- Railway: https://thryvin-production-fbdd.up.railway.app
+## Latest Changes
 
-## Implemented
+### Unified Explore + Stats (Latest)
+1. **"View All" opens Explore** — Favorites card "View All" now opens ExploreWorkoutsModal instead of a separate stats modal
+2. **Exercise detail shows stats** — When you tap an exercise in Explore: video, form tips, AND your personal stats (PB, est. 1RM, sessions, last sets). Shows "Never completed this exercise" if no history.
+3. **Like button with AI note** — Detail view has like toggle + "Liked exercises influence your AI-generated workouts"
 
-### Tester-Ready Batch (Latest)
-1. **Star/Favourite System** — Max 3 starred exercises. Star button on every Explore tile. When full, shows "Replace a Favourite" modal to swap one out. Stored in AsyncStorage.
-2. **Liked/Disliked Tile Layout** — Rewritten with 2-column tile grid, Cloudinary video thumbnails, like/dislike badges on each tile, remove button. Matches Explore style.
-3. **Explore Star Button** — Alongside heart/thumbs-down on each exercise tile
-4. **Badge Islands** — Already requires 100% completion of current island before advancing (confirmed)
-5. **Tester Prep** — Railway URL everywhere, test accounts removed from login, all users default to Pro
+### Star/Favourite System
+- Max 3 starred exercises, replace prompt when full
+- Star button on every Explore tile alongside like/dislike
 
-### Earlier Work
-- AI Coach compassion prompt, tour improvements, Pro/Paywall dark UI, onboarding paywall screen
-- Explore Workouts tile redesign, filter button, video thumbnails
-- todayWorkoutRef crash fix, workout regeneration guard, awards padding
-- Video fuzzy matching removal, coach memory, drop set UI, Pro gating, billing redesign
+### Liked/Disliked Tile Layout
+- Rewritten with 2-column grid, Cloudinary video thumbnails, matching Explore style
+
+### Tester-Ready
+- Railway URL everywhere, test accounts removed, all users default to Pro
+- Coach compassion, tour improvements, Thriven-style paywall cards, onboarding paywall screen
 
 ## Known Issues
-- RevenueCat MOCKED (needs EAS build for real purchases)
+- RevenueCat MOCKED (needs EAS build)
 
 ## Remaining
-- [ ] User testing feedback round
-- [ ] Real RevenueCat integration (EAS Dev Build)
+- [ ] Tester feedback round
+- [ ] Real RevenueCat integration
+- [ ] Island visual improvements (deferred)
 - [ ] App Store / Play Store submission
-- [ ] Island visual improvements (user deferred)
