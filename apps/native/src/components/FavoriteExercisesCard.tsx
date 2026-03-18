@@ -1,6 +1,6 @@
 /**
- * FavoriteExercisesCard - Shows 3 pinned favorite exercises on stats page
- * Mini cards with PB and recent trend
+ * FavoriteExercisesCard - Shows 3 starred favorite exercises
+ * Reads from preferences-store (starred exercises), fetches stats from API
  */
 
 import React, { useState, useEffect, useCallback } from 'react';
@@ -10,6 +10,7 @@ import {
   StyleSheet,
   TouchableOpacity,
   ActivityIndicator,
+  Image,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
@@ -17,6 +18,7 @@ import * as SecureStore from 'expo-secure-store';
 import { useFocusEffect } from '@react-navigation/native';
 import { COLORS as THEME_COLORS } from '../constants/colors';
 import { getApiBaseUrl } from '../services/env';
+import { usePreferencesStore } from '../stores/preferences-store';
 
 const COLORS = {
   accent: THEME_COLORS.gradientStart,
@@ -30,71 +32,81 @@ const COLORS = {
 
 const API_BASE_URL = getApiBaseUrl();
 
-interface FavoriteExercise {
+// Cloudinary thumbnail helper
+const getThumbUrl = (videoUrl: string | undefined) => {
+  if (!videoUrl?.includes('cloudinary')) return null;
+  return videoUrl
+    .replace('/video/upload/', '/video/upload/so_0,f_jpg,w_200,h_200,c_fill,g_center/')
+    .replace('.mp4', '.jpg');
+};
+
+interface ExerciseStats {
   exerciseId: string;
   exerciseName: string;
-  actualPB: number;
-  estimatedOneRM: number;
-  trend: 'up' | 'down' | 'neutral';
-  lastWeight: number;
+  videoUrl?: string;
+  actualPB?: number;
+  estimatedOneRM?: number;
+  trend?: 'up' | 'down' | 'neutral';
+  sessions?: number;
 }
 
 interface Props {
   onViewAll: () => void;
   onExercisePress: (exerciseId: string) => void;
-  refreshTrigger?: number; // Increment this to force refresh
+  refreshTrigger?: number;
 }
 
 export const FavoriteExercisesCard = ({ onViewAll, onExercisePress, refreshTrigger }: Props) => {
-  const [favorites, setFavorites] = useState<FavoriteExercise[]>([]);
+  const { getStarredExercises } = usePreferencesStore();
+  const starred = getStarredExercises();
+  const [stats, setStats] = useState<Record<string, ExerciseStats>>({});
   const [isLoading, setIsLoading] = useState(true);
 
-  const fetchFavorites = useCallback(async () => {
+  const fetchStats = useCallback(async () => {
+    if (starred.length === 0) { setIsLoading(false); return; }
     try {
-      const token = await SecureStore.getItemAsync('thryvin_access_token');
-      if (!token) {
-        console.warn('No auth token, skipping favorites fetch');
-        setIsLoading(false);
-        return;
-      }
-      
-      const response = await fetch(`${API_BASE_URL}/api/stats/favorites`, {
-        headers: { 'Authorization': `Bearer ${token}` },
-      });
-      
-      if (response.ok) {
-        const data = await response.json();
-        setFavorites(data.favorites || []);
-        if (__DEV__) {
-          console.log('📊 [FavoriteExercisesCard] Fetched favorites:', data.favorites?.length || 0);
-        }
-      } else if (response.status === 401) {
-        console.warn('Auth token expired or invalid');
-      }
+      let token: string | null = null;
+      try { token = await SecureStore.getItemAsync('thryvin_access_token'); } catch {}
+      if (!token) { setIsLoading(false); return; }
+
+      const results: Record<string, ExerciseStats> = {};
+      await Promise.all(
+        starred.map(async (s) => {
+          try {
+            const res = await fetch(`${API_BASE_URL}/api/stats/exercise/${s.exerciseId}`, {
+              headers: { Authorization: `Bearer ${token}` },
+            });
+            if (res.ok) {
+              const data = await res.json();
+              results[s.exerciseId] = {
+                exerciseId: s.exerciseId,
+                exerciseName: s.exerciseName,
+                videoUrl: s.videoUrl,
+                actualPB: data.personalBest?.weight,
+                estimatedOneRM: data.personalBest?.estimatedOneRM,
+                sessions: data.history?.length || 0,
+                trend: data.trend || 'neutral',
+              };
+            }
+          } catch {}
+        })
+      );
+      setStats(results);
     } catch (err) {
-      console.error('Error fetching favorites:', err);
+      console.error('Error fetching starred stats:', err);
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [starred.length]);
 
-  // Fetch on mount and when refresh trigger changes
-  useEffect(() => {
-    fetchFavorites();
-  }, [fetchFavorites, refreshTrigger]);
-  
-  // Also fetch when screen comes into focus
-  useFocusEffect(
-    useCallback(() => {
-      fetchFavorites();
-    }, [fetchFavorites])
-  );
+  useEffect(() => { fetchStats(); }, [fetchStats, refreshTrigger]);
+  useFocusEffect(useCallback(() => { fetchStats(); }, [fetchStats]));
 
   if (isLoading) {
     return (
       <View style={styles.container}>
         <View style={styles.header}>
-          <Text style={styles.title}>Favorite Exercises</Text>
+          <Text style={styles.title}>Favourite Exercises</Text>
         </View>
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="small" color={COLORS.accent} />
@@ -103,19 +115,19 @@ export const FavoriteExercisesCard = ({ onViewAll, onExercisePress, refreshTrigg
     );
   }
 
-  if (favorites.length === 0) {
+  if (starred.length === 0) {
     return (
       <View style={styles.container}>
         <View style={styles.header}>
-          <Text style={styles.title}>Favorite Exercises</Text>
+          <Text style={styles.title}>Favourite Exercises</Text>
           <TouchableOpacity onPress={onViewAll}>
-            <Text style={styles.viewAll}>Add Favorites</Text>
+            <Text style={styles.viewAll}>Explore</Text>
           </TouchableOpacity>
         </View>
         <TouchableOpacity style={styles.emptyCard} onPress={onViewAll}>
-          <Ionicons name="star-outline" size={32} color={COLORS.mediumGray} />
-          <Text style={styles.emptyText}>Pin up to 3 exercises</Text>
-          <Text style={styles.emptySubtext}>Tap to choose your favorites</Text>
+          <Ionicons name="star-outline" size={28} color={COLORS.mediumGray} />
+          <Text style={styles.emptyText}>Star up to 3 exercises in Explore</Text>
+          <Text style={styles.emptySubtext}>They'll appear here with your stats</Text>
         </TouchableOpacity>
       </View>
     );
@@ -124,72 +136,53 @@ export const FavoriteExercisesCard = ({ onViewAll, onExercisePress, refreshTrigg
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.title}>Favorite Exercises</Text>
+        <Text style={styles.title}>Favourite Exercises</Text>
         <TouchableOpacity onPress={onViewAll}>
           <Text style={styles.viewAll}>View All</Text>
         </TouchableOpacity>
       </View>
-
-      <View style={styles.cardsRow}>
-        {favorites.map((exercise, index) => {
-          const TrendIcon = exercise.trend === 'up' ? 'trending-up' : 
-                           exercise.trend === 'down' ? 'trending-down' : 'remove';
-          const trendColor = exercise.trend === 'up' ? COLORS.success : 
-                            exercise.trend === 'down' ? '#FF3B30' : COLORS.mediumGray;
-
+      <View style={styles.cardRow}>
+        {starred.map((s) => {
+          const st = stats[s.exerciseId];
+          const thumbUrl = getThumbUrl(s.videoUrl);
           return (
             <TouchableOpacity
-              key={exercise.exerciseId}
+              key={s.exerciseId}
               style={styles.card}
-              onPress={() => onExercisePress(exercise.exerciseId)}
-              activeOpacity={0.7}
+              onPress={() => onExercisePress(s.exerciseId)}
+              activeOpacity={0.8}
+              data-testid={`fav-card-${s.exerciseId}`}
             >
-              <LinearGradient
-                colors={index === 0 ? [COLORS.accent, COLORS.accentSecondary] : ['transparent', 'transparent']}
-                style={[styles.cardGradient, index > 0 && styles.cardPlain]}
-              >
-                <View style={styles.cardHeader}>
-                  <Ionicons 
-                    name="star" 
-                    size={14} 
-                    color={index === 0 ? 'rgba(255,255,255,0.8)' : COLORS.warning} 
-                  />
-                  <Ionicons name={TrendIcon as any} size={14} color={index === 0 ? COLORS.white : trendColor} />
-                </View>
-                
-                <Text 
-                  style={[styles.exerciseName, index > 0 && styles.exerciseNameDark]} 
-                  numberOfLines={2}
-                >
-                  {exercise.exerciseName}
-                </Text>
-                
-                <View style={styles.pbRow}>
-                  <Text style={[styles.pbLabel, index > 0 && styles.pbLabelDark]}>PB</Text>
-                  <Text style={[styles.pbValue, index > 0 && styles.pbValueDark]}>
-                    {exercise.actualPB}kg
-                  </Text>
-                </View>
-                
-                <Text style={[styles.lastWeight, index > 0 && styles.lastWeightDark]}>
-                  Last: {exercise.lastWeight}kg
-                </Text>
-              </LinearGradient>
+              {thumbUrl ? (
+                <Image source={{ uri: thumbUrl }} style={styles.cardThumb} resizeMode="cover" />
+              ) : (
+                <LinearGradient colors={[COLORS.accent, COLORS.accentSecondary]} style={styles.cardThumb}>
+                  <Ionicons name="barbell" size={18} color={COLORS.white} />
+                </LinearGradient>
+              )}
+              <Ionicons name="star" size={12} color="#FFB800" style={styles.starIcon} />
+              <View style={styles.cardInfo}>
+                <Text style={styles.cardName} numberOfLines={2}>{s.exerciseName}</Text>
+                {st && st.sessions && st.sessions > 0 ? (
+                  <View style={styles.statRow}>
+                    <Text style={styles.statPB}>{st.actualPB || '—'} kg</Text>
+                    <Ionicons
+                      name={st.trend === 'up' ? 'trending-up' : st.trend === 'down' ? 'trending-down' : 'remove'}
+                      size={14}
+                      color={st.trend === 'up' ? COLORS.success : st.trend === 'down' ? '#FF3B30' : COLORS.mediumGray}
+                    />
+                  </View>
+                ) : (
+                  <Text style={styles.noStat}>No sessions yet</Text>
+                )}
+              </View>
             </TouchableOpacity>
           );
         })}
-        
         {/* Empty slots */}
-        {[...Array(3 - favorites.length)].map((_, index) => (
-          <TouchableOpacity
-            key={`empty-${index}`}
-            style={styles.card}
-            onPress={onViewAll}
-            activeOpacity={0.7}
-          >
-            <View style={styles.emptySlot}>
-              <Ionicons name="add" size={24} color={COLORS.mediumGray} />
-            </View>
+        {starred.length < 3 && Array.from({ length: 3 - starred.length }).map((_, i) => (
+          <TouchableOpacity key={`empty-${i}`} style={styles.emptySlot} onPress={onViewAll}>
+            <Ionicons name="add" size={20} color={COLORS.mediumGray} />
           </TouchableOpacity>
         ))}
       </View>
@@ -198,34 +191,26 @@ export const FavoriteExercisesCard = ({ onViewAll, onExercisePress, refreshTrigg
 };
 
 const styles = StyleSheet.create({
-  container: { marginBottom: 24 },
-  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 },
-  title: { fontSize: 18, fontWeight: '700', color: COLORS.text },
-  viewAll: { fontSize: 14, fontWeight: '600', color: COLORS.accent },
-  
-  loadingContainer: { height: 130, justifyContent: 'center', alignItems: 'center' },
-  
-  emptyCard: { backgroundColor: COLORS.lightGray, borderRadius: 16, padding: 24, alignItems: 'center', borderWidth: 2, borderStyle: 'dashed', borderColor: COLORS.mediumGray },
-  emptyText: { fontSize: 15, fontWeight: '600', color: COLORS.text, marginTop: 12 },
-  emptySubtext: { fontSize: 13, color: COLORS.mediumGray, marginTop: 4 },
-  
-  cardsRow: { flexDirection: 'row', gap: 10 },
-  card: { flex: 1 },
-  cardGradient: { borderRadius: 14, padding: 14, minHeight: 130 },
-  cardPlain: { backgroundColor: COLORS.lightGray },
-  cardHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 },
-  
-  exerciseName: { fontSize: 13, fontWeight: '600', color: COLORS.white, marginBottom: 8, lineHeight: 18 },
-  exerciseNameDark: { color: COLORS.text },
-  
-  pbRow: { flexDirection: 'row', alignItems: 'baseline', gap: 4 },
-  pbLabel: { fontSize: 10, fontWeight: '700', color: 'rgba(255,255,255,0.7)' },
-  pbLabelDark: { color: COLORS.mediumGray },
-  pbValue: { fontSize: 20, fontWeight: '800', color: COLORS.white },
-  pbValueDark: { color: COLORS.text },
-  
-  lastWeight: { fontSize: 11, color: 'rgba(255,255,255,0.6)', marginTop: 4 },
-  lastWeightDark: { color: COLORS.mediumGray },
-  
-  emptySlot: { backgroundColor: COLORS.lightGray, borderRadius: 14, minHeight: 130, justifyContent: 'center', alignItems: 'center', borderWidth: 2, borderStyle: 'dashed', borderColor: COLORS.mediumGray },
+  container: { marginBottom: 16 },
+  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 },
+  title: { fontSize: 16, fontWeight: '700', color: COLORS.text },
+  viewAll: { fontSize: 13, fontWeight: '600', color: COLORS.accent },
+
+  loadingContainer: { height: 80, justifyContent: 'center', alignItems: 'center' },
+
+  emptyCard: { alignItems: 'center', padding: 20, backgroundColor: COLORS.lightGray, borderRadius: 14, borderWidth: 1, borderStyle: 'dashed', borderColor: COLORS.mediumGray, gap: 4 },
+  emptyText: { fontSize: 14, fontWeight: '600', color: COLORS.text, marginTop: 4 },
+  emptySubtext: { fontSize: 12, color: COLORS.mediumGray },
+
+  cardRow: { flexDirection: 'row', gap: 10 },
+  card: { flex: 1, backgroundColor: COLORS.lightGray, borderRadius: 14, overflow: 'hidden' },
+  cardThumb: { width: '100%', height: 56, justifyContent: 'center', alignItems: 'center' },
+  starIcon: { position: 'absolute', top: 4, right: 4 },
+  cardInfo: { padding: 8 },
+  cardName: { fontSize: 12, fontWeight: '700', color: COLORS.text, lineHeight: 15 },
+  statRow: { flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 4 },
+  statPB: { fontSize: 13, fontWeight: '700', color: COLORS.accent },
+  noStat: { fontSize: 10, color: COLORS.mediumGray, marginTop: 2 },
+
+  emptySlot: { flex: 1, height: 100, backgroundColor: COLORS.lightGray, borderRadius: 14, justifyContent: 'center', alignItems: 'center', borderWidth: 1, borderStyle: 'dashed', borderColor: COLORS.mediumGray },
 });

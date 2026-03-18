@@ -488,7 +488,13 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
     // Also clear legacy lock key
     await deleteStorageItem('workout_generation_in_progress');
     
-    set({ isLoading: true, error: null });
+    // Only show loading screen if we have no workouts at all
+    const hasPartialWorkouts = get().weekWorkouts.length > 0;
+    if (!hasPartialWorkouts) {
+      set({ isLoading: true, error: null });
+    } else {
+      set({ error: null });
+    }
     
     try {
       // Set lock with timestamp
@@ -579,6 +585,14 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
                 set({ weekWorkouts: transformedWorkouts, isLoading: false });
                 await deleteStorageItem('workout_generation_lock');
                 return;
+              } else if (Object.keys(dbWorkoutsByDate).length >= 14) {
+                // PARTIAL DATA (14+ days) — Show what we have NOW, generate rest silently
+                console.log(`📦 [3-WEEK] Database has ${Object.keys(dbWorkoutsByDate).length}/21 days — showing existing, generating rest silently`);
+                const existingWorkouts = Object.values(dbWorkoutsByDate);
+                set({ weekWorkouts: existingWorkouts, isLoading: false });
+                
+                // Continue to generate missing days in background (isLoading stays false)
+                // The generation code below will fill in the gaps
               } else {
                 console.log(`⚠️ [3-WEEK] Database has ${Object.keys(dbWorkoutsByDate).length}/21 days, will generate missing ones`);
               }
