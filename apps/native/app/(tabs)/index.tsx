@@ -23,6 +23,7 @@ import { AdvancedQuestionnaireModal, AdvancedQuestionnaireData } from '../../src
 import { WeeklyScheduleCheckModal } from '../../src/components/WeeklyScheduleCheckModal';
 import { FavoriteExercisesCard } from '../../src/components/FavoriteExercisesCard';
 import { ExploreWorkoutsModal } from '../../src/components/ExploreWorkoutsModal';
+import { usePreferencesStore } from '../../src/stores/preferences-store';
 import { ExerciseStatsModal } from '../../src/components/ExerciseStatsModal';
 import { useWorkoutStore } from '../../src/stores/workout-store';
 import { useAuthStore } from '../../src/stores/auth-store';
@@ -447,6 +448,9 @@ export default function HomeScreen() {
   const [statsVersion, setStatsVersion] = useState(0);
 
   const loadAllData = async () => {
+    // Load preferences from backend/local
+    usePreferencesStore.getState().loadPreferences();
+    
     // First check if advanced questionnaire needs to be shown
     const completed = await AsyncStorage.getItem('advancedQuestionnaire');
     const skipped = await AsyncStorage.getItem('advancedQuestionnaireSkipped');

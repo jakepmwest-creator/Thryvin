@@ -20,6 +20,7 @@ import { useSubscriptionStore } from '../../src/stores/subscription-store';
 import { ProPaywallModal } from '../../src/components/ProPaywallModal';
 import { FavoriteExercisesCard } from '../../src/components/FavoriteExercisesCard';
 import { ExerciseStatsModal } from '../../src/components/ExerciseStatsModal';
+import { ExploreWorkoutsModal } from '../../src/components/ExploreWorkoutsModal';
 
 const { width } = Dimensions.get('window');
 
@@ -424,6 +425,8 @@ export default function StatsScreen() {
     setSelectedExerciseId(exerciseId);
     setShowExerciseStats(true);
   };
+
+  const [showExploreFromStats, setShowExploreFromStats] = useState(false);
 
   // Get date range based on selected time period
   const getDateRange = useCallback(() => {
@@ -961,7 +964,7 @@ export default function StatsScreen() {
         {/* Favorite Exercises & Personal Bests - NOW LIVE! */}
         <View style={styles.section}>
           <FavoriteExercisesCard
-            onViewAll={() => openExerciseStats()}
+            onViewAll={() => setShowExploreFromStats(true)}
             onExercisePress={(exerciseId) => openExerciseStats(exerciseId)}
           />
         </View>
@@ -1002,6 +1005,14 @@ export default function StatsScreen() {
           setSelectedExerciseId(undefined);
         }}
         initialExerciseId={selectedExerciseId}
+      />
+
+      {/* Explore All from Stats */}
+      <ExploreWorkoutsModal
+        visible={showExploreFromStats}
+        onClose={() => setShowExploreFromStats(false)}
+        category="Weights"
+        categoryGradient={['#A22BF6', '#FF4EC7']}
       />
 
       <ProPaywallModal
