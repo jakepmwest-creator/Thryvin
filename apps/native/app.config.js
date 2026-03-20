@@ -6,7 +6,7 @@ export default {
     orientation: 'portrait',
     icon: './assets/icon.png',
     userInterfaceStyle: 'light',
-    newArchEnabled: true,
+    newArchEnabled: false,
     scheme: 'thryvin',
     splash: {
       image: './assets/splash-icon.png',
@@ -23,8 +23,6 @@ export default {
         backgroundColor: '#ffffff',
       },
       package: 'com.thryvin.app',
-      edgeToEdgeEnabled: true,
-      predictiveBackGestureEnabled: false,
     },
     web: {
       favicon: './assets/favicon.png',
