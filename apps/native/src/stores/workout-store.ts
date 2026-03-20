@@ -464,13 +464,15 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
       }
     }
     
-    // Prevent double generation with timeout-based lock (5 minute timeout)
+    // Prevent double generation with timeout-based lock (90 second timeout)
+    // NOTE: Timeout was reduced from 5 minutes to 90 seconds so a crash doesn't
+    // leave the app stuck showing empty/broken workouts after restart.
     const lockData = await getStorageItem('workout_generation_lock');
     if (lockData) {
       try {
         const lock = JSON.parse(lockData);
         const lockAge = Date.now() - lock.timestamp;
-        const LOCK_TIMEOUT = 5 * 60 * 1000; // 5 minutes
+        const LOCK_TIMEOUT = 90 * 1000; // 90 seconds — short enough to recover after a crash
         
         if (lockAge < LOCK_TIMEOUT) {
           console.log('⏳ [3-WEEK] Generation already in progress (started', Math.round(lockAge/1000), 'seconds ago), skipping...');

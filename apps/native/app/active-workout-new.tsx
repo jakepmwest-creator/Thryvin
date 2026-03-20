@@ -160,7 +160,7 @@ export default function ActiveWorkoutScreen() {
       }
 
       const response = await fetch(
-        `${API_URL}/api/exercises?names=${encodeURIComponent(exerciseNames)}`
+        `${API_BASE_URL}/api/exercises?names=${encodeURIComponent(exerciseNames)}`
       );
 
       if (response.ok) {
