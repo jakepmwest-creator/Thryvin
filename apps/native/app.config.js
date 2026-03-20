@@ -7,46 +7,56 @@ if (envResult.error) {
   console.warn('[app.config] Could not load .env:', envResult.error.message);
 }
 
-// Stable tunnel URL as fallback when .env is not loaded by Metro/Expo Go
-const FALLBACK_API_URL = 'https://conventional-isa-equality-submitting.trycloudflare.com';
+const RAILWAY_API_URL = 'https://thryvin-production-fbdd.up.railway.app';
 
 export default {
   expo: {
-    name: 'native',
-    slug: 'native',
+    name: 'Thryvin',
+    slug: 'thryvin',
     version: '1.0.0',
     orientation: 'portrait',
     icon: './assets/icon.png',
     userInterfaceStyle: 'light',
     newArchEnabled: false,
     scheme: 'thryvin',
+    runtimeVersion: {
+      policy: 'appVersion',
+    },
+    updates: {
+      url: 'https://u.expo.dev/ca2d383b-786b-4caa-bf8c-84ea08c5de58',
+    },
     splash: {
       image: './assets/splash-icon.png',
       resizeMode: 'contain',
-      backgroundColor: '#ffffff',
+      backgroundColor: '#A259FF',
     },
     ios: {
       supportsTablet: true,
+      bundleIdentifier: 'com.thryvin.app',
     },
     android: {
       adaptiveIcon: {
         foregroundImage: './assets/adaptive-icon.png',
-        backgroundColor: '#ffffff',
+        backgroundColor: '#A259FF',
       },
+      package: 'com.thryvin.app',
       edgeToEdgeEnabled: true,
       predictiveBackGestureEnabled: false,
     },
     web: {
       favicon: './assets/favicon.png',
     },
-    plugins: ['expo-router'],
+    plugins: ['expo-router', 'expo-updates'],
     experiments: {
       bridgeless: false,
       turboModules: false,
     },
     extra: {
+      eas: {
+        projectId: 'ca2d383b-786b-4caa-bf8c-84ea08c5de58',
+      },
       openaiApiKey: process.env.EXPO_PUBLIC_OPENAI_API_KEY,
-      EXPO_PUBLIC_API_BASE_URL: process.env.EXPO_PUBLIC_API_BASE_URL || FALLBACK_API_URL,
+      EXPO_PUBLIC_API_BASE_URL: process.env.EXPO_PUBLIC_API_BASE_URL || RAILWAY_API_URL,
       EXPO_PUBLIC_REVENUECAT_API_KEY: process.env.EXPO_PUBLIC_REVENUECAT_API_KEY,
     },
   },
