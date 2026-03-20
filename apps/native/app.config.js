@@ -6,7 +6,7 @@ export default {
     orientation: 'portrait',
     icon: './assets/icon.png',
     userInterfaceStyle: 'light',
-    newArchEnabled: false,
+    newArchEnabled: true,
     scheme: 'thryvin',
     splash: {
       image: './assets/splash-icon.png',
@@ -28,10 +28,6 @@ export default {
       favicon: './assets/favicon.png',
     },
     plugins: ['expo-router'],
-    experiments: {
-      bridgeless: false,
-      turboModules: false,
-    },
     extra: {
       eas: {
         projectId: 'ca2d383b-786b-4caa-bf8c-84ea08c5de58',
