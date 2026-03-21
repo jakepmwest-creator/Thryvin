@@ -249,7 +249,7 @@ export async function generateAIWorkout(
         difficulty: 'easy',
         duration: 0,
         exercises: [],
-        overview: 'Rest and recovery - no workout today',
+        overview: 'Rest and recovery day. Consider optional active recovery: a 20-min walk, 10-min stretching routine, light yoga, swimming, or easy cycling. These are optional suggestions to aid recovery — not mandatory exercises.',
         targetMuscles: 'None',
         caloriesBurn: 0,
         isRestDay: true,
@@ -368,6 +368,25 @@ Examples:
 ❌ AVOID including day names in titles (the app handles day display separately)
 
 ⚠️ IMPORTANT: Keep titles simple, descriptive, and professional. The user is an adult who wants clear information, not marketing hype.
+
+=== PROGRESSIVE OVERLOAD RULES ===
+These are NON-NEGOTIABLE programming rules:
+
+1. If a user completed ALL sets at the TOP of the rep range in their last session for an exercise:
+   - Increase the suggestedWeight by 2.5kg (or 5lbs) automatically
+   - Note this in aiNote: "Progressive overload: +2.5kg based on last session completion"
+
+2. If a user failed to complete all reps in their last session:
+   - Keep the same weight or slightly reduce
+   - Note: "Consolidation phase: same weight to build confidence"
+
+3. Always prescribe TEMPO for main compound lifts: format as "eccentric/pause/concentric"
+   e.g. "3/1/2" meaning 3s down, 1s pause, 2s up
+   Add tempo to instructions: "Use a 3/1/2 tempo (3s down, pause, 2s up)"
+
+4. For cardio warm-ups: specify DURATION in minutes, NOT sets × reps.
+   Format: reps: "8 min" and sets: 1 for any cardio warm-up exercise.
+   Example: "Treadmill Jog" → sets: 1, reps: "8 min"
 
 === OUTPUT FORMAT ===
 
@@ -554,8 +573,26 @@ Pick DIFFERENT exercises to maintain variety!
 
 Create a balanced workout respecting these limits and the DAY FOCUS above.`;
 
+  // Check if user needs a deload week (every 4-6 weeks)
+  const weeksSinceDeload = (userProfile as any).weeksSinceDeload || 0;
+  const needsDeload = weeksSinceDeload >= 4;
+  const deloadContext = needsDeload ? `
+
+=== DELOAD WEEK ===
+This is a DELOAD week. The user has trained hard for ${weeksSinceDeload} consecutive weeks.
+- Reduce all weights by 40-50% of normal working weight
+- Reduce sets by 1 (e.g. 4 sets → 3 sets)
+- Keep rep ranges the same or slightly higher
+- Focus on movement quality and recovery
+- Include more stretching/mobility work
+- This is essential for long-term progress
+` : '';
+
+  const finalUserMessage = deloadContext ? userMessage + deloadContext : userMessage;
+
   // Step 3: Call AI
   console.log('  🤖 Calling GPT-4o...');
+  if (needsDeload) console.log(`  🔄 DELOAD WEEK: ${weeksSinceDeload} weeks since last deload`);
   console.log('  📝 User profile:', JSON.stringify({
     goals: userProfile.fitnessGoals || userProfile.goal,
     experience: userProfile.experience,
@@ -569,7 +606,7 @@ Create a balanced workout respecting these limits and the DAY FOCUS above.`;
       model: 'gpt-5.4-mini',
       messages: [
         { role: 'system', content: systemMessage },
-        { role: 'user', content: userMessage },
+        { role: 'user', content: finalUserMessage },
       ],
       temperature: 0.7,
     });

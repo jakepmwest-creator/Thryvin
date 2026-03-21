@@ -1003,6 +1003,24 @@ export default function WorkoutHubScreen() {
                           }
                         })()}
                       </Text>
+                      {/* Set Type Badge */}
+                      {exercise.setType && exercise.setType !== 'normal' && !removeMode && (
+                        <View style={[
+                          styles.setTypeBadge,
+                          exercise.setType === 'drop' && styles.setTypeBadgeDrop,
+                          exercise.setType === 'super' && styles.setTypeBadgeSuper,
+                          exercise.setType === 'giant' && styles.setTypeBadgeGiant,
+                        ]}>
+                          <Text style={styles.setTypeBadgeText}>
+                            {exercise.setType === 'drop' ? '🔻 DROP SET' :
+                             exercise.setType === 'super' ? '🔗 SUPERSET' :
+                             exercise.setType === 'giant' ? '⚡ GIANT SET' : ''}
+                          </Text>
+                          {exercise.supersetWith && exercise.setType === 'super' && (
+                            <Text style={styles.supersetWithText}>with {exercise.supersetWith}</Text>
+                          )}
+                        </View>
+                      )}
                     </View>
                     {!removeMode && completedSets.length >= (exercise.sets || 1) && (
                       <Ionicons name="checkmark-circle" size={24} color={COLORS.success} />
@@ -2329,15 +2347,32 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   setTypeBadge: {
+    alignSelf: 'flex-start',
     paddingHorizontal: 8,
-    paddingVertical: 2,
-    borderRadius: 12,
+    paddingVertical: 3,
+    borderRadius: 99,
+    marginTop: 4,
     backgroundColor: COLORS.lightGray,
+  },
+  setTypeBadgeDrop: {
+    backgroundColor: 'rgba(249,115,22,0.15)',
+  },
+  setTypeBadgeSuper: {
+    backgroundColor: 'rgba(59,130,246,0.15)',
+  },
+  setTypeBadgeGiant: {
+    backgroundColor: 'rgba(162,89,255,0.15)',
   },
   setTypeBadgeText: {
     fontSize: 10,
     fontWeight: '700',
     color: COLORS.mediumGray,
+    textTransform: 'uppercase',
+  },
+  supersetWithText: {
+    fontSize: 10,
+    color: COLORS.mediumGray,
+    marginTop: 1,
   },
   completedSetWrapper: {
     marginBottom: 12,
