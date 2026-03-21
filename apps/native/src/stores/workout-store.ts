@@ -256,9 +256,23 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
       // Check if we have today's workout cached
       const cachedWorkout = await getStorageItem('today_workout');
       const cachedDate = await getStorageItem('today_workout_date');
+      const cachedAtStr = await getStorageItem('today_workout_cached_at');
       
+      // Use cache immediately if it's from today AND less than 2 hours old
       if (cachedWorkout && cachedDate === today) {
-        console.log('✅ [WORKOUT] Using cached today\'s workout');
+        const cachedAt = cachedAtStr ? parseInt(cachedAtStr, 10) : 0;
+        const cacheAgeMs = Date.now() - cachedAt;
+        const TWO_HOURS_MS = 7200000;
+        if (cacheAgeMs < TWO_HOURS_MS) {
+          // Fresh cache — no loading spinner needed
+          console.log('✅ [WORKOUT] Using fresh cached today\'s workout (', Math.round(cacheAgeMs / 60000), 'min old)');
+          const workout = JSON.parse(cachedWorkout);
+          set({ todayWorkout: workout, currentWorkout: workout, isLoading: false });
+          return;
+        }
+        // Cache exists for today but is older than 2h — still use it to avoid blank state,
+        // but continue to refresh in background
+        console.log('⏰ [WORKOUT] Cache is stale (', Math.round(cacheAgeMs / 60000), 'min old), refreshing...');
         const workout = JSON.parse(cachedWorkout);
         set({ todayWorkout: workout, currentWorkout: workout, isLoading: false });
         return;
@@ -340,9 +354,10 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
         exerciseList: aiWorkout.exercises, // For compatibility
       };
       
-      // Cache the workout
+      // Cache the workout with timestamp for freshness check
       await setStorageItem('today_workout', JSON.stringify(workout));
       await setStorageItem('today_workout_date', today);
+      await setStorageItem('today_workout_cached_at', Date.now().toString());
       
       set({ todayWorkout: workout, currentWorkout: workout, isLoading: false });
       console.log('✅ [WORKOUT] Store updated with:', workout.title, workout.exercises.length, 'exercises');

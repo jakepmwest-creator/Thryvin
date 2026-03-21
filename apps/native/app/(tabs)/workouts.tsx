@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { 
   View, 
   Text, 
@@ -187,7 +187,7 @@ export default function WorkoutsScreen() {
     return weekDays;
   };
   
-  const WEEK_DAYS = getCurrentWeekDays();
+  const WEEK_DAYS = useMemo(() => getCurrentWeekDays(), [weekWorkouts, completedWorkouts]);
 
   useEffect(() => {
     fetchTodayWorkout();
@@ -598,11 +598,13 @@ export default function WorkoutsScreen() {
         </View>
       </ScrollView>
       
-      <ExploreWorkoutsModal
-        visible={exploreModalVisible}
-        onClose={() => setExploreModalVisible(false)}
-        initialCategory="All"
-      />
+      {exploreModalVisible && (
+        <ExploreWorkoutsModal
+          visible={exploreModalVisible}
+          onClose={() => setExploreModalVisible(false)}
+          initialCategory="All"
+        />
+      )}
       
       <ViewAllWeeksModal
         visible={showAllWeeks}
