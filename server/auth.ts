@@ -452,18 +452,19 @@ export function setupAuth(app: Express) {
         }
       }
 
+      // Generate JWT access token for mobile (session-free path)
+      const accessToken = generateAccessToken(user);
+      const { password, ...safeUser } = user;
+      const requestId = (req as ApiRequest).requestId || 'unknown';
+      
+      // Try to establish session (for web clients) but don't block the mobile response on it
       req.login(user, (err) => {
-        if (err) return next(err);
-        // Save session before responding to prevent race condition
-        req.session.save((saveErr) => {
-          if (saveErr) return next(saveErr);
-          // Remove password from response for security
-          const { password, ...safeUser } = user;
-          const requestId = (req as ApiRequest).requestId || 'unknown';
-          // Generate JWT access token for mobile
-          const accessToken = generateAccessToken(user);
-          res.status(201).json({ ok: true, user: safeUser, accessToken, requestId });
-        });
+        if (err) {
+          // Session failed — but mobile clients use JWT, so still respond with token
+          console.warn('Session login failed after registration (non-critical for mobile):', err?.message);
+        }
+        // Always return JWT token regardless of session outcome
+        res.status(201).json({ ok: true, user: safeUser, accessToken, requestId });
       });
     } catch (error) {
       console.error("Registration error:", error);

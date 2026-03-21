@@ -23,7 +23,7 @@ import re
 from typing import Dict, List, Any, Optional
 
 # Configuration - Use external backend URL as specified in review request
-BASE_URL = "https://drop-set-feature.preview.emergentagent.com"
+BASE_URL = "https://thryvin-staging.preview.emergentagent.com"
 API_BASE = f"{BASE_URL}/api"
 
 class ThryvinRESTOnlyPlansTester:

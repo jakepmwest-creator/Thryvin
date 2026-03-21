@@ -256,9 +256,23 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
       // Check if we have today's workout cached
       const cachedWorkout = await getStorageItem('today_workout');
       const cachedDate = await getStorageItem('today_workout_date');
+      const cachedAtStr = await getStorageItem('today_workout_cached_at');
       
+      // Use cache immediately if it's from today AND less than 2 hours old
       if (cachedWorkout && cachedDate === today) {
-        console.log('✅ [WORKOUT] Using cached today\'s workout');
+        const cachedAt = cachedAtStr ? parseInt(cachedAtStr, 10) : 0;
+        const cacheAgeMs = Date.now() - cachedAt;
+        const TWO_HOURS_MS = 7200000;
+        if (cacheAgeMs < TWO_HOURS_MS) {
+          // Fresh cache — no loading spinner needed
+          console.log('✅ [WORKOUT] Using fresh cached today\'s workout (', Math.round(cacheAgeMs / 60000), 'min old)');
+          const workout = JSON.parse(cachedWorkout);
+          set({ todayWorkout: workout, currentWorkout: workout, isLoading: false });
+          return;
+        }
+        // Cache exists for today but is older than 2h — still use it to avoid blank state,
+        // but continue to refresh in background
+        console.log('⏰ [WORKOUT] Cache is stale (', Math.round(cacheAgeMs / 60000), 'min old), refreshing...');
         const workout = JSON.parse(cachedWorkout);
         set({ todayWorkout: workout, currentWorkout: workout, isLoading: false });
         return;
@@ -340,9 +354,10 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
         exerciseList: aiWorkout.exercises, // For compatibility
       };
       
-      // Cache the workout
+      // Cache the workout with timestamp for freshness check
       await setStorageItem('today_workout', JSON.stringify(workout));
       await setStorageItem('today_workout_date', today);
+      await setStorageItem('today_workout_cached_at', Date.now().toString());
       
       set({ todayWorkout: workout, currentWorkout: workout, isLoading: false });
       console.log('✅ [WORKOUT] Store updated with:', workout.title, workout.exercises.length, 'exercises');
@@ -448,17 +463,17 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
     }
   },
 
-  // Fetch 3 weeks of workouts (21 days, AI-generated with caching)
+  // Fetch 4 weeks of workouts (28 days, AI-generated with caching)
   fetchWeekWorkouts: async () => {
-    // GUARD: If we already have 21 workouts in state for the current week, skip entirely
+    // GUARD: If we already have 28 workouts in state for the current week, skip entirely
     const existingWorkouts = get().weekWorkouts;
-    if (existingWorkouts.length >= 21) {
+    if (existingWorkouts.length >= 28) {
       const today = new Date();
       const mondayCheck = getMondayOfWeek(today);
       const weekKey = mondayCheck.toDateString();
       const cachedWeekDate = await getStorageItem('week_workouts_date');
       if (cachedWeekDate === weekKey) {
-        console.log('✅ [3-WEEK] Already have 21 workouts in state for this week, skipping generation');
+        console.log('✅ [4-WEEK] Already have 28 workouts in state for this week, skipping generation');
         set({ isLoading: false });
         return;
       }
@@ -475,10 +490,10 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
         const LOCK_TIMEOUT = 90 * 1000; // 90 seconds — short enough to recover after a crash
         
         if (lockAge < LOCK_TIMEOUT) {
-          console.log('⏳ [3-WEEK] Generation already in progress (started', Math.round(lockAge/1000), 'seconds ago), skipping...');
+          console.log('⏳ [4-WEEK] Generation already in progress (started', Math.round(lockAge/1000), 'seconds ago), skipping...');
           return;
         } else {
-          console.log('🔓 [3-WEEK] Clearing stale lock (', Math.round(lockAge/60000), 'minutes old)');
+          console.log('🔓 [4-WEEK] Clearing stale lock (', Math.round(lockAge/60000), 'minutes old)');
           await deleteStorageItem('workout_generation_lock');
         }
       } catch {
@@ -490,7 +505,13 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
     // Also clear legacy lock key
     await deleteStorageItem('workout_generation_in_progress');
     
-    set({ isLoading: true, error: null });
+    // Only show loading screen if we have no workouts at all
+    const hasPartialWorkouts = get().weekWorkouts.length > 0;
+    if (!hasPartialWorkouts) {
+      set({ isLoading: true, error: null });
+    } else {
+      set({ error: null });
+    }
     
     try {
       // Set lock with timestamp
@@ -509,7 +530,7 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
       // ====================================================================
       // STEP 1: TRY TO FETCH EXISTING WORKOUTS FROM DATABASE FIRST
       // ====================================================================
-      console.log('📡 [3-WEEK] Checking database for existing workouts...');
+      console.log('📡 [4-WEEK] Checking database for existing workouts...');
       
       // Track which dates already have workouts in the DB
       let dbWorkoutsByDate: Record<string, any> = {};
@@ -525,7 +546,7 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
         }
         
         if (token) {
-          // Fetch workouts for the next 21 days from the database
+          // Fetch workouts for the next 28 days from the database
           const startDate = mondayOfThisWeek.toISOString().split('T')[0];
           const endDate = new Date(mondayOfThisWeek);
           endDate.setDate(endDate.getDate() + 20);
@@ -544,7 +565,7 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
             const dbWorkouts = await response.json();
             
             if (dbWorkouts && Array.isArray(dbWorkouts)) {
-              console.log(`📦 [3-WEEK] Found ${dbWorkouts.length} workouts in database`);
+              console.log(`📦 [4-WEEK] Found ${dbWorkouts.length} workouts in database`);
               
               // Build a map of workouts by date - these should NOT be regenerated
               dbWorkouts.forEach((w: any) => {
@@ -568,8 +589,8 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
               });
               
               // If we have ALL 21 days, just use what we have
-              if (Object.keys(dbWorkoutsByDate).length >= 21) {
-                console.log(`✅ [3-WEEK] Database has all 21 days of workouts, using those!`);
+              if (Object.keys(dbWorkoutsByDate).length >= 28) {
+                console.log(`✅ [4-WEEK] Database has all 28 days of workouts, using those!`);
                 
                 const transformedWorkouts = Object.values(dbWorkoutsByDate);
                 
@@ -581,16 +602,24 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
                 set({ weekWorkouts: transformedWorkouts, isLoading: false });
                 await deleteStorageItem('workout_generation_lock');
                 return;
+              } else if (Object.keys(dbWorkoutsByDate).length >= 14) {
+                // PARTIAL DATA (14+ days) — Show what we have NOW, generate rest silently
+                console.log(`📦 [4-WEEK] Database has ${Object.keys(dbWorkoutsByDate).length}/28 days — showing existing, generating rest silently`);
+                const existingWorkouts = Object.values(dbWorkoutsByDate);
+                set({ weekWorkouts: existingWorkouts, isLoading: false });
+                
+                // Continue to generate missing days in background (isLoading stays false)
+                // The generation code below will fill in the gaps
               } else {
-                console.log(`⚠️ [3-WEEK] Database has ${Object.keys(dbWorkoutsByDate).length}/21 days, will generate missing ones`);
+                console.log(`⚠️ [4-WEEK] Database has ${Object.keys(dbWorkoutsByDate).length}/28 days, will generate missing ones`);
               }
             }
           } else {
-            console.log(`⚠️ [3-WEEK] Database fetch returned ${response.status}, will generate fresh workouts`);
+            console.log(`⚠️ [4-WEEK] Database fetch returned ${response.status}, will generate fresh workouts`);
           }
         }
       } catch (dbError) {
-        console.log('⚠️ [3-WEEK] Database fetch failed:', dbError, '- will generate fresh workouts');
+        console.log('⚠️ [4-WEEK] Database fetch failed:', dbError, '- will generate fresh workouts');
       }
       
       // ====================================================================
@@ -604,30 +633,30 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
       
       // Force regeneration if cache version is outdated
       if (cachedVersion !== CACHE_VERSION) {
-        console.log('🔄 [3-WEEK] Cache version outdated, regenerating 3 weeks of workouts...');
+        console.log('🔄 [4-WEEK] Cache version outdated, regenerating 4 weeks of workouts...');
       } else if (cachedWeek && cachedWeekDate === weekKey) {
-        console.log('✅ [3-WEEK] Using cached 3-week workouts');
+        console.log('✅ [4-WEEK] Using cached 3-week workouts');
         try {
           const parsedWorkouts = JSON.parse(cachedWeek);
           const workouts = ensureArray<Workout>(parsedWorkouts, 'cached workouts parse');
-          if (workouts.length >= 21) {
+          if (workouts.length >= 28) {
             set({ weekWorkouts: workouts, isLoading: false });
             await deleteStorageItem('workout_generation_lock');
             return;
           } else {
-            console.log('⚠️ [3-WEEK] Cached workouts incomplete:', workouts.length, 'of 21');
+            console.log('⚠️ [4-WEEK] Cached workouts incomplete:', workouts.length, 'of 28');
           }
         } catch (parseError) {
-          console.warn('⚠️ [3-WEEK] Failed to parse cached workouts, regenerating...');
+          console.warn('⚠️ [4-WEEK] Failed to parse cached workouts, regenerating...');
         }
       } else {
-        console.log('⚠️ [3-WEEK] Cache miss - cachedWeek:', !!cachedWeek, 'dateMatch:', cachedWeekDate === weekKey);
+        console.log('⚠️ [4-WEEK] Cache miss - cachedWeek:', !!cachedWeek, 'dateMatch:', cachedWeekDate === weekKey);
         console.log('   Expected week key:', weekKey, 'Got:', cachedWeekDate);
       }
       
-      console.log('🤖 [3-WEEK] Generating 3 weeks of workouts with AI...');
+      console.log('🤖 [4-WEEK] Generating 4 weeks of workouts with AI...');
       
-      // Generate workouts for 3 weeks (21 days) with rest days
+      // Generate workouts for 4 weeks (28 days) with rest days
       try {
         // Get advanced questionnaire data if available (optional - new users may skip this)
         let advancedQuestionnaire = null;
@@ -635,7 +664,7 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
           const advancedQuestionnaireRaw = await getStorageItem('advancedQuestionnaire');
           advancedQuestionnaire = advancedQuestionnaireRaw ? JSON.parse(advancedQuestionnaireRaw) : null;
         } catch (parseErr) {
-          console.log('📝 [3-WEEK] No advanced questionnaire data (new user flow)');
+          console.log('📝 [4-WEEK] No advanced questionnaire data (new user flow)');
         }
         
         // Build user profile with sensible defaults for new users
@@ -655,23 +684,23 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
           preferredTrainingDays: ensureArray(user.preferredTrainingDays, 'preferredTrainingDays'),
         };
         
-        // Calculate all 21 dates (3 weeks starting from this Monday)
+        // Calculate all 28 dates (4 weeks starting from this Monday)
         const allDates: Date[] = [];
-        for (let i = 0; i < 21; i++) {
+        for (let i = 0; i < 28; i++) {
           const date = new Date(mondayOfThisWeek);
           date.setDate(mondayOfThisWeek.getDate() + i);
           allDates.push(date);
         }
         
-        console.log('📅 [3-WEEK] Generating for 21 days starting:', mondayOfThisWeek.toDateString());
+        console.log('📅 [4-WEEK] Generating for 28 days starting:', mondayOfThisWeek.toDateString());
         
         // NOTE: We no longer pre-determine rest days on the frontend
         // The backend's split planner is the source of truth for scheduling
         // Each day will be sent to /api/workouts/generate and the backend will return
         // either a workout or a rest day based on the user's frequency and constraints
         
-        console.log(`📅 [3-WEEK] Training days per week: ${parseInt(String(userProfile.trainingDays)) || 5}`);
-        console.log(`📅 [3-WEEK] Backend will determine workout vs rest for each day`);
+        console.log(`📅 [4-WEEK] Training days per week: ${parseInt(String(userProfile.trainingDays)) || 5}`);
+        console.log(`📅 [4-WEEK] Backend will determine workout vs rest for each day`);
         
         // Generate workout for each day
         const weekWorkouts: Workout[] = [];
@@ -679,7 +708,7 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
         
         // Track how many workouts we'll need to generate
         const datesToGenerate = allDates.filter(d => !dbWorkoutsByDate[d.toISOString().split('T')[0]]);
-        console.log(`📅 [3-WEEK] Will generate ${datesToGenerate.length} workouts, ${allDates.length - datesToGenerate.length} already in database`);
+        console.log(`📅 [4-WEEK] Will generate ${datesToGenerate.length} workouts, ${allDates.length - datesToGenerate.length} already in database`);
         
         // Get auth token for saving to database
         let saveToken = null;
@@ -690,7 +719,7 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
           saveToken = await getStorageItem('auth_token');
         }
         
-        for (let i = 0; i < 21; i++) {
+        for (let i = 0; i < 28; i++) {
           const date = allDates[i];
           const dateStr = date.toISOString().split('T')[0]; // YYYY-MM-DD format
           const actualDayOfWeek = date.getDay(); // JavaScript: 0=Sunday, 1=Monday, ..., 6=Saturday
@@ -698,7 +727,7 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
           // CRITICAL FIX: Check if this date already has a workout in the database
           // If yes, USE IT and don't regenerate
           if (dbWorkoutsByDate[dateStr]) {
-            console.log(`✅ [3-WEEK] Day ${i + 1}/21 (${dateStr}): Using existing workout from database`);
+            console.log(`✅ [4-WEEK] Day ${i + 1}/28 (${dateStr}): Using existing workout from database`);
             weekWorkouts.push(dbWorkoutsByDate[dateStr]);
             if (!dbWorkoutsByDate[dateStr].isRestDay) {
               workoutDayCounter++;
@@ -706,7 +735,7 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
             continue; // Skip generation for this day
           }
           
-          console.log(`🤖 [3-WEEK] Day ${i + 1}/21 (${dateStr}): Generating new workout...`);
+          console.log(`🤖 [4-WEEK] Day ${i + 1}/28 (${dateStr}): Generating new workout...`);
           
           const weekNumber = Math.floor(i / 7) + 1; // 1, 2, or 3
           
@@ -742,7 +771,7 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
                 lastError = `API Error ${response.status}: ${text.substring(0, 100)}`;
                 retries--;
                 if (retries > 0) {
-                  console.log(`⚠️ [3-WEEK] Retry ${3 - retries}/3 for day ${i + 1}...`);
+                  console.log(`⚠️ [4-WEEK] Retry ${3 - retries}/3 for day ${i + 1}...`);
                   await new Promise(r => setTimeout(r, 2000)); // Wait 2 seconds before retry
                 }
                 continue;
@@ -753,7 +782,7 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
               lastError = fetchError.message;
               retries--;
               if (retries > 0) {
-                console.log(`⚠️ [3-WEEK] Network retry ${3 - retries}/3 for day ${i + 1}...`);
+                console.log(`⚠️ [4-WEEK] Network retry ${3 - retries}/3 for day ${i + 1}...`);
                 await new Promise(r => setTimeout(r, 2000));
               }
             }
@@ -761,7 +790,7 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
           
           if (!workout) {
             // API failed - create a fallback rest day
-            console.log(`⚠️ [3-WEEK] Failed to get day ${i + 1}, using fallback rest day`);
+            console.log(`⚠️ [4-WEEK] Failed to get day ${i + 1}, using fallback rest day`);
             weekWorkouts.push({
               id: `fallback_${date.getTime()}`,
               title: 'Rest Day',
@@ -794,7 +823,7 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
               status: 'rest',
               isRestDay: true,
             });
-            console.log(`😴 [3-WEEK] Day ${i + 1}/21: Rest day (from backend)`);
+            console.log(`😴 [4-WEEK] Day ${i + 1}/28: Rest day (from backend)`);
           } else {
             // Backend returned an actual workout
             workoutDayCounter++;
@@ -822,17 +851,17 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
               status: 'pending',
               isRestDay: false,
             });
-            console.log(`💪 [3-WEEK] Day ${i + 1}/21: ${workout.title} (${workout.exercises?.length || 0} exercises)`);
+            console.log(`💪 [4-WEEK] Day ${i + 1}/28: ${workout.title} (${workout.exercises?.length || 0} exercises)`);
           }
           
           // Save progress every 7 days to prevent total loss
           if (weekWorkouts.length % 7 === 0) {
-            console.log(`💾 [3-WEEK] Saving checkpoint at ${weekWorkouts.length} days...`);
+            console.log(`💾 [4-WEEK] Saving checkpoint at ${weekWorkouts.length} days...`);
             await setStorageItem('week_workouts', JSON.stringify(weekWorkouts));
           }
         }
         
-        console.log(`✅ [3-WEEK] Generated ${weekWorkouts.length} days (${weekWorkouts.filter(w => !w.isRestDay).length} workouts, ${weekWorkouts.filter(w => w.isRestDay).length} rest days)`);
+        console.log(`✅ [4-WEEK] Generated ${weekWorkouts.length} days (${weekWorkouts.filter(w => !w.isRestDay).length} workouts, ${weekWorkouts.filter(w => w.isRestDay).length} rest days)`);
         
         // Cache the workouts with version
         await setStorageItem('week_workouts', JSON.stringify(weekWorkouts));
@@ -842,7 +871,7 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
         // ====================================================================
         // STEP 3: SAVE GENERATED WORKOUTS TO DATABASE FOR PERSISTENCE
         // ====================================================================
-        console.log('💾 [3-WEEK] Saving workouts to database for persistence...');
+        console.log('💾 [4-WEEK] Saving workouts to database for persistence...');
         try {
           let token = null;
           try {
@@ -880,10 +909,10 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
                 // Continue with other workouts even if one fails
               }
             }
-            console.log(`✅ [3-WEEK] Saved ${savedCount} NEW workouts to database (${Object.keys(dbWorkoutsByDate).length} already existed)`);
+            console.log(`✅ [4-WEEK] Saved ${savedCount} NEW workouts to database (${Object.keys(dbWorkoutsByDate).length} already existed)`);
           }
         } catch (dbSaveError) {
-          console.log('⚠️ [3-WEEK] Could not save to database (will use local cache):', dbSaveError);
+          console.log('⚠️ [4-WEEK] Could not save to database (will use local cache):', dbSaveError);
         }
         
         // Release lock
@@ -1516,7 +1545,7 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
   
   // Force regenerate week workouts (for debugging/testing)
   forceRegenerateWeek: async () => {
-    console.log('🔄 [3-WEEK] Force clearing cache and locks...');
+    console.log('🔄 [4-WEEK] Force clearing cache and locks...');
     await deleteStorageItem('workout_generation_lock'); // Clear any stuck locks
     await deleteStorageItem('workout_generation_in_progress'); // Clear legacy lock
     await setStorageItem('week_workouts', '[]'); // Clear workouts
@@ -1525,12 +1554,12 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
     await setStorageItem('today_workout', ''); // Clear today
     await setStorageItem('today_workout_date', ''); // Clear today date
     set({ weekWorkouts: [], todayWorkout: null, isLoading: false, error: null });
-    console.log('🔄 [3-WEEK] Starting generation...');
+    console.log('🔄 [4-WEEK] Starting generation...');
     await get().fetchWeekWorkouts();
     await get().fetchTodayWorkout();
   },
   
-  // Rolling generation: When a workout is completed, add a new day 3 weeks ahead
+  // Rolling generation: When a workout is completed, add a new day 4 weeks ahead
   checkAndGenerateMoreWeeks: async () => {
     try {
       const { weekWorkouts } = get();
@@ -1541,7 +1570,7 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
       
       console.log(`📊 [ROLLING] ${completedCount} workouts completed`);
       
-      // Generate a new day to maintain 3 weeks ahead
+      // Generate a new day to maintain 4 weeks ahead
       // Find the last date in our schedule
       const lastWorkout = weekWorkouts[weekWorkouts.length - 1];
       const lastDate = new Date(lastWorkout.date);

@@ -281,14 +281,15 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       try {
         // Import and call workout store functions to load persisted data
         const workoutStore = useWorkoutStore.getState();
-        await workoutStore.fetchWeekWorkouts();
-        await workoutStore.fetchCompletedWorkouts();
-        await workoutStore.fetchStats();
+        // Each call wrapped individually — failures are non-critical and must never break login
+        await workoutStore.fetchWeekWorkouts().catch(e => console.warn('⚠️ fetchWeekWorkouts:', e));
+        await workoutStore.fetchCompletedWorkouts().catch(e => console.warn('⚠️ fetchCompletedWorkouts:', e));
+        await workoutStore.fetchStats().catch(e => console.warn('⚠️ fetchStats:', e));
         console.log('✅ User workout data loaded from backend');
         
         // Also load user badges from backend
         const awardsStore = useAwardsStore.getState();
-        await awardsStore.loadUserBadges();
+        await awardsStore.loadUserBadges().catch(e => console.warn('⚠️ loadUserBadges:', e));
         console.log('✅ User badges loaded from backend');
       } catch (loadError) {
         console.warn('⚠️ Could not load workout data after login:', loadError);

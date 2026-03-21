@@ -22,6 +22,8 @@ export default function RootLayout() {
     // Clear any stale workout generation lock left over from a previous crash.
     // This ensures workouts reload correctly after the app is force-closed or crashes.
     AsyncStorage.removeItem('workout_generation_lock').catch(() => {});
+    AsyncStorage.removeItem('today_workout').catch(() => {});
+    AsyncStorage.removeItem('today_workout_date').catch(() => {});
   }, [checkAuth]);
 
   const inAuthGroup = segments[0] === '(auth)';

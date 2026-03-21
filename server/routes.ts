@@ -507,7 +507,7 @@ The totals for dailyCalories, dailyProtein, dailyCarbs, and dailyFat should be t
 Make sure all numerical values are numbers, not strings.`;
 
     const response = await openai.chat.completions.create({
-      model: "gpt-4o",
+      model: "gpt-5.4-mini",
       messages: [
         { role: "system", content: systemPrompt },
         { role: "user", content: "Generate a personalized meal plan for me." },
@@ -583,7 +583,7 @@ async function generateCoachTip(
     Focus on form, nutrition, recovery, or motivation.`;
 
     const response = await openai.chat.completions.create({
-      model: "gpt-4o",
+      model: "gpt-5.4-mini",
       messages: [{ role: "user", content: prompt }],
       max_tokens: 150,
       temperature: 0.7,
@@ -628,7 +628,7 @@ async function generateScheduleEdits(
     - Include helpful notes explaining the reasoning`;
 
     const response = await openai.chat.completions.create({
-      model: "gpt-4o",
+      model: "gpt-5.4-mini",
       messages: [{ role: "user", content: prompt }],
       response_format: { type: "json_object" },
       max_tokens: 800,
@@ -676,6 +676,20 @@ function validateSecrets() {
 export async function registerRoutes(app: Express): Promise<Server> { 
   // Setup authentication first
   setupAuth(app);
+
+  // Ensure exercise_preferences table exists
+  try {
+    await db.execute(sql`
+      CREATE TABLE IF NOT EXISTS exercise_preferences (
+        user_id INTEGER PRIMARY KEY,
+        preferences_json JSONB DEFAULT '{"preferences":[],"starred":[]}',
+        updated_at TIMESTAMP DEFAULT NOW()
+      )
+    `);
+    console.log('✅ exercise_preferences table ready');
+  } catch (err) {
+    console.error('⚠️ Could not create exercise_preferences table:', err);
+  }
 
   // =============================================================================
   // MILESTONE 1: FOUNDATIONS - Health & Config Endpoints
@@ -1095,7 +1109,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }`;
 
       const response = await openai.chat.completions.create({
-        model: "gpt-4o",
+        model: "gpt-5.4-mini",
         messages: [
           {
             role: "system",
@@ -1347,7 +1361,7 @@ Respond with JSON ONLY:
       const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
       
       const response = await openai.chat.completions.create({
-        model: "gpt-4o-mini",
+        model: "gpt-5.4-mini",
         messages: [
           { role: "system", content: "You are a fitness expert. Respond with valid JSON only. Keep exercise names EXACTLY the same." },
           { role: "user", content: modificationPrompt }
@@ -1744,8 +1758,20 @@ Respond with JSON ONLY:
 
   // Get weekly AI-generated workout schedule
   app.get("/api/workouts/week", async (req, res) => {
+    // Support both session auth and Bearer token auth
     if (!req.isAuthenticated()) {
-      return res.sendStatus(401);
+      const token = extractBearerToken(req);
+      if (token) {
+        const decoded = verifyAccessToken(token);
+        if (decoded?.userId) {
+          // Attach minimal user object so downstream code works
+          (req as any).user = { id: decoded.userId };
+        } else {
+          return res.sendStatus(401);
+        }
+      } else {
+        return res.sendStatus(401);
+      }
     }
 
     // 🚨 STABILIZATION: Block AI generation during stabilization
@@ -2106,7 +2132,7 @@ Respond with ONLY a JSON object (no markdown, no explanation):
 }`;
 
       const response = await client.chat.completions.create({
-        model: 'gpt-4o',
+        model: "gpt-5.4-mini",
         messages: [
           { role: 'system', content: 'You are an expert personal trainer. Generate workout plans in valid JSON format only.' },
           { role: 'user', content: prompt }
@@ -2835,6 +2861,59 @@ Respond with ONLY a JSON object (no markdown, no explanation):
     } catch (error: any) {
       console.log(`❌ [STATS] Error updating favorites:`, error);
       res.status(500).json({ error: "Failed to update favorites" });
+    }
+  });
+
+  // ==========================================
+  // Exercise Preferences (liked/disliked/starred) - Persistent storage
+  // ==========================================
+  
+  // GET all exercise preferences for a user
+  app.get("/api/exercise-preferences", authenticateToken, async (req: AuthenticatedRequest, res) => {
+    try {
+      const userId = req.user?.id;
+      if (!userId) return res.status(401).json({ error: "Authentication required" });
+      
+      const result = await db.execute(
+        sql`SELECT preferences_json FROM exercise_preferences WHERE user_id = ${userId} LIMIT 1`
+      );
+      
+      if (result.rows.length > 0 && result.rows[0].preferences_json) {
+        const data = typeof result.rows[0].preferences_json === 'string' 
+          ? JSON.parse(result.rows[0].preferences_json) 
+          : result.rows[0].preferences_json;
+        return res.json({ ok: true, ...data });
+      }
+      
+      res.json({ ok: true, preferences: [], starred: [] });
+    } catch (error: any) {
+      console.error('Error fetching exercise preferences:', error);
+      res.status(500).json({ error: "Failed to fetch preferences" });
+    }
+  });
+
+  // PUT (save/sync) all exercise preferences
+  app.put("/api/exercise-preferences", authenticateToken, async (req: AuthenticatedRequest, res) => {
+    try {
+      const userId = req.user?.id;
+      if (!userId) return res.status(401).json({ error: "Authentication required" });
+      
+      const { preferences, starred } = req.body;
+      const data = JSON.stringify({ preferences: preferences || [], starred: starred || [] });
+      
+      // Upsert: insert or update
+      await db.execute(sql`
+        INSERT INTO exercise_preferences (user_id, preferences_json, updated_at)
+        VALUES (${userId}, ${data}::jsonb, NOW())
+        ON CONFLICT (user_id) 
+        DO UPDATE SET preferences_json = ${data}::jsonb, updated_at = NOW()
+      `);
+      
+      console.log(`✅ [PREFS] Saved exercise preferences for user ${userId}: ${(preferences || []).length} prefs, ${(starred || []).length} starred`);
+      res.json({ ok: true });
+    } catch (error: any) {
+      console.error('Error saving exercise preferences:', error);
+      res.status(500).json({ error: "Failed to save preferences" });
     }
   });
 
@@ -4783,11 +4862,7 @@ Respond with ONLY a JSON object (no markdown, no explanation):
   });
 
   // Get active nudges for a location
-  app.get("/api/coach/nudges", async (req, res) => {
-    if (!req.isAuthenticated()) {
-      return res.sendStatus(401);
-    }
-
+  app.get("/api/coach/nudges", authenticateToken, async (req: AuthenticatedRequest, res) => {
     try {
       const userId = req.user!.id;
       const location = (req.query.location as string) || 'home';
@@ -4803,11 +4878,7 @@ Respond with ONLY a JSON object (no markdown, no explanation):
   });
 
   // Mark nudge as seen
-  app.post("/api/coach/nudges/:nudgeId/seen", async (req, res) => {
-    if (!req.isAuthenticated()) {
-      return res.sendStatus(401);
-    }
-
+  app.post("/api/coach/nudges/:nudgeId/seen", authenticateToken, async (req: AuthenticatedRequest, res) => {
     try {
       const nudgeId = parseInt(req.params.nudgeId);
       const { markNudgeSeen } = await import('./learning-engine');
@@ -4821,11 +4892,7 @@ Respond with ONLY a JSON object (no markdown, no explanation):
   });
 
   // Resolve nudge (accept, reject, dismiss)
-  app.post("/api/coach/nudges/:nudgeId/resolve", async (req, res) => {
-    if (!req.isAuthenticated()) {
-      return res.sendStatus(401);
-    }
-
+  app.post("/api/coach/nudges/:nudgeId/resolve", authenticateToken, async (req: AuthenticatedRequest, res) => {
     try {
       const nudgeId = parseInt(req.params.nudgeId);
       const { resolution } = req.body;
@@ -4846,11 +4913,7 @@ Respond with ONLY a JSON object (no markdown, no explanation):
   });
 
   // Generate nudges for workout/exercise start
-  app.post("/api/coach/nudges/generate", async (req, res) => {
-    if (!req.isAuthenticated()) {
-      return res.sendStatus(401);
-    }
-
+  app.post("/api/coach/nudges/generate", authenticateToken, async (req: AuthenticatedRequest, res) => {
     try {
       const userId = req.user!.id;
       const { context, exerciseInfo } = req.body;
@@ -6167,7 +6230,7 @@ Respond with a complete workout in JSON format:
 }`;
 
       const response = await openai.chat.completions.create({
-        model: "gpt-4o",
+        model: "gpt-5.4-mini",
         messages: [
           {
             role: "system",
@@ -6684,7 +6747,7 @@ Respond with a complete workout in JSON format:
           }
           
           Requirements:
-          - EXACTLY 1 warmup block with exercises
+          - EXACTLY 1 warmup block with exercises (Warm-up exercises should be varied: include a mix of dynamic stretches, light cardio (e.g. 5-10 min treadmill, stair master, jumping jacks, jump rope, rowing), and mobility work. Do NOT always use static stretches.)
           - EXACTLY 1 main block - FOLLOW EXERCISE COUNT GUIDELINES ABOVE (do NOT exceed)
           - EXACTLY 1 recovery block with stretches
           - CRITICAL: Use ONLY exercise names from the exercises library above with EXACT canonical names
@@ -6714,7 +6777,7 @@ Respond with a complete workout in JSON format:
 
               aiResponse = await Promise.race([
                 openai.chat.completions.create({
-                  model: "gpt-4o",
+                  model: "gpt-5.4-mini",
                   messages: [
                     { role: "system", content: systemPrompt },
                     { role: "user", content: userPrompt },
@@ -7003,7 +7066,7 @@ Respond with a complete workout in JSON format:
 
           const aiResponse: any = await Promise.race([
             openai.chat.completions.create({
-              model: "gpt-4o",
+              model: "gpt-5.4-mini",
               messages: [
                 { role: "system", content: systemPrompt },
                 { role: "user", content: userPrompt },
@@ -9596,7 +9659,7 @@ NEVER answer non-fitness questions, even if the user insists. Stay focused on be
 Respond in 1-3 paragraphs. Be concise but helpful. Never mention that you're an AI model. Be personal - use their name if you know it.`;
 
     const response = await openai.chat.completions.create({
-      model: "gpt-4o",
+      model: "gpt-5.4-nano",
       messages: [
         { role: "system", content: systemPrompt },
         { role: "user", content: userMessage },
