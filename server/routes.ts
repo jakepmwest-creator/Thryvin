@@ -1758,8 +1758,20 @@ Respond with JSON ONLY:
 
   // Get weekly AI-generated workout schedule
   app.get("/api/workouts/week", async (req, res) => {
+    // Support both session auth and Bearer token auth
     if (!req.isAuthenticated()) {
-      return res.sendStatus(401);
+      const token = extractBearerToken(req);
+      if (token) {
+        const decoded = verifyAccessToken(token);
+        if (decoded?.userId) {
+          // Attach minimal user object so downstream code works
+          (req as any).user = { id: decoded.userId };
+        } else {
+          return res.sendStatus(401);
+        }
+      } else {
+        return res.sendStatus(401);
+      }
     }
 
     // 🚨 STABILIZATION: Block AI generation during stabilization
