@@ -507,7 +507,7 @@ The totals for dailyCalories, dailyProtein, dailyCarbs, and dailyFat should be t
 Make sure all numerical values are numbers, not strings.`;
 
     const response = await openai.chat.completions.create({
-      model: "gpt-4o",
+      model: "gpt-5.4-mini",
       messages: [
         { role: "system", content: systemPrompt },
         { role: "user", content: "Generate a personalized meal plan for me." },
@@ -583,7 +583,7 @@ async function generateCoachTip(
     Focus on form, nutrition, recovery, or motivation.`;
 
     const response = await openai.chat.completions.create({
-      model: "gpt-4o",
+      model: "gpt-5.4-mini",
       messages: [{ role: "user", content: prompt }],
       max_tokens: 150,
       temperature: 0.7,
@@ -628,7 +628,7 @@ async function generateScheduleEdits(
     - Include helpful notes explaining the reasoning`;
 
     const response = await openai.chat.completions.create({
-      model: "gpt-4o",
+      model: "gpt-5.4-mini",
       messages: [{ role: "user", content: prompt }],
       response_format: { type: "json_object" },
       max_tokens: 800,
@@ -1109,7 +1109,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }`;
 
       const response = await openai.chat.completions.create({
-        model: "gpt-4o",
+        model: "gpt-5.4-mini",
         messages: [
           {
             role: "system",
@@ -1361,7 +1361,7 @@ Respond with JSON ONLY:
       const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
       
       const response = await openai.chat.completions.create({
-        model: "gpt-4o-mini",
+        model: "gpt-5.4-mini",
         messages: [
           { role: "system", content: "You are a fitness expert. Respond with valid JSON only. Keep exercise names EXACTLY the same." },
           { role: "user", content: modificationPrompt }
@@ -2120,7 +2120,7 @@ Respond with ONLY a JSON object (no markdown, no explanation):
 }`;
 
       const response = await client.chat.completions.create({
-        model: 'gpt-4o',
+        model: "gpt-5.4-mini",
         messages: [
           { role: 'system', content: 'You are an expert personal trainer. Generate workout plans in valid JSON format only.' },
           { role: 'user', content: prompt }
@@ -6218,7 +6218,7 @@ Respond with a complete workout in JSON format:
 }`;
 
       const response = await openai.chat.completions.create({
-        model: "gpt-4o-mini",
+        model: "gpt-5.4-mini",
         messages: [
           {
             role: "system",
@@ -6765,7 +6765,7 @@ Respond with a complete workout in JSON format:
 
               aiResponse = await Promise.race([
                 openai.chat.completions.create({
-                  model: "gpt-4o-mini",
+                  model: "gpt-5.4-mini",
                   messages: [
                     { role: "system", content: systemPrompt },
                     { role: "user", content: userPrompt },
@@ -7054,7 +7054,7 @@ Respond with a complete workout in JSON format:
 
           const aiResponse: any = await Promise.race([
             openai.chat.completions.create({
-              model: "gpt-4o-mini",
+              model: "gpt-5.4-mini",
               messages: [
                 { role: "system", content: systemPrompt },
                 { role: "user", content: userPrompt },
@@ -9647,7 +9647,7 @@ NEVER answer non-fitness questions, even if the user insists. Stay focused on be
 Respond in 1-3 paragraphs. Be concise but helpful. Never mention that you're an AI model. Be personal - use their name if you know it.`;
 
     const response = await openai.chat.completions.create({
-      model: "gpt-4o",
+      model: "gpt-5.4-nano",
       messages: [
         { role: "system", content: systemPrompt },
         { role: "user", content: userMessage },
