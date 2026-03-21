@@ -1,38 +1,45 @@
 # Thryvin AI Fitness Coach - PRD
 
 ## Architecture
-- Backend: Express.js + TypeScript (Neon PostgreSQL)
+- Backend: Express.js + TypeScript (Neon PostgreSQL) on Railway
 - Frontend: React Native / Expo
-- AI: OpenAI GPT-4o (coach, workout gen), GPT-4o-mini (memory summaries)
-- Video: Cloudinary | Subscriptions: RevenueCat (MOCKED) | Tunnel: Cloudflare
+- Production URL: https://thryvin-production-fbdd.up.railway.app
 
-## Implemented (Feb 17-18, 2026)
+## What's Been Implemented (Mar 18, 2026)
 
-### Batch 5: Coach Compassion + Tour + Paywall + Special Sets (Feb 18)
-1. **P1 — AI Coach Compassion** — Added detailed empathy directives to system prompt: validates feelings first, shares relatable perspective, offers gentle options. Never dismissive or pushy. Increased max tokens to 1000 for richer responses. Uses conversation memory naturally.
-2. **P2 — Tour Improvements** — Compact tooltip (smaller padding, font, icon), 9 steps including in-workout guidance. Tour card doesn't block screen as much.
-3. **P2 — Pro/Paywall UI Thriven Style** — Dark plan cards on billing page (£ white on black). Pro comparison: Standard looks boring (gray, remove-circle icons), Pro looks premium (dark card, gradient header, checkmark icons, "3 WEEKS FREE" badge). Paywall modal: matching dark pricing card with trial tag. Features list consistent across all 3 surfaces.
-4. **P2 — Advanced Questionnaire Pro-Gated** — Only shows for Pro users on home screen.
-5. **P2 — Special Set AI Integration** — Already present in ai-workout-generator.ts prompt (drop/super/giant set types). Confirmed working in tests.
-6. **Code cleanup**: Removed duplicate `db` import in ai-coach-service.ts.
+### Bug Fixes
+1. **Data Persistence (P0)** — All syncToBackend calls awaited with retry. Local-first + backend sync strategy.
+2. **Silent Workout Generation (P1)** — Only show "Generating" when zero workouts exist. Shimmer placeholder for loading state.
+3. **Coach Nudges Error (P1)** — All 4 nudge endpoints use Bearer auth. Hook sends token, suppresses errors.
+4. **Thumbnail Fix** — Validates thumbnailUrl is actually an image (not .mp4). Falls back to Cloudinary transform.
+5. **Star Button Fix** — Works from exercise detail sheets. Replace modal shows when 3 stars already set.
+6. **Loading State** — Shimmer skeleton placeholder instead of "Loading..." or "Your Workout" text.
 
-### Batch 4: Bug Fixes + Explore Redesign (Feb 17)
-1. todayWorkoutRef crash fix (P0)
-2. Workout regeneration guard (P0)
-3. Explore Workouts tile layout redesign (P1)
-4. Awards bottom padding (P3)
-5. Liked/Disliked button styling
+### Feature Overhaul
+7. **Explore Workouts Redesign** — Swipeable ExploreCarousel + full ExploreWorkoutsModal:
+   - Hub row: All / Starred / Liked / Disliked quick filters
+   - Category tabs with Thryvin purple-to-pink gradient
+   - Search + difficulty/equipment filters
+   - Exercise tiles with thumbnails, like/dislike/star actions
+   - Full exercise detail with video, stats, form tips
+8. **Favourite Exercises Card** — Rounded rectangle thumbnails (not circles), purple-to-pink gradient border, clickable → opens exercise detail with stats, weight/PB display.
 
-### Earlier Batches
-- Video fuzzy matching removal, coach memory, app tour, drop set UI, Pro gating, billing/marketing redesign, PRO badge fix, awards 100%, network stability
-
-## Remaining / Backlog
-- [ ] **P2 — Onboarding Paywall Screen** — After coach selection in signup flow, show Pro vs Standard choice screen with 3-week free trial for Pro
-- [ ] **P3 — Marketing Copy Review** — User to approve pro.tsx copy
-- [ ] **P3 — Full RevenueCat Integration** — Needs Expo Dev Build
-- [ ] **P3 — Badge end-to-end verification**
+### Previously Completed (Previous Sessions)
+- Star system, unified explore + stats, tile layouts, pro paywall redesign
+- Tester-ready: Railway, Pro for all, test accounts removed
+- App crash fix, island progression fix, video matching fix
+- AI coach empathy update
 
 ## Known Issues
-- RevenueCat MOCKED in Expo Go
-- Tunnel URL changes on pod restart (update .env, env.ts fallback, app.config.js)
-- Video inconsistency fix awaiting user verification
+- RevenueCat MOCKED (Pro for all testers)
+- Pre-existing TypeScript errors in notifications, diagnostics, workout-store (not blocking)
+
+## Backlog
+- [ ] App Tour Expansion (navigate into active workout)
+- [ ] AI Special Sets (drop sets in generation)
+- [ ] Marketing copy finalization
+- [ ] Full RevenueCat native integration
+- [ ] Enhanced island graphics
+- [ ] Dark theme support
+- [ ] Database migration cleanup (exercise_preferences)
+- [ ] App Store / Play Store submission

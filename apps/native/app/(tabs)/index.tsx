@@ -22,6 +22,8 @@ import { PersonalBestChart } from '../../src/components/PersonalBestChart';
 import { AdvancedQuestionnaireModal, AdvancedQuestionnaireData } from '../../src/components/AdvancedQuestionnaireModal';
 import { WeeklyScheduleCheckModal } from '../../src/components/WeeklyScheduleCheckModal';
 import { FavoriteExercisesCard } from '../../src/components/FavoriteExercisesCard';
+import { ExploreWorkoutsModal } from '../../src/components/ExploreWorkoutsModal';
+import { usePreferencesStore } from '../../src/stores/preferences-store';
 import { ExerciseStatsModal } from '../../src/components/ExerciseStatsModal';
 import { useWorkoutStore } from '../../src/stores/workout-store';
 import { useAuthStore } from '../../src/stores/auth-store';
@@ -163,6 +165,7 @@ export default function HomeScreen() {
   // Exercise stats modal state
   const [showExerciseStats, setShowExerciseStats] = useState(false);
   const [selectedExerciseId, setSelectedExerciseId] = useState<string | undefined>(undefined);
+  const [showExploreFromFavorites, setShowExploreFromFavorites] = useState(false);
   
   const openExerciseStats = (exerciseId?: string) => {
     if (!isPro) {
@@ -171,6 +174,10 @@ export default function HomeScreen() {
     }
     setSelectedExerciseId(exerciseId);
     setShowExerciseStats(true);
+  };
+
+  const openExploreAll = () => {
+    setShowExploreFromFavorites(true);
   };
 
   // Check if user should see Advanced Questionnaire - MUST show for new users BEFORE workouts
@@ -441,6 +448,9 @@ export default function HomeScreen() {
   const [statsVersion, setStatsVersion] = useState(0);
 
   const loadAllData = async () => {
+    // Load preferences from backend/local (await to ensure data is ready)
+    await usePreferencesStore.getState().loadPreferences();
+    
     // First check if advanced questionnaire needs to be shown
     const completed = await AsyncStorage.getItem('advancedQuestionnaire');
     const skipped = await AsyncStorage.getItem('advancedQuestionnaireSkipped');
@@ -717,7 +727,7 @@ export default function HomeScreen() {
           >
             <Text style={styles.sectionTitle}>Today&apos;s Workout</Text>
           </TouchableOpacity>
-          {isLoading || weekWorkouts.length < 21 ? (
+          {isLoading && weekWorkouts.length === 0 ? (
             <View style={styles.todayWorkoutCard}>
               <View style={styles.generatingContainer}>
                 <ActivityIndicator size="large" color={COLORS.gradientStart} />
@@ -726,8 +736,24 @@ export default function HomeScreen() {
                   Your AI coach is creating personalized workouts for the next 3 weeks. This may take a minute...
                 </Text>
                 <Text style={styles.generatingNotice}>
-                  We'll let you know when it's finished ✨
+                  We'll let you know when it's finished
                 </Text>
+              </View>
+            </View>
+          ) : !actualTodayWorkout && !workoutError ? (
+            <View style={styles.todayWorkoutCard}>
+              <View style={styles.workoutContent}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+                  <Text style={styles.sectionLabel}>TODAY'S WORKOUT</Text>
+                </View>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+                  <View style={{ flex: 1, gap: 8 }}>
+                    <View style={{ height: 18, width: '70%', backgroundColor: '#F3F0FF', borderRadius: 8 }} />
+                    <View style={{ height: 14, width: '50%', backgroundColor: '#F3F0FF', borderRadius: 6 }} />
+                  </View>
+                  <ActivityIndicator size="small" color={COLORS.gradientStart} />
+                </View>
+                <Text style={{ fontSize: 12, color: COLORS.mediumGray, marginTop: 10, fontStyle: 'italic' }}>Preparing your session...</Text>
               </View>
             </View>
           ) : workoutError ? (
@@ -805,7 +831,7 @@ export default function HomeScreen() {
                         {actualTodayWorkout?.completed ? 'COMPLETED ✓' : 'TODAY\'S WORKOUT'}
                       </Text>
                     </View>
-                    <Text style={styles.workoutTitle}>{actualTodayWorkout?.title || 'Loading...'}</Text>
+                    <Text style={styles.workoutTitle}>{actualTodayWorkout?.title || 'Your Workout'}</Text>
                     <Text style={styles.workoutMeta}>
                       {actualTodayWorkout?.duration || 45} min • {actualTodayWorkout?.exercises?.length || 0} exercises • {actualTodayWorkout?.difficulty || 'Intermediate'}
                     </Text>
@@ -1012,8 +1038,7 @@ export default function HomeScreen() {
         {/* Favorite Exercises - Pin your top exercises */}
         <View style={[styles.section, { paddingBottom: 100 }]}>
           <FavoriteExercisesCard
-            onViewAll={() => openExerciseStats()}
-            onExercisePress={(exerciseId) => openExerciseStats(exerciseId)}
+            onViewAll={() => openExploreAll()}
           />
         </View>
       </ScrollView>
@@ -1026,6 +1051,13 @@ export default function HomeScreen() {
           setSelectedExerciseId(undefined);
         }}
         initialExerciseId={selectedExerciseId}
+      />
+
+      {/* Explore All from Favorites */}
+      <ExploreWorkoutsModal
+        visible={showExploreFromFavorites}
+        onClose={() => setShowExploreFromFavorites(false)}
+        initialCategory="All"
       />
       
       {/* Advanced Questionnaire Modal */}

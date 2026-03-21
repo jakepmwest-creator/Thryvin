@@ -15,9 +15,10 @@ import { useRouter } from 'expo-router';
 import { AppHeader } from '../../src/components/AppHeader';
 import { WorkoutDetailsModal } from '../../src/components/WorkoutDetailsModal';
 import { ExploreWorkoutsModal } from '../../src/components/ExploreWorkoutsModal';
+import { ExploreCarousel } from '../../src/components/ExploreCarousel';
 import { useWorkoutStore } from '../../src/stores/workout-store';
 import { useCoachStore } from '../../src/stores/coach-store';
-import { LikedDislikedModal } from '../../src/components/LikedDislikedModal';
+// LikedDislikedModal removed - now integrated into ExploreWorkoutsModal
 import { ViewAllWeeksModal } from '../../src/components/ViewAllWeeksModal';
 import { EditPlanScreen } from '../../src/components/EditPlanScreen';
 import { useSubscriptionStore } from '../../src/stores/subscription-store';
@@ -77,14 +78,6 @@ const MONTH_DATA = getCurrentMonthData();
 
 const API_BASE_URL = getApiBaseUrl();
 
-// Updated categories: Weights, Calisthenics, Cardio, Flexibility
-const DEFAULT_CATEGORIES = [
-  { id: 1, name: 'Weights', icon: 'barbell', gradient: COLORS.strength, workouts: 0 },
-  { id: 2, name: 'Calisthenics', icon: 'body', gradient: COLORS.hiit, workouts: 0 },
-  { id: 3, name: 'Cardio', icon: 'heart', gradient: COLORS.cardio, workouts: 0 },
-  { id: 4, name: 'Flexibility', icon: 'fitness', gradient: COLORS.flexibility, workouts: 0 },
-];
-
 export default function WorkoutsScreen() {
   const router = useRouter();
   const { openChat } = useCoachStore();
@@ -96,10 +89,6 @@ export default function WorkoutsScreen() {
   const [modalVisible, setModalVisible] = useState(false);
   
   const [exploreModalVisible, setExploreModalVisible] = useState(false);
-  const [selectedCategory, setSelectedCategory] = useState<string>('Weights');
-  const [selectedCategoryGradient, setSelectedCategoryGradient] = useState<string[]>(COLORS.strength);
-  const [likedDislikedModalVisible, setLikedDislikedModalVisible] = useState(false);
-  const [workoutCategories, setWorkoutCategories] = useState(DEFAULT_CATEGORIES);
   const [showAllWeeks, setShowAllWeeks] = useState(false);
   const [showEditPlan, setShowEditPlan] = useState(false);
   const [showProPaywall, setShowProPaywall] = useState(false);
@@ -107,34 +96,7 @@ export default function WorkoutsScreen() {
   
   const { currentWorkout, todayWorkout, weekWorkouts, completedWorkouts, isLoading, fetchTodayWorkout, fetchWeekWorkouts } = useWorkoutStore();
   
-  // Fetch exercise counts on mount
-  useEffect(() => {
-    const fetchExerciseCounts = async () => {
-      try {
-        const response = await fetch(`${API_BASE_URL}/api/exercises/counts`);
-        if (response.ok) {
-          const data = await response.json();
-          const counts = data.counts || {};
-          
-          // Update categories with dynamic counts
-          setWorkoutCategories(prev => prev.map(cat => ({
-            ...cat,
-            workouts: counts[cat.name] || 0
-          })));
-          
-          console.log('📊 Updated exercise counts:', counts);
-        }
-      } catch (error) {
-        console.error('Failed to fetch exercise counts:', error);
-      }
-    };
-    
-    fetchExerciseCounts();
-  }, []);
-  
-  const handleCategoryPress = (category: { name: string; gradient: string[] }) => {
-    setSelectedCategory(category.name);
-    setSelectedCategoryGradient(category.gradient);
+  const handleOpenExplore = () => {
     setExploreModalVisible(true);
   };
   
@@ -296,7 +258,7 @@ export default function WorkoutsScreen() {
       >
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Today's Workout</Text>
-          {isLoading || weekWorkouts.length < 21 ? (
+          {isLoading && weekWorkouts.length === 0 ? (
             <View style={styles.workoutCard}>
               <View style={styles.generatingContainer}>
                 <ActivityIndicator size="large" color={COLORS.gradientStart} />
@@ -305,7 +267,25 @@ export default function WorkoutsScreen() {
                   Your AI coach is creating personalized workouts for the next 3 weeks. This may take a minute...
                 </Text>
                 <Text style={styles.generatingNotice}>
-                  We'll let you know when it's finished ✨
+                  We'll let you know when it's finished
+                </Text>
+              </View>
+            </View>
+          ) : !actualTodayWorkout ? (
+            <View style={styles.workoutCard}>
+              <View style={styles.workoutCardContent}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                  <Text style={styles.sectionLabel}>TODAY'S WORKOUT</Text>
+                </View>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, marginTop: 8 }}>
+                  <View style={{ flex: 1, gap: 8 }}>
+                    <View style={{ height: 18, width: '70%', backgroundColor: '#F3F0FF', borderRadius: 8 }} />
+                    <View style={{ height: 14, width: '50%', backgroundColor: '#F3F0FF', borderRadius: 6 }} />
+                  </View>
+                  <ActivityIndicator size="small" color={COLORS.gradientStart} />
+                </View>
+                <Text style={{ fontSize: 12, color: COLORS.mediumGray, marginTop: 10, fontStyle: 'italic' }}>
+                  Preparing your session...
                 </Text>
               </View>
             </View>
@@ -389,7 +369,7 @@ export default function WorkoutsScreen() {
                 </View>
                 <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
                   <View style={{ flex: 1 }}>
-                    <Text style={styles.workoutName}>{actualTodayWorkout?.title || 'Loading...'}</Text>
+                    <Text style={styles.workoutName}>{actualTodayWorkout?.title || 'Your Workout'}</Text>
                     <Text style={styles.workoutMeta}>
                       {actualTodayWorkout?.duration || 45} min • {actualTodayWorkout?.exercises?.length || 0} exercises • {actualTodayWorkout?.difficulty || 'Intermediate'}
                     </Text>
@@ -551,47 +531,7 @@ export default function WorkoutsScreen() {
         </View>
 
         <View style={styles.section}>
-          <View style={styles.exploreTitleRow}>
-            <Text style={styles.sectionTitle}>Explore Workouts</Text>
-            <View style={{ flexDirection: 'row', gap: 8 }}>
-              <TouchableOpacity 
-                onPress={() => { setLikedDislikedModalVisible(true); }}
-                style={styles.prefButton}
-                data-testid="liked-exercises-btn"
-              >
-                <Ionicons name="heart" size={20} color="#34C759" />
-              </TouchableOpacity>
-              <TouchableOpacity 
-                onPress={() => { setLikedDislikedModalVisible(true); }}
-                style={styles.prefButton}
-                data-testid="disliked-exercises-btn"
-              >
-                <Ionicons name="thumbs-down" size={20} color="#FF3B30" />
-              </TouchableOpacity>
-            </View>
-          </View>
-          <View style={styles.categoriesGrid}>
-            {workoutCategories.map((category) => (
-              <TouchableOpacity
-                key={category.id}
-                style={styles.categoryCard}
-                onPress={() => handleCategoryPress(category)}
-              >
-                <LinearGradient
-                  colors={category.gradient as [string, string]}
-                  style={styles.categoryGradient}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1.2, y: 1.2 }}
-                >
-                  <View style={styles.categoryIconWhite}>
-                    <Ionicons name={category.icon as any} size={32} color={COLORS.white} />
-                  </View>
-                  <Text style={styles.categoryNameWhite}>{category.name}</Text>
-                  <Text style={styles.categoryCountWhite}>{category.workouts} exercises</Text>
-                </LinearGradient>
-              </TouchableOpacity>
-            ))}
-          </View>
+          <ExploreCarousel onOpenExplore={handleOpenExplore} />
         </View>
 
         {/* Program Management - Under Explore Workouts */}
@@ -661,13 +601,7 @@ export default function WorkoutsScreen() {
       <ExploreWorkoutsModal
         visible={exploreModalVisible}
         onClose={() => setExploreModalVisible(false)}
-        category={selectedCategory}
-        categoryGradient={selectedCategoryGradient}
-      />
-      
-      <LikedDislikedModal
-        visible={likedDislikedModalVisible}
-        onClose={() => setLikedDislikedModalVisible(false)}
+        initialCategory="All"
       />
       
       <ViewAllWeeksModal

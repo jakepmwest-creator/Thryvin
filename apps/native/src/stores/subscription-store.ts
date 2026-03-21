@@ -61,13 +61,17 @@ export const useSubscriptionStore = create<SubscriptionState>((set, get) => ({
     }
 
     if (!Purchases) {
-      console.log('[Subscriptions] Native SDK not available — Expo Go mode');
-      set({ isInitialized: true, isLoading: false, isPro: false, nativeAvailable: false });
+      console.log('[Subscriptions] Native SDK not available — defaulting to Pro for testing');
+      // TESTER MODE: Default to Pro when RevenueCat is not available
+      // Revert isPro to false when ready to enforce real subscriptions
+      set({ isInitialized: true, isLoading: false, isPro: true, nativeAvailable: false });
       return;
     }
 
     if (!REVENUECAT_API_KEY) {
-      set({ isInitialized: true, isLoading: false, isPro: false, error: null });
+      // TESTER MODE: Default to Pro when no API key configured
+      // Revert isPro to false when ready to enforce real subscriptions
+      set({ isInitialized: true, isLoading: false, isPro: true, error: null });
       return;
     }
 

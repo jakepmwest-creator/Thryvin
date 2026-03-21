@@ -5,9 +5,15 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useAuthStore } from '../stores/auth-store';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as SecureStore from 'expo-secure-store';
 import { getApiBaseUrl } from '../services/env';
 
 const API_BASE_URL = getApiBaseUrl();
+
+// Helper: get auth token for Bearer auth
+async function getNudgeToken(): Promise<string | null> {
+  try { return await SecureStore.getItemAsync('thryvin_access_token'); } catch { return null; }
+}
 
 // Session tracking keys
 const NUDGE_SESSION_KEY = '@coach_nudge_session_v2';
@@ -121,8 +127,15 @@ export function useCoachNudges({ location, autoFetch = true, personality = 'frie
     setError(null);
     
     try {
+      const token = await getNudgeToken();
+      if (!token) {
+        setNudges([]);
+        setIsLoading(false);
+        return;
+      }
+      
       const response = await fetch(`${API_BASE_URL}/api/coach/nudges?location=${location}`, {
-        credentials: 'include',
+        headers: { Authorization: `Bearer ${token}` },
       });
       
       if (!response.ok) {
@@ -153,8 +166,8 @@ export function useCoachNudges({ location, autoFetch = true, personality = 'frie
       
       setNudges(finalNudges);
     } catch (err) {
-      console.error('[useCoachNudges] Error fetching nudges:', err);
-      setError(err instanceof Error ? err.message : 'Unknown error');
+      // Silently handle nudge errors - they're non-critical
+      console.log('[useCoachNudges] Nudge fetch skipped:', err instanceof Error ? err.message : 'Unknown');
       setNudges([]);
     } finally {
       setIsLoading(false);
@@ -183,10 +196,12 @@ export function useCoachNudges({ location, autoFetch = true, personality = 'frie
     setIsLoading(true);
     
     try {
+      const token = await getNudgeToken();
+      if (!token) return;
+      
       const response = await fetch(`${API_BASE_URL}/api/coach/nudges/generate`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify({ context, exerciseInfo }),
       });
       
@@ -227,8 +242,7 @@ export function useCoachNudges({ location, autoFetch = true, personality = 'frie
       
       await fetch(`${API_BASE_URL}/api/coach/nudges/${nudgeId}/resolve`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${await getNudgeToken()}` },
         body: JSON.stringify({ resolution }),
       });
       
@@ -301,10 +315,10 @@ export function useLearningEvents() {
     if (!isLoggedIn) return;
     
     try {
+      const token = await getNudgeToken();
       await fetch(`${API_BASE_URL}/api/learning/event`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
+        headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) },
         body: JSON.stringify({ eventType, contextMode, topic, payload }),
       });
     } catch (err) {

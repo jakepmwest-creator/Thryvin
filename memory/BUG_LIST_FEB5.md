@@ -57,7 +57,7 @@
 
 ## 🎯 **STABLE URL**
 ```
-https://drop-set-feature.preview.emergentagent.com
+https://thryvin-staging.preview.emergentagent.com
 ```
 
 ---

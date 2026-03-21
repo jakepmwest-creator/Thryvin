@@ -677,6 +677,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Setup authentication first
   setupAuth(app);
 
+  // Ensure exercise_preferences table exists
+  try {
+    await db.execute(sql`
+      CREATE TABLE IF NOT EXISTS exercise_preferences (
+        user_id INTEGER PRIMARY KEY,
+        preferences_json JSONB DEFAULT '{"preferences":[],"starred":[]}',
+        updated_at TIMESTAMP DEFAULT NOW()
+      )
+    `);
+    console.log('✅ exercise_preferences table ready');
+  } catch (err) {
+    console.error('⚠️ Could not create exercise_preferences table:', err);
+  }
+
   // =============================================================================
   // MILESTONE 1: FOUNDATIONS - Health & Config Endpoints
   // =============================================================================
@@ -2838,6 +2852,59 @@ Respond with ONLY a JSON object (no markdown, no explanation):
     }
   });
 
+  // ==========================================
+  // Exercise Preferences (liked/disliked/starred) - Persistent storage
+  // ==========================================
+  
+  // GET all exercise preferences for a user
+  app.get("/api/exercise-preferences", authenticateToken, async (req: AuthenticatedRequest, res) => {
+    try {
+      const userId = req.user?.id;
+      if (!userId) return res.status(401).json({ error: "Authentication required" });
+      
+      const result = await db.execute(
+        sql`SELECT preferences_json FROM exercise_preferences WHERE user_id = ${userId} LIMIT 1`
+      );
+      
+      if (result.rows.length > 0 && result.rows[0].preferences_json) {
+        const data = typeof result.rows[0].preferences_json === 'string' 
+          ? JSON.parse(result.rows[0].preferences_json) 
+          : result.rows[0].preferences_json;
+        return res.json({ ok: true, ...data });
+      }
+      
+      res.json({ ok: true, preferences: [], starred: [] });
+    } catch (error: any) {
+      console.error('Error fetching exercise preferences:', error);
+      res.status(500).json({ error: "Failed to fetch preferences" });
+    }
+  });
+
+  // PUT (save/sync) all exercise preferences
+  app.put("/api/exercise-preferences", authenticateToken, async (req: AuthenticatedRequest, res) => {
+    try {
+      const userId = req.user?.id;
+      if (!userId) return res.status(401).json({ error: "Authentication required" });
+      
+      const { preferences, starred } = req.body;
+      const data = JSON.stringify({ preferences: preferences || [], starred: starred || [] });
+      
+      // Upsert: insert or update
+      await db.execute(sql`
+        INSERT INTO exercise_preferences (user_id, preferences_json, updated_at)
+        VALUES (${userId}, ${data}::jsonb, NOW())
+        ON CONFLICT (user_id) 
+        DO UPDATE SET preferences_json = ${data}::jsonb, updated_at = NOW()
+      `);
+      
+      console.log(`✅ [PREFS] Saved exercise preferences for user ${userId}: ${(preferences || []).length} prefs, ${(starred || []).length} starred`);
+      res.json({ ok: true });
+    } catch (error: any) {
+      console.error('Error saving exercise preferences:', error);
+      res.status(500).json({ error: "Failed to save preferences" });
+    }
+  });
+
   // Search exercises
   app.get("/api/stats/exercises/search", authenticateToken, async (req: AuthenticatedRequest, res) => {
     try {
@@ -4783,11 +4850,7 @@ Respond with ONLY a JSON object (no markdown, no explanation):
   });
 
   // Get active nudges for a location
-  app.get("/api/coach/nudges", async (req, res) => {
-    if (!req.isAuthenticated()) {
-      return res.sendStatus(401);
-    }
-
+  app.get("/api/coach/nudges", authenticateToken, async (req: AuthenticatedRequest, res) => {
     try {
       const userId = req.user!.id;
       const location = (req.query.location as string) || 'home';
@@ -4803,11 +4866,7 @@ Respond with ONLY a JSON object (no markdown, no explanation):
   });
 
   // Mark nudge as seen
-  app.post("/api/coach/nudges/:nudgeId/seen", async (req, res) => {
-    if (!req.isAuthenticated()) {
-      return res.sendStatus(401);
-    }
-
+  app.post("/api/coach/nudges/:nudgeId/seen", authenticateToken, async (req: AuthenticatedRequest, res) => {
     try {
       const nudgeId = parseInt(req.params.nudgeId);
       const { markNudgeSeen } = await import('./learning-engine');
@@ -4821,11 +4880,7 @@ Respond with ONLY a JSON object (no markdown, no explanation):
   });
 
   // Resolve nudge (accept, reject, dismiss)
-  app.post("/api/coach/nudges/:nudgeId/resolve", async (req, res) => {
-    if (!req.isAuthenticated()) {
-      return res.sendStatus(401);
-    }
-
+  app.post("/api/coach/nudges/:nudgeId/resolve", authenticateToken, async (req: AuthenticatedRequest, res) => {
     try {
       const nudgeId = parseInt(req.params.nudgeId);
       const { resolution } = req.body;
@@ -4846,11 +4901,7 @@ Respond with ONLY a JSON object (no markdown, no explanation):
   });
 
   // Generate nudges for workout/exercise start
-  app.post("/api/coach/nudges/generate", async (req, res) => {
-    if (!req.isAuthenticated()) {
-      return res.sendStatus(401);
-    }
-
+  app.post("/api/coach/nudges/generate", authenticateToken, async (req: AuthenticatedRequest, res) => {
     try {
       const userId = req.user!.id;
       const { context, exerciseInfo } = req.body;

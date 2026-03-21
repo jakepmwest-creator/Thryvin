@@ -1246,8 +1246,8 @@ Transform your fitness journey with personalized workouts and gamified progressi
               </View>
               <Text style={styles.islandProgressText}>
                 {currentIsland < 10 
-                  ? `${islandProgress.current}/${islandProgress.required} badges to next island (80% required)` 
-                  : 'Max level reached! 🌟'}
+                  ? `${islandProgress.current}/${islandProgress.required} badges — complete all to unlock next island` 
+                  : 'Max level reached!'}
               </Text>
             </View>
             

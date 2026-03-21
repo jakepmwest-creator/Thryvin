@@ -1,0 +1,18 @@
+# Exclude heavy/unnecessary directories
+node_modules/
+.git/
+.expo/
+dist/
+web-build/
+android/
+ios/
+backend/
+server/
+tests/
+test_reports/
+memory/
+.emergent/
+*.py
+*.patch
+*.md
+launch-crash-fix.patch
