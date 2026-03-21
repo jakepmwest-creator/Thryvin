@@ -180,8 +180,27 @@ export async function generateAIWorkout(
       // Fallback to basic learning context
       fullUserContext = await getUserLearningContext(userProfile.userId);
     }
+
+    // Load recent coach conversation summaries for deeper personalisation (cheap)
+    try {
+      const { db: _db } = await import('./db');
+      const { coachMemory: coachMemoryTable } = await import('../shared/schema');
+      const { eq: _eq, desc: _desc } = await import('drizzle-orm');
+      const recentMemories = await _db
+        .select({ summary: coachMemoryTable.summary })
+        .from(coachMemoryTable)
+        .where(_eq(coachMemoryTable.userId, userProfile.userId))
+        .orderBy(_desc(coachMemoryTable.createdAt))
+        .limit(3);
+      if (recentMemories.length > 0) {
+        fullUserContext += `\n\n=== WHAT THE USER HAS TOLD THEIR COACH (RECENT SUMMARIES) ===\n${recentMemories.map((m: any) => `- ${m.summary}`).join('\n')}\nUse these to personalise the plan around their current goals and mindset.\n=== END COACH CONTEXT ===`;
+        console.log('  💬 Injected coach memory into workout generation context');
+      }
+    } catch (e) {
+      // Non-critical enrichment
+    }
   }
-  
+
   // Step 1.6: Generate weekly split plan (Phase 8.5 - IMPROVED)
   const requestedFrequency = Number(userProfile.trainingDays || 3);
   const experience = (userProfile.experience || 'intermediate') as 'beginner' | 'intermediate' | 'advanced';
