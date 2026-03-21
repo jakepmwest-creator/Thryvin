@@ -566,7 +566,7 @@ Create a balanced workout respecting these limits and the DAY FOCUS above.`;
   let completion;
   try {
     completion = await openai.chat.completions.create({
-      model: 'gpt-4o',
+      model: 'gpt-5.4-mini',
       messages: [
         { role: 'system', content: systemMessage },
         { role: 'user', content: userMessage },
