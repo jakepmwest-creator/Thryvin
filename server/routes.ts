@@ -6218,7 +6218,7 @@ Respond with a complete workout in JSON format:
 }`;
 
       const response = await openai.chat.completions.create({
-        model: "gpt-4o",
+        model: "gpt-4o-mini",
         messages: [
           {
             role: "system",
@@ -6735,7 +6735,7 @@ Respond with a complete workout in JSON format:
           }
           
           Requirements:
-          - EXACTLY 1 warmup block with exercises
+          - EXACTLY 1 warmup block with exercises (Warm-up exercises should be varied: include a mix of dynamic stretches, light cardio (e.g. 5-10 min treadmill, stair master, jumping jacks, jump rope, rowing), and mobility work. Do NOT always use static stretches.)
           - EXACTLY 1 main block - FOLLOW EXERCISE COUNT GUIDELINES ABOVE (do NOT exceed)
           - EXACTLY 1 recovery block with stretches
           - CRITICAL: Use ONLY exercise names from the exercises library above with EXACT canonical names
@@ -6765,7 +6765,7 @@ Respond with a complete workout in JSON format:
 
               aiResponse = await Promise.race([
                 openai.chat.completions.create({
-                  model: "gpt-4o",
+                  model: "gpt-4o-mini",
                   messages: [
                     { role: "system", content: systemPrompt },
                     { role: "user", content: userPrompt },
@@ -7054,7 +7054,7 @@ Respond with a complete workout in JSON format:
 
           const aiResponse: any = await Promise.race([
             openai.chat.completions.create({
-              model: "gpt-4o",
+              model: "gpt-4o-mini",
               messages: [
                 { role: "system", content: systemPrompt },
                 { role: "user", content: userPrompt },

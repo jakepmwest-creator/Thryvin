@@ -72,6 +72,8 @@ export default function WorkoutHubScreen() {
   const [reps, setReps] = useState('');
   const [setNotes, setSetNotes] = useState('');
   const [setType, setSetType] = useState<'normal' | 'drop' | 'super' | 'giant'>('normal');
+  const [dropWeight, setDropWeight] = useState('');
+  const [dropReps, setDropReps] = useState('');
   const [drops, setDrops] = useState<Array<{weight: string, reps: string}>>([
     { weight: '', reps: '' },
     { weight: '', reps: '' },

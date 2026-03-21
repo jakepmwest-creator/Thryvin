@@ -175,8 +175,18 @@ export default function LoginScreen() {
 
   const handleBiometricLogin = async () => {
     try {
+      const compatible = await LocalAuthentication.hasHardwareAsync();
+      if (!compatible) {
+        showAlert('error', 'Not Supported', 'This device does not support biometric authentication.');
+        return;
+      }
+      const enrolled = await LocalAuthentication.isEnrolledAsync();
+      if (!enrolled) {
+        showAlert('error', 'No Biometrics Enrolled', 'Please set up biometrics in your device settings first.');
+        return;
+      }
       const result = await LocalAuthentication.authenticateAsync({
-        promptMessage: 'Log in to Thryvin',
+        promptMessage: 'Authenticate to sign in',
         fallbackLabel: 'Use Password',
       });
 
