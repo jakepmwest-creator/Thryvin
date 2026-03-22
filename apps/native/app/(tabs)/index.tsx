@@ -43,6 +43,7 @@ import { useCoachNudges } from '../../src/hooks/useCoachNudges';
 import { ViewAllWeeksModal } from '../../src/components/ViewAllWeeksModal';
 import { EditPlanScreen } from '../../src/components/EditPlanScreen';
 import { getApiBaseUrl } from '../../src/services/env';
+import { notificationService } from '../../src/services/notificationService';
 
 // Activity cards with vibrant gradients
 const ACTIVITY_CARDS = [
@@ -330,6 +331,8 @@ export default function HomeScreen() {
     ]);
 
     Alert.alert('Plan Updated', 'Your next block has been refreshed based on your feedback.');
+    // 🔔 Notify user their new plan is ready
+    notificationService.notifyNewPlanReady().catch(() => {});
   };
 
   // Check for weekly schedule check (for "It depends" users)

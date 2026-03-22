@@ -17,6 +17,8 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { AppHeader } from '../../src/components/AppHeader';
 import { getApiBaseUrl } from '../../src/services/env';
+import { useSubscriptionStore } from '../../src/stores/subscription-store';
+import { ProPaywallModal } from '../../src/components/ProPaywallModal';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -69,6 +71,8 @@ interface Community {
 }
 
 export default function SocialScreen() {
+  const { isPro } = useSubscriptionStore();
+  const [showProPaywall, setShowProPaywall] = useState(false);
   const [activeTab, setActiveTab] = useState<'feed' | 'communities'>('feed');
   const [posts, setPosts] = useState<Post[]>([]);
   const [communities, setCommunities] = useState<Community[]>([]);
@@ -189,6 +193,11 @@ export default function SocialScreen() {
   };
 
   const handleJoinCommunity = async (communityId: number) => {
+    // Communities are a Pro feature — gate for Standard users
+    if (!isPro) {
+      setShowProPaywall(true);
+      return;
+    }
     try {
       const community = communities.find(c => c.id === communityId);
       if (!community) return;
@@ -540,6 +549,12 @@ export default function SocialScreen() {
           </View>
         </View>
       </Modal>
+
+      {/* Pro paywall for community features */}
+      <ProPaywallModal
+        visible={showProPaywall}
+        onClose={() => setShowProPaywall(false)}
+      />
     </SafeAreaView>
   );
 }

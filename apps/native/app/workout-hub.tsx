@@ -35,6 +35,7 @@ import { useCoachStore } from '../src/stores/coach-store';
 import { useSubscriptionStore } from '../src/stores/subscription-store';
 import { ProPaywallModal } from '../src/components/ProPaywallModal';
 import { getApiBaseUrl } from '../src/services/env';
+import { notificationService } from '../src/services/notificationService';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
@@ -691,6 +692,11 @@ export default function WorkoutHubScreen() {
     try {
       await finishWorkoutSession(durationMinutes);
       console.log(`✅ Workout finished - ${pendingFinishData.completedExercisesCount} exercises, ${durationMinutes} min, ~${caloriesBurned} cal`);
+      
+      // 🔔 Smart notification: completion celebration + cancel evening follow-up
+      const xpEarned = Math.round(durationMinutes * 2); // rough XP estimate
+      const streak = weekWorkouts.filter(w => w.completed && !w.isRestDay).length;
+      notificationService.notifyWorkoutCompleted(xpEarned, streak).catch(() => {});
     } catch (error) {
       console.error('❌ Error finishing workout:', error);
     }

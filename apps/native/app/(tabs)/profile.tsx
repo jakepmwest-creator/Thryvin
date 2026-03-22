@@ -673,13 +673,22 @@ export default function ProfileScreen() {
               showArrow
               dataTestId="profile-compare-plans-button"
             />
-            {/* Only show Advanced Questionnaire if not completed */}
-            {!hasCompletedQuestionnaire && (
+            {/* Only show Advanced Questionnaire to Pro users (advanced PT features) */}
+            {!hasCompletedQuestionnaire && isPro && (
               <MenuButton
                 icon="sparkles"
                 title="Advanced Questionnaire"
                 subtitle="Personalize your workouts"
                 onPress={() => setShowAdvancedQuestionnaire(true)}
+              />
+            )}
+            {!hasCompletedQuestionnaire && !isPro && (
+              <MenuButton
+                icon="sparkles"
+                title="Advanced Questionnaire"
+                subtitle="Pro feature — unlock personalized AI"
+                onPress={() => setShowPaywall(true)}
+                showArrow
               />
             )}
           </View>
