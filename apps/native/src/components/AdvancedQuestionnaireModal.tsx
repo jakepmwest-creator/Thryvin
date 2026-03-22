@@ -57,6 +57,11 @@ export interface AdvancedQuestionnaireData {
   weakAreas: string;
   additionalInfo: string;
   completedAt: string;
+  // Lifestyle & recovery
+  sleepQuality?: string;
+  stressLevel?: string;
+  // Progress photos
+  progressPhotos?: string[]; // base64 or URLs
   // Phase 8.5: Weekly schedule fields
   weeklyActivities?: WeeklyActivity[];
   gymDaysAvailable?: number[];
@@ -114,6 +119,24 @@ const QUESTIONS = [
     placeholder: 'Any other information that could help us create the perfect workout plan...',
     icon: 'chatbubble-ellipses',
     hint: 'Share anything that might help personalize your experience',
+  },
+  {
+    id: 'lifestyle',
+    title: 'Lifestyle & Recovery',
+    question: 'How is your sleep and stress level on a typical week?',
+    placeholder: '',
+    icon: 'moon',
+    hint: 'Recovery is 50% of training — your coach needs to know this',
+    isLifestyle: true,
+  },
+  {
+    id: 'progressPhotos',
+    title: 'Progress Photos (Optional)',
+    question: 'Add photos so your AI coach can understand your current physique and tailor advice better',
+    placeholder: '',
+    icon: 'camera',
+    hint: 'Photos are stored privately and only used by your AI coach. You can skip this.',
+    isProgressPhotos: true,
   },
   {
     id: 'weeklySchedule',
@@ -273,6 +296,9 @@ export const AdvancedQuestionnaireModal = ({
     weakAreas: '',
     additionalInfo: '',
     completedAt: '',
+    sleepQuality: '',
+    stressLevel: '',
+    progressPhotos: [],
     // Phase 8.5: Weekly schedule defaults
     weeklyActivities: [],
     gymDaysAvailable: [],
@@ -597,6 +623,107 @@ export const AdvancedQuestionnaireModal = ({
     if (selectedActivityDay !== null) {
       setActivityForDay(selectedActivityDay, activityInput, activityIntensity);
     }
+  };
+
+  const renderLifestyle = () => {
+    const sleepOptions = ['Poor (< 5h)', 'Fair (5–6h)', 'Good (6–7h)', 'Great (7–8h)', 'Excellent (8h+)'];
+    const stressOptions = ['Very Low', 'Low', 'Moderate', 'High', 'Very High'];
+    return (
+      <View style={{ gap: 20 }}>
+        <View>
+          <Text style={styles.sectionLabel}>😴 Sleep Quality</Text>
+          <View style={styles.optionRow}>
+            {sleepOptions.map(o => (
+              <TouchableOpacity
+                key={o}
+                style={[styles.smallOption, questionnaireData.sleepQuality === o && styles.smallOptionSelected]}
+                onPress={() => setQuestionnaireData(prev => ({ ...prev, sleepQuality: o }))}
+              >
+                <Text style={[styles.smallOptionText, questionnaireData.sleepQuality === o && styles.smallOptionTextSelected]}>{o}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        </View>
+        <View>
+          <Text style={styles.sectionLabel}>🧠 Stress Level</Text>
+          <View style={styles.optionRow}>
+            {stressOptions.map(o => (
+              <TouchableOpacity
+                key={o}
+                style={[styles.smallOption, questionnaireData.stressLevel === o && styles.smallOptionSelected]}
+                onPress={() => setQuestionnaireData(prev => ({ ...prev, stressLevel: o }))}
+              >
+                <Text style={[styles.smallOptionText, questionnaireData.stressLevel === o && styles.smallOptionTextSelected]}>{o}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        </View>
+      </View>
+    );
+  };
+
+  const renderProgressPhotos = () => {
+    const hasPhotos = (questionnaireData.progressPhotos || []).length > 0;
+    return (
+      <View style={{ gap: 16 }}>
+        <View style={styles.photoHint}>
+          <Ionicons name="lock-closed-outline" size={14} color="#8E8E93" />
+          <Text style={styles.photoHintText}>Stored privately · Only seen by your AI coach · Never shared</Text>
+        </View>
+        <View style={styles.photoGrid}>
+          {(['Front', 'Side', 'Back'] as const).map((angle) => {
+            const idx = ['Front', 'Side', 'Back'].indexOf(angle);
+            const hasPhoto = (questionnaireData.progressPhotos || [])[idx];
+            return (
+              <TouchableOpacity
+                key={angle}
+                style={styles.photoSlot}
+                onPress={async () => {
+                  try {
+                    const { launchImageLibraryAsync, MediaTypeOptions } = await import('expo-image-picker');
+                    const result = await launchImageLibraryAsync({
+                      mediaTypes: MediaTypeOptions.Images,
+                      allowsEditing: true,
+                      aspect: [3, 4],
+                      quality: 0.6,
+                      base64: true,
+                    });
+                    if (!result.canceled && result.assets[0]) {
+                      const uri = result.assets[0].uri;
+                      setQuestionnaireData(prev => {
+                        const photos = [...(prev.progressPhotos || [])];
+                        photos[idx] = uri;
+                        return { ...prev, progressPhotos: photos };
+                      });
+                    }
+                  } catch (e) {
+                    console.log('Image picker error:', e);
+                  }
+                }}
+              >
+                {hasPhoto ? (
+                  <View style={styles.photoSlotFilled}>
+                    <Ionicons name="checkmark-circle" size={24} color="#A22BF6" />
+                    <Text style={styles.photoSlotAngle}>{angle} ✓</Text>
+                  </View>
+                ) : (
+                  <View style={styles.photoSlotEmpty}>
+                    <Ionicons name="camera-outline" size={28} color="#C7C7CC" />
+                    <Text style={styles.photoSlotAngle}>{angle}</Text>
+                  </View>
+                )}
+              </TouchableOpacity>
+            );
+          })}
+        </View>
+        {hasPhotos && (
+          <Text style={styles.photoCount}>
+            {(questionnaireData.progressPhotos || []).filter(Boolean).length} photo(s) added ✓
+          </Text>
+        )}
+        <Text style={styles.photoSkip}>You can skip this step — it's completely optional.</Text>
+      </View>
+    );
   };
 
   const renderWeeklySchedule = () => (
@@ -940,6 +1067,10 @@ export const AdvancedQuestionnaireModal = ({
           renderGoalDetails()
         ) : currentQuestion.isWeeklySchedule ? (
           renderWeeklySchedule()
+        ) : (currentQuestion as any).isLifestyle ? (
+          renderLifestyle()
+        ) : (currentQuestion as any).isProgressPhotos ? (
+          renderProgressPhotos()
         ) : (
           renderTextInput(currentQuestion.id, currentQuestion.placeholder || 'Type your answer...')
         )}
@@ -1688,4 +1819,31 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginTop: 8,
   },
+
+  // Lifestyle
+  sectionLabel: { fontSize: 14, fontWeight: '700', color: '#222', marginBottom: 10 },
+  optionRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  smallOption: {
+    paddingHorizontal: 12, paddingVertical: 8,
+    borderRadius: 20, borderWidth: 1, borderColor: '#E5E5EA',
+    backgroundColor: '#F8F9FA',
+  },
+  smallOptionSelected: { borderColor: '#A22BF6', backgroundColor: 'rgba(162,43,246,0.08)' },
+  smallOptionText: { fontSize: 12, color: '#8E8E93' },
+  smallOptionTextSelected: { color: '#A22BF6', fontWeight: '700' },
+
+  // Progress photos
+  photoHint: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: '#F8F9FA', borderRadius: 10, padding: 10 },
+  photoHintText: { fontSize: 12, color: '#8E8E93', flex: 1 },
+  photoGrid: { flexDirection: 'row', gap: 12, justifyContent: 'center' },
+  photoSlot: {
+    flex: 1, aspectRatio: 3/4, borderRadius: 14,
+    borderWidth: 2, borderColor: '#E5E5EA', borderStyle: 'dashed',
+    overflow: 'hidden',
+  },
+  photoSlotEmpty: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 6, backgroundColor: '#F8F9FA' },
+  photoSlotFilled: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 6, backgroundColor: 'rgba(162,43,246,0.06)' },
+  photoSlotAngle: { fontSize: 12, fontWeight: '600', color: '#8E8E93' },
+  photoCount: { fontSize: 13, color: '#A22BF6', fontWeight: '600', textAlign: 'center' },
+  photoSkip: { fontSize: 12, color: '#C7C7CC', textAlign: 'center' },
 });

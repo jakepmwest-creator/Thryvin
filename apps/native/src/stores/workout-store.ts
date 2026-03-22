@@ -923,6 +923,35 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
         // Release lock
         await deleteStorageItem('workout_generation_lock');
         set({ weekWorkouts, isLoading: false, error: null });
+
+        // 🔔 Request AI plan overview in the background (non-blocking)
+        try {
+          const overviewToken = token || await getStorageItem('auth_token');
+          if (overviewToken) {
+            fetch(`${API_BASE_URL}/api/workouts/plan-overview`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${overviewToken}`,
+                'Bypass-Tunnel-Reminder': 'true',
+              },
+              body: JSON.stringify({
+                weekWorkouts: weekWorkouts.slice(0, 14), // first 2 weeks
+                isPro: false, // will be determined server-side by subscription
+              }),
+            })
+              .then(r => r.json())
+              .then(data => {
+                if (data.ok && data.overview) {
+                  setStorageItem('plan_overview', data.overview).catch(() => {});
+                  console.log('✅ [4-WEEK] Plan overview generated');
+                }
+              })
+              .catch(() => {});
+          }
+        } catch (_) {
+          // non-critical
+        }
         
       } catch (error: any) {
         console.error('❌ [WEEK] Generation failed:', error);

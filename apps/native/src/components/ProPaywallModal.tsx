@@ -33,13 +33,14 @@ const COLORS = {
 
 // ── Standard tier features (grayed out, basic) ──────────────────────────────
 const STANDARD_FEATURES: { icon: React.ComponentProps<typeof Ionicons>['name']; text: string; future?: boolean }[] = [
-  { icon: 'barbell-outline',      text: 'Basic AI workout plans' },
-  { icon: 'chatbubble-outline',   text: 'Limited coach chat' },
-  { icon: 'library-outline',      text: 'Full exercise library' },
-  { icon: 'heart-outline',        text: 'Favourite up to 3 exercises' },
-  { icon: 'stats-chart-outline',  text: 'Basic stats' },
-  { icon: 'trophy-outline',       text: 'Awards & achievements' },
-  { icon: 'people-outline',       text: 'Basic social access', future: true },
+  { icon: 'barbell-outline',          text: 'Basic AI workout plans' },
+  { icon: 'chatbubble-outline',       text: 'Limited coach chat' },
+  { icon: 'library-outline',          text: 'Full exercise library' },
+  { icon: 'heart-outline',            text: 'Favourite up to 3 exercises' },
+  { icon: 'stats-chart-outline',      text: 'Basic stats' },
+  { icon: 'trophy-outline',           text: 'Awards & achievements' },
+  { icon: 'checkmark-circle-outline', text: 'Monthly check-ins' },
+  { icon: 'people-outline',           text: 'Basic social access', future: true },
 ];
 
 // ── Pro tier features (vibrant, split for visual density) ───────────────────
@@ -48,6 +49,8 @@ const PRO_FEATURES: { icon: React.ComponentProps<typeof Ionicons>['name']; text:
   { icon: 'barbell',              text: 'Full set types included', subtitle: 'Drop sets, super sets & giant sets' },
   { icon: 'create',               text: 'Edit & customise any workout' },
   { icon: 'sparkles',             text: 'AI learns your preferences' },
+  { icon: 'checkmark-circle',     text: 'Weekly check-ins with AI PT feedback' },
+  { icon: 'document-text',        text: 'Full plan overview & explanation' },
   { icon: 'chatbubble-ellipses',  text: 'Unlimited coach chat' },
   { icon: 'stats-chart',          text: 'Full stats & analytics' },
   { icon: 'podium',               text: 'All personal bests & graphs' },

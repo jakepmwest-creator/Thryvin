@@ -1998,6 +1998,68 @@ Respond with JSON ONLY:
   });
 
   // AI Workout Generation (with fallback)
+  // ── Plan Overview ─────────────────────────────────────────────────────────
+  // POST /api/workouts/plan-overview
+  // Called once after 4-week plan generation. Returns AI description of what
+  // the next 4 weeks look like, why, and what to expect.
+  app.post("/api/workouts/plan-overview", authenticateToken, async (req: AuthenticatedRequest, res) => {
+    try {
+      const userId = req.user?.id;
+      if (!userId) return res.status(401).json({ error: 'Not authenticated' });
+
+      const { weekWorkouts, userProfile, isPro } = req.body;
+
+      const user = await storage.getUser(userId);
+      if (!user) return res.status(404).json({ error: 'User not found' });
+
+      // Build a concise workout list for the AI
+      const workoutSummary = (weekWorkouts || [])
+        .filter((w: any) => !w.isRestDay)
+        .slice(0, 16) // First 2 weeks to keep prompt manageable
+        .map((w: any) => `W${w.weekNumber || '?'} ${w.dayOfWeek || ''}: ${w.type || ''} — ${w.title || ''} (${w.duration || 45}min)`)
+        .join('\n');
+
+      const systemPrompt = isPro
+        ? `You are an expert personal trainer writing a detailed, exciting plan overview for a Pro user. Be specific about the training structure, progression, deload week, and what results to expect. Use their goals and data. Tone: professional but motivating. Max 250 words.`
+        : `You are a friendly fitness coach writing a brief plan overview. Be encouraging and clear about what the next 4 weeks involve. Max 150 words.`;
+
+      const userMsg = `User goals: ${JSON.stringify(user.fitnessGoals || user.goal || 'general fitness')}
+Experience: ${user.experience || 'intermediate'}
+Training days/week: ${user.trainingDays || 4}
+Session duration: ${user.sessionDuration || 45} min
+
+Workout plan sample (first 2 weeks):
+${workoutSummary || 'Mixed strength and cardio training'}
+
+Write a ${isPro ? 'detailed' : 'brief'} overview explaining:
+1. What the next 4 weeks look like (structure, progressive overload, deload)
+2. Why this plan is designed this way for their goals
+3. What they can expect to achieve
+${isPro ? '4. Week-by-week progression and the deload week rationale' : ''}`;
+
+      let overview = '';
+      try {
+        const aiResp = await openai.chat.completions.create({
+          model: 'gpt-4o',
+          messages: [
+            { role: 'system', content: systemPrompt },
+            { role: 'user', content: userMsg },
+          ],
+          max_tokens: isPro ? 350 : 200,
+          temperature: 0.7,
+        });
+        overview = aiResp.choices[0]?.message?.content || '';
+      } catch (aiErr) {
+        overview = `Your 4-week plan is ready! Weeks 1–3 progressively build intensity with your chosen training style, while Week 4 is a planned deload to help your body recover and come back stronger. Each session is tailored to your goals and available time. Let's get started! 💪`;
+      }
+
+      res.json({ ok: true, overview });
+    } catch (err: any) {
+      console.error('[PLAN-OVERVIEW] Error:', err);
+      res.status(500).json({ error: 'Failed to generate plan overview' });
+    }
+  });
+
   app.post("/api/workouts/generate", async (req, res) => {
     try {
       const { userProfile, dayOfWeek, weekNumber, recentExercises } = req.body;
