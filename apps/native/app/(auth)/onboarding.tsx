@@ -1247,9 +1247,8 @@ export default function OnboardingScreen() {
         </View>
 
         <KeyboardAvoidingView
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          behavior={undefined}
           style={styles.keyboardView}
-          keyboardVerticalOffset={Platform.OS === 'ios' ? 60 : 0}
         >
           <View style={styles.contentContainer}>
             {/* Main Card */}
@@ -1423,7 +1422,7 @@ const styles = StyleSheet.create({
     maxHeight: '70%',
   },
   scrollableContentInner: {
-    paddingBottom: 20,
+    paddingBottom: 160, // Extra space so user can scroll past Next button when keyboard is open
   },
   fieldsContainer: {
     marginBottom: 16,

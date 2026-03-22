@@ -1,6 +1,6 @@
 export default {
   expo: {
-    name: 'Thryvin',
+    name: "Thryvin'",
     slug: 'thryvin',
     version: '1.0.0',
     orientation: 'portrait',
