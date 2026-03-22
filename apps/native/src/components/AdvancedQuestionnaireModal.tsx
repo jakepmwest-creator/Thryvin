@@ -18,6 +18,7 @@ import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useAuthStore } from '../stores/auth-store';
 import { Audio } from 'expo-av';
+import * as ImagePicker from 'expo-image-picker';
 import { getApiBaseUrl } from '../services/env';
 
 const COLORS = {
@@ -680,9 +681,8 @@ export const AdvancedQuestionnaireModal = ({
                 style={styles.photoSlot}
                 onPress={async () => {
                   try {
-                    const { launchImageLibraryAsync, MediaTypeOptions } = await import('expo-image-picker');
-                    const result = await launchImageLibraryAsync({
-                      mediaTypes: MediaTypeOptions.Images,
+                    const result = await ImagePicker.launchImageLibraryAsync({
+                      mediaTypes: ImagePicker.MediaTypeOptions.Images,
                       allowsEditing: true,
                       aspect: [3, 4],
                       quality: 0.6,
