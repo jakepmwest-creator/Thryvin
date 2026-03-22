@@ -264,7 +264,7 @@ export default function WorkoutsScreen() {
                 <ActivityIndicator size="large" color={COLORS.gradientStart} />
                 <Text style={styles.generatingTitle}>Generating Your Workouts</Text>
                 <Text style={styles.generatingSubtitle}>
-                  Your AI coach is creating personalized workouts for the next 3 weeks. This may take a minute...
+                  Your AI coach is creating personalized workouts for the next 4 weeks. This may take a minute...
                 </Text>
                 <Text style={styles.generatingNotice}>
                   We'll let you know when it's finished

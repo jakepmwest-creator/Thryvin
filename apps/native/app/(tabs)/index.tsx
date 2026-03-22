@@ -252,12 +252,12 @@ export default function HomeScreen() {
       const lastShownDate = lastShown ? new Date(lastShown) : null;
 
       // TIMING RULES:
-      // 1) First trigger: 18 days after join (3 days before initial 3-week plan ends)
-      // 2) Subsequent triggers: every 21 days (3 weeks) after each completion
+      // 1) First trigger: 25 days after join (3 days before initial 4-week plan ends)
+      // 2) Subsequent triggers: every 28 days (4 weeks) after each completion
       // 3) If dismissed without completing: re-show after 7 days
       if (completedDate) {
         const daysSinceCompleted = Math.floor((Date.now() - completedDate.getTime()) / (1000 * 60 * 60 * 24));
-        if (daysSinceCompleted < 21) {
+        if (daysSinceCompleted < 28) {
           setHasCheckedRollingRegeneration(true);
           return;
         }
@@ -274,18 +274,18 @@ export default function HomeScreen() {
       joinDate.setDate(joinDate.getDate() - 7);
 
       const daysSinceJoin = Math.floor((Date.now() - joinDate.getTime()) / (1000 * 60 * 60 * 24));
-      // First trigger: show 18 days after join (before initial 3-week plan ends)
-      if (!completedDate && daysSinceJoin >= 18) {
-        const weekNumber = Math.max(3, Math.floor(daysSinceJoin / 7) + 1);
+      // First trigger: show 25 days after join (before initial 4-week plan ends)
+      if (!completedDate && daysSinceJoin >= 25) {
+        const weekNumber = Math.max(4, Math.floor(daysSinceJoin / 7) + 1);
         setRollingWeek(weekNumber);
         setShowRollingRegeneration(true);
         await AsyncStorage.setItem(lastShownKey, new Date().toISOString());
         return;
       }
 
-      // Recurring trigger: 21+ days since last completion → show again
+      // Recurring trigger: 28+ days since last completion → show again
       if (completedDate) {
-        const weekNumber = Math.max(3, Math.floor(daysSinceJoin / 7) + 1);
+        const weekNumber = Math.max(4, Math.floor(daysSinceJoin / 7) + 1);
         setRollingWeek(weekNumber);
         setShowRollingRegeneration(true);
         await AsyncStorage.setItem(lastShownKey, new Date().toISOString());

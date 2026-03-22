@@ -737,7 +737,7 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
           
           console.log(`🤖 [4-WEEK] Day ${i + 1}/28 (${dateStr}): Generating new workout...`);
           
-          const weekNumber = Math.floor(i / 7) + 1; // 1, 2, or 3
+          const weekNumber = Math.floor(i / 7) + 1; // 1, 2, 3, or 4
           
           // Collect recent exercises from generated workouts to avoid repetition
           const recentExercises = (weekWorkouts || [])

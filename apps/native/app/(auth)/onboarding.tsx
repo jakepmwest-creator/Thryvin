@@ -991,11 +991,11 @@ export default function OnboardingScreen() {
       }
     };
 
-    // Generate next 21 days for "It depends" option
-    const getNext21Days = () => {
+    // Generate next 28 days for "It depends" option
+    const getNext28Days = () => {
       const days = [];
       const today = new Date();
-      for (let i = 0; i < 21; i++) {
+      for (let i = 0; i < 28; i++) {
         const date = new Date(today);
         date.setDate(today.getDate() + i);
         days.push({
@@ -1115,12 +1115,12 @@ export default function OnboardingScreen() {
         {/* 21-Day Calendar for "It Depends" */}
         {scheduleType === 'depends' && (
           <View style={styles.calendarContainer}>
-            <Text style={styles.calendarLabel}>Select available days for the next 3 weeks:</Text>
-            {[1, 2, 3].map((week) => (
+            <Text style={styles.calendarLabel}>Select available days for the next 4 weeks:</Text>
+            {[1, 2, 3, 4].map((week) => (
               <View key={week} style={styles.weekContainer}>
                 <Text style={styles.weekLabel}>Week {week}</Text>
                 <View style={styles.weekDaysRow}>
-                  {getNext21Days()
+                  {getNext28Days()
                     .filter((d) => d.week === week)
                     .map((day) => {
                       const isSelected = (formData.specificDates || []).includes(day.date);

@@ -43,8 +43,8 @@ export const ViewAllWeeksModal = ({ visible, onClose, onEditPress }: ViewAllWeek
     const monday = getMondayOfWeek(today);
     const todayKey = getTodayKey();
     
-    // Create 3 weeks of data based on actual dates
-    for (let week = 1; week <= 3; week++) {
+    // Create 4 weeks of data based on actual dates
+    for (let week = 1; week <= 4; week++) {
       const weekDays = [];
       
       for (let dayOffset = 0; dayOffset < 7; dayOffset++) {

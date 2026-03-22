@@ -2287,6 +2287,12 @@ Respond with ONLY a JSON object (no markdown, no explanation):
       const availableDaysWeek2 = Array.isArray(feedback.availableDaysWeek2)
         ? feedback.availableDaysWeek2
         : availableDaysWeek1;
+      const availableDaysWeek3 = Array.isArray(feedback.availableDaysWeek3)
+        ? feedback.availableDaysWeek3
+        : availableDaysWeek1;
+      const availableDaysWeek4 = Array.isArray(feedback.availableDaysWeek4)
+        ? feedback.availableDaysWeek4
+        : availableDaysWeek1;
 
       if (availableDaysWeek1.length === 0) {
         return res.status(400).json({ error: 'availableDaysWeek1 is required' });
@@ -2317,10 +2323,18 @@ Respond with ONLY a JSON object (no markdown, no explanation):
 
       const normalizedWeek1Days = availableDaysWeek1.map((day: string) => normalizeDay(String(day)));
       const normalizedWeek2Days = availableDaysWeek2.map((day: string) => normalizeDay(String(day)));
+      const normalizedWeek3Days = availableDaysWeek3.map((day: string) => normalizeDay(String(day)));
+      const normalizedWeek4Days = availableDaysWeek4.map((day: string) => normalizeDay(String(day)));
       const gymDaysAvailableWeek1 = normalizedWeek1Days
         .map(day => dayNameToIndex[day])
         .filter((day) => typeof day === 'number');
       const gymDaysAvailableWeek2 = normalizedWeek2Days
+        .map(day => dayNameToIndex[day])
+        .filter((day) => typeof day === 'number');
+      const gymDaysAvailableWeek3 = normalizedWeek3Days
+        .map(day => dayNameToIndex[day])
+        .filter((day) => typeof day === 'number');
+      const gymDaysAvailableWeek4 = normalizedWeek4Days
         .map(day => dayNameToIndex[day])
         .filter((day) => typeof day === 'number');
 
@@ -2343,6 +2357,8 @@ Respond with ONLY a JSON object (no markdown, no explanation):
         gymDaysAvailable: gymDaysAvailableWeek1.length > 0 ? gymDaysAvailableWeek1 : existingAdvanced.gymDaysAvailable,
         gymDaysAvailableWeek1: gymDaysAvailableWeek1,
         gymDaysAvailableWeek2: gymDaysAvailableWeek2,
+        gymDaysAvailableWeek3: gymDaysAvailableWeek3,
+        gymDaysAvailableWeek4: gymDaysAvailableWeek4,
         additionalInfo: existingAdvanced.additionalInfo
           ? `${existingAdvanced.additionalInfo}\n\n${feedbackSummary}`
           : feedbackSummary,

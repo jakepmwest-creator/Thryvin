@@ -272,7 +272,7 @@ class NotificationService {
   async notifyNewPlanReady(): Promise<void> {
     await this.sendImmediate(
       '✨ Fresh Plan Ready!',
-      'Your AI coach built a new 3-week program just for you. Ready to crush it?',
+      'Your AI coach built a new 4-week program just for you. Ready to crush it?',
       { screen: 'workouts' },
       'thryvin_workouts'
     );

@@ -29,7 +29,7 @@ const COLORS = {
 
 const PRO_PERKS = [
   { icon: 'infinite', label: 'Unlimited AI workout plans' },
-  { icon: 'refresh', label: 'Rolling 3-week regeneration' },
+  { icon: 'refresh', label: 'Rolling 4-week regeneration' },
   { icon: 'analytics', label: 'Deep exercise stats & trends' },
   { icon: 'create', label: 'Edit & customise any workout' },
   { icon: 'flash', label: 'Drop, super & giant sets' },
@@ -79,7 +79,7 @@ export default function PlanSelectionScreen() {
           <View style={styles.header}>
             <Text style={styles.headerTitle}>Choose your plan</Text>
             <Text style={styles.headerSub}>
-              Start with 3 weeks free on Pro. Cancel anytime.
+              Start with 1 month free on Pro. Cancel anytime.
             </Text>
           </View>
 
@@ -207,7 +207,7 @@ export default function PlanSelectionScreen() {
           </TouchableOpacity>
           <Text style={styles.legalNote}>
             {selectedPlan === 'pro'
-              ? 'Free for 3 weeks, then £74.99/year. Cancel anytime in Settings.'
+              ? 'Free for 1 month, then £74.99/year. Cancel anytime in Settings.'
               : 'You can upgrade to Pro later from Settings.'}
           </Text>
         </View>

@@ -116,7 +116,7 @@ export const EditPlanScreen = ({ visible, onClose }: EditPlanScreenProps) => {
     const monday = getMondayOfWeek(today);
     const todayKey = getTodayKey();
     
-    for (let week = 1; week <= 3; week++) {
+    for (let week = 1; week <= 4; week++) {
       const weekDays = [];
       for (let dayOffset = 0; dayOffset < 7; dayOffset++) {
         const dayIndex = (week - 1) * 7 + dayOffset;
