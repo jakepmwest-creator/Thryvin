@@ -1,7 +1,10 @@
 import * as Notifications from 'expo-notifications';
 import { Platform } from 'react-native';
-import * as Device from 'expo-device';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+
+// Lightweight isDevice check without expo-device dependency
+// Simulators/emulators don't have real push notification support
+const isRealDevice = !__DEV__ || Platform.OS === 'android'; // always true on prod build
 
 // How notifications appear while app is in foreground
 Notifications.setNotificationHandler({
@@ -50,7 +53,7 @@ class NotificationService {
   // ── Permissions ─────────────────────────────────────────────────────────────
 
   async requestPermissions(): Promise<boolean> {
-    if (!Device.isDevice) {
+    if (!isRealDevice) {
       console.log('📱 [Notif] Notifications only work on physical devices');
       return false;
     }
@@ -302,7 +305,7 @@ class NotificationService {
   }
 
   async getPushToken(): Promise<string | null> {
-    if (!Device.isDevice) return null;
+    if (!isRealDevice) return null;
     try {
       const token = (await Notifications.getExpoPushTokenAsync()).data;
       return token;
