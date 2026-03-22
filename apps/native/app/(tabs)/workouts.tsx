@@ -23,11 +23,14 @@ import { ViewAllWeeksModal } from '../../src/components/ViewAllWeeksModal';
 import { EditPlanScreen } from '../../src/components/EditPlanScreen';
 import { useSubscriptionStore } from '../../src/stores/subscription-store';
 import { ProPaywallModal } from '../../src/components/ProPaywallModal';
+import { CheckInModal } from '../../src/components/CheckInModal';
+import { CheckInHistoryModal } from '../../src/components/CheckInHistoryModal';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 import { COLORS, CARD_SHADOW } from '../../src/constants/colors';
 import { getApiBaseUrl } from '../../src/services/env';
+import * as SecureStore from 'expo-secure-store';
 
 const EXTRA_COLORS = {
   shadow: COLORS.cardShadow,
@@ -92,6 +95,33 @@ export default function WorkoutsScreen() {
   const [showAllWeeks, setShowAllWeeks] = useState(false);
   const [showEditPlan, setShowEditPlan] = useState(false);
   const [showProPaywall, setShowProPaywall] = useState(false);
+
+  // ── Check-in state ──────────────────────────────────────────────────────────
+  const [showCheckIn, setShowCheckIn] = useState(false);
+  const [showCheckInHistory, setShowCheckInHistory] = useState(false);
+  const [checkInStatus, setCheckInStatus] = useState<{
+    isDue: boolean;
+    daysUntilDue: number;
+    intervalDays: number;
+  } | null>(null);
+
+  useEffect(() => {
+    loadCheckInStatus();
+  }, []);
+
+  const loadCheckInStatus = async () => {
+    try {
+      const token = await SecureStore.getItemAsync('thryvin_access_token');
+      const API_BASE = getApiBaseUrl();
+      const res = await fetch(`${API_BASE}/api/checkins/next`, {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      });
+      const data = await res.json();
+      if (data.ok) setCheckInStatus(data);
+    } catch (e) {
+      // silently fail
+    }
+  };
   const { isPro } = useSubscriptionStore();
   
   const { currentWorkout, todayWorkout, weekWorkouts, completedWorkouts, isLoading, fetchTodayWorkout, fetchWeekWorkouts } = useWorkoutStore();
@@ -596,6 +626,49 @@ export default function WorkoutsScreen() {
             </View>
           </TouchableOpacity>
         </View>
+
+        {/* ── Check-In Card ─────────────────────────────────────────── */}
+        <View style={styles.section}>
+          <View style={styles.checkInRow}>
+            {/* Check-In Button */}
+            <TouchableOpacity
+              style={[styles.checkInButton, checkInStatus?.isDue && styles.checkInButtonDue]}
+              onPress={() => setShowCheckIn(true)}
+              activeOpacity={0.85}
+            >
+              {checkInStatus?.isDue ? (
+                <LinearGradient
+                  colors={['#A22BF6', '#FF4EC7']}
+                  style={styles.checkInGradient}
+                  start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
+                >
+                  <Ionicons name="checkmark-circle" size={20} color="#FFFFFF" />
+                  <Text style={styles.checkInDueText}>Check-In Now!</Text>
+                </LinearGradient>
+              ) : (
+                <View style={styles.checkInCountdown}>
+                  <Ionicons name="timer-outline" size={20} color={COLORS.accent} />
+                  <View>
+                    <Text style={styles.checkInLabel}>Next Check-In</Text>
+                    <Text style={styles.checkInDays}>
+                      {checkInStatus ? `in ${checkInStatus.daysUntilDue} day${checkInStatus.daysUntilDue !== 1 ? 's' : ''}` : '—'}
+                    </Text>
+                  </View>
+                </View>
+              )}
+            </TouchableOpacity>
+
+            {/* History Button */}
+            <TouchableOpacity
+              style={styles.historyButton}
+              onPress={() => setShowCheckInHistory(true)}
+              activeOpacity={0.85}
+            >
+              <Ionicons name="time-outline" size={20} color={COLORS.accent} />
+              <Text style={styles.historyButtonText}>History</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
       </ScrollView>
       
       {exploreModalVisible && (
@@ -628,6 +701,18 @@ export default function WorkoutsScreen() {
       <ProPaywallModal
         visible={showProPaywall}
         onClose={() => setShowProPaywall(false)}
+      />
+
+      <CheckInModal
+        visible={showCheckIn}
+        isPro={isPro}
+        onClose={() => setShowCheckIn(false)}
+        onComplete={() => loadCheckInStatus()}
+      />
+
+      <CheckInHistoryModal
+        visible={showCheckInHistory}
+        onClose={() => setShowCheckInHistory(false)}
       />
     </SafeAreaView>
   );
@@ -708,4 +793,49 @@ const styles = StyleSheet.create({
   programButtonTitle: { fontSize: 15, fontWeight: '700', color: COLORS.white, marginTop: 8 },
   programButtonTitleSmall: { fontSize: 14, fontWeight: '600', color: COLORS.white, marginTop: 6 },
   programButtonSubtitle: { fontSize: 11, color: 'rgba(255,255,255,0.8)', marginTop: 4 },
+
+  // Check-In
+  checkInRow: { flexDirection: 'row', gap: 10 },
+  checkInButton: {
+    flex: 1,
+    backgroundColor: '#F8F9FA',
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: '#E5E5EA',
+    overflow: 'hidden',
+  },
+  checkInButtonDue: {
+    borderColor: '#A22BF6',
+    borderWidth: 1.5,
+  },
+  checkInGradient: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+  },
+  checkInDueText: { color: '#FFFFFF', fontWeight: '700', fontSize: 15 },
+  checkInCountdown: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+  },
+  checkInLabel: { fontSize: 11, color: '#8E8E93' },
+  checkInDays: { fontSize: 14, fontWeight: '700', color: '#A22BF6' },
+  historyButton: {
+    backgroundColor: '#F8F9FA',
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: '#E5E5EA',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 16,
+    gap: 4,
+    minWidth: 80,
+  },
+  historyButtonText: { fontSize: 12, fontWeight: '600', color: '#A22BF6' },
 });

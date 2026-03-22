@@ -9551,6 +9551,175 @@ Respond with a complete workout in JSON format:
     }
   });
 
+  // ──────────────────────────────────────────────────────────────────────────
+  // CHECK-IN ENDPOINTS
+  // Standard: monthly check-in (every 28 days)
+  // Pro:      weekly check-in (every 7 days) — more detailed, AI PT feedback
+  // ──────────────────────────────────────────────────────────────────────────
+
+  // Ensure check_ins table exists
+  app.use(async (_req, _res, next) => { next(); }); // no-op middleware (table created below)
+  (async () => {
+    try {
+      await db.execute(sql`
+        CREATE TABLE IF NOT EXISTS check_ins (
+          id SERIAL PRIMARY KEY,
+          user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+          created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+          tier TEXT NOT NULL DEFAULT 'standard',
+          energy_level INTEGER,
+          sleep_quality INTEGER,
+          mood INTEGER,
+          soreness INTEGER,
+          motivation INTEGER,
+          weight_kg NUMERIC(5,1),
+          notes TEXT,
+          goals_still_same BOOLEAN,
+          injuries TEXT,
+          photo_url TEXT,
+          ai_feedback TEXT
+        )
+      `);
+    } catch (e) {
+      console.log('⚠️ [CHECK-IN] Table creation skipped (may already exist)');
+    }
+  })();
+
+  // GET /api/checkins — list all check-ins for current user
+  app.get('/api/checkins', authenticateToken, async (req: AuthenticatedRequest, res) => {
+    try {
+      const userId = req.user?.id;
+      if (!userId) return res.status(401).json({ error: 'Not authenticated' });
+
+      const rows = await db.execute(sql`
+        SELECT id, created_at, tier, energy_level, sleep_quality, mood, soreness,
+               motivation, weight_kg, notes, goals_still_same, injuries, photo_url, ai_feedback
+        FROM check_ins
+        WHERE user_id = ${userId}
+        ORDER BY created_at DESC
+        LIMIT 50
+      `);
+
+      res.json({ ok: true, checkIns: rows.rows });
+    } catch (err: any) {
+      console.error('[CHECK-IN] GET error:', err);
+      res.status(500).json({ error: 'Failed to fetch check-ins' });
+    }
+  });
+
+  // GET /api/checkins/next — when is the next check-in due?
+  app.get('/api/checkins/next', authenticateToken, async (req: AuthenticatedRequest, res) => {
+    try {
+      const userId = req.user?.id;
+      if (!userId) return res.status(401).json({ error: 'Not authenticated' });
+
+      const isPro = req.user?.hasActiveSubscription === true;
+      const intervalDays = isPro ? 7 : 28;
+
+      const rows = await db.execute(sql`
+        SELECT created_at FROM check_ins
+        WHERE user_id = ${userId}
+        ORDER BY created_at DESC
+        LIMIT 1
+      `);
+
+      const last = rows.rows[0]?.created_at ? new Date(rows.rows[0].created_at as string) : null;
+      const nextDue = last ? new Date(last.getTime() + intervalDays * 24 * 60 * 60 * 1000) : new Date();
+      const isDue = !last || new Date() >= nextDue;
+
+      res.json({
+        ok: true,
+        isPro,
+        intervalDays,
+        lastCheckIn: last?.toISOString() || null,
+        nextDue: nextDue.toISOString(),
+        isDue,
+        daysUntilDue: isDue ? 0 : Math.ceil((nextDue.getTime() - Date.now()) / (24 * 60 * 60 * 1000)),
+      });
+    } catch (err: any) {
+      console.error('[CHECK-IN] NEXT error:', err);
+      res.status(500).json({ error: 'Failed to get next check-in info' });
+    }
+  });
+
+  // POST /api/checkins — submit a check-in + get AI feedback
+  app.post('/api/checkins', authenticateToken, async (req: AuthenticatedRequest, res) => {
+    try {
+      const userId = req.user?.id;
+      if (!userId) return res.status(401).json({ error: 'Not authenticated' });
+
+      const isPro = req.user?.hasActiveSubscription === true;
+      const {
+        energyLevel, sleepQuality, mood, soreness, motivation,
+        weightKg, notes, goalsStillSame, injuries, photoUrl,
+      } = req.body;
+
+      // Generate AI feedback
+      let aiFeedback = '';
+      try {
+        const userCtx = await getComprehensiveUserContext(userId);
+        const ctxStr = formatUserContextForAI(userCtx);
+
+        const systemPrompt = isPro
+          ? `You are an expert personal trainer and physiotherapist giving a detailed weekly check-in analysis. Be specific, professional, and actionable. Reference the user's actual workout history and goals. Keep it under 300 words.`
+          : `You are a friendly fitness coach giving a brief monthly check-in response. Be encouraging and give 2-3 specific tips. Keep it under 150 words.`;
+
+        const userMsg = `User check-in:
+- Energy: ${energyLevel}/10
+- Sleep: ${sleepQuality}/10
+- Mood: ${mood}/10
+- Soreness: ${soreness}/10
+- Motivation: ${motivation}/10
+${weightKg ? `- Weight: ${weightKg}kg` : ''}
+${goalsStillSame !== undefined ? `- Goals still same: ${goalsStillSame}` : ''}
+${injuries ? `- Injuries/pain: ${injuries}` : ''}
+${notes ? `- Notes: ${notes}` : ''}
+
+User context:
+${ctxStr}
+
+${isPro
+  ? 'Give detailed PT feedback: what\'s going well, what needs attention, specific training adjustments, recovery advice, and one motivational insight.'
+  : 'Give a brief, warm monthly check-in response with 2-3 practical tips based on their scores.'}`;
+
+        const aiResp = await openai.chat.completions.create({
+          model: 'gpt-4o',
+          messages: [
+            { role: 'system', content: systemPrompt },
+            { role: 'user', content: userMsg },
+          ],
+          max_tokens: isPro ? 400 : 200,
+          temperature: 0.7,
+        });
+        aiFeedback = aiResp.choices[0]?.message?.content || '';
+      } catch (aiErr) {
+        console.log('⚠️ [CHECK-IN] AI feedback failed (non-blocking):', aiErr);
+        aiFeedback = isPro
+          ? 'Great check-in! Your consistency is showing. Keep focusing on quality sleep and progressive overload this week. 💪'
+          : 'Awesome work checking in! Keep up the consistency and remember to prioritise sleep and recovery. 💪';
+      }
+
+      const result = await db.execute(sql`
+        INSERT INTO check_ins (user_id, tier, energy_level, sleep_quality, mood, soreness,
+          motivation, weight_kg, notes, goals_still_same, injuries, photo_url, ai_feedback)
+        VALUES (
+          ${userId}, ${isPro ? 'pro' : 'standard'},
+          ${energyLevel || null}, ${sleepQuality || null}, ${mood || null},
+          ${soreness || null}, ${motivation || null}, ${weightKg || null},
+          ${notes || null}, ${goalsStillSame ?? null}, ${injuries || null},
+          ${photoUrl || null}, ${aiFeedback}
+        )
+        RETURNING id, created_at, ai_feedback
+      `);
+
+      const newCheckIn = result.rows[0];
+      res.json({ ok: true, checkIn: newCheckIn, aiFeedback });
+    } catch (err: any) {
+      console.error('[CHECK-IN] POST error:', err);
+      res.status(500).json({ error: 'Failed to save check-in' });
+    }
+  });
+
   return httpServer;
 }
 

@@ -759,7 +759,12 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
                   'Bypass-Tunnel-Reminder': 'true',
                 },
                 body: JSON.stringify({
-                  userProfile,
+                  userProfile: {
+                    ...userProfile,
+                    // Week 4 is always a deload week — signal the AI generator
+                    weeksSinceDeload: weekNumber === 4 ? 4 : 0,
+                    isDeloadWeek: weekNumber === 4,
+                  },
                   dayOfWeek: actualDayOfWeek, // Use actual day of week (0=Sun, 1=Mon, etc.)
                   weekNumber,
                   recentExercises, // Pass recent exercises to avoid repetition
