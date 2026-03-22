@@ -24,6 +24,7 @@ import { useAwardsStore } from '../stores/awards-store';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { ActionConfirmationModal, PendingActionDetails } from './ActionConfirmationModal';
 import { InlineSuggestedActions, WORKOUT_TYPE_SUGGESTIONS, GENERAL_SUGGESTIONS, SuggestedAction } from './InlineSuggestedActions';
+import { ProPaywallModal } from './ProPaywallModal';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
@@ -160,6 +161,7 @@ export function FloatingCoachButton({
   const [isDragging, setIsDragging] = useState(false);
   const [pendingAction, setPendingAction] = useState<PendingActionDetails | null>(null);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [showPaywall, setShowPaywall] = useState(false);
   
   // Ref for auto-scrolling to bottom
   const scrollViewRef = useRef<ScrollView>(null);
@@ -296,6 +298,13 @@ export function FloatingCoachButton({
       }
 
       const data = await response.json();
+
+      // Standard plan coach limit reached → show paywall
+      if (!response.ok && data?.isLimitError) {
+        setShowPaywall(true);
+        return "You've reached your daily coach message limit. Upgrade to Pro for unlimited coaching! 🚀";
+      }
+
       return data.response || "I'm here to help! What would you like to know? 💪";
     } catch (error: any) {
       console.error('Coach API Error:', error);
@@ -855,6 +864,12 @@ export function FloatingCoachButton({
         action={pendingAction}
         onConfirm={handleConfirmAction}
         onCancel={handleCancelAction}
+      />
+
+      {/* Pro Paywall (triggered when coach limit reached) */}
+      <ProPaywallModal
+        visible={showPaywall}
+        onClose={() => setShowPaywall(false)}
       />
     </>
   );

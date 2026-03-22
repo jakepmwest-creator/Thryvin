@@ -2016,6 +2016,11 @@ Respond with JSON ONLY:
         // Add userId for comprehensive context lookup
         enrichedProfile.userId = user.id;
         
+        // ── Pro vs Standard feature gating ─────────────────────────────────
+        // Standard users: basic AI only — no advanced questionnaire, no preference learning
+        const isPro = user.hasActiveSubscription === true;
+        enrichedProfile._isPro = isPro; // pass to generator so it can adapt prompt
+        
         // Parse and add advanced questionnaire from onboarding_responses
         if (user.onboardingResponses) {
           try {
@@ -2026,6 +2031,11 @@ Respond with JSON ONLY:
             if (onboardingData.advancedQuestionnaire) {
               enrichedProfile.advancedQuestionnaire = onboardingData.advancedQuestionnaire;
               console.log('📚 Advanced questionnaire loaded:', Object.keys(onboardingData.advancedQuestionnaire));
+            }
+            // Standard: strip advanced questionnaire — basic AI plans only
+            if (!isPro && enrichedProfile.advancedQuestionnaire) {
+              delete enrichedProfile.advancedQuestionnaire;
+              console.log('🔒 [Tier] Standard plan — advanced questionnaire excluded from AI context');
             }
           } catch (parseErr) {
             console.log('⚠️ Could not parse onboarding responses');
@@ -2256,6 +2266,16 @@ Respond with ONLY a JSON object (no markdown, no explanation):
       const userId = req.user?.id;
       if (!userId) {
         return res.status(401).json({ error: 'Not authenticated' });
+      }
+
+      // Pro-only feature: rolling regeneration requires active subscription
+      if (!req.user?.hasActiveSubscription) {
+        return res.status(403).json({
+          error: 'Pro feature',
+          code: 'PRO_REQUIRED',
+          message: 'Rolling regeneration is a Pro feature. Upgrade to unlock it! 🚀',
+          isProFeature: true,
+        });
       }
 
       const feedback = req.body?.feedback || {};
@@ -3328,6 +3348,29 @@ Respond with ONLY a JSON object (no markdown, no explanation):
     }
   });
 
+  // ── Standard-tier coach message rate limiter ──────────────────────────────
+  // Standard users: 15 coach messages per day (resets at midnight UTC)
+  // Pro users (hasActiveSubscription=true): unlimited
+  // Stored in-memory; safe for single-instance Railway deployments.
+  const _coachDailyUsage: Map<number, { date: string; count: number }> = new Map();
+  const STANDARD_COACH_DAILY_LIMIT = 15;
+
+  function checkCoachRateLimit(userId: number, isPro: boolean): { allowed: boolean; remaining: number } {
+    if (isPro) return { allowed: true, remaining: Infinity };
+    const today = new Date().toISOString().slice(0, 10); // YYYY-MM-DD UTC
+    const entry = _coachDailyUsage.get(userId);
+    if (!entry || entry.date !== today) {
+      _coachDailyUsage.set(userId, { date: today, count: 1 });
+      return { allowed: true, remaining: STANDARD_COACH_DAILY_LIMIT - 1 };
+    }
+    if (entry.count >= STANDARD_COACH_DAILY_LIMIT) {
+      return { allowed: false, remaining: 0 };
+    }
+    entry.count += 1;
+    return { allowed: true, remaining: STANDARD_COACH_DAILY_LIMIT - entry.count };
+  }
+  // ─────────────────────────────────────────────────────────────────────────
+
   // UNIFIED COACH CHAT ENDPOINT - Primary endpoint for all coach interactions
   // Uses ai-coach-service.ts for consistent behavior
   // UNIFIED COACH CHAT ENDPOINT - Primary endpoint for all coach interactions
@@ -3377,6 +3420,32 @@ Respond with ONLY a JSON object (no markdown, no explanation):
           message: "Please log in to use the AI coach"
         });
       }
+
+      // ── Standard-tier rate limit check ────────────────────────────────────
+      // Fetch user's subscription status from DB (skip for demo user)
+      let userIsPro = false;
+      if (userId && userId !== -1) {
+        try {
+          const userRow = await db.query.users.findFirst({
+            where: (u, { eq }) => eq(u.id, userId),
+            columns: { hasActiveSubscription: true },
+          });
+          userIsPro = userRow?.hasActiveSubscription ?? false;
+        } catch (_e) {
+          // If we can't check, allow the message (fail open)
+          userIsPro = true;
+        }
+      }
+      const rateCheck = checkCoachRateLimit(userId, userIsPro);
+      if (!rateCheck.allowed) {
+        return res.status(429).json({
+          error: "Daily coach message limit reached",
+          code: "COACH_LIMIT_REACHED",
+          message: `You've used your ${STANDARD_COACH_DAILY_LIMIT} daily coach messages. Upgrade to Pro for unlimited coaching! 🚀`,
+          isLimitError: true,
+        });
+      }
+      // ─────────────────────────────────────────────────────────────────────
       
       // Log workout context if provided (Phase 8: In-Workout Coach)
       if (process.env.NODE_ENV !== 'production') {
