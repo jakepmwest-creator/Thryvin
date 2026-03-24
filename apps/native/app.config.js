@@ -27,7 +27,17 @@ export default {
     web: {
       favicon: './assets/favicon.png',
     },
-    plugins: ['expo-router'],
+    plugins: [
+      'expo-router',
+      'expo-image-picker',
+      'expo-speech-recognition',
+      [
+        'react-native-purchases',
+        {
+          androidApiKey: process.env.EXPO_PUBLIC_REVENUECAT_API_KEY || '',
+        },
+      ],
+    ],
     extra: {
       eas: {
         projectId: 'ca2d383b-786b-4caa-bf8c-84ea08c5de58',
