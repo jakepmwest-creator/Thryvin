@@ -976,7 +976,7 @@ export default function ProfileScreen() {
                     value={userHeight}
                     onChangeText={setUserHeight}
                     keyboardType="numeric"
-                    placeholder={heightUnit === 'cm' ? '175' : '5'9"'}
+                    placeholder={heightUnit === 'cm' ? '175' : '5ft 9in'}
                     placeholderTextColor={COLORS.mediumGray}
                     data-testid="profile-body-stats-height-input"
                   />

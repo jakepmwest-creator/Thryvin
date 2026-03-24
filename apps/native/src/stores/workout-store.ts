@@ -1379,6 +1379,11 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
     };
 
     set({ activeSession: session });
+    // Persist session so it can be restored if user backgrounds the app
+    setStorageItem('active_workout_session', JSON.stringify({
+      workoutId,
+      startTime: session.startTime,
+    })).catch(() => {});
   },
 
   // Complete a set
@@ -1409,6 +1414,17 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
     }
     
     set({ activeSession: { ...session } });
+    // Save progress snapshot (exercise data is serializable as array)
+    try {
+      const sessionSnapshot = {
+        workoutId: session.workoutId,
+        startTime: session.startTime,
+        currentExerciseIndex: session.currentExerciseIndex,
+        completedExercisesArr: Array.from(session.completedExercises),
+        exerciseDataArr: Array.from(session.exerciseData.entries()),
+      };
+      setStorageItem('active_workout_snapshot', JSON.stringify(sessionSnapshot)).catch(() => {});
+    } catch {}
   },
 
   removeCompletedSet: (exerciseIndex: number, setIndex: number) => {

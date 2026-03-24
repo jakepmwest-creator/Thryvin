@@ -5,6 +5,8 @@
  */
 
 import React, { useState } from 'react';
+import { Image } from 'react-native';
+import * as ImagePicker from 'expo-image-picker';
 import {
   View,
   Text,
@@ -104,6 +106,7 @@ export function CheckInModal({ visible, isPro, onClose, onComplete }: CheckInMod
   const [notes, setNotes] = useState('');
   const [goalsStillSame, setGoalsStillSame] = useState(true);
   const [injuries, setInjuries] = useState('');
+  const [progressPhoto, setProgressPhoto] = useState<string | null>(null);
 
   const handleSubmit = async () => {
     setSubmitting(true);
@@ -141,11 +144,28 @@ export function CheckInModal({ visible, isPro, onClose, onComplete }: CheckInMod
     }
   };
 
+  const handlePickPhoto = async () => {
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== 'granted') {
+      Alert.alert('Permission needed', 'Allow photo access to add a progress photo.');
+      return;
+    }
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [4, 5],
+      quality: 0.8,
+    });
+    if (!result.canceled && result.assets[0]) {
+      setProgressPhoto(result.assets[0].uri);
+    }
+  };
+
   const handleDone = () => {
     // Reset
     setStep(0);
     setEnergy(5); setSleep(5); setMood(5); setSoreness(5); setMotivation(7);
-    setWeightKg(''); setNotes(''); setGoalsStillSame(true); setInjuries('');
+    setWeightKg(''); setNotes(''); setGoalsStillSame(true); setInjuries(''); setProgressPhoto(null);
     setAiFeedback('');
     onComplete();
     onClose();
@@ -218,6 +238,25 @@ export function CheckInModal({ visible, isPro, onClose, onComplete }: CheckInMod
                       multiline
                       placeholderTextColor={COLORS.textMuted}
                     />
+                  </View>
+                  {/* Progress Photo */}
+                  <View style={styles.fieldGroup}>
+                    <Text style={styles.fieldLabel}>📸 Progress Photo — optional</Text>
+                    <TouchableOpacity onPress={handlePickPhoto} style={styles.photoPickerBtn}>
+                      {progressPhoto ? (
+                        <Image source={{ uri: progressPhoto }} style={styles.progressPhoto} />
+                      ) : (
+                        <View style={styles.photoPlaceholder}>
+                          <Ionicons name="camera-outline" size={28} color={COLORS.textSecondary} />
+                          <Text style={styles.photoPlaceholderText}>Tap to add progress photo</Text>
+                        </View>
+                      )}
+                    </TouchableOpacity>
+                    {progressPhoto && (
+                      <TouchableOpacity onPress={() => setProgressPhoto(null)} style={styles.removePhotoBtn}>
+                        <Text style={styles.removePhotoText}>Remove photo</Text>
+                      </TouchableOpacity>
+                    )}
                   </View>
                 </>
               )}
@@ -430,4 +469,22 @@ const styles = StyleSheet.create({
   },
   feedbackFrom: { fontSize: 13, fontWeight: '700', color: COLORS.accent },
   feedbackText: { fontSize: 14, color: COLORS.text, lineHeight: 22 },
+  photoPickerBtn: {
+    borderRadius: 12,
+    overflow: 'hidden',
+    borderWidth: 2,
+    borderColor: COLORS.border,
+    borderStyle: 'dashed',
+  },
+  progressPhoto: { width: '100%', height: 200, resizeMode: 'cover' },
+  photoPlaceholder: {
+    height: 120,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    backgroundColor: COLORS.cardBg,
+  },
+  photoPlaceholderText: { fontSize: 14, color: COLORS.textSecondary },
+  removePhotoBtn: { alignSelf: 'flex-end', marginTop: 6, padding: 4 },
+  removePhotoText: { fontSize: 12, color: COLORS.accent, fontWeight: '600' },
 });
