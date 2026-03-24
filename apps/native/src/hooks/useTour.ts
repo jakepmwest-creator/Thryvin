@@ -21,16 +21,11 @@ export function useTour() {
   }, []);
 
   const checkTourStatus = async () => {
+    // Tour disabled per UX decision - too many popups on first login
     try {
-      const completed = await AsyncStorage.getItem(TOUR_COMPLETED_KEY);
-      if (!completed) {
-        // Wait a bit for UI to render, then start tour
-        setTimeout(() => {
-          setShowTour(true);
-        }, 1000);
-      }
+      await AsyncStorage.setItem(TOUR_COMPLETED_KEY, 'true');
     } catch (error) {
-      console.error('Error checking tour status:', error);
+      // ignore
     }
   };
   

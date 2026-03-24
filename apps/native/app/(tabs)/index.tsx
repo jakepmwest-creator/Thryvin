@@ -620,7 +620,8 @@ export default function HomeScreen() {
         visible={modalVisible}
         onClose={() => setModalVisible(false)}
         onStartWorkout={handleStartWorkout}
-        selectedDate={23}
+        selectedFullDate={new Date()}
+        workout={actualTodayWorkout || undefined}
       />
 
       {selectedExercise && (

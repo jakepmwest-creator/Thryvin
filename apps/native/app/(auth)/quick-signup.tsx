@@ -88,11 +88,8 @@ export default function QuickSignupScreen() {
 
       await register(userData);
       
-      // Show biometric modal after successful registration
-      router.replace({
-        pathname: '/(auth)/biometric-setup',
-        params: { fromSignup: 'true' },
-      });
+      // Skip biometric setup - go straight to app
+      router.replace('/(tabs)/');
     } catch (error) {
       showAlert('error', 'Signup Failed', error instanceof Error ? error.message : 'Could not create account');
     }

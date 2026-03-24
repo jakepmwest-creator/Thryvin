@@ -142,6 +142,8 @@ export default function ProfileScreen() {
   const [userName, setUserName] = useState(user?.name || 'User');
   const [userWeight, setUserWeight] = useState<string>('');
   const [userHeight, setUserHeight] = useState<string>('');
+  const [weightUnit, setWeightUnit] = useState<'kg' | 'lbs'>('kg');
+  const [heightUnit, setHeightUnit] = useState<'cm' | 'ft'>('cm');
   const [showBodyStatsModal, setShowBodyStatsModal] = useState(false);
   
   // Custom alert state
@@ -215,11 +217,19 @@ export default function ProfileScreen() {
       if (savedReminders !== null) setWorkoutReminders(savedReminders === 'true');
       if (savedAutoLogin !== null) setAutoLoginEnabled(savedAutoLogin !== 'false'); // Default true
       
-      // Load weight and height
+      // Load weight and height - prefer saved value, fall back to user profile from onboarding
       const savedWeight = await AsyncStorage.getItem(`user_weight_${userId}`);
       const savedHeight = await AsyncStorage.getItem(`user_height_${userId}`);
-      if (savedWeight) setUserWeight(savedWeight);
-      if (savedHeight) setUserHeight(savedHeight);
+      if (savedWeight) {
+        setUserWeight(savedWeight);
+      } else if (user?.weight) {
+        setUserWeight(String(user.weight));
+      }
+      if (savedHeight) {
+        setUserHeight(savedHeight);
+      } else if (user?.height) {
+        setUserHeight(String(user.height));
+      }
       
       // Prefer user-specific data, fall back to global only if it belongs to this user
       if (savedImage) {
@@ -909,6 +919,38 @@ export default function ProfileScreen() {
               </TouchableOpacity>
             </View>
             
+            {/* Unit toggles */}
+            <View style={{ flexDirection: 'row', justifyContent: 'center', gap: 12, marginBottom: 16 }}>
+              <View style={{ flexDirection: 'row', backgroundColor: COLORS.lightGray, borderRadius: 8, overflow: 'hidden' }}>
+                <TouchableOpacity
+                  onPress={() => setWeightUnit('kg')}
+                  style={{ paddingHorizontal: 16, paddingVertical: 6, backgroundColor: weightUnit === 'kg' ? COLORS.accent : 'transparent' }}
+                >
+                  <Text style={{ color: weightUnit === 'kg' ? '#fff' : COLORS.text, fontWeight: '600', fontSize: 13 }}>kg</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  onPress={() => setWeightUnit('lbs')}
+                  style={{ paddingHorizontal: 16, paddingVertical: 6, backgroundColor: weightUnit === 'lbs' ? COLORS.accent : 'transparent' }}
+                >
+                  <Text style={{ color: weightUnit === 'lbs' ? '#fff' : COLORS.text, fontWeight: '600', fontSize: 13 }}>lbs</Text>
+                </TouchableOpacity>
+              </View>
+              <View style={{ flexDirection: 'row', backgroundColor: COLORS.lightGray, borderRadius: 8, overflow: 'hidden' }}>
+                <TouchableOpacity
+                  onPress={() => setHeightUnit('cm')}
+                  style={{ paddingHorizontal: 16, paddingVertical: 6, backgroundColor: heightUnit === 'cm' ? COLORS.accent : 'transparent' }}
+                >
+                  <Text style={{ color: heightUnit === 'cm' ? '#fff' : COLORS.text, fontWeight: '600', fontSize: 13 }}>cm</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  onPress={() => setHeightUnit('ft')}
+                  style={{ paddingHorizontal: 16, paddingVertical: 6, backgroundColor: heightUnit === 'ft' ? COLORS.accent : 'transparent' }}
+                >
+                  <Text style={{ color: heightUnit === 'ft' ? '#fff' : COLORS.text, fontWeight: '600', fontSize: 13 }}>ft</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+
             <View style={styles.bodyStatsInputRow}>
               <View style={styles.bodyStatsInputGroup}>
                 <Text style={styles.bodyStatsLabel}>Weight</Text>
@@ -918,11 +960,11 @@ export default function ProfileScreen() {
                     value={userWeight}
                     onChangeText={setUserWeight}
                     keyboardType="numeric"
-                    placeholder="70"
+                    placeholder={weightUnit === 'kg' ? '70' : '154'}
                     placeholderTextColor={COLORS.mediumGray}
                     data-testid="profile-body-stats-weight-input"
                   />
-                  <Text style={styles.bodyStatsUnit}>kg</Text>
+                  <Text style={styles.bodyStatsUnit}>{weightUnit}</Text>
                 </View>
               </View>
               
@@ -934,11 +976,11 @@ export default function ProfileScreen() {
                     value={userHeight}
                     onChangeText={setUserHeight}
                     keyboardType="numeric"
-                    placeholder="175"
+                    placeholder={heightUnit === 'cm' ? '175' : '5'9"'}
                     placeholderTextColor={COLORS.mediumGray}
                     data-testid="profile-body-stats-height-input"
                   />
-                  <Text style={styles.bodyStatsUnit}>cm</Text>
+                  <Text style={styles.bodyStatsUnit}>{heightUnit}</Text>
                 </View>
               </View>
             </View>
