@@ -1627,10 +1627,8 @@ Respond with JSON ONLY:
   });
 
   // Get today's AI-generated workout (MUST come before :id route to avoid conflicts)
-  app.get("/api/workouts/today", async (req, res) => {
-    if (!req.isAuthenticated()) {
-      return res.sendStatus(401);
-    }
+  app.get("/api/workouts/today", authenticateToken, async (req: AuthenticatedRequest, res) => {
+    // Auth handled by authenticateToken middleware (supports both session + Bearer token)
 
     // 🚨 STEP 3: Synchronized static templates - today matches weekly schedule
     if (!AI_ENABLED) {
@@ -1757,10 +1755,8 @@ Respond with JSON ONLY:
   });
 
   // Get weekly AI-generated workout schedule
-  app.get("/api/workouts/week", async (req, res) => {
-    if (!req.isAuthenticated()) {
-      return res.sendStatus(401);
-    }
+  app.get("/api/workouts/week", authenticateToken, async (req: AuthenticatedRequest, res) => {
+    // Auth handled by authenticateToken middleware (supports both session + Bearer token)
 
     // 🚨 STABILIZATION: Block AI generation during stabilization
     if (!AI_ENABLED) {
