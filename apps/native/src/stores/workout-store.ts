@@ -597,7 +597,7 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
                 // Cache locally for offline use
                 await setStorageItem('week_workouts', JSON.stringify(transformedWorkouts));
                 await setStorageItem('week_workouts_date', mondayOfThisWeek.toDateString());
-                await setStorageItem('week_workouts_version', 'v8_db_merge');
+                await setStorageItem('week_workouts_version', 'v9_exercise_fix');
                 
                 set({ weekWorkouts: transformedWorkouts, isLoading: false });
                 await deleteStorageItem('workout_generation_lock');
@@ -625,7 +625,7 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
       // ====================================================================
       // STEP 2: CHECK LOCAL CACHE IF DATABASE DIDN'T HAVE ALL WORKOUTS
       // ====================================================================
-      const CACHE_VERSION = 'v8_db_merge';
+      const CACHE_VERSION = 'v9_exercise_fix';
       const cachedWeek = await getStorageItem('week_workouts');
       const cachedWeekDate = await getStorageItem('week_workouts_date');
       const cachedVersion = await getStorageItem('week_workouts_version');
