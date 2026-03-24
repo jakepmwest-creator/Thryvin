@@ -15,6 +15,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useAuthStore } from '../../src/stores/auth-store';
+import { useSubscriptionStore } from '../../src/stores/subscription-store';
 import { CustomAlert } from '../../src/components/CustomAlert';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
@@ -32,6 +33,7 @@ export default function QuickSignupScreen() {
   const router = useRouter();
   const params = useLocalSearchParams();
   const { register, isLoading } = useAuthStore();
+  const { setTestPro } = useSubscriptionStore();
   
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -87,6 +89,11 @@ export default function QuickSignupScreen() {
       };
 
       await register(userData);
+      
+      // Grant Pro immediately if user selected Pro plan (no payment integrated yet)
+      if (onboardingData.selectedPlan === 'pro') {
+        setTestPro(true);
+      }
       
       // Skip biometric setup - go straight to app
       router.replace('/(tabs)/');
