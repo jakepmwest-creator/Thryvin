@@ -818,20 +818,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Log workout performance for AI learning
   // SECURITY: Requires authentication - userId derived from session
-  app.post("/api/workouts/log-performance", async (req, res) => {
+  app.post("/api/workouts/log-performance", authenticateToken, async (req: AuthenticatedRequest, res) => {
     try {
       const { workoutId, exercises, overallFeedback, duration } = req.body;
       
-      // SECURITY: Derive userId from authenticated session, never trust client
-      const DEMO_MODE = process.env.DEMO_MODE === 'true';
-      const DEMO_USER_ID = -1;
-      
-      let userId: number | undefined;
-      if (req.isAuthenticated() && req.user?.id) {
-        userId = req.user.id;
-      } else if (DEMO_MODE) {
-        userId = DEMO_USER_ID;
-      } else {
+      // SECURITY: Derive userId from authenticated user (session or Bearer token)
+      const userId = req.user?.id;
+      if (!userId) {
         return res.status(401).json({ 
           error: "Authentication required",
           code: "AUTH_REQUIRED",
