@@ -31,12 +31,6 @@ export default {
       'expo-router',
       'expo-image-picker',
       'expo-speech-recognition',
-      [
-        'react-native-purchases',
-        {
-          androidApiKey: process.env.EXPO_PUBLIC_REVENUECAT_API_KEY || '',
-        },
-      ],
     ],
     extra: {
       eas: {
