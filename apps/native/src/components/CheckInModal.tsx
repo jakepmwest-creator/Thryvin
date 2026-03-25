@@ -112,15 +112,7 @@ export function CheckInModal({ visible, isPro, onClose, onComplete }: CheckInMod
   // New note fields
   const [wentRight, setWentRight] = useState('');
   const [didntGoRight, setDidntGoRight] = useState('');
-  const [sleep, setSleep] = useState(5);
-  const [mood, setMood] = useState(5);
-  const [soreness, setSoreness] = useState(5);
-  const [motivation, setMotivation] = useState(7);
-  const [weightKg, setWeightKg] = useState('');
-  const [notes, setNotes] = useState('');
-  const [goalsStillSame, setGoalsStillSame] = useState(true);
-  const [injuries, setInjuries] = useState('');
-  const [progressPhoto, setProgressPhoto] = useState<string | null>(null);
+
 
   const handleSubmit = async () => {
     setSubmitting(true);
