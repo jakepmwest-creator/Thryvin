@@ -1,57 +1,83 @@
 import React, { useState, useEffect, useMemo, useCallback, memo } from 'react';
 import {
-  View, Text, StyleSheet, Modal, TouchableOpacity, TextInput, FlatList,
-  Image, Dimensions, ActivityIndicator, ScrollView, Platform,
+  View, Text, StyleSheet, Modal, TouchableOpacity, TextInput,
+  ScrollView, Image, FlatList,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { PreviewVideoPlayer, isValidVideoUrl } from './ExerciseVideoPlayer';
 import { usePreferencesStore } from '../stores/preferences-store';
+import { useWorkoutStore } from '../stores/workout-store';
 import { getApiBaseUrl } from '../services/env';
 
 const API_BASE_URL = getApiBaseUrl();
-const { width: SCREEN_WIDTH } = Dimensions.get('window');
-const TILE_WIDTH = (SCREEN_WIDTH - 48 - 12) / 2;
 
-// Thryvin gradient
-const G = { start: '#A22BF6', end: '#FF4EC7' };
-
-const T = {
+const C = {
   bg: '#FFFFFF',
-  surface: '#F8F7FC',
-  card: '#FFFFFF',
-  cardBorder: '#EDE8F5',
-  text: '#1F1F1F',
+  card: '#F8F9FA',
+  cardBorder: '#E8ECF0',
+  accent: '#a259ff',
+  green: '#22c55e',
+  red: '#ef4444',
+  text: '#1A1A1A',
   textSecondary: '#6B7280',
   textMuted: '#9CA3AF',
-  liked: '#10B981',
-  disliked: '#EF4444',
-  starred: '#F59E0B',
-  white: '#FFFFFF',
-  accentLight: '#EDE9FE',
+  gradStart: '#A259FF',
+  gradEnd: '#FF4EC7',
 };
+const GRAD: [string, string] = ['#A259FF', '#FF4EC7'];
 
-const CATEGORIES = ['All', 'Weights', 'Calisthenics', 'Cardio', 'Flexibility'];
-const DIFFICULTY_OPTIONS = ['All', 'Beginner', 'Intermediate', 'Advanced'];
+// ─── Classifiers ──────────────────────────────────────────────────────────────
+function classifyEquipment(ex: any): string {
+  if (!ex) return 'other';
+  const name = (ex.name || '').toLowerCase();
+  const equipment = (ex.equipment || '').toLowerCase();
+  const cat = (ex.category || '').toLowerCase();
+  if (['stretch', 'yoga', 'mobility', 'flexibility', 'foam roll', 'warmup', 'cooldown'].some(k => name.includes(k) || cat.includes(k))) return 'flexibility';
+  if (['run', 'cardio', 'cycling', 'treadmill', 'elliptical', 'rowing', 'stair', 'jump rope', 'hiit', 'burpee'].some(k => name.includes(k) || cat.includes(k))) return 'cardio';
+  if (['bodyweight', 'push-up', 'pull-up', 'dip', 'plank', 'sit-up', 'crunch', 'lunge'].some(k => name.includes(k) || equipment.includes(k))) return 'bodyweight';
+  if (['cable machine', 'smith machine', 'leg press machine'].some(k => name.includes(k))) return 'machines';
+  if (['cable', 'machine'].some(k => equipment.includes(k)) && !['dumbbell', 'barbell', 'kettlebell'].some(k => equipment.includes(k))) return 'machines';
+  if (['dumbbell', 'barbell', 'kettlebell', 'free weight'].some(k => name.includes(k) || equipment.includes(k))) return 'free-weights';
+  return 'free-weights';
+}
 
-const CATEGORY_ICONS: Record<string, string> = {
-  All: 'grid-outline',
-  Weights: 'barbell-outline',
-  Calisthenics: 'body-outline',
-  Cardio: 'heart-outline',
-  Flexibility: 'fitness-outline',
-};
+function classifySubEquipment(ex: any): string {
+  if (!ex) return 'Other';
+  const name = (ex.name || '').toLowerCase();
+  const eq = (ex.equipment || '').toLowerCase();
+  if (name.includes('dumbbell') || eq.includes('dumbbell')) return 'Dumbbells';
+  if (name.includes('barbell') || name.includes('bench press') || (name.includes('squat') && !name.includes('goblet')) || eq.includes('barbell')) return 'Barbells';
+  if (name.includes('kettlebell') || eq.includes('kettlebell')) return 'Kettlebells';
+  if (name.includes('cable') || eq.includes('cable')) return 'Cables';
+  return 'Other';
+}
 
-const equipmentKeywords = ['dumbbell', 'barbell', 'cable', 'machine', 'kettlebell', 'smith', 'ez bar', 'bench press', 'lat pull', 'pulldown', 'leg press', 'chest press', 'shoulder press', 'weight', 'weighted', 'press', 'curl', 'fly', 'row', 'pullover', 'extension', 'raise'];
-const cardioKeywords = ['cardio', 'running', 'cycling', 'rowing', 'swimming', 'jump rope', 'treadmill', 'elliptical', 'stair', 'hiit', 'jumping jack', 'burpee', 'mountain climber'];
-const flexKeywords = ['stretch', 'yoga', 'mobility', 'warmup', 'warm-up', 'recovery', 'foam roll', 'flexibility'];
+function classifySubMachine(ex: any): string {
+  if (!ex) return 'Other';
+  const name = (ex.name || '').toLowerCase();
+  if (name.includes('cable')) return 'Cable Machine';
+  if (name.includes('smith')) return 'Smith Machine';
+  if (name.includes('leg press')) return 'Leg Press';
+  return 'Other';
+}
+
+function getMuscleColor(muscle: string): string {
+  const m = (muscle || '').toLowerCase();
+  if (m.includes('chest') || m.includes('pec')) return '#3B82F6';
+  if (m.includes('leg') || m.includes('quad') || m.includes('hamstring') || m.includes('glute') || m.includes('calf')) return '#22C55E';
+  if (m.includes('back') || m.includes('lat') || m.includes('trap')) return '#F97316';
+  if (m.includes('arm') || m.includes('bicep') || m.includes('tricep') || m.includes('shoulder') || m.includes('delt')) return '#A855F7';
+  if (m.includes('core') || m.includes('abs') || m.includes('oblique')) return '#F59E0B';
+  if (m.includes('cardio') || m.includes('hiit')) return '#EF4444';
+  if (m.includes('full body')) return '#14B8A6';
+  return '#9CA3AF';
+}
 
 function getThumbUrl(exercise: any): string | null {
   if (!exercise) return null;
   const thumb = exercise.thumbnailUrl;
-  if (thumb && typeof thumb === 'string' && thumb.startsWith('http') && (thumb.endsWith('.jpg') || thumb.endsWith('.png') || thumb.endsWith('.webp'))) {
-    return thumb;
-  }
+  if (thumb && typeof thumb === 'string' && thumb.startsWith('http')) return thumb;
   const videoUrl = exercise.videoUrl;
   if (isValidVideoUrl(videoUrl) && videoUrl.includes('cloudinary')) {
     return videoUrl.replace('/upload/', '/upload/w_400,h_300,c_fill,so_1/').replace('.mp4', '.jpg');
@@ -59,154 +85,192 @@ function getThumbUrl(exercise: any): string | null {
   return null;
 }
 
-// ─── Exercise Tile ───
-const ExerciseTile = memo(({ exercise, onPress, onStarPress }: {
-  exercise: any; onPress: () => void; onStarPress: (ex: any) => void;
-}) => {
-  const { getPreference, likeExercise, dislikeExercise, removePreference, isStarred } = usePreferencesStore();
-  const preference = getPreference(exercise.id);
-  const starred = isStarred(exercise.id);
-  const thumbUrl = getThumbUrl(exercise);
+// ─── Types ────────────────────────────────────────────────────────────────────
+type ViewMode = 'all' | 'liked' | 'disliked';
+type MainCategory = 'All' | 'Free Weights' | 'Machines' | 'Bodyweight' | 'Cardio' | 'Flexibility';
+const MAIN_CATEGORIES: MainCategory[] = ['All', 'Free Weights', 'Machines', 'Bodyweight', 'Cardio', 'Flexibility'];
+const FREE_WEIGHTS_SUBS = ['All', 'Dumbbells', 'Barbells', 'Kettlebells', 'Cables'];
+const MACHINES_SUBS = ['All', 'Cable Machine', 'Smith Machine', 'Leg Press', 'Other'];
+const MUSCLE_GROUPS = ['Chest', 'Back', 'Legs', 'Shoulders', 'Arms', 'Core', 'Cardio', 'Full Body'];
+const DIFFICULTIES = ['Beginner', 'Intermediate', 'Advanced'];
 
-  const handleLike = () => { if (preference === 'liked') removePreference(exercise.id); else likeExercise(exercise.id, exercise.name); };
-  const handleDislike = () => { if (preference === 'disliked') removePreference(exercise.id); else dislikeExercise(exercise.id, exercise.name); };
+// ─── Components ───────────────────────────────────────────────────────────────
+const MusclePill = ({ label }: { label: string }) => {
+  const color = getMuscleColor(label);
+  return (
+    <View style={[pillSt.pill, { backgroundColor: color + '22' }]}>
+      <Text style={[pillSt.text, { color }]} numberOfLines={1}>{label}</Text>
+    </View>
+  );
+};
+const pillSt = StyleSheet.create({
+  pill: { borderRadius: 99, paddingHorizontal: 8, paddingVertical: 3, alignSelf: 'flex-start' },
+  text: { fontSize: 10, fontWeight: '700' },
+});
+
+const GradChip = ({ label, selected, onPress }: { label: string; selected: boolean; onPress: () => void }) => (
+  <TouchableOpacity onPress={onPress} activeOpacity={0.8} style={{ marginRight: 7 }}>
+    {selected ? (
+      <LinearGradient colors={GRAD} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={chipSt.chip}>
+        <Text style={chipSt.textActive}>{label}</Text>
+      </LinearGradient>
+    ) : (
+      <View style={chipSt.chipOff}>
+        <Text style={chipSt.textOff}>{label}</Text>
+      </View>
+    )}
+  </TouchableOpacity>
+);
+const chipSt = StyleSheet.create({
+  chip: { paddingHorizontal: 13, paddingVertical: 7, borderRadius: 99 },
+  chipOff: { paddingHorizontal: 13, paddingVertical: 7, borderRadius: 99, backgroundColor: '#F0F0F0', borderWidth: 1, borderColor: C.cardBorder },
+  textActive: { color: '#FFF', fontSize: 12, fontWeight: '700' },
+  textOff: { color: C.text, fontSize: 12, fontWeight: '600' },
+});
+
+// Card item for FlatList
+const ExerciseCard = memo(({ exercise, onPress, personalBests }: { exercise: any; onPress: () => void; personalBests: any[] }) => {
+  const { getPreference, likeExercise, removePreference, isStarred } = usePreferencesStore();
+  if (!exercise) return <View style={{ flex: 1, margin: 5 }} />;
+  const preference = getPreference(exercise.id);
+  const starred = isStarred ? isStarred(exercise.id) : false;
+  const thumbUrl = getThumbUrl(exercise);
+  const hasVideo = isValidVideoUrl(exercise?.videoUrl);
+  const muscle = exercise.muscleGroups?.[0] || exercise.bodyPart || 'Full Body';
+  const muscleInitial = (muscle || 'F').charAt(0).toUpperCase();
+  const pb = personalBests.find(p => p.exercise?.toLowerCase() === exercise.name?.toLowerCase());
 
   return (
-    <TouchableOpacity style={tileStyles.tile} onPress={onPress} activeOpacity={0.8} data-testid={`exercise-tile-${exercise.id}`}>
-      <View style={tileStyles.thumb}>
+    <TouchableOpacity style={[cardSt.card, { flex: 1, margin: 5 }]} onPress={onPress} activeOpacity={0.8}>
+      <View style={cardSt.thumb}>
         {thumbUrl ? (
-          <Image source={{ uri: thumbUrl }} style={tileStyles.image} resizeMode="cover" />
+          <>
+            <Image source={{ uri: thumbUrl }} style={cardSt.thumbImg} resizeMode="cover" />
+            {hasVideo && (
+              <View style={cardSt.playOverlay}>
+                <Ionicons name="play-circle" size={28} color="rgba(255,255,255,0.9)" />
+              </View>
+            )}
+          </>
         ) : (
-          <LinearGradient colors={[G.start, G.end]} style={tileStyles.placeholder}>
-            <Ionicons name="barbell-outline" size={26} color="rgba(255,255,255,0.5)" />
+          <LinearGradient colors={GRAD} style={cardSt.thumbPlaceholder}>
+            <Text style={cardSt.thumbInitial}>{muscleInitial}</Text>
           </LinearGradient>
         )}
-        {exercise.difficulty && (
-          <View style={[tileStyles.diffBadge,
-            exercise.difficulty === 'Beginner' && { backgroundColor: '#DCFCE7' },
-            exercise.difficulty === 'Advanced' && { backgroundColor: '#FEE2E2' },
-          ]}>
-            <Text style={[tileStyles.diffText,
-              exercise.difficulty === 'Beginner' && { color: '#16A34A' },
-              exercise.difficulty === 'Advanced' && { color: '#DC2626' },
-            ]}>{exercise.difficulty}</Text>
+        <TouchableOpacity onPress={() => { if (preference === 'liked') removePreference(exercise.id); else likeExercise(exercise.id, exercise.name); }} style={cardSt.heartBtn}>
+          <Ionicons name={preference === 'liked' ? 'heart' : 'heart-outline'} size={14} color={preference === 'liked' ? C.gradStart : '#CCC'} />
+        </TouchableOpacity>
+      </View>
+      <View style={cardSt.info}>
+        <Text style={cardSt.name} numberOfLines={2}>{exercise.name}</Text>
+        <MusclePill label={muscle} />
+        {pb && (
+          <View style={cardSt.pbRow}>
+            <Text style={cardSt.trophy}>🏆</Text>
+            <Text style={cardSt.pbText}>{pb.value}{pb.unit || 'kg'}</Text>
           </View>
         )}
-        {starred && <View style={tileStyles.starBadge}><Ionicons name="star" size={12} color={T.starred} /></View>}
-      </View>
-      <View style={tileStyles.info}>
-        <Text style={tileStyles.name} numberOfLines={2}>{exercise.name}</Text>
-        <Text style={tileStyles.meta} numberOfLines={1}>{exercise.muscleGroups?.join(', ') || exercise.bodyPart || 'Full Body'}</Text>
-      </View>
-      <View style={tileStyles.actions}>
-        <TouchableOpacity onPress={handleLike} style={tileStyles.actionBtn}>
-          <Ionicons name={preference === 'liked' ? 'heart' : 'heart-outline'} size={17} color={preference === 'liked' ? T.liked : T.textMuted} />
-        </TouchableOpacity>
-        <TouchableOpacity onPress={handleDislike} style={tileStyles.actionBtn}>
-          <Ionicons name={preference === 'disliked' ? 'thumbs-down' : 'thumbs-down-outline'} size={17} color={preference === 'disliked' ? T.disliked : T.textMuted} />
-        </TouchableOpacity>
-        <View style={{ flex: 1 }} />
-        <TouchableOpacity onPress={() => onStarPress(exercise)} style={tileStyles.actionBtn}>
-          <Ionicons name={starred ? 'star' : 'star-outline'} size={18} color={starred ? T.starred : T.textMuted} />
-        </TouchableOpacity>
       </View>
     </TouchableOpacity>
   );
 });
-
-const tileStyles = StyleSheet.create({
-  tile: { width: TILE_WIDTH, backgroundColor: T.card, borderRadius: 16, overflow: 'hidden', borderWidth: 1, borderColor: T.cardBorder, shadowColor: 'rgba(162,43,246,0.1)', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.5, shadowRadius: 8, elevation: 3 },
-  thumb: { width: '100%', height: TILE_WIDTH * 0.75, backgroundColor: T.surface },
-  image: { width: '100%', height: '100%' },
-  placeholder: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  diffBadge: { position: 'absolute', top: 6, right: 6, backgroundColor: T.accentLight, paddingHorizontal: 7, paddingVertical: 2, borderRadius: 6 },
-  diffText: { fontSize: 10, fontWeight: '700', color: G.start },
-  starBadge: { position: 'absolute', top: 6, left: 6, backgroundColor: '#FEF3C7', width: 22, height: 22, borderRadius: 11, justifyContent: 'center', alignItems: 'center' },
-  info: { paddingHorizontal: 10, paddingTop: 8, paddingBottom: 4 },
-  name: { fontSize: 13, fontWeight: '700', color: T.text, lineHeight: 17 },
-  meta: { fontSize: 11, color: T.textSecondary, marginTop: 2 },
-  actions: { flexDirection: 'row', paddingHorizontal: 8, paddingBottom: 8, paddingTop: 4, gap: 4, alignItems: 'center' },
-  actionBtn: { padding: 4 },
+const cardSt = StyleSheet.create({
+  card: { backgroundColor: C.bg, borderRadius: 16, borderWidth: 1, borderColor: C.cardBorder, overflow: 'hidden', elevation: 3, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.07, shadowRadius: 8 },
+  thumb: { width: '100%', height: 100, backgroundColor: C.card, position: 'relative' },
+  thumbImg: { width: '100%', height: '100%' },
+  thumbPlaceholder: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+  thumbInitial: { fontSize: 32, fontWeight: '800', color: 'rgba(255,255,255,0.85)' },
+  playOverlay: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(0,0,0,0.2)' },
+  heartBtn: { position: 'absolute', top: 6, right: 6, backgroundColor: 'rgba(255,255,255,0.92)', borderRadius: 12, padding: 4 },
+  info: { padding: 9, gap: 4 },
+  name: { fontSize: 12, fontWeight: '700', color: C.text, lineHeight: 16 },
+  pbRow: { flexDirection: 'row', alignItems: 'center', gap: 3, marginTop: 2 },
+  trophy: { fontSize: 10 },
+  pbText: { fontSize: 10, color: '#D97706', fontWeight: '700' },
 });
 
-// ─── Exercise Detail ───
-const ExerciseDetail = ({ exercise, onClose }: { exercise: any; onClose: () => void }) => {
+// ─── Detail Sheet ─────────────────────────────────────────────────────────────
+const ExerciseDetail = ({ exercise, onClose, personalBests }: { exercise: any; onClose: () => void; personalBests: any[] }) => {
   const hasVideo = isValidVideoUrl(exercise?.videoUrl);
   const { getPreference, likeExercise, removePreference, isStarred, starExercise, unstarExercise } = usePreferencesStore();
   const [stats, setStats] = useState<any>(null);
-  const [statsLoading, setStatsLoading] = useState(false);
   const preference = exercise ? getPreference(exercise.id) : null;
-  const starred = exercise ? isStarred(exercise.id) : false;
+  const starred = exercise && isStarred ? isStarred(exercise.id) : false;
+  const pb = exercise ? personalBests.find(p => p.exercise?.toLowerCase() === exercise.name?.toLowerCase()) : null;
 
   useEffect(() => {
     if (!exercise?.id) { setStats(null); return; }
     let cancelled = false;
-    (async () => {
-      setStatsLoading(true);
-      try { const res = await fetch(`${API_BASE_URL}/api/stats/exercise/${exercise.id}`); if (res.ok && !cancelled) setStats(await res.json()); }
-      catch { /* skip */ }
-      finally { if (!cancelled) setStatsLoading(false); }
-    })();
+    fetch(`${API_BASE_URL}/api/stats/exercise/${exercise.id}`)
+      .then(r => r.ok ? r.json() : null)
+      .then(d => { if (!cancelled) setStats(d); })
+      .catch(() => {});
     return () => { cancelled = true; };
   }, [exercise?.id]);
 
   if (!exercise) return null;
-  const handleLikeToggle = () => { if (preference === 'liked') removePreference(exercise.id); else likeExercise(exercise.id, exercise.name); };
-  const handleStarToggle = async () => { if (starred) unstarExercise(exercise.id); else await starExercise(exercise.id, exercise.name, exercise.videoUrl); };
-  const hasHistory = stats?.history?.length > 0;
-  const latestSession = hasHistory ? stats.history[0] : null;
+  const timesCompleted = stats?.history?.length || 0;
 
   return (
     <Modal visible={!!exercise} transparent animationType="slide" onRequestClose={onClose}>
-      <View style={dStyles.overlay}>
-        <View style={dStyles.sheet}>
-          <ScrollView contentContainerStyle={{ paddingBottom: 40 }} showsVerticalScrollIndicator={false}>
-            <TouchableOpacity onPress={onClose} style={dStyles.closeBtn}><View style={dStyles.closeBg}><Ionicons name="close" size={20} color={T.text} /></View></TouchableOpacity>
-            {hasVideo ? <View style={dStyles.video}><PreviewVideoPlayer videoUrl={exercise.videoUrl} exerciseName={exercise.name} /></View>
-              : <LinearGradient colors={[G.start, G.end]} style={dStyles.headerGradient}><Ionicons name="barbell" size={36} color={T.white} /></LinearGradient>}
-            <View style={dStyles.body}>
-              <Text style={dStyles.name}>{exercise.name}</Text>
-              <View style={dStyles.actionRow}>
-                <TouchableOpacity onPress={handleLikeToggle} style={[dStyles.pill, preference === 'liked' && { backgroundColor: '#DCFCE7', borderColor: T.liked }]}>
-                  <Ionicons name={preference === 'liked' ? 'heart' : 'heart-outline'} size={18} color={preference === 'liked' ? T.liked : T.textMuted} />
-                  <Text style={[dStyles.pillText, preference === 'liked' && { color: T.liked }]}>{preference === 'liked' ? 'Liked' : 'Like'}</Text>
-                </TouchableOpacity>
-                <TouchableOpacity onPress={handleStarToggle} style={[dStyles.pill, starred && { backgroundColor: '#FEF3C7', borderColor: T.starred }]}>
-                  <Ionicons name={starred ? 'star' : 'star-outline'} size={18} color={starred ? T.starred : T.textMuted} />
-                  <Text style={[dStyles.pillText, starred && { color: '#B45309' }]}>{starred ? 'Starred' : 'Star'}</Text>
-                </TouchableOpacity>
-              </View>
-              <Text style={dStyles.aiNote}>Liked exercises influence your AI-generated workouts</Text>
-              <View style={dStyles.tags}>
-                {exercise.difficulty && <View style={dStyles.tag}><Ionicons name="speedometer-outline" size={13} color={G.start} /><Text style={dStyles.tagText}>{exercise.difficulty}</Text></View>}
-                <View style={dStyles.tag}><Ionicons name="body-outline" size={13} color={G.start} /><Text style={dStyles.tagText}>{exercise.muscleGroups?.join(', ') || exercise.bodyPart || 'Full Body'}</Text></View>
-                {exercise.equipment && <View style={dStyles.tag}><Ionicons name="fitness-outline" size={13} color={G.start} /><Text style={dStyles.tagText}>{Array.isArray(exercise.equipment) ? exercise.equipment.join(', ') : exercise.equipment}</Text></View>}
-              </View>
-              <Text style={dStyles.desc}>{exercise.description || 'Perform this exercise with proper form and controlled movements.'}</Text>
-              {exercise.tips?.length > 0 && (
-                <View style={{ marginTop: 4 }}>
-                  <Text style={dStyles.sectionTitle}>Form Tips</Text>
-                  {exercise.tips.map((tip: string, i: number) => (
-                    <View key={i} style={dStyles.tipRow}>
-                      <LinearGradient colors={[G.start, G.end]} style={dStyles.tipNum}><Text style={dStyles.tipNumText}>{i + 1}</Text></LinearGradient>
-                      <Text style={dStyles.tipText}>{tip}</Text>
-                    </View>
+      <View style={detSt.overlay}>
+        <View style={detSt.sheet}>
+          <ScrollView contentContainerStyle={{ paddingBottom: 50 }} showsVerticalScrollIndicator={false}>
+            <TouchableOpacity onPress={onClose} style={detSt.closeBtn}>
+              <View style={detSt.closeBg}><Ionicons name="close" size={20} color={C.text} /></View>
+            </TouchableOpacity>
+            {hasVideo
+              ? <View style={detSt.video}><PreviewVideoPlayer videoUrl={exercise.videoUrl} exerciseName={exercise.name} /></View>
+              : <LinearGradient colors={GRAD} style={detSt.headerGrad}><Ionicons name="barbell" size={36} color="#FFF" /></LinearGradient>}
+            <View style={detSt.body}>
+              <Text style={detSt.name}>{exercise.name}</Text>
+              {(exercise.muscleGroups?.length > 0 || exercise.bodyPart) && (
+                <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginBottom: 12 }}>
+                  {(exercise.muscleGroups || [exercise.bodyPart]).filter(Boolean).map((m: string, i: number) => (
+                    <MusclePill key={i} label={m} />
                   ))}
                 </View>
               )}
-              <View style={dStyles.statsSection}>
-                <Text style={dStyles.sectionTitle}>Your Stats</Text>
-                {statsLoading ? <ActivityIndicator size="small" color={G.start} style={{ marginTop: 12 }} /> : hasHistory ? (
-                  <View style={dStyles.statsGrid}>
-                    <View style={dStyles.statBox}><Ionicons name="trophy" size={18} color={T.starred} /><Text style={dStyles.statValue}>{stats.personalBest?.weight || latestSession?.maxWeight || '--'} kg</Text><Text style={dStyles.statLabel}>Personal Best</Text></View>
-                    <View style={dStyles.statBox}><Ionicons name="analytics" size={18} color={G.start} /><Text style={dStyles.statValue}>{Math.round(stats.personalBest?.estimatedOneRM || 0)} kg</Text><Text style={dStyles.statLabel}>Est. 1RM</Text></View>
-                    <View style={dStyles.statBox}><Ionicons name="calendar" size={18} color={G.end} /><Text style={dStyles.statValue}>{stats.history.length}</Text><Text style={dStyles.statLabel}>Sessions</Text></View>
-                    <View style={dStyles.statBox}><Ionicons name="barbell" size={18} color={T.liked} /><Text style={dStyles.statValue}>{latestSession?.totalSets || '--'}</Text><Text style={dStyles.statLabel}>Last Sets</Text></View>
-                  </View>
-                ) : (
-                  <View style={dStyles.noStats}><Ionicons name="fitness-outline" size={28} color={T.textMuted} /><Text style={dStyles.noStatsText}>Not yet completed</Text><Text style={dStyles.noStatsSub}>Stats appear here once you log this exercise</Text></View>
+              <View style={detSt.actionRow}>
+                <TouchableOpacity onPress={() => { if (preference === 'liked') removePreference(exercise.id); else likeExercise(exercise.id, exercise.name); }} style={[detSt.pill, preference === 'liked' && detSt.pillLiked]}>
+                  <Ionicons name={preference === 'liked' ? 'heart' : 'heart-outline'} size={16} color={preference === 'liked' ? '#FFF' : C.accent} />
+                  <Text style={[detSt.pillText, preference === 'liked' && { color: '#FFF' }]}>{preference === 'liked' ? 'Liked' : 'Like'}</Text>
+                </TouchableOpacity>
+                {starExercise && (
+                  <TouchableOpacity onPress={async () => { if (starred) unstarExercise?.(exercise.id); else await starExercise(exercise.id, exercise.name, exercise.videoUrl); }} style={[detSt.pill, starred && detSt.pillStarred]}>
+                    <Ionicons name={starred ? 'star' : 'star-outline'} size={16} color={starred ? '#FFF' : '#F59E0B'} />
+                    <Text style={[detSt.pillText, starred && { color: '#FFF' }]}>{starred ? 'Starred' : 'Star'}</Text>
+                  </TouchableOpacity>
                 )}
               </View>
+              {/* FORM TIPS FIRST */}
+              {exercise.instructions && (
+                <View style={{ backgroundColor: '#F0E8FF', borderRadius: 14, padding: 14, marginBottom: 16, borderWidth: 1, borderColor: '#DDD0FF' }}>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+                    <Ionicons name="bulb" size={18} color={C.accent} />
+                    <Text style={{ fontSize: 14, fontWeight: '700', color: C.accent }}>Form Tips</Text>
+                  </View>
+                  <Text style={{ fontSize: 13, color: '#4A3680', lineHeight: 20 }}>{exercise.instructions}</Text>
+                </View>
+              )}
+              {/* HISTORY BELOW */}
+              {pb ? (
+                <View style={detSt.pbCard}>
+                  <Text style={detSt.pbTitle}>🏆 Personal Best</Text>
+                  <Text style={detSt.pbValue}>{pb.value}{pb.unit || 'kg'}{pb.reps ? ` × ${pb.reps} reps` : ''}</Text>
+                  {pb.date && <Text style={detSt.pbDate}>{new Date(pb.date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}</Text>}
+                </View>
+              ) : (
+                <View style={[detSt.pbCard, { backgroundColor: '#F3F4F6', borderColor: '#E5E7EB' }]}>
+                  <Text style={{ color: C.textMuted, fontSize: 13, textAlign: 'center' }}>No history yet — complete workouts to see your progress! 💪</Text>
+                </View>
+              )}
+              {timesCompleted > 0 && (
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 12 }}>
+                  <Ionicons name="checkmark-circle" size={16} color={C.green} />
+                  <Text style={{ fontSize: 13, color: C.textSecondary, fontWeight: '500' }}>Completed {timesCompleted} {timesCompleted === 1 ? 'time' : 'times'}</Text>
+                </View>
+              )}
             </View>
           </ScrollView>
         </View>
@@ -214,325 +278,380 @@ const ExerciseDetail = ({ exercise, onClose }: { exercise: any; onClose: () => v
     </Modal>
   );
 };
-
-const dStyles = StyleSheet.create({
-  overlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.35)', justifyContent: 'flex-end' },
-  sheet: { backgroundColor: T.bg, borderTopLeftRadius: 24, borderTopRightRadius: 24, maxHeight: '92%', flex: 1, marginTop: 50 },
-  closeBtn: { position: 'absolute', top: 14, right: 14, zIndex: 10 },
-  closeBg: { padding: 6, backgroundColor: 'rgba(255,255,255,0.9)', borderRadius: 16 },
-  video: { borderTopLeftRadius: 24, borderTopRightRadius: 24, overflow: 'hidden', backgroundColor: '#000' },
-  headerGradient: { height: 120, justifyContent: 'center', alignItems: 'center', borderTopLeftRadius: 24, borderTopRightRadius: 24 },
-  body: { padding: 20, paddingBottom: 40 },
-  name: { fontSize: 22, fontWeight: '700', color: T.text, textAlign: 'center' },
-  actionRow: { flexDirection: 'row', justifyContent: 'center', gap: 12, marginTop: 14 },
-  pill: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingVertical: 8, paddingHorizontal: 16, borderRadius: 20, borderWidth: 1, borderColor: T.cardBorder, backgroundColor: T.surface },
-  pillText: { fontSize: 14, fontWeight: '600', color: T.textSecondary },
-  aiNote: { fontSize: 11, color: T.textMuted, textAlign: 'center', marginTop: 6, marginBottom: 14, fontStyle: 'italic' },
-  tags: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', gap: 8, marginBottom: 16 },
-  tag: { flexDirection: 'row', alignItems: 'center', gap: 5, backgroundColor: T.accentLight, paddingHorizontal: 10, paddingVertical: 5, borderRadius: 8 },
-  tagText: { fontSize: 12, color: G.start, fontWeight: '500' },
-  desc: { fontSize: 14, color: T.textSecondary, lineHeight: 21, textAlign: 'center', marginBottom: 20 },
-  sectionTitle: { fontSize: 16, fontWeight: '700', color: T.text, marginBottom: 12 },
-  tipRow: { flexDirection: 'row', alignItems: 'flex-start', marginBottom: 10, gap: 10 },
-  tipNum: { width: 22, height: 22, borderRadius: 11, justifyContent: 'center', alignItems: 'center' },
-  tipNumText: { fontSize: 11, fontWeight: '700', color: T.white },
-  tipText: { flex: 1, fontSize: 14, color: T.textSecondary, lineHeight: 20 },
-  statsSection: { marginTop: 8, paddingTop: 16, borderTopWidth: 1, borderTopColor: T.cardBorder },
-  statsGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
-  statBox: { width: '47%', backgroundColor: T.surface, borderRadius: 14, padding: 14, alignItems: 'center', gap: 4, borderWidth: 1, borderColor: T.cardBorder },
-  statValue: { fontSize: 20, fontWeight: '800', color: T.text },
-  statLabel: { fontSize: 11, color: T.textSecondary, fontWeight: '500' },
-  noStats: { alignItems: 'center', paddingVertical: 20, gap: 6 },
-  noStatsText: { fontSize: 14, fontWeight: '600', color: T.textSecondary },
-  noStatsSub: { fontSize: 12, color: T.textMuted },
+const detSt = StyleSheet.create({
+  overlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' },
+  sheet: { backgroundColor: C.bg, borderTopLeftRadius: 24, borderTopRightRadius: 24, maxHeight: '92%' },
+  closeBtn: { position: 'absolute', top: 16, right: 16, zIndex: 10 },
+  closeBg: { backgroundColor: '#F0F0F0', borderRadius: 20, padding: 8 },
+  video: { height: 200, backgroundColor: '#000' },
+  headerGrad: { height: 160, justifyContent: 'center', alignItems: 'center' },
+  body: { padding: 20 },
+  name: { fontSize: 22, fontWeight: '800', color: C.text, marginBottom: 10 },
+  pbCard: { backgroundColor: '#FFFBEB', borderRadius: 14, padding: 16, alignItems: 'center', marginBottom: 14, borderWidth: 1, borderColor: '#FDE68A' },
+  pbTitle: { fontSize: 12, fontWeight: '700', color: '#92400E', marginBottom: 4 },
+  pbValue: { fontSize: 24, fontWeight: '900', color: '#D97706' },
+  pbDate: { fontSize: 11, color: '#A16207', marginTop: 4 },
+  actionRow: { flexDirection: 'row', gap: 10, marginBottom: 16 },
+  pill: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 16, paddingVertical: 10, borderRadius: 99, borderWidth: 1.5, borderColor: C.accent, backgroundColor: '#FFF' },
+  pillText: { fontSize: 13, fontWeight: '700', color: C.accent },
+  pillLiked: { backgroundColor: C.gradStart, borderColor: C.gradStart },
+  pillStarred: { backgroundColor: '#F59E0B', borderColor: '#F59E0B' },
 });
 
-// ─── Equipment filter options ───
-const ALL_EQUIPMENT = [
-  { id: 'all', label: 'All' }, { id: 'dumbbell', label: 'Dumbbell' }, { id: 'barbell', label: 'Barbell' },
-  { id: 'cable', label: 'Cable' }, { id: 'machine', label: 'Machine' }, { id: 'kettlebell', label: 'Kettlebell' },
-  { id: 'bodyweight', label: 'Bodyweight' }, { id: 'band', label: 'Bands' }, { id: 'bench', label: 'Bench' },
-];
-
-// ─── Filter Sheet ───
-const FilterSheet = ({ visible, onClose, difficulty, setDifficulty, equipment, setEquipment }: any) => {
-  if (!visible) return null;
-  return (
-    <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
-      <TouchableOpacity style={fStyles.overlay} activeOpacity={1} onPress={onClose}>
-        <View style={fStyles.sheet}>
-          <View style={fStyles.handle} />
-          <Text style={fStyles.title}>Filter Exercises</Text>
-          <Text style={fStyles.label}>Difficulty</Text>
-          <View style={fStyles.row}>
-            {DIFFICULTY_OPTIONS.map(d => (
-              <TouchableOpacity key={d} style={[fStyles.chip, difficulty === d && fStyles.chipActive]} onPress={() => setDifficulty(d)}>
-                <Text style={[fStyles.chipText, difficulty === d && fStyles.chipTextActive]}>{d}</Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-          <Text style={fStyles.label}>Equipment</Text>
-          <View style={fStyles.row}>
-            {ALL_EQUIPMENT.map(eq => (
-              <TouchableOpacity key={eq.id} style={[fStyles.chip, equipment === eq.id && fStyles.chipActive]} onPress={() => setEquipment(eq.id)}>
-                <Text style={[fStyles.chipText, equipment === eq.id && fStyles.chipTextActive]}>{eq.label}</Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-          <TouchableOpacity style={fStyles.applyBtn} onPress={onClose}>
-            <LinearGradient colors={[G.start, G.end]} style={fStyles.applyGrad} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}>
-              <Text style={fStyles.applyText}>Apply Filters</Text>
-            </LinearGradient>
-          </TouchableOpacity>
-        </View>
-      </TouchableOpacity>
-    </Modal>
-  );
-};
-
-const fStyles = StyleSheet.create({
-  overlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'flex-end' },
-  sheet: { backgroundColor: T.bg, borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 24, paddingBottom: 40 },
-  handle: { width: 40, height: 4, borderRadius: 2, backgroundColor: T.cardBorder, alignSelf: 'center', marginBottom: 20 },
-  title: { fontSize: 20, fontWeight: '700', color: T.text, marginBottom: 20 },
-  label: { fontSize: 13, fontWeight: '600', color: T.textSecondary, marginBottom: 8, marginTop: 12, textTransform: 'uppercase', letterSpacing: 0.5 },
-  row: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  chip: { paddingHorizontal: 14, paddingVertical: 8, borderRadius: 20, backgroundColor: T.surface, borderWidth: 1, borderColor: T.cardBorder },
-  chipActive: { backgroundColor: G.start, borderColor: G.start },
-  chipText: { fontSize: 13, fontWeight: '500', color: T.textSecondary },
-  chipTextActive: { fontSize: 13, fontWeight: '600', color: T.white },
-  applyBtn: { marginTop: 24, borderRadius: 14, overflow: 'hidden' },
-  applyGrad: { paddingVertical: 14, alignItems: 'center', borderRadius: 14 },
-  applyText: { fontSize: 16, fontWeight: '700', color: T.white },
-});
-
-// ─── Main Modal ───
+// ─── Main Component ───────────────────────────────────────────────────────────
 interface ExploreWorkoutsModalProps {
   visible: boolean;
   onClose: () => void;
   initialCategory?: string;
-  category?: string;
 }
 
-export const ExploreWorkoutsModal = ({ visible, onClose, initialCategory, category: legacyCategory }: ExploreWorkoutsModalProps) => {
-  const startCat = initialCategory || legacyCategory || 'All';
-  const [activeCategory, setActiveCategory] = useState(startCat);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedExercise, setSelectedExercise] = useState<any>(null);
-  const [filterDifficulty, setFilterDifficulty] = useState('All');
-  const [filterEquipment, setFilterEquipment] = useState('all');
-  const [viewFilter, setViewFilter] = useState('All');
-  const [showFilter, setShowFilter] = useState(false);
+export const ExploreWorkoutsModal: React.FC<ExploreWorkoutsModalProps> = ({ visible, onClose, initialCategory }) => {
   const [exercises, setExercises] = useState<any[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [pendingStar, setPendingStar] = useState<any>(null);
-  const { starExercise, unstarExercise, isStarred, getStarredExercises, replaceStarred, getLikedExercises, getDislikedExercises } = usePreferencesStore();
+  const [loading, setLoading] = useState(false);
+  const [search, setSearch] = useState('');
+  const [viewMode, setViewMode] = useState<ViewMode>('all');
+  const [mainCategory, setMainCategory] = useState<MainCategory>('All');
+  const [subFilter, setSubFilter] = useState<string>('All');
+  const [selectedExercise, setSelectedExercise] = useState<any>(null);
+  // Filter-first flow
+  const [showFilterPanel, setShowFilterPanel] = useState(true);
+  const [selectedMuscles, setSelectedMuscles] = useState<string[]>([]);
+  const [selectedDifficulty, setSelectedDifficulty] = useState<string[]>([]);
 
-  const handleStarPress = useCallback(async (exercise: any) => {
-    if (isStarred(exercise.id)) { unstarExercise(exercise.id); return; }
-    const added = await starExercise(exercise.id, exercise.name, exercise.videoUrl);
-    if (!added) setPendingStar(exercise);
-  }, [isStarred, starExercise, unstarExercise]);
-
-  const handleReplace = useCallback(async (oldId: string) => {
-    if (pendingStar) { await replaceStarred(oldId, pendingStar.id, pendingStar.name, pendingStar.videoUrl); setPendingStar(null); }
-  }, [pendingStar, replaceStarred]);
-
-  useEffect(() => { if (visible) setActiveCategory(startCat); }, [visible, startCat]);
+  const { personalBests } = useWorkoutStore();
+  const { getLikedExercises, getDislikedExercises } = usePreferencesStore();
 
   useEffect(() => {
     if (!visible) return;
-    let cancelled = false;
-    (async () => {
-      try { setIsLoading(true); const res = await fetch(`${API_BASE_URL}/api/exercises?limit=2000`); const data = await res.json(); if (!cancelled) setExercises(data.exercises || []); }
-      catch (e) { console.error('Failed to fetch exercises:', e); }
-      finally { if (!cancelled) setIsLoading(false); }
-    })();
-    return () => { cancelled = true; };
-  }, [visible]);
-
-  useEffect(() => { if (!visible) { setSearchQuery(''); setFilterDifficulty('All'); setFilterEquipment('all'); setViewFilter('All'); setSelectedExercise(null); } }, [visible]);
-
-  const filteredExercises = useMemo(() => {
-    if (isLoading) return [];
-    let filtered = exercises;
-    if (activeCategory !== 'All') {
-      filtered = filtered.filter(ex => {
-        const exName = (ex.name || '').toLowerCase();
-        const eqArr = Array.isArray(ex.equipment) ? ex.equipment : [];
-        const eqStr = eqArr.map((e: any) => String(e).toLowerCase()).join(' ');
-        const nameHasEq = equipmentKeywords.some(kw => exName.includes(kw));
-        const fieldHasEq = eqArr.length > 0 && !eqStr.includes('bodyweight');
-        const exCat = (ex.category || '').toLowerCase();
-        const isCardio = cardioKeywords.some(kw => exCat.includes(kw) || exName.includes(kw));
-        const isFlex = flexKeywords.some(kw => exCat.includes(kw) || exName.includes(kw));
-        if (activeCategory === 'Weights') return (nameHasEq || fieldHasEq) && !isCardio && !isFlex;
-        if (activeCategory === 'Calisthenics') return !nameHasEq && !fieldHasEq && !isCardio && !isFlex;
-        if (activeCategory === 'Cardio') return isCardio;
-        if (activeCategory === 'Flexibility') return isFlex;
-        return true;
-      });
+    setShowFilterPanel(true);
+    setSelectedMuscles([]);
+    setSelectedDifficulty([]);
+    setSearch('');
+    setViewMode('all');
+    if (initialCategory && MAIN_CATEGORIES.includes(initialCategory as MainCategory)) {
+      setMainCategory(initialCategory as MainCategory);
+    } else {
+      setMainCategory('All');
     }
-    if (viewFilter === 'Starred') { const ids = getStarredExercises().map(s => s.exerciseId); filtered = filtered.filter(ex => ids.includes(ex.id?.toString())); }
-    else if (viewFilter === 'Liked') { const ids = getLikedExercises().map(l => l.exerciseId); filtered = filtered.filter(ex => ids.includes(ex.id?.toString())); }
-    else if (viewFilter === 'Disliked') { const ids = getDislikedExercises().map(d => d.exerciseId); filtered = filtered.filter(ex => ids.includes(ex.id?.toString())); }
-    if (searchQuery) { const q = searchQuery.toLowerCase(); filtered = filtered.filter(ex => ex.name?.toLowerCase().includes(q) || ex.muscleGroups?.some((mg: string) => mg.toLowerCase().includes(q)) || ex.bodyPart?.toLowerCase().includes(q)); }
-    if (filterDifficulty !== 'All') filtered = filtered.filter(ex => ex.difficulty?.toLowerCase() === filterDifficulty.toLowerCase());
-    if (filterEquipment !== 'all') filtered = filtered.filter(ex => { const eqArr = Array.isArray(ex.equipment) ? ex.equipment : []; const exName = (ex.name || '').toLowerCase(); return eqArr.some((eq: string) => eq?.toLowerCase().includes(filterEquipment)) || exName.includes(filterEquipment); });
-    return filtered;
-  }, [exercises, searchQuery, filterDifficulty, filterEquipment, activeCategory, viewFilter, isLoading]);
+    setSubFilter('All');
+    setLoading(true);
+    fetch(`${API_BASE_URL}/api/exercises`)
+      .then(r => r.json())
+      .then(data => {
+        const list = Array.isArray(data) ? data : (data?.exercises || data?.data || []);
+        setExercises((list || []).filter(Boolean));
+      })
+      .catch(() => { setExercises([]); })
+      .finally(() => setLoading(false));
+  }, [visible, initialCategory]);
 
-  const activeFilterCount = (filterDifficulty !== 'All' ? 1 : 0) + (filterEquipment !== 'all' ? 1 : 0);
-  const renderTile = useCallback(({ item }: { item: any }) => <ExerciseTile exercise={item} onPress={() => setSelectedExercise(item)} onStarPress={handleStarPress} />, [handleStarPress]);
-  const keyExtractor = useCallback((item: any) => item.id?.toString(), []);
+  const handleCategoryChange = useCallback((cat: MainCategory) => {
+    setMainCategory(cat);
+    setSubFilter('All');
+  }, []);
+
+  const toggleMuscle = useCallback((m: string) => {
+    setSelectedMuscles(prev => prev.includes(m) ? prev.filter(x => x !== m) : [...prev, m]);
+  }, []);
+
+  const toggleDifficulty = useCallback((d: string) => {
+    setSelectedDifficulty(prev => prev.includes(d) ? prev.filter(x => x !== d) : [...prev, d]);
+  }, []);
+
+  const exerciseMap = useMemo(() => {
+    const map: Record<string, any> = {};
+    (exercises || []).forEach(ex => { if (ex?.id) map[ex.id] = ex; });
+    return map;
+  }, [exercises]);
+
+  const likedExercises = useMemo(() => {
+    try { return getLikedExercises().map(l => exerciseMap[l.exerciseId]).filter(Boolean); }
+    catch { return []; }
+  }, [getLikedExercises, exerciseMap]);
+
+  const dislikedExercises = useMemo(() => {
+    try { return getDislikedExercises().map(d => exerciseMap[d.exerciseId]).filter(Boolean); }
+    catch { return []; }
+  }, [getDislikedExercises, exerciseMap]);
+
+  const baseExercises = useMemo(() => {
+    try {
+      if (viewMode === 'liked') return likedExercises;
+      if (viewMode === 'disliked') return dislikedExercises;
+      return (exercises || []).filter(Boolean);
+    } catch { return (exercises || []).filter(Boolean); }
+  }, [viewMode, exercises, likedExercises, dislikedExercises]);
+
+  const searchFiltered = useMemo(() => {
+    if (!search.trim()) return baseExercises;
+    const q = search.toLowerCase();
+    return baseExercises.filter(ex => ex && (
+      (ex.name || '').toLowerCase().includes(q) ||
+      (ex.bodyPart || '').toLowerCase().includes(q) ||
+      (ex.category || '').toLowerCase().includes(q)
+    ));
+  }, [baseExercises, search]);
+
+  const categoryFiltered = useMemo(() => {
+    try {
+      const valid = searchFiltered.filter(ex => ex && ex.id);
+      if (mainCategory === 'All') return valid;
+      const catMap: Record<string, string> = {
+        'Free Weights': 'free-weights', 'Machines': 'machines',
+        'Bodyweight': 'bodyweight', 'Cardio': 'cardio', 'Flexibility': 'flexibility',
+      };
+      const target = catMap[mainCategory];
+      if (!target) return valid;
+      return valid.filter(ex => { try { return classifyEquipment(ex) === target; } catch { return false; } });
+    } catch { return searchFiltered.filter(Boolean); }
+  }, [searchFiltered, mainCategory]);
+
+  const displayExercises = useMemo(() => {
+    try {
+      let safe = categoryFiltered.filter(Boolean);
+      if (subFilter !== 'All') {
+        if (mainCategory === 'Free Weights') {
+          safe = safe.filter(ex => { try { return classifySubEquipment(ex) === subFilter; } catch { return false; } });
+        } else if (mainCategory === 'Machines') {
+          safe = safe.filter(ex => { try { return classifySubMachine(ex) === subFilter; } catch { return false; } });
+        }
+      }
+      if (selectedMuscles.length > 0) {
+        safe = safe.filter(ex => {
+          try {
+            const muscles = ((ex.muscleGroups || []) as string[]).concat(ex.bodyPart ? [ex.bodyPart] : []).map((m: string) => m.toLowerCase());
+            return selectedMuscles.some(sm => muscles.some((m: string) => m.includes(sm.toLowerCase())));
+          } catch { return true; }
+        });
+      }
+      if (selectedDifficulty.length > 0) {
+        safe = safe.filter(ex => {
+          try {
+            const diff = (ex.difficulty || ex.level || '').toLowerCase();
+            return selectedDifficulty.some(d => diff.includes(d.toLowerCase()));
+          } catch { return true; }
+        });
+      }
+      return safe.slice(0, 100);
+    } catch { return categoryFiltered.slice(0, 100); }
+  }, [categoryFiltered, subFilter, mainCategory, selectedMuscles, selectedDifficulty]);
+
+  const subFilters = mainCategory === 'Free Weights' ? FREE_WEIGHTS_SUBS
+    : mainCategory === 'Machines' ? MACHINES_SUBS : null;
+
+  const pbs = personalBests || [];
+
+  const renderExerciseItem = useCallback(({ item, index }: { item: any; index: number }) => {
+    if (!item) return <View style={{ flex: 1, margin: 5 }} />;
+    return (
+      <ExerciseCard
+        exercise={item}
+        onPress={() => setSelectedExercise(item)}
+        personalBests={pbs}
+      />
+    );
+  }, [pbs]);
+
+  const keyExtractor = useCallback((item: any, index: number) => item?.id || String(index), []);
+
+  const ListEmpty = useMemo(() => (
+    <View style={{ alignItems: 'center', paddingTop: 60, gap: 8 }}>
+      {viewMode === 'liked' && (
+        <>
+          <Text style={{ fontSize: 32 }}>💜</Text>
+          <Text style={{ color: C.textMuted, fontSize: 14, textAlign: 'center' }}>No liked exercises yet!{'\n'}Browse and heart the ones you love.</Text>
+        </>
+      )}
+      {viewMode === 'disliked' && (
+        <>
+          <Text style={{ fontSize: 32 }}>👍</Text>
+          <Text style={{ color: C.textMuted, fontSize: 14, textAlign: 'center' }}>Nothing disliked yet!{'\n'}Explore exercises below.</Text>
+        </>
+      )}
+      {viewMode === 'all' && (
+        <Text style={{ color: C.textMuted, fontSize: 14 }}>No exercises match your search.</Text>
+      )}
+    </View>
+  ), [viewMode]);
+
+  const ListFooter = useMemo(() => (
+    <TouchableOpacity
+      onPress={() => { setViewMode('all'); setMainCategory('All'); setSubFilter('All'); setSearch(''); setSelectedMuscles([]); setSelectedDifficulty([]); }}
+      style={{ marginTop: 8, borderRadius: 14, overflow: 'hidden' }}
+    >
+      <LinearGradient colors={GRAD} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={{ paddingVertical: 14, alignItems: 'center', borderRadius: 14 }}>
+        <Text style={{ color: '#FFF', fontWeight: '700', fontSize: 15 }}>Browse All Exercises →</Text>
+      </LinearGradient>
+    </TouchableOpacity>
+  ), []);
 
   return (
-    <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose}>
-      <View style={styles.overlay}>
-        <View style={styles.container}>
-          {/* Header */}
-          <View style={styles.header}>
-            <TouchableOpacity onPress={onClose} style={styles.backBtn} data-testid="explore-close-btn">
-              <Ionicons name="chevron-back" size={22} color={T.text} />
-            </TouchableOpacity>
-            <Text style={styles.headerTitle}>Explore Exercises</Text>
-            <TouchableOpacity onPress={() => setShowFilter(true)} style={styles.filterIconBtn} data-testid="explore-filter-btn">
-              <Ionicons name="options-outline" size={22} color={G.start} />
-              {activeFilterCount > 0 && <View style={styles.filterBadge}><Text style={styles.filterBadgeText}>{activeFilterCount}</Text></View>}
-            </TouchableOpacity>
-          </View>
+    <>
+      <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose}>
+        <View style={mSt.overlay}>
+          <View style={mSt.container}>
 
-          {/* Search */}
-          <View style={styles.searchRow}>
-            <View style={styles.searchBox}>
-              <Ionicons name="search" size={18} color={T.textMuted} />
-              <TextInput style={styles.searchInput} placeholder="Search exercises..." placeholderTextColor={T.textMuted} value={searchQuery} onChangeText={setSearchQuery} />
-              {searchQuery.length > 0 && <TouchableOpacity onPress={() => setSearchQuery('')}><Ionicons name="close-circle" size={18} color={T.textMuted} /></TouchableOpacity>}
-            </View>
-          </View>
-
-          {/* Hub: Quick filter buttons (Starred, Liked, Disliked) */}
-          <View style={styles.hubRow}>
-            {[
-              { key: 'All', icon: 'grid-outline' as const, label: 'All', color: G.start },
-              { key: 'Starred', icon: 'star' as const, label: 'Starred', color: T.starred },
-              { key: 'Liked', icon: 'heart' as const, label: 'Liked', color: T.liked },
-              { key: 'Disliked', icon: 'thumbs-down' as const, label: 'Disliked', color: T.disliked },
-            ].map(btn => (
-              <TouchableOpacity
-                key={btn.key}
-                style={[styles.hubBtn, viewFilter === btn.key && { borderColor: btn.color, backgroundColor: btn.color + '15' }]}
-                onPress={() => setViewFilter(btn.key)}
-              >
-                <Ionicons name={btn.icon} size={16} color={viewFilter === btn.key ? btn.color : T.textMuted} />
-                <Text style={[styles.hubBtnText, viewFilter === btn.key && { color: btn.color, fontWeight: '700' }]}>{btn.label}</Text>
+            {/* Header */}
+            <View style={mSt.header}>
+              <Text style={mSt.title}>Explore Exercises</Text>
+              <TouchableOpacity onPress={onClose} style={mSt.closeBtn}>
+                <View style={mSt.closeBg}><Ionicons name="close" size={18} color={C.text} /></View>
               </TouchableOpacity>
-            ))}
-          </View>
+            </View>
 
-          {/* Category Tabs — purple-to-pink gradient for active */}
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.categoryTabs} contentContainerStyle={styles.categoryTabsContent}>
-            {CATEGORIES.map(cat => {
-              const isActive = activeCategory === cat;
-              return isActive ? (
-                <TouchableOpacity key={cat} onPress={() => setActiveCategory(cat)} data-testid={`cat-tab-${cat.toLowerCase()}`}>
-                  <LinearGradient colors={[G.start, G.end]} style={styles.categoryTabGrad} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}>
-                    <Ionicons name={CATEGORY_ICONS[cat] as any} size={16} color={T.white} />
-                    <Text style={styles.categoryTabTextActive}>{cat}</Text>
-                  </LinearGradient>
-                </TouchableOpacity>
-              ) : (
-                <TouchableOpacity key={cat} style={styles.categoryTab} onPress={() => setActiveCategory(cat)} data-testid={`cat-tab-${cat.toLowerCase()}`}>
-                  <Ionicons name={CATEGORY_ICONS[cat] as any} size={16} color={T.textSecondary} />
-                  <Text style={styles.categoryTabText}>{cat}</Text>
-                </TouchableOpacity>
-              );
-            })}
-          </ScrollView>
+            {/* Gradient accent stripe */}
+            <LinearGradient colors={GRAD} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={mSt.stripe} />
 
-          {/* Results count */}
-          <View style={styles.resultsRow}>
-            <Text style={styles.resultsText}>{isLoading ? 'Loading...' : `${filteredExercises.length} exercises`}</Text>
-          </View>
-
-          {/* Tile Grid */}
-          {isLoading ? (
-            <View style={styles.loadingContainer}><ActivityIndicator size="large" color={G.start} /><Text style={styles.loadingText}>Loading exercises...</Text></View>
-          ) : filteredExercises.length === 0 ? (
-            <View style={styles.emptyContainer}><Ionicons name="search-outline" size={48} color={T.textMuted} /><Text style={styles.emptyText}>No exercises found</Text><Text style={styles.emptySubtext}>Try adjusting your search or filters</Text></View>
-          ) : (
-            <FlatList data={filteredExercises} renderItem={renderTile} keyExtractor={keyExtractor} numColumns={2} columnWrapperStyle={styles.gridRow} contentContainerStyle={styles.gridContent} showsVerticalScrollIndicator={false} initialNumToRender={10} maxToRenderPerBatch={10} windowSize={5} removeClippedSubviews />
-          )}
-
-          <FilterSheet visible={showFilter} onClose={() => setShowFilter(false)} difficulty={filterDifficulty} setDifficulty={setFilterDifficulty} equipment={filterEquipment} setEquipment={setFilterEquipment} />
-          <ExerciseDetail exercise={selectedExercise} onClose={() => setSelectedExercise(null)} />
-
-          {/* Replace Star Modal */}
-          {pendingStar && (
-            <Modal visible={!!pendingStar} transparent animationType="fade" onRequestClose={() => setPendingStar(null)}>
-              <View style={styles.replaceOverlay}>
-                <View style={styles.replaceSheet}>
-                  <Text style={styles.replaceTitle}>Replace a Favourite</Text>
-                  <Text style={styles.replaceSub}>You already have 3 starred exercises. Replace one with <Text style={{ fontWeight: '700', color: G.start }}>{pendingStar.name}</Text>?</Text>
-                  {getStarredExercises().map(s => (
-                    <TouchableOpacity key={s.exerciseId} style={styles.replaceItem} onPress={() => handleReplace(s.exerciseId)}>
-                      <Ionicons name="star" size={18} color={T.starred} /><Text style={styles.replaceItemText}>{s.exerciseName}</Text><Ionicons name="swap-horizontal" size={18} color={T.textMuted} />
+            {showFilterPanel ? (
+              /* ── FILTER PANEL ── */
+              <ScrollView contentContainerStyle={mSt.filterContent} showsVerticalScrollIndicator={false}>
+                <Text style={mSt.filterHeading}>Filter by Muscle Group</Text>
+                <View style={mSt.chipGrid}>
+                  {MUSCLE_GROUPS.map(m => (
+                    <TouchableOpacity key={m} onPress={() => toggleMuscle(m)} activeOpacity={0.8}>
+                      {selectedMuscles.includes(m) ? (
+                        <LinearGradient colors={GRAD} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={mSt.filterChipActive}>
+                          <Text style={mSt.filterChipTextActive}>{m}</Text>
+                        </LinearGradient>
+                      ) : (
+                        <View style={mSt.filterChipOff}>
+                          <Text style={mSt.filterChipTextOff}>{m}</Text>
+                        </View>
+                      )}
                     </TouchableOpacity>
                   ))}
-                  <TouchableOpacity style={styles.replaceCancelBtn} onPress={() => setPendingStar(null)}><Text style={styles.replaceCancelText}>Cancel</Text></TouchableOpacity>
                 </View>
+
+                <Text style={mSt.filterHeading}>Filter by Difficulty</Text>
+                <View style={mSt.chipGrid}>
+                  {DIFFICULTIES.map(d => (
+                    <TouchableOpacity key={d} onPress={() => toggleDifficulty(d)} activeOpacity={0.8}>
+                      {selectedDifficulty.includes(d) ? (
+                        <LinearGradient colors={GRAD} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={mSt.filterChipActive}>
+                          <Text style={mSt.filterChipTextActive}>{d}</Text>
+                        </LinearGradient>
+                      ) : (
+                        <View style={mSt.filterChipOff}>
+                          <Text style={mSt.filterChipTextOff}>{d}</Text>
+                        </View>
+                      )}
+                    </TouchableOpacity>
+                  ))}
+                </View>
+
+                <Text style={mSt.filterHeading}>Equipment Category</Text>
+                <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 8 }} contentContainerStyle={{ paddingVertical: 4, gap: 8, flexDirection: 'row' }}>
+                  {MAIN_CATEGORIES.map(cat => (
+                    <GradChip key={cat} label={cat} selected={mainCategory === cat} onPress={() => handleCategoryChange(cat)} />
+                  ))}
+                </ScrollView>
+
+                <TouchableOpacity
+                  style={{ borderRadius: 14, overflow: 'hidden', marginTop: 16 }}
+                  onPress={() => setShowFilterPanel(false)}
+                >
+                  <LinearGradient colors={GRAD} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={{ paddingVertical: 16, alignItems: 'center', borderRadius: 14 }}>
+                    <Text style={{ color: '#FFF', fontWeight: '700', fontSize: 16 }}>
+                      Show Exercises {(selectedMuscles.length > 0 || selectedDifficulty.length > 0) ? '(filtered)' : '\u2192'}
+                    </Text>
+                  </LinearGradient>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={{ marginTop: 12, alignItems: 'center', padding: 8 }}
+                  onPress={() => { setSelectedMuscles([]); setSelectedDifficulty([]); setMainCategory('All'); setSubFilter('All'); setShowFilterPanel(false); }}
+                >
+                  <Text style={{ color: C.textSecondary, fontSize: 14, fontWeight: '500' }}>Browse All (no filter)</Text>
+                </TouchableOpacity>
+              </ScrollView>
+            ) : (
+              <View style={{ flex: 1 }}>
+                <View style={mSt.searchRow}>
+                  <Ionicons name="search" size={16} color={C.textMuted} style={{ marginRight: 8 }} />
+                  <TextInput style={mSt.searchInput} placeholder="Search exercises..." placeholderTextColor={C.textMuted} value={search} onChangeText={setSearch} />
+                  {search.length > 0 && (<TouchableOpacity onPress={() => setSearch('')}><Ionicons name="close-circle" size={16} color={C.textMuted} /></TouchableOpacity>)}
+                  <TouchableOpacity onPress={() => setShowFilterPanel(true)} style={{ marginLeft: 8 }}><Ionicons name="options-outline" size={20} color={C.accent} /></TouchableOpacity>
+                </View>
+                {(selectedMuscles.length > 0 || selectedDifficulty.length > 0) && (
+                  <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6, paddingHorizontal: 16, paddingBottom: 8 }}>
+                    {selectedMuscles.map(m => (<View key={m} style={{ backgroundColor: C.accent + '20', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 99 }}><Text style={{ fontSize: 11, color: C.accent, fontWeight: '600' }}>{m}</Text></View>))}
+                    {selectedDifficulty.map(d => (<View key={d} style={{ backgroundColor: C.accent + '20', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 99 }}><Text style={{ fontSize: 11, color: C.accent, fontWeight: '600' }}>{d}</Text></View>))}
+                    <TouchableOpacity onPress={() => { setSelectedMuscles([]); setSelectedDifficulty([]); }} style={{ paddingHorizontal: 10, paddingVertical: 4 }}><Text style={{ fontSize: 11, color: C.red, fontWeight: '600' }}>Clear x</Text></TouchableOpacity>
+                  </View>
+                )}
+                <View style={mSt.toggleRow}>
+                  {(['all', 'liked', 'disliked']).map(mode => {
+                    const label = mode === 'all' ? 'All' : mode === 'liked' ? 'Liked' : 'Disliked';
+                    const active = viewMode === mode;
+                    return (
+                      <TouchableOpacity key={mode} onPress={() => setViewMode(mode as ViewMode)} style={{ flex: 1, marginHorizontal: 3 }}>
+                        {active ? <LinearGradient colors={GRAD} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={mSt.toggleActive}><Text style={mSt.toggleTextActive}>{label}</Text></LinearGradient>
+                          : <View style={mSt.toggleOff}><Text style={mSt.toggleTextOff}>{label}</Text></View>}
+                      </TouchableOpacity>
+                    );
+                  })}
+                </View>
+                <ScrollView horizontal showsHorizontalScrollIndicator={false} style={mSt.chipsRow} contentContainerStyle={{ paddingHorizontal: 16, paddingVertical: 6 }}>
+                  {/* Category chips removed — rely on filter modal */}
+                </ScrollView>
+                {false && subFilters && (
+                  <ScrollView horizontal showsHorizontalScrollIndicator={false} style={mSt.subChipsRow} contentContainerStyle={{ paddingHorizontal: 16, paddingVertical: 4 }}>
+                    {subFilters.map(sf => (<GradChip key={sf} label={sf} selected={subFilter === sf} onPress={() => setSubFilter(sf)} />))}
+                  </ScrollView>
+                )}
+                {loading ? (
+                  <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+                    <Text style={{ color: C.textMuted, fontSize: 14 }}>Loading exercises...</Text>
+                  </View>
+                ) : (
+                  <FlatList
+                    data={displayExercises}
+                    keyExtractor={keyExtractor}
+                    numColumns={2}
+                    renderItem={renderExerciseItem}
+                    contentContainerStyle={{ padding: 10, paddingBottom: 40 }}
+                    showsVerticalScrollIndicator={false}
+                    style={{ flex: 1 }}
+                    ListEmptyComponent={ListEmpty}
+                    ListFooterComponent={ListFooter}
+                    removeClippedSubviews={true}
+                    maxToRenderPerBatch={10}
+                  />
+                )}
               </View>
-            </Modal>
-          )}
+            )}
+          </View>
         </View>
-      </View>
-    </Modal>
+      </Modal>
+      <ExerciseDetail exercise={selectedExercise} onClose={() => setSelectedExercise(null)} personalBests={pbs} />
+    </>
   );
 };
 
-const styles = StyleSheet.create({
-  overlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.3)' },
-  container: { flex: 1, backgroundColor: T.bg, marginTop: 40, borderTopLeftRadius: 24, borderTopRightRadius: 24, overflow: 'hidden' },
-  header: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingTop: Platform.OS === 'ios' ? 12 : 16, paddingBottom: 8 },
-  backBtn: { width: 36, height: 36, borderRadius: 18, backgroundColor: T.surface, justifyContent: 'center', alignItems: 'center', borderWidth: 1, borderColor: T.cardBorder },
-  headerTitle: { flex: 1, fontSize: 20, fontWeight: '700', color: T.text, textAlign: 'center', marginHorizontal: 8 },
-  filterIconBtn: { width: 36, height: 36, borderRadius: 18, backgroundColor: T.accentLight, justifyContent: 'center', alignItems: 'center' },
-  filterBadge: { position: 'absolute', top: -4, right: -4, width: 18, height: 18, borderRadius: 9, backgroundColor: G.start, justifyContent: 'center', alignItems: 'center' },
-  filterBadgeText: { fontSize: 10, fontWeight: '700', color: T.white },
-  searchRow: { paddingHorizontal: 16, paddingTop: 4, paddingBottom: 8 },
-  searchBox: { flexDirection: 'row', alignItems: 'center', backgroundColor: T.surface, borderRadius: 12, paddingHorizontal: 12, gap: 8, borderWidth: 1, borderColor: T.cardBorder },
-  searchInput: { flex: 1, paddingVertical: 10, fontSize: 15, color: T.text },
-
-  // Hub quick filter buttons
-  hubRow: { flexDirection: 'row', paddingHorizontal: 16, gap: 8, marginBottom: 8 },
-  hubBtn: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 4, paddingVertical: 10, borderRadius: 12, backgroundColor: T.surface, borderWidth: 1.5, borderColor: T.cardBorder },
-  hubBtnText: { fontSize: 12, fontWeight: '600', color: T.textMuted },
-
-  // Category tabs
-  categoryTabs: { maxHeight: 46 },
-  categoryTabsContent: { paddingHorizontal: 16, gap: 8 },
-  categoryTab: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 16, paddingVertical: 10, borderRadius: 22, backgroundColor: T.surface, borderWidth: 1, borderColor: T.cardBorder },
-  categoryTabGrad: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 16, paddingVertical: 10, borderRadius: 22 },
-  categoryTabText: { fontSize: 14, fontWeight: '600', color: T.textSecondary },
-  categoryTabTextActive: { fontSize: 14, fontWeight: '700', color: T.white },
-
-  resultsRow: { paddingHorizontal: 16, paddingTop: 8, paddingBottom: 4 },
-  resultsText: { fontSize: 13, color: T.textMuted, fontWeight: '500' },
-  gridContent: { paddingHorizontal: 16, paddingBottom: 120, paddingTop: 4 },
-  gridRow: { justifyContent: 'space-between', marginBottom: 12 },
-  loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', gap: 12 },
-  loadingText: { fontSize: 14, color: T.textMuted },
-  emptyContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', paddingTop: 80, gap: 8 },
-  emptyText: { fontSize: 16, fontWeight: '600', color: T.text },
-  emptySubtext: { fontSize: 13, color: T.textMuted },
-  replaceOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'center', padding: 24 },
-  replaceSheet: { backgroundColor: T.bg, borderRadius: 20, padding: 20 },
-  replaceTitle: { fontSize: 18, fontWeight: '700', color: T.text, marginBottom: 6 },
-  replaceSub: { fontSize: 13, color: T.textSecondary, lineHeight: 19, marginBottom: 16 },
-  replaceItem: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 12, paddingHorizontal: 12, backgroundColor: T.surface, borderRadius: 12, marginBottom: 8, borderWidth: 1, borderColor: T.cardBorder },
-  replaceItemText: { flex: 1, fontSize: 14, fontWeight: '600', color: T.text },
-  replaceCancelBtn: { marginTop: 8, alignItems: 'center', paddingVertical: 12 },
-  replaceCancelText: { fontSize: 14, fontWeight: '600', color: T.textMuted },
+const mSt = StyleSheet.create({
+  overlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'flex-end' },
+  container: { backgroundColor: C.bg, borderTopLeftRadius: 24, borderTopRightRadius: 24, height: '94%' },
+  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, paddingTop: 20, paddingBottom: 8 },
+  title: { fontSize: 20, fontWeight: '800', color: C.text },
+  closeBtn: {},
+  closeBg: { backgroundColor: '#F0F0F0', borderRadius: 20, padding: 8 },
+  stripe: { height: 3, width: '100%' },
+  searchRow: { flexDirection: 'row', alignItems: 'center', marginHorizontal: 16, marginVertical: 10, backgroundColor: '#F5F5F5', borderRadius: 99, paddingHorizontal: 14, paddingVertical: 10 },
+  searchInput: { flex: 1, fontSize: 14, color: C.text, padding: 0 },
+  toggleRow: { flexDirection: 'row', marginHorizontal: 16, marginBottom: 8 },
+  toggleActive: { paddingVertical: 9, borderRadius: 10, alignItems: 'center' },
+  toggleOff: { paddingVertical: 9, borderRadius: 10, alignItems: 'center', backgroundColor: '#F0F0F0' },
+  toggleTextActive: { color: '#FFF', fontSize: 13, fontWeight: '700' },
+  toggleTextOff: { color: C.textSecondary, fontSize: 13, fontWeight: '600' },
+  chipsRow: { flexGrow: 0 },
+  subChipsRow: { flexGrow: 0 },
+  filterContent: { padding: 20, paddingBottom: 40 },
+  filterHeading: { fontSize: 15, fontWeight: '700', color: C.text, marginBottom: 12, marginTop: 8 },
+  chipGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 16 },
+  filterChipActive: { paddingHorizontal: 14, paddingVertical: 8, borderRadius: 99 },
+  filterChipOff: { paddingHorizontal: 14, paddingVertical: 8, borderRadius: 99, backgroundColor: '#F0F0F0', borderWidth: 1, borderColor: C.cardBorder },
+  filterChipTextActive: { color: '#FFF', fontSize: 13, fontWeight: '700' },
+  filterChipTextOff: { color: C.text, fontSize: 13, fontWeight: '600' },
 });
 
 export default ExploreWorkoutsModal;

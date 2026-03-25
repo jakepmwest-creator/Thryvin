@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { 
   View, 
   Text, 
@@ -23,11 +23,15 @@ import { ViewAllWeeksModal } from '../../src/components/ViewAllWeeksModal';
 import { EditPlanScreen } from '../../src/components/EditPlanScreen';
 import { useSubscriptionStore } from '../../src/stores/subscription-store';
 import { ProPaywallModal } from '../../src/components/ProPaywallModal';
+import { CheckInModal } from '../../src/components/CheckInModal';
+import { CheckInHistoryModal } from '../../src/components/CheckInHistoryModal';
+import { ExternalActivityModal } from '../../src/components/ExternalActivityModal';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 import { COLORS, CARD_SHADOW } from '../../src/constants/colors';
 import { getApiBaseUrl } from '../../src/services/env';
+import * as SecureStore from 'expo-secure-store';
 
 const EXTRA_COLORS = {
   shadow: COLORS.cardShadow,
@@ -92,9 +96,37 @@ export default function WorkoutsScreen() {
   const [showAllWeeks, setShowAllWeeks] = useState(false);
   const [showEditPlan, setShowEditPlan] = useState(false);
   const [showProPaywall, setShowProPaywall] = useState(false);
+  const [showLogExtra, setShowLogExtra] = useState(false);
+
+  // ── Check-in state ──────────────────────────────────────────────────────────
+  const [showCheckIn, setShowCheckIn] = useState(false);
+  const [showCheckInHistory, setShowCheckInHistory] = useState(false);
+  const [checkInStatus, setCheckInStatus] = useState<{
+    isDue: boolean;
+    daysUntilDue: number;
+    intervalDays: number;
+  } | null>(null);
+
+  useEffect(() => {
+    loadCheckInStatus();
+  }, []);
+
+  const loadCheckInStatus = async () => {
+    try {
+      const token = await SecureStore.getItemAsync('thryvin_access_token');
+      const API_BASE = getApiBaseUrl();
+      const res = await fetch(`${API_BASE}/api/checkins/next`, {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      });
+      const data = await res.json();
+      if (data.ok) setCheckInStatus(data);
+    } catch (e) {
+      // silently fail
+    }
+  };
   const { isPro } = useSubscriptionStore();
   
-  const { currentWorkout, todayWorkout, weekWorkouts, completedWorkouts, isLoading, fetchTodayWorkout, fetchWeekWorkouts } = useWorkoutStore();
+  const { currentWorkout, todayWorkout, weekWorkouts, completedWorkouts, isLoading, error: workoutError, fetchTodayWorkout, fetchWeekWorkouts } = useWorkoutStore();
   
   const handleOpenExplore = () => {
     setExploreModalVisible(true);
@@ -187,7 +219,7 @@ export default function WorkoutsScreen() {
     return weekDays;
   };
   
-  const WEEK_DAYS = getCurrentWeekDays();
+  const WEEK_DAYS = useMemo(() => getCurrentWeekDays(), [weekWorkouts, completedWorkouts]);
 
   useEffect(() => {
     fetchTodayWorkout();
@@ -264,11 +296,24 @@ export default function WorkoutsScreen() {
                 <ActivityIndicator size="large" color={COLORS.gradientStart} />
                 <Text style={styles.generatingTitle}>Generating Your Workouts</Text>
                 <Text style={styles.generatingSubtitle}>
-                  Your AI coach is creating personalized workouts for the next 3 weeks. This may take a minute...
+                  Your AI coach is creating personalized workouts for the next 4 weeks. This may take a minute...
                 </Text>
                 <Text style={styles.generatingNotice}>
                   We'll let you know when it's finished
                 </Text>
+              </View>
+            </View>
+          ) : workoutError && weekWorkouts.length === 0 ? (
+            <View style={[styles.workoutCard, { borderColor: '#FF4EC7' }]}>
+              <View style={styles.workoutCardContent}>
+                <Ionicons name="alert-circle-outline" size={32} color="#FF4EC7" style={{ alignSelf: 'center', marginBottom: 8 }} />
+                <Text style={[styles.generatingTitle, { color: '#222' }]}>Workout Generation Failed</Text>
+                <Text style={[styles.generatingSubtitle, { color: '#8E8E93' }]}>{workoutError}</Text>
+                <TouchableOpacity onPress={() => { fetchTodayWorkout(); fetchWeekWorkouts(); }} style={{ marginTop: 16, borderRadius: 12, overflow: 'hidden' }}>
+                  <LinearGradient colors={[COLORS.gradientStart, COLORS.gradientEnd]} style={{ paddingVertical: 12, alignItems: 'center', borderRadius: 12 }}>
+                    <Text style={{ color: '#FFF', fontWeight: '700' }}>Retry</Text>
+                  </LinearGradient>
+                </TouchableOpacity>
               </View>
             </View>
           ) : !actualTodayWorkout ? (
@@ -534,28 +579,22 @@ export default function WorkoutsScreen() {
           <ExploreCarousel onOpenExplore={handleOpenExplore} />
         </View>
 
-        {/* Program Management - Under Explore Workouts */}
+        {/* Program Management - 3-Button Row (same as home screen) */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Your Program</Text>
+          <Text style={styles.sectionTitle}>Program</Text>
           <View style={styles.programButtonsRow}>
-            <TouchableOpacity 
-              style={styles.programButtonLarge}
+            {/* All Weeks */}
+            <TouchableOpacity
+              style={styles.pillButton}
               onPress={() => setShowAllWeeks(true)}
             >
-              <LinearGradient
-                colors={[COLORS.gradientStart, COLORS.gradientEnd]}
-                style={styles.programButtonGradient}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 1 }}
-              >
-                <Ionicons name="calendar" size={24} color={COLORS.white} />
-                <Text style={styles.programButtonTitle}>View All Weeks</Text>
-                <Text style={styles.programButtonSubtitle}>21-day schedule</Text>
-              </LinearGradient>
+              <Ionicons name="calendar-outline" size={16} color="#A259FF" />
+              <Text style={styles.pillButtonText}>All Weeks</Text>
             </TouchableOpacity>
-            
-            <TouchableOpacity 
-              style={styles.programButtonSmall}
+
+            {/* Edit Plan */}
+            <TouchableOpacity
+              style={styles.pillButton}
               onPress={() => {
                 if (!isPro) {
                   setShowProPaywall(true);
@@ -564,45 +603,88 @@ export default function WorkoutsScreen() {
                 setShowEditPlan(true);
               }}
             >
-              <LinearGradient
-                colors={[COLORS.gradientEnd, COLORS.gradientStart]}
-                style={styles.programButtonGradient}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 1 }}
-              >
-                <Ionicons name="create" size={22} color={COLORS.white} />
-                <Text style={styles.programButtonTitleSmall}>Edit Plan</Text>
-              </LinearGradient>
+              <Ionicons name="create-outline" size={16} color="#A259FF" />
+              <Text style={styles.pillButtonText}>Edit Plan</Text>
+            </TouchableOpacity>
+
+            {/* Log Extra */}
+            <TouchableOpacity
+              style={styles.pillButton}
+              onPress={() => setShowLogExtra(true)}
+            >
+              <Ionicons name="add-circle-outline" size={16} color="#A259FF" />
+              <Text style={styles.pillButtonText}>Log Extra</Text>
             </TouchableOpacity>
           </View>
         </View>
 
-        {/* Log Unexpected Workout */}
+        {/* ── Check-In Card ─────────────────────────────────────────── */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Log Unexpected Workout</Text>
-          <TouchableOpacity 
-            style={styles.logWorkoutCard}
-            onPress={() => openChat("I did an unexpected workout today. Can I log it?")}
-          >
-            <View style={styles.logWorkoutContent}>
-              <View style={styles.logWorkoutIcon}>
-                <Ionicons name="add-circle" size={32} color={COLORS.accent} />
+          <View style={styles.checkInCard}>
+            {/* Gradient header bar */}
+            <LinearGradient
+              colors={['#A259FF', '#FF4EC7']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+              style={styles.checkInCardHeader}
+            >
+              <Ionicons name="checkmark-circle-outline" size={18} color="#FFFFFF" />
+              <Text style={styles.checkInCardHeaderText}>Weekly Check-In</Text>
+            </LinearGradient>
+
+            {/* Card body */}
+            <View style={styles.checkInCardBody}>
+              <View style={styles.checkInRow}>
+                {/* Check-In Button */}
+                <TouchableOpacity
+                  style={[styles.checkInButton, checkInStatus?.isDue && styles.checkInButtonDue]}
+                  onPress={() => setShowCheckIn(true)}
+                  activeOpacity={0.85}
+                >
+                  {checkInStatus?.isDue ? (
+                    <LinearGradient
+                      colors={['#A22BF6', '#FF4EC7']}
+                      style={styles.checkInGradient}
+                      start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
+                    >
+                      <Ionicons name="checkmark-circle" size={20} color="#FFFFFF" />
+                      <Text style={styles.checkInDueText}>Check-In Now!</Text>
+                    </LinearGradient>
+                  ) : (
+                    <View style={styles.checkInCountdown}>
+                      <Ionicons name="timer-outline" size={20} color={COLORS.accent} />
+                      <View>
+                        <Text style={styles.checkInLabel}>Next Check-In</Text>
+                        <Text style={styles.checkInDays}>
+                          {checkInStatus ? `in ${checkInStatus.daysUntilDue} day${checkInStatus.daysUntilDue !== 1 ? 's' : ''}` : '—'}
+                        </Text>
+                      </View>
+                    </View>
+                  )}
+                </TouchableOpacity>
+
+                {/* History Button */}
+                <TouchableOpacity
+                  style={styles.historyButton}
+                  onPress={() => setShowCheckInHistory(true)}
+                  activeOpacity={0.85}
+                >
+                  <Ionicons name="time-outline" size={20} color={COLORS.accent} />
+                  <Text style={styles.historyButtonText}>History</Text>
+                </TouchableOpacity>
               </View>
-              <View style={styles.logWorkoutText}>
-                <Text style={styles.logWorkoutTitle}>Track Extra Activity</Text>
-                <Text style={styles.logWorkoutSubtitle}>Gym session, run, or other workout you did</Text>
-              </View>
-              <Ionicons name="chevron-forward" size={20} color={COLORS.mediumGray} />
             </View>
-          </TouchableOpacity>
+          </View>
         </View>
       </ScrollView>
       
-      <ExploreWorkoutsModal
-        visible={exploreModalVisible}
-        onClose={() => setExploreModalVisible(false)}
-        initialCategory="All"
-      />
+      {exploreModalVisible && (
+        <ExploreWorkoutsModal
+          visible={exploreModalVisible}
+          onClose={() => setExploreModalVisible(false)}
+          initialCategory="All"
+        />
+      )}
       
       <ViewAllWeeksModal
         visible={showAllWeeks}
@@ -626,6 +708,24 @@ export default function WorkoutsScreen() {
       <ProPaywallModal
         visible={showProPaywall}
         onClose={() => setShowProPaywall(false)}
+      />
+
+      <CheckInModal
+        visible={showCheckIn}
+        isPro={isPro}
+        onClose={() => setShowCheckIn(false)}
+        onComplete={() => loadCheckInStatus()}
+      />
+
+      <CheckInHistoryModal
+        visible={showCheckInHistory}
+        onClose={() => setShowCheckInHistory(false)}
+      />
+
+      <ExternalActivityModal
+        visible={showLogExtra}
+        onClose={() => setShowLogExtra(false)}
+        onComplete={() => setShowLogExtra(false)}
       />
     </SafeAreaView>
   );
@@ -699,11 +799,104 @@ const styles = StyleSheet.create({
   generatingSubtitle: { fontSize: 14, color: COLORS.mediumGray, textAlign: 'center', lineHeight: 20, paddingHorizontal: 16 },
   generatingNotice: { fontSize: 13, color: COLORS.gradientStart, textAlign: 'center', marginTop: 12, fontWeight: '500' },
   // Program Buttons
-  programButtonsRow: { flexDirection: 'row', gap: 12 },
+  programButtonsRow: {
+    flexDirection: 'row',
+    gap: 10,
+  },
+  pillButton: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    paddingVertical: 12,
+    paddingHorizontal: 8,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 24,
+    borderWidth: 1.5,
+    borderColor: '#A259FF',
+  },
+  pillButtonText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#A259FF',
+},
   programButtonLarge: { flex: 2, borderRadius: 16, overflow: 'hidden' },
   programButtonSmall: { flex: 1, borderRadius: 16, overflow: 'hidden' },
   programButtonGradient: { padding: 16, alignItems: 'center', justifyContent: 'center', minHeight: 100 },
   programButtonTitle: { fontSize: 15, fontWeight: '700', color: COLORS.white, marginTop: 8 },
   programButtonTitleSmall: { fontSize: 14, fontWeight: '600', color: COLORS.white, marginTop: 6 },
   programButtonSubtitle: { fontSize: 11, color: 'rgba(255,255,255,0.8)', marginTop: 4 },
+
+  // Check-In
+  checkInCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: '#E5E5EA',
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.07,
+    shadowRadius: 8,
+    elevation: 3,
+  },
+  checkInCardHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+  },
+  checkInCardHeaderText: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#FFFFFF',
+  },
+  checkInCardBody: {
+    padding: 14,
+  },
+  checkInRow: { flexDirection: 'row', gap: 10 },
+  checkInButton: {
+    flex: 1,
+    backgroundColor: '#F8F9FA',
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: '#E5E5EA',
+    overflow: 'hidden',
+  },
+  checkInButtonDue: {
+    borderColor: '#A22BF6',
+    borderWidth: 1.5,
+  },
+  checkInGradient: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+  },
+  checkInDueText: { color: '#FFFFFF', fontWeight: '700', fontSize: 15 },
+  checkInCountdown: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+  },
+  checkInLabel: { fontSize: 11, color: '#8E8E93' },
+  checkInDays: { fontSize: 14, fontWeight: '700', color: '#A22BF6' },
+  historyButton: {
+    backgroundColor: '#F8F9FA',
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: '#E5E5EA',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 16,
+    gap: 4,
+    minWidth: 80,
+  },
+  historyButtonText: { fontSize: 12, fontWeight: '600', color: '#A22BF6' },
 });
