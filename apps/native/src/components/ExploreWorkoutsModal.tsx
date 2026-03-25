@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo, useCallback, memo } from 'react';
 import {
   View, Text, StyleSheet, Modal, TouchableOpacity, TextInput,
-  ScrollView, Image,
+  ScrollView, Image, FlatList,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -128,9 +128,10 @@ const chipSt = StyleSheet.create({
   textOff: { color: C.text, fontSize: 12, fontWeight: '600' },
 });
 
+// Card item for FlatList
 const ExerciseCard = memo(({ exercise, onPress, personalBests }: { exercise: any; onPress: () => void; personalBests: any[] }) => {
   const { getPreference, likeExercise, removePreference, isStarred } = usePreferencesStore();
-  if (!exercise) return null;
+  if (!exercise) return <View style={{ flex: 1, margin: 5 }} />;
   const preference = getPreference(exercise.id);
   const starred = isStarred ? isStarred(exercise.id) : false;
   const thumbUrl = getThumbUrl(exercise);
@@ -138,7 +139,7 @@ const ExerciseCard = memo(({ exercise, onPress, personalBests }: { exercise: any
   const pb = personalBests.find(p => p.exercise?.toLowerCase() === exercise.name?.toLowerCase());
 
   return (
-    <TouchableOpacity style={cardSt.card} onPress={onPress} activeOpacity={0.8}>
+    <TouchableOpacity style={[cardSt.card, { flex: 1, margin: 5 }]} onPress={onPress} activeOpacity={0.8}>
       <View style={cardSt.thumb}>
         {thumbUrl
           ? <Image source={{ uri: thumbUrl }} style={cardSt.thumbImg} resizeMode="cover" />
@@ -154,16 +155,15 @@ const ExerciseCard = memo(({ exercise, onPress, personalBests }: { exercise: any
         {pb && (
           <View style={cardSt.pbRow}>
             <Text style={cardSt.trophy}>🏆</Text>
-            <Text style={cardSt.pbText}>{pb.value}{pb.unit || 'kg'}{pb.reps ? ` × ${pb.reps}` : ''}</Text>
+            <Text style={cardSt.pbText}>{pb.value}{pb.unit || 'kg'}</Text>
           </View>
         )}
-        {starred && <Ionicons name="star" size={11} color="#F59E0B" style={{ marginTop: 2 }} />}
       </View>
     </TouchableOpacity>
   );
 });
 const cardSt = StyleSheet.create({
-  card: { flex: 1, minHeight: 160, backgroundColor: C.bg, borderRadius: 16, borderWidth: 1, borderColor: C.cardBorder, overflow: 'hidden', elevation: 3, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.07, shadowRadius: 8 },
+  card: { backgroundColor: C.bg, borderRadius: 16, borderWidth: 1, borderColor: C.cardBorder, overflow: 'hidden', elevation: 3, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.07, shadowRadius: 8 },
   thumb: { width: '100%', height: 100, backgroundColor: C.card, position: 'relative' },
   thumbImg: { width: '100%', height: '100%' },
   thumbPlaceholder: { flex: 1, justifyContent: 'center', alignItems: 'center' },
@@ -174,26 +174,6 @@ const cardSt = StyleSheet.create({
   trophy: { fontSize: 10 },
   pbText: { fontSize: 10, color: '#D97706', fontWeight: '700' },
 });
-
-const ExerciseGrid = ({ items, onPress, personalBests }: { items: any[]; onPress: (ex: any) => void; personalBests: any[] }) => {
-  const safe = (items || []).filter(Boolean);
-  const rows: any[][] = [];
-  for (let i = 0; i < safe.length; i += 2) rows.push([safe[i], safe[i + 1] || null]);
-  return (
-    <>
-      {rows.map((row, ri) => (
-        <View key={ri} style={{ flexDirection: 'row', gap: 10, marginBottom: 10 }}>
-          <View style={{ flex: 1 }}>
-            <ExerciseCard exercise={row[0]} onPress={() => onPress(row[0])} personalBests={personalBests} />
-          </View>
-          {row[1]
-            ? <View style={{ flex: 1 }}><ExerciseCard exercise={row[1]} onPress={() => onPress(row[1])} personalBests={personalBests} /></View>
-            : <View style={{ flex: 1 }} />}
-        </View>
-      ))}
-    </>
-  );
-};
 
 // ─── Detail Sheet ─────────────────────────────────────────────────────────────
 const ExerciseDetail = ({ exercise, onClose, personalBests }: { exercise: any; onClose: () => void; personalBests: any[] }) => {
@@ -245,7 +225,7 @@ const ExerciseDetail = ({ exercise, onClose, personalBests }: { exercise: any; o
                 </View>
               ) : (
                 <View style={[detSt.pbCard, { backgroundColor: '#F3F4F6', borderColor: '#E5E7EB' }]}>
-                  <Text style={{ color: C.textMuted, fontSize: 13, textAlign: 'center' }}>No history yet — this will populate as you train! 💪</Text>
+                  <Text style={{ color: C.textMuted, fontSize: 13, textAlign: 'center' }}>No history yet — complete workouts to see your progress! 💪</Text>
                 </View>
               )}
               {timesCompleted > 0 && (
@@ -324,11 +304,11 @@ export const ExploreWorkoutsModal: React.FC<ExploreWorkoutsModalProps> = ({ visi
 
   useEffect(() => {
     if (!visible) return;
-    // Reset to filter panel on open
     setShowFilterPanel(true);
     setSelectedMuscles([]);
     setSelectedDifficulty([]);
     setSearch('');
+    setViewMode('all');
     if (initialCategory && MAIN_CATEGORIES.includes(initialCategory as MainCategory)) {
       setMainCategory(initialCategory as MainCategory);
     } else {
@@ -410,7 +390,6 @@ export const ExploreWorkoutsModal: React.FC<ExploreWorkoutsModalProps> = ({ visi
   const displayExercises = useMemo(() => {
     try {
       let safe = categoryFiltered.filter(Boolean);
-      // Sub-filter
       if (subFilter !== 'All') {
         if (mainCategory === 'Free Weights') {
           safe = safe.filter(ex => { try { return classifySubEquipment(ex) === subFilter; } catch { return false; } });
@@ -418,7 +397,6 @@ export const ExploreWorkoutsModal: React.FC<ExploreWorkoutsModalProps> = ({ visi
           safe = safe.filter(ex => { try { return classifySubMachine(ex) === subFilter; } catch { return false; } });
         }
       }
-      // Muscle group filter
       if (selectedMuscles.length > 0) {
         safe = safe.filter(ex => {
           try {
@@ -427,7 +405,6 @@ export const ExploreWorkoutsModal: React.FC<ExploreWorkoutsModalProps> = ({ visi
           } catch { return true; }
         });
       }
-      // Difficulty filter
       if (selectedDifficulty.length > 0) {
         safe = safe.filter(ex => {
           try {
@@ -436,14 +413,58 @@ export const ExploreWorkoutsModal: React.FC<ExploreWorkoutsModalProps> = ({ visi
           } catch { return true; }
         });
       }
-      return safe.slice(0, 80);
-    } catch { return categoryFiltered.slice(0, 80); }
+      return safe.slice(0, 100);
+    } catch { return categoryFiltered.slice(0, 100); }
   }, [categoryFiltered, subFilter, mainCategory, selectedMuscles, selectedDifficulty]);
 
   const subFilters = mainCategory === 'Free Weights' ? FREE_WEIGHTS_SUBS
     : mainCategory === 'Machines' ? MACHINES_SUBS : null;
 
   const pbs = personalBests || [];
+
+  const renderExerciseItem = useCallback(({ item, index }: { item: any; index: number }) => {
+    if (!item) return <View style={{ flex: 1, margin: 5 }} />;
+    return (
+      <ExerciseCard
+        exercise={item}
+        onPress={() => setSelectedExercise(item)}
+        personalBests={pbs}
+      />
+    );
+  }, [pbs]);
+
+  const keyExtractor = useCallback((item: any, index: number) => item?.id || String(index), []);
+
+  const ListEmpty = useMemo(() => (
+    <View style={{ alignItems: 'center', paddingTop: 60, gap: 8 }}>
+      {viewMode === 'liked' && (
+        <>
+          <Text style={{ fontSize: 32 }}>💜</Text>
+          <Text style={{ color: C.textMuted, fontSize: 14, textAlign: 'center' }}>No liked exercises yet!{'\n'}Browse and heart the ones you love.</Text>
+        </>
+      )}
+      {viewMode === 'disliked' && (
+        <>
+          <Text style={{ fontSize: 32 }}>👍</Text>
+          <Text style={{ color: C.textMuted, fontSize: 14, textAlign: 'center' }}>Nothing disliked yet!{'\n'}Explore exercises below.</Text>
+        </>
+      )}
+      {viewMode === 'all' && (
+        <Text style={{ color: C.textMuted, fontSize: 14 }}>No exercises match your search.</Text>
+      )}
+    </View>
+  ), [viewMode]);
+
+  const ListFooter = useMemo(() => (
+    <TouchableOpacity
+      onPress={() => { setViewMode('all'); setMainCategory('All'); setSubFilter('All'); setSearch(''); setSelectedMuscles([]); setSelectedDifficulty([]); }}
+      style={{ marginTop: 8, borderRadius: 14, overflow: 'hidden' }}
+    >
+      <LinearGradient colors={GRAD} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={{ paddingVertical: 14, alignItems: 'center', borderRadius: 14 }}>
+        <Text style={{ color: '#FFF', fontWeight: '700', fontSize: 15 }}>Browse All Exercises →</Text>
+      </LinearGradient>
+    </TouchableOpacity>
+  ), []);
 
   return (
     <>
@@ -463,7 +484,7 @@ export const ExploreWorkoutsModal: React.FC<ExploreWorkoutsModalProps> = ({ visi
             <LinearGradient colors={GRAD} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={mSt.stripe} />
 
             {showFilterPanel ? (
-              /* ── FILTER PANEL (shown first) ── */
+              /* ── FILTER PANEL ── */
               <ScrollView contentContainerStyle={mSt.filterContent} showsVerticalScrollIndicator={false}>
                 <Text style={mSt.filterHeading}>Filter by Muscle Group</Text>
                 <View style={mSt.chipGrid}>
@@ -482,7 +503,8 @@ export const ExploreWorkoutsModal: React.FC<ExploreWorkoutsModalProps> = ({ visi
                   ))}
                 </View>
 
-                <Text style={mSt.filterHeading}>Filter by Difficulty</Text>                <View style={mSt.chipGrid}>
+                <Text style={mSt.filterHeading}>Filter by Difficulty</Text>
+                <View style={mSt.chipGrid}>
                   {DIFFICULTIES.map(d => (
                     <TouchableOpacity key={d} onPress={() => toggleDifficulty(d)} activeOpacity={0.8}>
                       {selectedDifficulty.includes(d) ? (
@@ -505,177 +527,105 @@ export const ExploreWorkoutsModal: React.FC<ExploreWorkoutsModalProps> = ({ visi
                   ))}
                 </ScrollView>
 
-                {/* Show Exercises button */}
                 <TouchableOpacity
                   style={{ borderRadius: 14, overflow: 'hidden', marginTop: 16 }}
                   onPress={() => setShowFilterPanel(false)}
                 >
                   <LinearGradient colors={GRAD} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={{ paddingVertical: 16, alignItems: 'center', borderRadius: 14 }}>
                     <Text style={{ color: '#FFF', fontWeight: '700', fontSize: 16 }}>
-                      Show Exercises {(selectedMuscles.length > 0 || selectedDifficulty.length > 0) ? `(filtered)` : '→'}
+                      Show Exercises {(selectedMuscles.length > 0 || selectedDifficulty.length > 0) ? '(filtered)' : '\u2192'}
                     </Text>
                   </LinearGradient>
                 </TouchableOpacity>
 
                 <TouchableOpacity
                   style={{ marginTop: 12, alignItems: 'center', padding: 8 }}
-                  onPress={() => {
-                    setSelectedMuscles([]);
-                    setSelectedDifficulty([]);
-                    setMainCategory('All');
-                    setSubFilter('All');
-                    setShowFilterPanel(false);
-                  }}
+                  onPress={() => { setSelectedMuscles([]); setSelectedDifficulty([]); setMainCategory('All'); setSubFilter('All'); setShowFilterPanel(false); }}
                 >
                   <Text style={{ color: C.textSecondary, fontSize: 14, fontWeight: '500' }}>Browse All (no filter)</Text>
                 </TouchableOpacity>
               </ScrollView>
             ) : (
-              /* ── EXERCISE LIST ── */
-              <>
-                {/* Search */}
+              <View style={{ flex: 1 }}>
                 <View style={mSt.searchRow}>
                   <Ionicons name="search" size={16} color={C.textMuted} style={{ marginRight: 8 }} />
-                  <TextInput
-                    style={mSt.searchInput}
-                    placeholder="Search exercises..."
-                    placeholderTextColor={C.textMuted}
-                    value={search}
-                    onChangeText={setSearch}
-                  />
-                  {search.length > 0 && (
-                    <TouchableOpacity onPress={() => setSearch('')}>
-                      <Ionicons name="close-circle" size={16} color={C.textMuted} />
-                    </TouchableOpacity>
-                  )}
-                  <TouchableOpacity onPress={() => setShowFilterPanel(true)} style={{ marginLeft: 8 }}>
-                    <Ionicons name="options-outline" size={20} color={C.accent} />
-                  </TouchableOpacity>
+                  <TextInput style={mSt.searchInput} placeholder="Search exercises..." placeholderTextColor={C.textMuted} value={search} onChangeText={setSearch} />
+                  {search.length > 0 && (<TouchableOpacity onPress={() => setSearch('')}><Ionicons name="close-circle" size={16} color={C.textMuted} /></TouchableOpacity>)}
+                  <TouchableOpacity onPress={() => setShowFilterPanel(true)} style={{ marginLeft: 8 }}><Ionicons name="options-outline" size={20} color={C.accent} /></TouchableOpacity>
                 </View>
-
-                {/* Active filter summary */}
                 {(selectedMuscles.length > 0 || selectedDifficulty.length > 0) && (
                   <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6, paddingHorizontal: 16, paddingBottom: 8 }}>
-                    {selectedMuscles.map(m => (
-                      <View key={m} style={{ backgroundColor: C.accent + '20', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 99 }}>
-                        <Text style={{ fontSize: 11, color: C.accent, fontWeight: '600' }}>{m}</Text>
-                      </View>
-                    ))}
-                    {selectedDifficulty.map(d => (
-                      <View key={d} style={{ backgroundColor: C.accent + '20', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 99 }}>
-                        <Text style={{ fontSize: 11, color: C.accent, fontWeight: '600' }}>{d}</Text>
-                      </View>
-                    ))}
-                    <TouchableOpacity onPress={() => { setSelectedMuscles([]); setSelectedDifficulty([]); }} style={{ paddingHorizontal: 10, paddingVertical: 4 }}>
-                      <Text style={{ fontSize: 11, color: C.red, fontWeight: '600' }}>Clear ×</Text>
-                    </TouchableOpacity>
+                    {selectedMuscles.map(m => (<View key={m} style={{ backgroundColor: C.accent + '20', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 99 }}><Text style={{ fontSize: 11, color: C.accent, fontWeight: '600' }}>{m}</Text></View>))}
+                    {selectedDifficulty.map(d => (<View key={d} style={{ backgroundColor: C.accent + '20', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 99 }}><Text style={{ fontSize: 11, color: C.accent, fontWeight: '600' }}>{d}</Text></View>))}
+                    <TouchableOpacity onPress={() => { setSelectedMuscles([]); setSelectedDifficulty([]); }} style={{ paddingHorizontal: 10, paddingVertical: 4 }}><Text style={{ fontSize: 11, color: C.red, fontWeight: '600' }}>Clear x</Text></TouchableOpacity>
                   </View>
                 )}
-
-                {/* View toggle: All / Liked / Disliked */}
                 <View style={mSt.toggleRow}>
-                  {(['all', 'liked', 'disliked'] as ViewMode[]).map(mode => {
-                    const label = mode === 'all' ? 'All' : mode === 'liked' ? '👍 Liked' : '👎 Disliked';
+                  {(['all', 'liked', 'disliked']).map(mode => {
+                    const label = mode === 'all' ? 'All' : mode === 'liked' ? 'Liked' : 'Disliked';
                     const active = viewMode === mode;
                     return (
-                      <TouchableOpacity key={mode} onPress={() => setViewMode(mode)} style={{ flex: 1, marginHorizontal: 3 }}>
-                        {active
-                          ? <LinearGradient colors={GRAD} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={mSt.toggleActive}><Text style={mSt.toggleTextActive}>{label}</Text></LinearGradient>
+                      <TouchableOpacity key={mode} onPress={() => setViewMode(mode as ViewMode)} style={{ flex: 1, marginHorizontal: 3 }}>
+                        {active ? <LinearGradient colors={GRAD} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={mSt.toggleActive}><Text style={mSt.toggleTextActive}>{label}</Text></LinearGradient>
                           : <View style={mSt.toggleOff}><Text style={mSt.toggleTextOff}>{label}</Text></View>}
                       </TouchableOpacity>
                     );
                   })}
                 </View>
-
-                {/* Category chips */}
                 <ScrollView horizontal showsHorizontalScrollIndicator={false} style={mSt.chipsRow} contentContainerStyle={{ paddingHorizontal: 16, paddingVertical: 6 }}>
-                  {MAIN_CATEGORIES.map(cat => (
-                    <GradChip key={cat} label={cat} selected={mainCategory === cat} onPress={() => handleCategoryChange(cat)} />
-                  ))}
+                  {MAIN_CATEGORIES.map(cat => (<GradChip key={cat} label={cat} selected={mainCategory === cat} onPress={() => handleCategoryChange(cat)} />))}
                 </ScrollView>
-
-                {/* Sub-filter chips */}
                 {subFilters && (
                   <ScrollView horizontal showsHorizontalScrollIndicator={false} style={mSt.subChipsRow} contentContainerStyle={{ paddingHorizontal: 16, paddingVertical: 4 }}>
-                    {subFilters.map(sf => (
-                      <GradChip key={sf} label={sf} selected={subFilter === sf} onPress={() => setSubFilter(sf)} />
-                    ))}
+                    {subFilters.map(sf => (<GradChip key={sf} label={sf} selected={subFilter === sf} onPress={() => setSubFilter(sf)} />))}
                   </ScrollView>
                 )}
-
-                {/* Exercise grid */}
-                <ScrollView style={{ flex: 1 }} contentContainerStyle={{ padding: 16 }} showsVerticalScrollIndicator={false}>
-                  {loading ? (
-                    <View style={{ alignItems: 'center', paddingTop: 60 }}>
-                      <Text style={{ color: C.textMuted, fontSize: 14 }}>Loading exercises...</Text>
-                    </View>
-                  ) : displayExercises.length === 0 ? (
-                    <View style={{ alignItems: 'center', paddingTop: 60, gap: 8 }}>
-                      {viewMode === 'liked' && (
-                        <>
-                          <Text style={{ fontSize: 32 }}>💜</Text>
-                          <Text style={{ color: C.textMuted, fontSize: 14, textAlign: 'center' }}>No liked exercises yet!{'\n'}Browse and heart the ones you love.</Text>
-                        </>
-                      )}
-                      {viewMode === 'disliked' && (
-                        <>
-                          <Text style={{ fontSize: 32 }}>👍</Text>
-                          <Text style={{ color: C.textMuted, fontSize: 14, textAlign: 'center' }}>Nothing disliked yet!{'\n'}Explore exercises below.</Text>
-                        </>
-                      )}
-                      {viewMode === 'all' && (
-                        <Text style={{ color: C.textMuted, fontSize: 14 }}>No exercises match your search.</Text>
-                      )}
-                    </View>
-                  ) : (
-                    <ExerciseGrid items={displayExercises} onPress={setSelectedExercise} personalBests={pbs} />
-                  )}
-
-                  {/* Browse All button */}
-                  <TouchableOpacity
-                    onPress={() => { setViewMode('all'); setMainCategory('All'); setSubFilter('All'); setSearch(''); setSelectedMuscles([]); setSelectedDifficulty([]); }}
-                    style={{ marginTop: 8, borderRadius: 14, overflow: 'hidden' }}
-                  >
-                    <LinearGradient colors={GRAD} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={{ paddingVertical: 14, alignItems: 'center', borderRadius: 14 }}>
-                      <Text style={{ color: '#FFF', fontWeight: '700', fontSize: 15 }}>Browse All Exercises →</Text>
-                    </LinearGradient>
-                  </TouchableOpacity>
-                </ScrollView>
-              </>
+                {loading ? (
+                  <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+                    <Text style={{ color: C.textMuted, fontSize: 14 }}>Loading exercises...</Text>
+                  </View>
+                ) : (
+                  <FlatList
+                    data={displayExercises}
+                    keyExtractor={keyExtractor}
+                    numColumns={2}
+                    renderItem={renderExerciseItem}
+                    contentContainerStyle={{ padding: 10, paddingBottom: 40 }}
+                    showsVerticalScrollIndicator={false}
+                    style={{ flex: 1 }}
+                    ListEmptyComponent={ListEmpty}
+                    ListFooterComponent={ListFooter}
+                    removeClippedSubviews={true}
+                    maxToRenderPerBatch={10}
+                  />
+                )}
+              </View>
             )}
-
           </View>
         </View>
       </Modal>
-
-      {/* Detail sheet */}
-      <ExerciseDetail
-        exercise={selectedExercise}
-        onClose={() => setSelectedExercise(null)}
-        personalBests={pbs}
-      />
+      <ExerciseDetail exercise={selectedExercise} onClose={() => setSelectedExercise(null)} personalBests={pbs} />
     </>
   );
 };
 
 const mSt = StyleSheet.create({
   overlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'flex-end' },
-  container: { backgroundColor: C.bg, borderTopLeftRadius: 24, borderTopRightRadius: 24, maxHeight: '94%' },
+  container: { backgroundColor: C.bg, borderTopLeftRadius: 24, borderTopRightRadius: 24, height: '94%' },
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, paddingTop: 20, paddingBottom: 8 },
   title: { fontSize: 20, fontWeight: '800', color: C.text },
   closeBtn: {},
   closeBg: { backgroundColor: '#F0F0F0', borderRadius: 20, padding: 8 },
   stripe: { height: 3, width: '100%' },
-  searchRow: { flexDirection: 'row', alignItems: 'center', marginHorizontal: 16, marginVertical: 12, backgroundColor: '#F5F5F5', borderRadius: 99, paddingHorizontal: 14, paddingVertical: 10 },
+  searchRow: { flexDirection: 'row', alignItems: 'center', marginHorizontal: 16, marginVertical: 10, backgroundColor: '#F5F5F5', borderRadius: 99, paddingHorizontal: 14, paddingVertical: 10 },
   searchInput: { flex: 1, fontSize: 14, color: C.text, padding: 0 },
-  toggleRow: { flexDirection: 'row', marginHorizontal: 16, marginBottom: 10 },
+  toggleRow: { flexDirection: 'row', marginHorizontal: 16, marginBottom: 8 },
   toggleActive: { paddingVertical: 9, borderRadius: 10, alignItems: 'center' },
   toggleOff: { paddingVertical: 9, borderRadius: 10, alignItems: 'center', backgroundColor: '#F0F0F0' },
   toggleTextActive: { color: '#FFF', fontSize: 13, fontWeight: '700' },
   toggleTextOff: { color: C.textSecondary, fontSize: 13, fontWeight: '600' },
   chipsRow: { flexGrow: 0 },
   subChipsRow: { flexGrow: 0 },
-  // Filter panel styles
   filterContent: { padding: 20, paddingBottom: 40 },
   filterHeading: { fontSize: 15, fontWeight: '700', color: C.text, marginBottom: 12, marginTop: 8 },
   chipGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 16 },

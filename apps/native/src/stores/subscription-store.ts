@@ -1,5 +1,8 @@
 import { create } from 'zustand';
 import { REVENUECAT_API_KEY, isThryvinProActive } from '../services/revenuecat';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
+const PERSIST_IS_PRO_KEY = 'thryvin_is_pro_override';
 
 // RevenueCat native modules may not be available in Expo Go
 let Purchases: any = null;
@@ -52,6 +55,16 @@ export const useSubscriptionStore = create<SubscriptionState>((set, get) => ({
   nativeAvailable: !!Purchases,
 
   initialize: async (appUserId?: string | null) => {
+    // Check persisted isPro override first (set during onboarding plan selection)
+    try {
+      const persistedIsPro = await AsyncStorage.getItem(PERSIST_IS_PRO_KEY);
+      if (persistedIsPro === 'true') {
+        console.log('[Subscriptions] Using persisted Pro override from onboarding');
+        set({ isTestMode: true, isInitialized: true, isLoading: false, isPro: true, error: null });
+        return;
+      }
+    } catch (e) { /* ignore */ }
+
     // If in test mode, skip real initialization
     if (get().isTestMode) return;
 
@@ -182,6 +195,8 @@ export const useSubscriptionStore = create<SubscriptionState>((set, get) => ({
       isPro,
       error: null,
     });
+    // Persist so it survives app restarts
+    AsyncStorage.setItem(PERSIST_IS_PRO_KEY, isPro ? 'true' : 'false').catch(() => {});
   },
 
   // Production: Restore previous purchases

@@ -304,6 +304,13 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          ...(await (async () => {
+            try {
+              const { getToken } = await import('../services/api-client');
+              const token = await getToken();
+              return token ? { 'Authorization': `Bearer ${token}` } : {};
+            } catch { return {}; }
+          })()),
         },
         credentials: 'include', // Include cookies for session auth
         body: JSON.stringify({

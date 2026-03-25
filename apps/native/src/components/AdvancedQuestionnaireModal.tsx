@@ -637,10 +637,10 @@ export const AdvancedQuestionnaireModal = ({
             {sleepOptions.map(o => (
               <TouchableOpacity
                 key={o}
-                style={[styles.smallOption, questionnaireData.sleepQuality === o && styles.smallOptionSelected]}
-                onPress={() => setQuestionnaireData(prev => ({ ...prev, sleepQuality: o }))}
+                style={[styles.smallOption, formData.sleepQuality === o && styles.smallOptionSelected]}
+                onPress={() => setFormData(prev => ({ ...prev, sleepQuality: o }))}
               >
-                <Text style={[styles.smallOptionText, questionnaireData.sleepQuality === o && styles.smallOptionTextSelected]}>{o}</Text>
+                <Text style={[styles.smallOptionText, formData.sleepQuality === o && styles.smallOptionTextSelected]}>{o}</Text>
               </TouchableOpacity>
             ))}
           </View>
@@ -651,10 +651,10 @@ export const AdvancedQuestionnaireModal = ({
             {stressOptions.map(o => (
               <TouchableOpacity
                 key={o}
-                style={[styles.smallOption, questionnaireData.stressLevel === o && styles.smallOptionSelected]}
-                onPress={() => setQuestionnaireData(prev => ({ ...prev, stressLevel: o }))}
+                style={[styles.smallOption, formData.stressLevel === o && styles.smallOptionSelected]}
+                onPress={() => setFormData(prev => ({ ...prev, stressLevel: o }))}
               >
-                <Text style={[styles.smallOptionText, questionnaireData.stressLevel === o && styles.smallOptionTextSelected]}>{o}</Text>
+                <Text style={[styles.smallOptionText, formData.stressLevel === o && styles.smallOptionTextSelected]}>{o}</Text>
               </TouchableOpacity>
             ))}
           </View>
@@ -664,7 +664,7 @@ export const AdvancedQuestionnaireModal = ({
   };
 
   const renderProgressPhotos = () => {
-    const hasPhotos = (questionnaireData.progressPhotos || []).length > 0;
+    const hasPhotos = (formData.progressPhotos || []).length > 0;
     return (
       <View style={{ gap: 16 }}>
         <View style={styles.photoHint}>
@@ -674,7 +674,7 @@ export const AdvancedQuestionnaireModal = ({
         <View style={styles.photoGrid}>
           {(['Front', 'Side', 'Back'] as const).map((angle) => {
             const idx = ['Front', 'Side', 'Back'].indexOf(angle);
-            const hasPhoto = (questionnaireData.progressPhotos || [])[idx];
+            const hasPhoto = (formData.progressPhotos || [])[idx];
             return (
               <TouchableOpacity
                 key={angle}
@@ -690,7 +690,7 @@ export const AdvancedQuestionnaireModal = ({
                     });
                     if (!result.canceled && result.assets[0]) {
                       const uri = result.assets[0].uri;
-                      setQuestionnaireData(prev => {
+                      setFormData(prev => {
                         const photos = [...(prev.progressPhotos || [])];
                         photos[idx] = uri;
                         return { ...prev, progressPhotos: photos };
@@ -718,7 +718,7 @@ export const AdvancedQuestionnaireModal = ({
         </View>
         {hasPhotos && (
           <Text style={styles.photoCount}>
-            {(questionnaireData.progressPhotos || []).filter(Boolean).length} photo(s) added ✓
+            {(formData.progressPhotos || []).filter(Boolean).length} photo(s) added ✓
           </Text>
         )}
         <Text style={styles.photoSkip}>You can skip this step — it's completely optional.</Text>
@@ -1063,17 +1063,28 @@ export const AdvancedQuestionnaireModal = ({
         </View>
         
         {/* Input Area */}
-        {currentQuestion.isGoalDetails ? (
-          renderGoalDetails()
-        ) : currentQuestion.isWeeklySchedule ? (
-          renderWeeklySchedule()
-        ) : (currentQuestion as any).isLifestyle ? (
-          renderLifestyle()
-        ) : (currentQuestion as any).isProgressPhotos ? (
-          renderProgressPhotos()
-        ) : (
-          renderTextInput(currentQuestion.id, currentQuestion.placeholder || 'Type your answer...')
-        )}
+        {(() => {
+          try {
+            if (currentQuestion.isGoalDetails) {
+              return renderGoalDetails();
+            } else if (currentQuestion.isWeeklySchedule) {
+              return renderWeeklySchedule();
+            } else if ((currentQuestion as any).isLifestyle) {
+              return renderLifestyle();
+            } else if ((currentQuestion as any).isProgressPhotos) {
+              return renderProgressPhotos();
+            } else {
+              return renderTextInput(currentQuestion.id, currentQuestion.placeholder || 'Type your answer...');
+            }
+          } catch (e) {
+            console.error('[AQM] Step render error:', e);
+            return (
+              <View style={{ padding: 20, alignItems: 'center' }}>
+                <Text style={{ color: COLORS.mediumGray }}>Something went wrong loading this step. Tap Next to continue.</Text>
+              </View>
+            );
+          }
+        })()}
         
         {/* Voice Hint */}
         <View style={styles.hintContainer}>

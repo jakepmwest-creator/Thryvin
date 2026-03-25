@@ -28,18 +28,18 @@ const COLORS = {
 };
 
 const PRO_PERKS = [
-  { icon: 'infinite', label: 'Unlimited AI workout plans' },
-  { icon: 'refresh', label: 'Rolling 4-week regeneration' },
-  { icon: 'analytics', label: 'Deep exercise stats & trends' },
-  { icon: 'create', label: 'Edit & customise any workout' },
-  { icon: 'flash', label: 'Drop, super & giant sets' },
-  { icon: 'headset', label: 'Priority support' },
+  { icon: 'person', label: 'AI Personal Trainer' },
+  { icon: 'checkmark-circle', label: 'Weekly Check-ins' },
+  { icon: 'calendar', label: 'Full 4-Week Plan' },
+  { icon: 'analytics', label: 'Advanced Analytics' },
+  { icon: 'restaurant', label: 'Nutrition Guidance' },
+  { icon: 'headset', label: 'Priority Support' },
 ];
 
 const STANDARD_PERKS = [
-  { icon: 'barbell-outline', label: 'Basic AI workout generation' },
-  { icon: 'flame-outline', label: 'Workout logging + streaks' },
-  { icon: 'trophy-outline', label: 'Awards & badges' },
+  { icon: 'calendar-outline', label: 'Monthly Check-in' },
+  { icon: 'barbell-outline', label: 'Basic Workout Plan' },
+  { icon: 'library-outline', label: 'Exercise Library' },
 ];
 
 export default function PlanSelectionScreen() {
@@ -66,10 +66,7 @@ export default function PlanSelectionScreen() {
 
   return (
     <View style={styles.container}>
-      <LinearGradient
-        colors={[COLORS.bg, '#111']}
-        style={StyleSheet.absoluteFill}
-      />
+      <View style={[StyleSheet.absoluteFill, { backgroundColor: COLORS.bg }]} />
       <SafeAreaView style={styles.safe}>
         <ScrollView
           contentContainerStyle={styles.scroll}
