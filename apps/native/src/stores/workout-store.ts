@@ -848,6 +848,8 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
           if (weekWorkouts.length % 7 === 0) {
             console.log(`💾 [3-WEEK] Saving checkpoint at ${weekWorkouts.length} days...`);
             await setStorageItem('week_workouts', JSON.stringify(weekWorkouts));
+            // Update state with partial results so user can navigate days already generated
+            set({ weekWorkouts: [...weekWorkouts], isLoading: weekWorkouts.length < 28 });
           }
         }
         
