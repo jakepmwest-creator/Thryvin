@@ -633,6 +633,22 @@ export const ExerciseStatsModal = ({
                 </View>
               </View>
 
+              {/* Form Tips — shown BEFORE history */}
+              {exerciseDetail?.exercise?.instructions && (
+                <View style={styles.section}>
+                  <Text style={styles.sectionTitle}>Form Tips</Text>
+                  <View style={[styles.chartCard, { backgroundColor: 'rgba(139,92,246,0.12)', padding: 16 }]}>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+                      <Ionicons name="bulb" size={18} color={COLORS.gradientStart} />
+                      <Text style={{ fontSize: 14, fontWeight: '700', color: COLORS.text }}>How to do it</Text>
+                    </View>
+                    <Text style={{ fontSize: 13, color: COLORS.textSecondary, lineHeight: 20 }}>
+                      {exerciseDetail.exercise.instructions}
+                    </Text>
+                  </View>
+                </View>
+              )}
+
               {/* Session History Dropdown */}
               <View style={styles.section}>
                 <TouchableOpacity 

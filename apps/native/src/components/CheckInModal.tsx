@@ -57,12 +57,21 @@ function SliderRow({ label, emoji, value, onChange }: SliderRowProps) {
         {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(n => (
           <TouchableOpacity
             key={n}
-            style={[
-              sliderStyles.pip,
-              n <= value && sliderStyles.pipActive,
-            ]}
+            style={sliderStyles.segmentWrapper}
             onPress={() => onChange(n)}
-          />
+            activeOpacity={0.7}
+          >
+            {n <= value ? (
+              <LinearGradient
+                colors={['#A259FF', '#FF4EC7']}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0 }}
+                style={sliderStyles.segmentActive}
+              />
+            ) : (
+              <View style={sliderStyles.segmentInactive} />
+            )}
+          </TouchableOpacity>
         ))}
       </View>
     </View>
@@ -75,12 +84,11 @@ const sliderStyles = StyleSheet.create({
   label: { fontSize: 14, fontWeight: '600', color: COLORS.text },
   value: { fontSize: 14, fontWeight: '700', color: COLORS.accent },
   track: { flexDirection: 'row', gap: 4 },
-  pip: {
-    flex: 1,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: COLORS.border,
-  },
+  segmentWrapper: { flex: 1, height: 10, borderRadius: 5, overflow: 'hidden' },
+  segmentActive: { flex: 1, height: 10, borderRadius: 5 },
+  segmentInactive: { flex: 1, height: 10, borderRadius: 5, backgroundColor: COLORS.border },
+  // Legacy (unused but kept to avoid any reference errors)
+  pip: { flex: 1, height: 8, borderRadius: 4, backgroundColor: COLORS.border },
   pipActive: { backgroundColor: COLORS.accent },
 });
 
@@ -237,6 +245,12 @@ export function CheckInModal({ visible, isPro, onClose, onComplete }: CheckInMod
 
           {step === 0 ? (
             <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+              {/* Description */}
+              <View style={styles.descriptionBox}>
+                <Text style={styles.descriptionText}>
+                  Tell us how your week went — after you submit, your AI coach will give you a personalised weekly insight.
+                </Text>
+              </View>
               <SliderRow label="Energy Level" emoji="⚡" value={energy} onChange={setEnergy} />
               <SliderRow label="Sleep Quality" emoji="😴" value={sleep} onChange={setSleep} />
               <SliderRow label="Mood" emoji="😊" value={mood} onChange={setMood} />
@@ -609,4 +623,19 @@ const styles = StyleSheet.create({
   photoPlaceholderText: { fontSize: 14, color: COLORS.textSecondary },
   removePhotoBtn: { alignSelf: 'flex-end', marginTop: 6, padding: 4 },
   removePhotoText: { fontSize: 12, color: COLORS.accent, fontWeight: '600' },
+  descriptionBox: {
+    backgroundColor: '#F0E8FF',
+    borderRadius: 12,
+    padding: 12,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: '#DDD0FF',
+  },
+  descriptionText: {
+    fontSize: 13,
+    color: '#6B21A8',
+    lineHeight: 19,
+    fontWeight: '500',
+    textAlign: 'center',
+  },
 });

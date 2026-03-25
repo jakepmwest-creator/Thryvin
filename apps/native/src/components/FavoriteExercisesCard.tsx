@@ -163,22 +163,28 @@ export const FavoriteExercisesCard = ({ onViewAll }: FavoriteExercisesCardProps)
           const pb = hasHistory ? (stat.personalBest?.weight || stat.history[0]?.maxWeight) : null;
           return (
             <TouchableOpacity key={exercise.exerciseId} style={styles.exerciseItem} onPress={() => setSelectedExercise(exercise)} activeOpacity={0.8}>
-              <LinearGradient colors={[G.start, G.end]} style={styles.thumbRing} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}>
-                <View style={styles.thumbInner}>
-                  {thumbUrl ? <Image source={{ uri: thumbUrl }} style={styles.thumbImage} resizeMode="cover" />
-                    : <View style={styles.thumbPlaceholder}><Ionicons name="barbell-outline" size={20} color={T.textMuted} /></View>}
+              {/* Gradient left border strip */}
+              <LinearGradient colors={[G.start, G.end]} style={styles.gradBorderStrip} start={{ x: 0, y: 0 }} end={{ x: 0, y: 1 }} />
+              <View style={styles.exerciseItemInner}>
+                <LinearGradient colors={[G.start, G.end]} style={styles.thumbRing} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}>
+                  <View style={styles.thumbInner}>
+                    {thumbUrl ? <Image source={{ uri: thumbUrl }} style={styles.thumbImage} resizeMode="cover" />
+                      : <View style={styles.thumbPlaceholder}><Ionicons name="barbell-outline" size={20} color={T.textMuted} /></View>}
+                  </View>
+                </LinearGradient>
+                <View style={styles.starBadgeWrapper}><Ionicons name="star" size={9} color={T.starred} /></View>
+                <View style={styles.exerciseTextBlock}>
+                  <Text style={styles.exerciseName} numberOfLines={2}>{exercise.exerciseName}</Text>
+                  {loadingStats ? <ActivityIndicator size="small" color={G.start} style={{ marginTop: 2 }} />
+                    : pb ? <View style={styles.weightBadge}><Ionicons name="trophy" size={10} color={T.starred} /><Text style={styles.weightText}>{pb} kg</Text></View>
+                    : <Text style={styles.notYetText}>Not yet logged</Text>}
                 </View>
-              </LinearGradient>
-              <View style={styles.starBadge}><Ionicons name="star" size={9} color={T.starred} /></View>
-              <Text style={styles.exerciseName} numberOfLines={2}>{exercise.exerciseName}</Text>
-              {loadingStats ? <ActivityIndicator size="small" color={G.start} style={{ marginTop: 2 }} />
-                : pb ? <View style={styles.weightBadge}><Ionicons name="trophy" size={10} color={T.starred} /><Text style={styles.weightText}>{pb} kg</Text></View>
-                : <Text style={styles.notYetText}>Not yet completed</Text>}
+              </View>
             </TouchableOpacity>
           );
         })}
         {Array.from({ length: 3 - starred.length }).map((_, i) => (
-          <View key={`e-${i}`} style={styles.exerciseItem}>
+          <View key={`e-${i}`} style={[styles.exerciseItem, { justifyContent: 'center', alignItems: 'center' }]}>
             <View style={styles.thumbRingEmpty}><View style={styles.thumbInnerEmpty}><Ionicons name="add" size={20} color={T.textMuted} /></View></View>
             <Text style={styles.emptySlotText}>Empty slot</Text>
           </View>
@@ -190,27 +196,41 @@ export const FavoriteExercisesCard = ({ onViewAll }: FavoriteExercisesCardProps)
   );
 };
 
-const TW = 72; const TH = 88; const RW = TW + 6; const RH = TH + 6; const BR = 16;
+const TW = 56; const TH = 56; const RW = TW + 6; const RH = TH + 6; const BR = 14;
 const styles = StyleSheet.create({
-  container: { marginHorizontal: 16, marginBottom: 16 },
-  headerRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 },
+  container: { marginHorizontal: 0, marginBottom: 16, width: '100%' },
+  headerRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12, paddingHorizontal: 2 },
   headerLeft: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  headerTitle: { fontSize: 16, fontWeight: '700', color: T.text },
+  headerTitle: { fontSize: 17, fontWeight: '800', color: T.text },
   viewAllBtn: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingVertical: 4, paddingHorizontal: 10, borderRadius: 14, backgroundColor: T.accentLight },
   viewAllText: { fontSize: 13, fontWeight: '600', color: G.start },
-  exercisesRow: { flexDirection: 'row', justifyContent: 'space-around', gap: 8 },
-  exerciseItem: { alignItems: 'center', width: 90, position: 'relative' },
-  thumbRing: { width: RW, height: RH, borderRadius: BR + 2, justifyContent: 'center', alignItems: 'center' },
+  exercisesRow: { gap: 10 },
+  exerciseItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    minHeight: 120,
+    backgroundColor: T.surface,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: T.cardBorder,
+    overflow: 'hidden',
+    position: 'relative',
+  },
+  gradBorderStrip: { width: 4, alignSelf: 'stretch' },
+  exerciseItemInner: { flex: 1, flexDirection: 'row', alignItems: 'center', paddingVertical: 14, paddingHorizontal: 12, gap: 14 },
+  thumbRing: { width: RW, height: RH, borderRadius: BR + 2, justifyContent: 'center', alignItems: 'center', flexShrink: 0 },
   thumbInner: { width: TW, height: TH, borderRadius: BR, overflow: 'hidden', backgroundColor: T.surface, borderWidth: 2, borderColor: T.white },
   thumbImage: { width: '100%', height: '100%' },
   thumbPlaceholder: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: T.surface },
+  starBadgeWrapper: { position: 'absolute', top: 10, left: 50, backgroundColor: '#FEF3C7', width: 18, height: 18, borderRadius: 9, justifyContent: 'center', alignItems: 'center', borderWidth: 2, borderColor: T.white, zIndex: 2 },
   starBadge: { position: 'absolute', top: -3, right: 6, backgroundColor: '#FEF3C7', width: 18, height: 18, borderRadius: 9, justifyContent: 'center', alignItems: 'center', borderWidth: 2, borderColor: T.white },
   thumbRingEmpty: { width: RW, height: RH, borderRadius: BR + 2, borderWidth: 2, borderColor: T.cardBorder, borderStyle: 'dashed', justifyContent: 'center', alignItems: 'center' },
   thumbInnerEmpty: { width: TW, height: TH, borderRadius: BR, justifyContent: 'center', alignItems: 'center', backgroundColor: T.surface },
-  exerciseName: { fontSize: 11, fontWeight: '600', color: T.text, textAlign: 'center', marginTop: 6, lineHeight: 14 },
-  weightBadge: { flexDirection: 'row', alignItems: 'center', gap: 3, marginTop: 3, paddingHorizontal: 8, paddingVertical: 2, borderRadius: 8, backgroundColor: '#FEF3C7' },
-  weightText: { fontSize: 10, fontWeight: '700', color: '#B45309' },
-  notYetText: { fontSize: 10, color: T.textMuted, marginTop: 3, fontStyle: 'italic' },
+  exerciseTextBlock: { flex: 1 },
+  exerciseName: { fontSize: 15, fontWeight: '800', color: T.text, lineHeight: 20, marginBottom: 4 },
+  weightBadge: { flexDirection: 'row', alignItems: 'center', gap: 3, paddingHorizontal: 8, paddingVertical: 3, borderRadius: 8, backgroundColor: '#FEF3C7', alignSelf: 'flex-start' },
+  weightText: { fontSize: 12, fontWeight: '700', color: '#B45309' },
+  notYetText: { fontSize: 11, color: T.textMuted, fontStyle: 'italic' },
   emptySlotText: { fontSize: 10, color: T.textMuted, marginTop: 6 },
   emptyCard: { backgroundColor: T.surface, borderRadius: 16, padding: 24, alignItems: 'center', gap: 6, borderWidth: 1, borderColor: T.cardBorder },
   emptyText: { fontSize: 14, fontWeight: '600', color: T.textSecondary },
