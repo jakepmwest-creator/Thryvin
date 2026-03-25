@@ -17,29 +17,29 @@ const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const COLORS = {
   accent: '#A22BF6',
   accentSecondary: '#FF4EC7',
-  bg: '#0D0D0D',
-  card: '#1A1A1A',
-  cardBorder: '#2A2A2A',
+  bg: '#FFFFFF',
+  card: '#F5F5F5',
+  cardBorder: '#E0E0E0',
   white: '#FFFFFF',
-  text: '#F5F5F5',
-  textSecondary: '#9E9E9E',
-  textMuted: '#666666',
+  text: '#1A1A1A',
+  textSecondary: '#555555',
+  textMuted: '#888888',
   success: '#34C759',
 };
 
 const PRO_PERKS = [
-  { icon: 'infinite', label: 'Unlimited AI workout plans' },
-  { icon: 'refresh', label: 'Rolling 3-week regeneration' },
-  { icon: 'analytics', label: 'Deep exercise stats & trends' },
-  { icon: 'create', label: 'Edit & customise any workout' },
-  { icon: 'flash', label: 'Drop, super & giant sets' },
-  { icon: 'headset', label: 'Priority support' },
+  { icon: 'person', label: 'AI Personal Trainer' },
+  { icon: 'checkmark-circle', label: 'Weekly Check-ins' },
+  { icon: 'calendar', label: 'Full 4-Week Plan' },
+  { icon: 'analytics', label: 'Advanced Analytics' },
+  { icon: 'restaurant', label: 'Nutrition Guidance' },
+  { icon: 'headset', label: 'Priority Support' },
 ];
 
 const STANDARD_PERKS = [
-  { icon: 'barbell-outline', label: 'Basic AI workout generation' },
-  { icon: 'flame-outline', label: 'Workout logging + streaks' },
-  { icon: 'trophy-outline', label: 'Awards & badges' },
+  { icon: 'calendar-outline', label: 'Monthly Check-in' },
+  { icon: 'barbell-outline', label: 'Basic Workout Plan' },
+  { icon: 'library-outline', label: 'Exercise Library' },
 ];
 
 export default function PlanSelectionScreen() {
@@ -66,10 +66,7 @@ export default function PlanSelectionScreen() {
 
   return (
     <View style={styles.container}>
-      <LinearGradient
-        colors={[COLORS.bg, '#111']}
-        style={StyleSheet.absoluteFill}
-      />
+      <View style={[StyleSheet.absoluteFill, { backgroundColor: COLORS.bg }]} />
       <SafeAreaView style={styles.safe}>
         <ScrollView
           contentContainerStyle={styles.scroll}
@@ -79,7 +76,7 @@ export default function PlanSelectionScreen() {
           <View style={styles.header}>
             <Text style={styles.headerTitle}>Choose your plan</Text>
             <Text style={styles.headerSub}>
-              Start with 3 weeks free on Pro. Cancel anytime.
+              Start with 1 month free on Pro. Cancel anytime.
             </Text>
           </View>
 
@@ -207,7 +204,7 @@ export default function PlanSelectionScreen() {
           </TouchableOpacity>
           <Text style={styles.legalNote}>
             {selectedPlan === 'pro'
-              ? 'Free for 3 weeks, then £74.99/year. Cancel anytime in Settings.'
+              ? 'Free for 1 month, then £74.99/year. Cancel anytime in Settings.'
               : 'You can upgrade to Pro later from Settings.'}
           </Text>
         </View>
@@ -222,7 +219,7 @@ const styles = StyleSheet.create({
   scroll: { padding: 20, paddingBottom: 10 },
 
   header: { marginBottom: 24, marginTop: 8 },
-  headerTitle: { fontSize: 28, fontWeight: '800', color: COLORS.white, letterSpacing: -0.5 },
+  headerTitle: { fontSize: 28, fontWeight: '800', color: COLORS.text, letterSpacing: -0.5 },
   headerSub: { fontSize: 15, color: COLORS.textSecondary, marginTop: 6, lineHeight: 21 },
 
   // Plan cards
@@ -260,11 +257,11 @@ const styles = StyleSheet.create({
   bestValueText: { fontSize: 10, fontWeight: '800', color: COLORS.white, letterSpacing: 0.5 },
 
   // Standard
-  standardCard: { backgroundColor: '#1E1E1E', borderWidth: 1, borderColor: '#333' },
+  standardCard: { backgroundColor: '#F8F8F8', borderWidth: 1, borderColor: '#DDDDDD' },
   standardCardSelected: { borderColor: COLORS.textSecondary },
   standardTitle: { fontSize: 18, fontWeight: '700', color: '#999', paddingHorizontal: 20, paddingTop: 18 },
   standardPrice: { fontSize: 28, fontWeight: '800', color: '#AAA', paddingHorizontal: 20, marginTop: 4 },
-  standardDivider: { height: 1, backgroundColor: '#333', marginVertical: 12, marginHorizontal: 20 },
+  standardDivider: { height: 1, backgroundColor: '#DDDDDD', marginVertical: 12, marginHorizontal: 20 },
   standardPerkText: { fontSize: 14, color: '#888' },
   standardNote: { fontSize: 12, color: '#555', paddingHorizontal: 20, paddingBottom: 16, marginTop: 6 },
 

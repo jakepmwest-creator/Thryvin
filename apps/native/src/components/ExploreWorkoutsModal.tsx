@@ -135,28 +135,16 @@ const ExerciseCard = memo(({ exercise, onPress, personalBests }: { exercise: any
   const preference = getPreference(exercise.id);
   const starred = isStarred ? isStarred(exercise.id) : false;
   const thumbUrl = getThumbUrl(exercise);
-  const hasVideo = isValidVideoUrl(exercise?.videoUrl);
   const muscle = exercise.muscleGroups?.[0] || exercise.bodyPart || 'Full Body';
-  const muscleInitial = (muscle || 'F').charAt(0).toUpperCase();
   const pb = personalBests.find(p => p.exercise?.toLowerCase() === exercise.name?.toLowerCase());
 
   return (
     <TouchableOpacity style={[cardSt.card, { flex: 1, margin: 5 }]} onPress={onPress} activeOpacity={0.8}>
       <View style={cardSt.thumb}>
-        {thumbUrl ? (
-          <>
-            <Image source={{ uri: thumbUrl }} style={cardSt.thumbImg} resizeMode="cover" />
-            {hasVideo && (
-              <View style={cardSt.playOverlay}>
-                <Ionicons name="play-circle" size={28} color="rgba(255,255,255,0.9)" />
-              </View>
-            )}
-          </>
-        ) : (
-          <LinearGradient colors={GRAD} style={cardSt.thumbPlaceholder}>
-            <Text style={cardSt.thumbInitial}>{muscleInitial}</Text>
-          </LinearGradient>
-        )}
+        {thumbUrl
+          ? <Image source={{ uri: thumbUrl }} style={cardSt.thumbImg} resizeMode="cover" />
+          : <LinearGradient colors={GRAD} style={cardSt.thumbPlaceholder}><Ionicons name="barbell-outline" size={26} color="rgba(255,255,255,0.6)" /></LinearGradient>
+        }
         <TouchableOpacity onPress={() => { if (preference === 'liked') removePreference(exercise.id); else likeExercise(exercise.id, exercise.name); }} style={cardSt.heartBtn}>
           <Ionicons name={preference === 'liked' ? 'heart' : 'heart-outline'} size={14} color={preference === 'liked' ? C.gradStart : '#CCC'} />
         </TouchableOpacity>
@@ -179,8 +167,6 @@ const cardSt = StyleSheet.create({
   thumb: { width: '100%', height: 100, backgroundColor: C.card, position: 'relative' },
   thumbImg: { width: '100%', height: '100%' },
   thumbPlaceholder: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  thumbInitial: { fontSize: 32, fontWeight: '800', color: 'rgba(255,255,255,0.85)' },
-  playOverlay: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(0,0,0,0.2)' },
   heartBtn: { position: 'absolute', top: 6, right: 6, backgroundColor: 'rgba(255,255,255,0.92)', borderRadius: 12, padding: 4 },
   info: { padding: 9, gap: 4 },
   name: { fontSize: 12, fontWeight: '700', color: C.text, lineHeight: 16 },
@@ -231,29 +217,6 @@ const ExerciseDetail = ({ exercise, onClose, personalBests }: { exercise: any; o
                   ))}
                 </View>
               )}
-              <View style={detSt.actionRow}>
-                <TouchableOpacity onPress={() => { if (preference === 'liked') removePreference(exercise.id); else likeExercise(exercise.id, exercise.name); }} style={[detSt.pill, preference === 'liked' && detSt.pillLiked]}>
-                  <Ionicons name={preference === 'liked' ? 'heart' : 'heart-outline'} size={16} color={preference === 'liked' ? '#FFF' : C.accent} />
-                  <Text style={[detSt.pillText, preference === 'liked' && { color: '#FFF' }]}>{preference === 'liked' ? 'Liked' : 'Like'}</Text>
-                </TouchableOpacity>
-                {starExercise && (
-                  <TouchableOpacity onPress={async () => { if (starred) unstarExercise?.(exercise.id); else await starExercise(exercise.id, exercise.name, exercise.videoUrl); }} style={[detSt.pill, starred && detSt.pillStarred]}>
-                    <Ionicons name={starred ? 'star' : 'star-outline'} size={16} color={starred ? '#FFF' : '#F59E0B'} />
-                    <Text style={[detSt.pillText, starred && { color: '#FFF' }]}>{starred ? 'Starred' : 'Star'}</Text>
-                  </TouchableOpacity>
-                )}
-              </View>
-              {/* FORM TIPS FIRST */}
-              {exercise.instructions && (
-                <View style={{ backgroundColor: '#F0E8FF', borderRadius: 14, padding: 14, marginBottom: 16, borderWidth: 1, borderColor: '#DDD0FF' }}>
-                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-                    <Ionicons name="bulb" size={18} color={C.accent} />
-                    <Text style={{ fontSize: 14, fontWeight: '700', color: C.accent }}>Form Tips</Text>
-                  </View>
-                  <Text style={{ fontSize: 13, color: '#4A3680', lineHeight: 20 }}>{exercise.instructions}</Text>
-                </View>
-              )}
-              {/* HISTORY BELOW */}
               {pb ? (
                 <View style={detSt.pbCard}>
                   <Text style={detSt.pbTitle}>🏆 Personal Best</Text>
@@ -269,6 +232,24 @@ const ExerciseDetail = ({ exercise, onClose, personalBests }: { exercise: any; o
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 12 }}>
                   <Ionicons name="checkmark-circle" size={16} color={C.green} />
                   <Text style={{ fontSize: 13, color: C.textSecondary, fontWeight: '500' }}>Completed {timesCompleted} {timesCompleted === 1 ? 'time' : 'times'}</Text>
+                </View>
+              )}
+              <View style={detSt.actionRow}>
+                <TouchableOpacity onPress={() => { if (preference === 'liked') removePreference(exercise.id); else likeExercise(exercise.id, exercise.name); }} style={[detSt.pill, preference === 'liked' && detSt.pillLiked]}>
+                  <Ionicons name={preference === 'liked' ? 'heart' : 'heart-outline'} size={16} color={preference === 'liked' ? '#FFF' : C.accent} />
+                  <Text style={[detSt.pillText, preference === 'liked' && { color: '#FFF' }]}>{preference === 'liked' ? 'Liked' : 'Like'}</Text>
+                </TouchableOpacity>
+                {starExercise && (
+                  <TouchableOpacity onPress={async () => { if (starred) unstarExercise?.(exercise.id); else await starExercise(exercise.id, exercise.name, exercise.videoUrl); }} style={[detSt.pill, starred && detSt.pillStarred]}>
+                    <Ionicons name={starred ? 'star' : 'star-outline'} size={16} color={starred ? '#FFF' : '#F59E0B'} />
+                    <Text style={[detSt.pillText, starred && { color: '#FFF' }]}>{starred ? 'Starred' : 'Star'}</Text>
+                  </TouchableOpacity>
+                )}
+              </View>
+              {exercise.instructions && (
+                <View style={{ backgroundColor: C.card, borderRadius: 12, padding: 14 }}>
+                  <Text style={{ fontSize: 13, fontWeight: '700', color: C.text, marginBottom: 8 }}>How to do it</Text>
+                  <Text style={{ fontSize: 13, color: C.textSecondary, lineHeight: 20 }}>{exercise.instructions}</Text>
                 </View>
               )}
             </View>
@@ -592,9 +573,9 @@ export const ExploreWorkoutsModal: React.FC<ExploreWorkoutsModalProps> = ({ visi
                   })}
                 </View>
                 <ScrollView horizontal showsHorizontalScrollIndicator={false} style={mSt.chipsRow} contentContainerStyle={{ paddingHorizontal: 16, paddingVertical: 6 }}>
-                  {/* Category chips removed — rely on filter modal */}
+                  {MAIN_CATEGORIES.map(cat => (<GradChip key={cat} label={cat} selected={mainCategory === cat} onPress={() => handleCategoryChange(cat)} />))}
                 </ScrollView>
-                {false && subFilters && (
+                {subFilters && (
                   <ScrollView horizontal showsHorizontalScrollIndicator={false} style={mSt.subChipsRow} contentContainerStyle={{ paddingHorizontal: 16, paddingVertical: 4 }}>
                     {subFilters.map(sf => (<GradChip key={sf} label={sf} selected={subFilter === sf} onPress={() => setSubFilter(sf)} />))}
                   </ScrollView>
