@@ -95,9 +95,23 @@ export function CheckInModal({ visible, isPro, onClose, onComplete }: CheckInMod
   const [step, setStep] = useState(0); // 0 = form, 1 = AI feedback
   const [submitting, setSubmitting] = useState(false);
   const [aiFeedback, setAiFeedback] = useState('');
+  const [aiOverview, setAiOverview] = useState('');
+  const [aiOverviewLoading, setAiOverviewLoading] = useState(false);
 
   // Form values
   const [energy, setEnergy] = useState(5);
+  const [sleep, setSleep] = useState(5);
+  const [mood, setMood] = useState(5);
+  const [soreness, setSoreness] = useState(5);
+  const [motivation, setMotivation] = useState(7);
+  const [weightKg, setWeightKg] = useState('');
+  const [notes, setNotes] = useState('');
+  const [goalsStillSame, setGoalsStillSame] = useState(true);
+  const [injuries, setInjuries] = useState('');
+  const [progressPhoto, setProgressPhoto] = useState<string | null>(null);
+  // New note fields
+  const [wentRight, setWentRight] = useState('');
+  const [didntGoRight, setDidntGoRight] = useState('');
   const [sleep, setSleep] = useState(5);
   const [mood, setMood] = useState(5);
   const [soreness, setSoreness] = useState(5);
@@ -112,28 +126,53 @@ export function CheckInModal({ visible, isPro, onClose, onComplete }: CheckInMod
     setSubmitting(true);
     try {
       const token = await SecureStore.getItemAsync('thryvin_access_token');
+      const checkinPayload = {
+        energyLevel: energy,
+        sleepQuality: sleep,
+        mood,
+        soreness,
+        motivation,
+        weightKg: weightKg ? parseFloat(weightKg) : undefined,
+        notes: notes || undefined,
+        goalsStillSame,
+        injuries: injuries || undefined,
+        wentRight: wentRight || undefined,
+        didntGoRight: didntGoRight || undefined,
+      };
       const response = await fetch(`${API_BASE}/api/checkins`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           ...(token ? { Authorization: `Bearer ${token}` } : {}),
         },
-        body: JSON.stringify({
-          energyLevel: energy,
-          sleepQuality: sleep,
-          mood,
-          soreness,
-          motivation,
-          weightKg: weightKg ? parseFloat(weightKg) : undefined,
-          notes: notes || undefined,
-          goalsStillSame,
-          injuries: injuries || undefined,
-        }),
+        body: JSON.stringify(checkinPayload),
       });
       const data = await response.json();
       if (data.ok) {
         setAiFeedback(data.aiFeedback || '');
         setStep(1);
+        // Fetch AI overview after submission
+        setAiOverviewLoading(true);
+        try {
+          const overviewRes = await fetch(`${API_BASE}/api/checkin/ai-overview`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              ...(token ? { Authorization: `Bearer ${token}` } : {}),
+            },
+            body: JSON.stringify(checkinPayload),
+          });
+          if (overviewRes.ok) {
+            const overviewData = await overviewRes.json();
+            setAiOverview(overviewData.overview || overviewData.message || overviewData.text || '');
+          } else {
+            setAiOverview('');
+          }
+        } catch {
+          setAiOverview('');
+        } finally {
+          setAiOverviewLoading(false);
+        }
       } else {
         Alert.alert('Error', data.error || 'Failed to save check-in');
       }
@@ -166,7 +205,7 @@ export function CheckInModal({ visible, isPro, onClose, onComplete }: CheckInMod
     setStep(0);
     setEnergy(5); setSleep(5); setMood(5); setSoreness(5); setMotivation(7);
     setWeightKg(''); setNotes(''); setGoalsStillSame(true); setInjuries(''); setProgressPhoto(null);
-    setAiFeedback('');
+    setAiFeedback(''); setAiOverview(''); setWentRight(''); setDidntGoRight('');
     onComplete();
     onClose();
   };
@@ -287,6 +326,36 @@ export function CheckInModal({ visible, isPro, onClose, onComplete }: CheckInMod
                 />
               </View>
 
+              {/* What went right */}
+              <View style={styles.fieldGroup}>
+                <Text style={styles.fieldLabel}>✅ What went right this week?</Text>
+                <TextInput
+                  style={[styles.textInput, styles.textAreaLarge]}
+                  placeholder="e.g. Hit all my sessions, slept well, felt strong on squats..."
+                  value={wentRight}
+                  onChangeText={setWentRight}
+                  multiline
+                  numberOfLines={4}
+                  textAlignVertical="top"
+                  placeholderTextColor={COLORS.textMuted}
+                />
+              </View>
+
+              {/* What didn't go right */}
+              <View style={styles.fieldGroup}>
+                <Text style={styles.fieldLabel}>⚠️ What didn't go right?</Text>
+                <TextInput
+                  style={[styles.textInput, styles.textAreaLarge]}
+                  placeholder="e.g. Missed Wednesday, energy low, shoulder felt tight..."
+                  value={didntGoRight}
+                  onChangeText={setDidntGoRight}
+                  multiline
+                  numberOfLines={4}
+                  textAlignVertical="top"
+                  placeholderTextColor={COLORS.textMuted}
+                />
+              </View>
+
               <TouchableOpacity
                 style={styles.submitBtn}
                 onPress={handleSubmit}
@@ -342,6 +411,32 @@ export function CheckInModal({ visible, isPro, onClose, onComplete }: CheckInMod
                   </Text>
                 </View>
                 <Text style={styles.feedbackText}>{aiFeedback}</Text>
+              </View>
+
+              {/* AI Weekly Overview Card */}
+              <View style={styles.aiOverviewCard}>
+                <LinearGradient
+                  colors={[COLORS.accent, COLORS.accentSecondary]}
+                  start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
+                  style={styles.aiOverviewHeader}
+                >
+                  <Ionicons name="analytics" size={18} color={COLORS.white} />
+                  <Text style={styles.aiOverviewTitle}>AI Weekly Overview</Text>
+                </LinearGradient>
+                <View style={styles.aiOverviewBody}>
+                  {aiOverviewLoading ? (
+                    <View style={{ alignItems: 'center', paddingVertical: 16 }}>
+                      <ActivityIndicator color={COLORS.accent} />
+                      <Text style={{ fontSize: 13, color: COLORS.textSecondary, marginTop: 8 }}>Generating your overview...</Text>
+                    </View>
+                  ) : aiOverview ? (
+                    <Text style={styles.aiOverviewText}>{aiOverview}</Text>
+                  ) : (
+                    <Text style={styles.aiOverviewPlaceholder}>
+                      Great job completing your check-in! Keep tracking your progress consistently for deeper AI insights. 💪
+                    </Text>
+                  )}
+                </View>
               </View>
 
               <TouchableOpacity style={styles.submitBtn} onPress={handleDone} activeOpacity={0.85}>
@@ -413,6 +508,7 @@ const styles = StyleSheet.create({
     borderColor: COLORS.border,
   },
   textArea: { minHeight: 80, textAlignVertical: 'top' },
+  textAreaLarge: { minHeight: 100, textAlignVertical: 'top' },
   toggleRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -469,6 +565,40 @@ const styles = StyleSheet.create({
   },
   feedbackFrom: { fontSize: 13, fontWeight: '700', color: COLORS.accent },
   feedbackText: { fontSize: 14, color: COLORS.text, lineHeight: 22 },
+  // AI Weekly Overview card
+  aiOverviewCard: {
+    borderRadius: 16,
+    overflow: 'hidden',
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+  },
+  aiOverviewHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    padding: 14,
+  },
+  aiOverviewTitle: {
+    color: COLORS.white,
+    fontSize: 15,
+    fontWeight: '700',
+  },
+  aiOverviewBody: {
+    backgroundColor: COLORS.cardBg,
+    padding: 16,
+  },
+  aiOverviewText: {
+    fontSize: 14,
+    color: COLORS.text,
+    lineHeight: 22,
+  },
+  aiOverviewPlaceholder: {
+    fontSize: 14,
+    color: COLORS.textSecondary,
+    lineHeight: 22,
+    fontStyle: 'italic',
+  },
   photoPickerBtn: {
     borderRadius: 12,
     overflow: 'hidden',

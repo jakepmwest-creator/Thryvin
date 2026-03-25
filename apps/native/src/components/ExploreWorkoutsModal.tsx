@@ -91,6 +91,8 @@ type MainCategory = 'All' | 'Free Weights' | 'Machines' | 'Bodyweight' | 'Cardio
 const MAIN_CATEGORIES: MainCategory[] = ['All', 'Free Weights', 'Machines', 'Bodyweight', 'Cardio', 'Flexibility'];
 const FREE_WEIGHTS_SUBS = ['All', 'Dumbbells', 'Barbells', 'Kettlebells', 'Cables'];
 const MACHINES_SUBS = ['All', 'Cable Machine', 'Smith Machine', 'Leg Press', 'Other'];
+const MUSCLE_GROUPS = ['Chest', 'Back', 'Legs', 'Shoulders', 'Arms', 'Core', 'Cardio', 'Full Body'];
+const DIFFICULTIES = ['Beginner', 'Intermediate', 'Advanced'];
 
 // ─── Components ───────────────────────────────────────────────────────────────
 const MusclePill = ({ label }: { label: string }) => {
@@ -174,8 +176,9 @@ const cardSt = StyleSheet.create({
 });
 
 const ExerciseGrid = ({ items, onPress, personalBests }: { items: any[]; onPress: (ex: any) => void; personalBests: any[] }) => {
+  const safe = (items || []).filter(Boolean);
   const rows: any[][] = [];
-  for (let i = 0; i < items.length; i += 2) rows.push([items[i], items[i + 1] || null]);
+  for (let i = 0; i < safe.length; i += 2) rows.push([safe[i], safe[i + 1] || null]);
   return (
     <>
       {rows.map((row, ri) => (
@@ -229,7 +232,7 @@ const ExerciseDetail = ({ exercise, onClose, personalBests }: { exercise: any; o
               <Text style={detSt.name}>{exercise.name}</Text>
               {(exercise.muscleGroups?.length > 0 || exercise.bodyPart) && (
                 <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginBottom: 12 }}>
-                  {(exercise.muscleGroups || [exercise.bodyPart]).map((m: string, i: number) => (
+                  {(exercise.muscleGroups || [exercise.bodyPart]).filter(Boolean).map((m: string, i: number) => (
                     <MusclePill key={i} label={m} />
                   ))}
                 </View>
@@ -300,9 +303,10 @@ const detSt = StyleSheet.create({
 interface ExploreWorkoutsModalProps {
   visible: boolean;
   onClose: () => void;
+  initialCategory?: string;
 }
 
-export const ExploreWorkoutsModal: React.FC<ExploreWorkoutsModalProps> = ({ visible, onClose }) => {
+export const ExploreWorkoutsModal: React.FC<ExploreWorkoutsModalProps> = ({ visible, onClose, initialCategory }) => {
   const [exercises, setExercises] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [search, setSearch] = useState('');
@@ -310,31 +314,54 @@ export const ExploreWorkoutsModal: React.FC<ExploreWorkoutsModalProps> = ({ visi
   const [mainCategory, setMainCategory] = useState<MainCategory>('All');
   const [subFilter, setSubFilter] = useState<string>('All');
   const [selectedExercise, setSelectedExercise] = useState<any>(null);
+  // Filter-first flow
+  const [showFilterPanel, setShowFilterPanel] = useState(true);
+  const [selectedMuscles, setSelectedMuscles] = useState<string[]>([]);
+  const [selectedDifficulty, setSelectedDifficulty] = useState<string[]>([]);
 
   const { personalBests } = useWorkoutStore();
   const { getLikedExercises, getDislikedExercises } = usePreferencesStore();
 
   useEffect(() => {
     if (!visible) return;
+    // Reset to filter panel on open
+    setShowFilterPanel(true);
+    setSelectedMuscles([]);
+    setSelectedDifficulty([]);
+    setSearch('');
+    if (initialCategory && MAIN_CATEGORIES.includes(initialCategory as MainCategory)) {
+      setMainCategory(initialCategory as MainCategory);
+    } else {
+      setMainCategory('All');
+    }
+    setSubFilter('All');
     setLoading(true);
     fetch(`${API_BASE_URL}/api/exercises`)
       .then(r => r.json())
       .then(data => {
-        const list = Array.isArray(data) ? data : (data.exercises || data.data || []);
-        setExercises(list.filter(Boolean));
+        const list = Array.isArray(data) ? data : (data?.exercises || data?.data || []);
+        setExercises((list || []).filter(Boolean));
       })
-      .catch(() => {})
+      .catch(() => { setExercises([]); })
       .finally(() => setLoading(false));
-  }, [visible]);
+  }, [visible, initialCategory]);
 
   const handleCategoryChange = useCallback((cat: MainCategory) => {
     setMainCategory(cat);
     setSubFilter('All');
   }, []);
 
+  const toggleMuscle = useCallback((m: string) => {
+    setSelectedMuscles(prev => prev.includes(m) ? prev.filter(x => x !== m) : [...prev, m]);
+  }, []);
+
+  const toggleDifficulty = useCallback((d: string) => {
+    setSelectedDifficulty(prev => prev.includes(d) ? prev.filter(x => x !== d) : [...prev, d]);
+  }, []);
+
   const exerciseMap = useMemo(() => {
     const map: Record<string, any> = {};
-    exercises.forEach(ex => { if (ex?.id) map[ex.id] = ex; });
+    (exercises || []).forEach(ex => { if (ex?.id) map[ex.id] = ex; });
     return map;
   }, [exercises]);
 
@@ -352,8 +379,8 @@ export const ExploreWorkoutsModal: React.FC<ExploreWorkoutsModalProps> = ({ visi
     try {
       if (viewMode === 'liked') return likedExercises;
       if (viewMode === 'disliked') return dislikedExercises;
-      return exercises.filter(Boolean);
-    } catch { return exercises.filter(Boolean); }
+      return (exercises || []).filter(Boolean);
+    } catch { return (exercises || []).filter(Boolean); }
   }, [viewMode, exercises, likedExercises, dislikedExercises]);
 
   const searchFiltered = useMemo(() => {
@@ -382,17 +409,36 @@ export const ExploreWorkoutsModal: React.FC<ExploreWorkoutsModalProps> = ({ visi
 
   const displayExercises = useMemo(() => {
     try {
-      const safe = categoryFiltered.filter(Boolean);
-      if (subFilter === 'All') return safe.slice(0, 80);
-      if (mainCategory === 'Free Weights') {
-        return safe.filter(ex => { try { return classifySubEquipment(ex) === subFilter; } catch { return false; } }).slice(0, 80);
+      let safe = categoryFiltered.filter(Boolean);
+      // Sub-filter
+      if (subFilter !== 'All') {
+        if (mainCategory === 'Free Weights') {
+          safe = safe.filter(ex => { try { return classifySubEquipment(ex) === subFilter; } catch { return false; } });
+        } else if (mainCategory === 'Machines') {
+          safe = safe.filter(ex => { try { return classifySubMachine(ex) === subFilter; } catch { return false; } });
+        }
       }
-      if (mainCategory === 'Machines') {
-        return safe.filter(ex => { try { return classifySubMachine(ex) === subFilter; } catch { return false; } }).slice(0, 80);
+      // Muscle group filter
+      if (selectedMuscles.length > 0) {
+        safe = safe.filter(ex => {
+          try {
+            const muscles = ((ex.muscleGroups || []) as string[]).concat(ex.bodyPart ? [ex.bodyPart] : []).map((m: string) => m.toLowerCase());
+            return selectedMuscles.some(sm => muscles.some((m: string) => m.includes(sm.toLowerCase())));
+          } catch { return true; }
+        });
+      }
+      // Difficulty filter
+      if (selectedDifficulty.length > 0) {
+        safe = safe.filter(ex => {
+          try {
+            const diff = (ex.difficulty || ex.level || '').toLowerCase();
+            return selectedDifficulty.some(d => diff.includes(d.toLowerCase()));
+          } catch { return true; }
+        });
       }
       return safe.slice(0, 80);
     } catch { return categoryFiltered.slice(0, 80); }
-  }, [categoryFiltered, subFilter, mainCategory]);
+  }, [categoryFiltered, subFilter, mainCategory, selectedMuscles, selectedDifficulty]);
 
   const subFilters = mainCategory === 'Free Weights' ? FREE_WEIGHTS_SUBS
     : mainCategory === 'Machines' ? MACHINES_SUBS : null;
@@ -416,92 +462,187 @@ export const ExploreWorkoutsModal: React.FC<ExploreWorkoutsModalProps> = ({ visi
             {/* Gradient accent stripe */}
             <LinearGradient colors={GRAD} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={mSt.stripe} />
 
-            {/* Search */}
-            <View style={mSt.searchRow}>
-              <Ionicons name="search" size={16} color={C.textMuted} style={{ marginRight: 8 }} />
-              <TextInput
-                style={mSt.searchInput}
-                placeholder="Search exercises..."
-                placeholderTextColor={C.textMuted}
-                value={search}
-                onChangeText={setSearch}
-              />
-              {search.length > 0 && (
-                <TouchableOpacity onPress={() => setSearch('')}>
-                  <Ionicons name="close-circle" size={16} color={C.textMuted} />
+            {showFilterPanel ? (
+              /* ── FILTER PANEL (shown first) ── */
+              <ScrollView contentContainerStyle={mSt.filterContent} showsVerticalScrollIndicator={false}>
+                <Text style={mSt.filterHeading}>Filter by Muscle Group</Text>
+                <View style={mSt.chipGrid}>
+                  {MUSCLE_GROUPS.map(m => (
+                    <TouchableOpacity key={m} onPress={() => toggleMuscle(m)} activeOpacity={0.8}>
+                      {selectedMuscles.includes(m) ? (
+                        <LinearGradient colors={GRAD} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={mSt.filterChipActive}>
+                          <Text style={mSt.filterChipTextActive}>{m}</Text>
+                        </LinearGradient>
+                      ) : (
+                        <View style={mSt.filterChipOff}>
+                          <Text style={mSt.filterChipTextOff}>{m}</Text>
+                        </View>
+                      )}
+                    </TouchableOpacity>
+                  ))}
+                </View>
+
+                <Text style={mSt.filterHeading}>Filter by Difficulty</Text>                <View style={mSt.chipGrid}>
+                  {DIFFICULTIES.map(d => (
+                    <TouchableOpacity key={d} onPress={() => toggleDifficulty(d)} activeOpacity={0.8}>
+                      {selectedDifficulty.includes(d) ? (
+                        <LinearGradient colors={GRAD} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={mSt.filterChipActive}>
+                          <Text style={mSt.filterChipTextActive}>{d}</Text>
+                        </LinearGradient>
+                      ) : (
+                        <View style={mSt.filterChipOff}>
+                          <Text style={mSt.filterChipTextOff}>{d}</Text>
+                        </View>
+                      )}
+                    </TouchableOpacity>
+                  ))}
+                </View>
+
+                <Text style={mSt.filterHeading}>Equipment Category</Text>
+                <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 8 }} contentContainerStyle={{ paddingVertical: 4, gap: 8, flexDirection: 'row' }}>
+                  {MAIN_CATEGORIES.map(cat => (
+                    <GradChip key={cat} label={cat} selected={mainCategory === cat} onPress={() => handleCategoryChange(cat)} />
+                  ))}
+                </ScrollView>
+
+                {/* Show Exercises button */}
+                <TouchableOpacity
+                  style={{ borderRadius: 14, overflow: 'hidden', marginTop: 16 }}
+                  onPress={() => setShowFilterPanel(false)}
+                >
+                  <LinearGradient colors={GRAD} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={{ paddingVertical: 16, alignItems: 'center', borderRadius: 14 }}>
+                    <Text style={{ color: '#FFF', fontWeight: '700', fontSize: 16 }}>
+                      Show Exercises {(selectedMuscles.length > 0 || selectedDifficulty.length > 0) ? `(filtered)` : '→'}
+                    </Text>
+                  </LinearGradient>
                 </TouchableOpacity>
-              )}
-            </View>
 
-            {/* View toggle: All / Liked / Disliked */}
-            <View style={mSt.toggleRow}>
-              {(['all', 'liked', 'disliked'] as ViewMode[]).map(mode => {
-                const label = mode === 'all' ? 'All' : mode === 'liked' ? '👍 Liked' : '👎 Disliked';
-                const active = viewMode === mode;
-                return (
-                  <TouchableOpacity key={mode} onPress={() => setViewMode(mode)} style={{ flex: 1, marginHorizontal: 3 }}>
-                    {active
-                      ? <LinearGradient colors={GRAD} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={mSt.toggleActive}><Text style={mSt.toggleTextActive}>{label}</Text></LinearGradient>
-                      : <View style={mSt.toggleOff}><Text style={mSt.toggleTextOff}>{label}</Text></View>}
-                  </TouchableOpacity>
-                );
-              })}
-            </View>
-
-            {/* Category chips */}
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={mSt.chipsRow} contentContainerStyle={{ paddingHorizontal: 16, paddingVertical: 6 }}>
-              {MAIN_CATEGORIES.map(cat => (
-                <GradChip key={cat} label={cat} selected={mainCategory === cat} onPress={() => handleCategoryChange(cat)} />
-              ))}
-            </ScrollView>
-
-            {/* Sub-filter chips */}
-            {subFilters && (
-              <ScrollView horizontal showsHorizontalScrollIndicator={false} style={mSt.subChipsRow} contentContainerStyle={{ paddingHorizontal: 16, paddingVertical: 4 }}>
-                {subFilters.map(sf => (
-                  <GradChip key={sf} label={sf} selected={subFilter === sf} onPress={() => setSubFilter(sf)} />
-                ))}
+                <TouchableOpacity
+                  style={{ marginTop: 12, alignItems: 'center', padding: 8 }}
+                  onPress={() => {
+                    setSelectedMuscles([]);
+                    setSelectedDifficulty([]);
+                    setMainCategory('All');
+                    setSubFilter('All');
+                    setShowFilterPanel(false);
+                  }}
+                >
+                  <Text style={{ color: C.textSecondary, fontSize: 14, fontWeight: '500' }}>Browse All (no filter)</Text>
+                </TouchableOpacity>
               </ScrollView>
+            ) : (
+              /* ── EXERCISE LIST ── */
+              <>
+                {/* Search */}
+                <View style={mSt.searchRow}>
+                  <Ionicons name="search" size={16} color={C.textMuted} style={{ marginRight: 8 }} />
+                  <TextInput
+                    style={mSt.searchInput}
+                    placeholder="Search exercises..."
+                    placeholderTextColor={C.textMuted}
+                    value={search}
+                    onChangeText={setSearch}
+                  />
+                  {search.length > 0 && (
+                    <TouchableOpacity onPress={() => setSearch('')}>
+                      <Ionicons name="close-circle" size={16} color={C.textMuted} />
+                    </TouchableOpacity>
+                  )}
+                  <TouchableOpacity onPress={() => setShowFilterPanel(true)} style={{ marginLeft: 8 }}>
+                    <Ionicons name="options-outline" size={20} color={C.accent} />
+                  </TouchableOpacity>
+                </View>
+
+                {/* Active filter summary */}
+                {(selectedMuscles.length > 0 || selectedDifficulty.length > 0) && (
+                  <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6, paddingHorizontal: 16, paddingBottom: 8 }}>
+                    {selectedMuscles.map(m => (
+                      <View key={m} style={{ backgroundColor: C.accent + '20', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 99 }}>
+                        <Text style={{ fontSize: 11, color: C.accent, fontWeight: '600' }}>{m}</Text>
+                      </View>
+                    ))}
+                    {selectedDifficulty.map(d => (
+                      <View key={d} style={{ backgroundColor: C.accent + '20', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 99 }}>
+                        <Text style={{ fontSize: 11, color: C.accent, fontWeight: '600' }}>{d}</Text>
+                      </View>
+                    ))}
+                    <TouchableOpacity onPress={() => { setSelectedMuscles([]); setSelectedDifficulty([]); }} style={{ paddingHorizontal: 10, paddingVertical: 4 }}>
+                      <Text style={{ fontSize: 11, color: C.red, fontWeight: '600' }}>Clear ×</Text>
+                    </TouchableOpacity>
+                  </View>
+                )}
+
+                {/* View toggle: All / Liked / Disliked */}
+                <View style={mSt.toggleRow}>
+                  {(['all', 'liked', 'disliked'] as ViewMode[]).map(mode => {
+                    const label = mode === 'all' ? 'All' : mode === 'liked' ? '👍 Liked' : '👎 Disliked';
+                    const active = viewMode === mode;
+                    return (
+                      <TouchableOpacity key={mode} onPress={() => setViewMode(mode)} style={{ flex: 1, marginHorizontal: 3 }}>
+                        {active
+                          ? <LinearGradient colors={GRAD} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={mSt.toggleActive}><Text style={mSt.toggleTextActive}>{label}</Text></LinearGradient>
+                          : <View style={mSt.toggleOff}><Text style={mSt.toggleTextOff}>{label}</Text></View>}
+                      </TouchableOpacity>
+                    );
+                  })}
+                </View>
+
+                {/* Category chips */}
+                <ScrollView horizontal showsHorizontalScrollIndicator={false} style={mSt.chipsRow} contentContainerStyle={{ paddingHorizontal: 16, paddingVertical: 6 }}>
+                  {MAIN_CATEGORIES.map(cat => (
+                    <GradChip key={cat} label={cat} selected={mainCategory === cat} onPress={() => handleCategoryChange(cat)} />
+                  ))}
+                </ScrollView>
+
+                {/* Sub-filter chips */}
+                {subFilters && (
+                  <ScrollView horizontal showsHorizontalScrollIndicator={false} style={mSt.subChipsRow} contentContainerStyle={{ paddingHorizontal: 16, paddingVertical: 4 }}>
+                    {subFilters.map(sf => (
+                      <GradChip key={sf} label={sf} selected={subFilter === sf} onPress={() => setSubFilter(sf)} />
+                    ))}
+                  </ScrollView>
+                )}
+
+                {/* Exercise grid */}
+                <ScrollView style={{ flex: 1 }} contentContainerStyle={{ padding: 16 }} showsVerticalScrollIndicator={false}>
+                  {loading ? (
+                    <View style={{ alignItems: 'center', paddingTop: 60 }}>
+                      <Text style={{ color: C.textMuted, fontSize: 14 }}>Loading exercises...</Text>
+                    </View>
+                  ) : displayExercises.length === 0 ? (
+                    <View style={{ alignItems: 'center', paddingTop: 60, gap: 8 }}>
+                      {viewMode === 'liked' && (
+                        <>
+                          <Text style={{ fontSize: 32 }}>💜</Text>
+                          <Text style={{ color: C.textMuted, fontSize: 14, textAlign: 'center' }}>No liked exercises yet!{'\n'}Browse and heart the ones you love.</Text>
+                        </>
+                      )}
+                      {viewMode === 'disliked' && (
+                        <>
+                          <Text style={{ fontSize: 32 }}>👍</Text>
+                          <Text style={{ color: C.textMuted, fontSize: 14, textAlign: 'center' }}>Nothing disliked yet!{'\n'}Explore exercises below.</Text>
+                        </>
+                      )}
+                      {viewMode === 'all' && (
+                        <Text style={{ color: C.textMuted, fontSize: 14 }}>No exercises match your search.</Text>
+                      )}
+                    </View>
+                  ) : (
+                    <ExerciseGrid items={displayExercises} onPress={setSelectedExercise} personalBests={pbs} />
+                  )}
+
+                  {/* Browse All button */}
+                  <TouchableOpacity
+                    onPress={() => { setViewMode('all'); setMainCategory('All'); setSubFilter('All'); setSearch(''); setSelectedMuscles([]); setSelectedDifficulty([]); }}
+                    style={{ marginTop: 8, borderRadius: 14, overflow: 'hidden' }}
+                  >
+                    <LinearGradient colors={GRAD} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={{ paddingVertical: 14, alignItems: 'center', borderRadius: 14 }}>
+                      <Text style={{ color: '#FFF', fontWeight: '700', fontSize: 15 }}>Browse All Exercises →</Text>
+                    </LinearGradient>
+                  </TouchableOpacity>
+                </ScrollView>
+              </>
             )}
-
-            {/* Exercise grid */}
-            <ScrollView style={{ flex: 1 }} contentContainerStyle={{ padding: 16 }} showsVerticalScrollIndicator={false}>
-              {loading ? (
-                <View style={{ alignItems: 'center', paddingTop: 60 }}>
-                  <Text style={{ color: C.textMuted, fontSize: 14 }}>Loading exercises...</Text>
-                </View>
-              ) : displayExercises.length === 0 ? (
-                <View style={{ alignItems: 'center', paddingTop: 60, gap: 8 }}>
-                  {viewMode === 'liked' && (
-                    <>
-                      <Text style={{ fontSize: 32 }}>💜</Text>
-                      <Text style={{ color: C.textMuted, fontSize: 14, textAlign: 'center' }}>No liked exercises yet!{'\n'}Browse and heart the ones you love.</Text>
-                    </>
-                  )}
-                  {viewMode === 'disliked' && (
-                    <>
-                      <Text style={{ fontSize: 32 }}>👍</Text>
-                      <Text style={{ color: C.textMuted, fontSize: 14, textAlign: 'center' }}>Nothing disliked yet!{'\n'}Explore exercises below.</Text>
-                    </>
-                  )}
-                  {viewMode === 'all' && (
-                    <Text style={{ color: C.textMuted, fontSize: 14 }}>No exercises match your search.</Text>
-                  )}
-                </View>
-              ) : (
-                <ExerciseGrid items={displayExercises} onPress={setSelectedExercise} personalBests={pbs} />
-              )}
-
-              {/* Browse All button */}
-              <TouchableOpacity
-                onPress={() => { setViewMode('all'); setMainCategory('All'); setSubFilter('All'); setSearch(''); }}
-                style={{ marginTop: 8, borderRadius: 14, overflow: 'hidden' }}
-              >
-                <LinearGradient colors={GRAD} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={{ paddingVertical: 14, alignItems: 'center', borderRadius: 14 }}>
-                  <Text style={{ color: '#FFF', fontWeight: '700', fontSize: 15 }}>Browse All Exercises →</Text>
-                </LinearGradient>
-              </TouchableOpacity>
-            </ScrollView>
 
           </View>
         </View>
@@ -534,6 +675,14 @@ const mSt = StyleSheet.create({
   toggleTextOff: { color: C.textSecondary, fontSize: 13, fontWeight: '600' },
   chipsRow: { flexGrow: 0 },
   subChipsRow: { flexGrow: 0 },
+  // Filter panel styles
+  filterContent: { padding: 20, paddingBottom: 40 },
+  filterHeading: { fontSize: 15, fontWeight: '700', color: C.text, marginBottom: 12, marginTop: 8 },
+  chipGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 16 },
+  filterChipActive: { paddingHorizontal: 14, paddingVertical: 8, borderRadius: 99 },
+  filterChipOff: { paddingHorizontal: 14, paddingVertical: 8, borderRadius: 99, backgroundColor: '#F0F0F0', borderWidth: 1, borderColor: C.cardBorder },
+  filterChipTextActive: { color: '#FFF', fontSize: 13, fontWeight: '700' },
+  filterChipTextOff: { color: C.text, fontSize: 13, fontWeight: '600' },
 });
 
 export default ExploreWorkoutsModal;
