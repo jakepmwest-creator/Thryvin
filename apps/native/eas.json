@@ -13,7 +13,7 @@
     },
     "production": {
       "android": {
-        "buildType": "app-bundle",
+        "buildType": "apk",
         "env": {
           "ORG_GRADLE_PROJECT_newArchEnabled": "true"
         }
