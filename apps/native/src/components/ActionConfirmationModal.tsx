@@ -164,7 +164,7 @@ function getActionDetails(action: PendingActionDetails): {
       return {
         icon: 'warning',
         title: 'Reset Program',
-        description: 'This will clear all current workouts and generate a fresh 4-week plan. This cannot be undone.',
+        description: 'This will clear all current workouts and generate a fresh 3-week plan. This cannot be undone.',
         color: COLORS.danger,
       };
     

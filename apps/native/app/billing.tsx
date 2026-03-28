@@ -52,7 +52,7 @@ const PLANS = [
 
 const INCLUDED_FEATURES = [
   { icon: 'infinite', text: 'Unlimited AI-generated workout plans' },
-  { icon: 'refresh', text: 'Rolling plan regeneration every 4 weeks' },
+  { icon: 'refresh', text: 'Rolling plan regeneration every 3 weeks' },
   { icon: 'analytics', text: 'Deep exercise stats & trends' },
   { icon: 'create', text: 'Edit & customise any workout' },
   { icon: 'flash', text: 'Drop, super & giant set support' },

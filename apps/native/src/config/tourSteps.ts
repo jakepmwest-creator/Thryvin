@@ -28,7 +28,7 @@ export const TOUR_STEPS: TourStep[] = [
   {
     id: 'workouts_tab',
     title: 'Your Plan',
-    description: 'View your full 4-week schedule, explore exercises and swap workouts.',
+    description: 'View your full 3-week schedule, explore exercises and swap workouts.',
     placement: 'center',
     icon: 'calendar',
     tab: 'workouts',

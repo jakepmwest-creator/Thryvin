@@ -761,18 +761,6 @@ export function WorkoutDetailsModal({
                 )}
             
             {/* Only show exercise sections for non-completed workouts */}
-            {!currentWorkout?.completed && (() => {
-              const allExs = [...(warmupExercises || []), ...(mainExercises || []), ...(cooldownExercises || [])];
-              const hasSupersets = allExs.some((ex: any) => ex?.setType === 'superset' || ex?.isSuperset);
-              return (!isPro && hasSupersets) ? (
-                <View style={{ marginHorizontal: 0, marginBottom: 12, backgroundColor: '#FFF3E0', borderRadius: 14, padding: 14, flexDirection: 'row', alignItems: 'flex-start', gap: 10, borderWidth: 1, borderColor: '#FFCC80' }}>
-                  <Text style={{ fontSize: 16 }}>🔒</Text>
-                  <Text style={{ flex: 1, fontSize: 13, color: '#E65100', fontWeight: '600', lineHeight: 19 }}>
-                    Some sets are Pro-only. Upgrade to unlock supersets.
-                  </Text>
-                </View>
-              ) : null;
-            })()}
             {!currentWorkout?.completed && warmupExercises.length > 0 && (
               <View style={styles.section}>
                 <View style={styles.sectionHeader}>
@@ -789,7 +777,6 @@ export function WorkoutDetailsModal({
                     index={index}
                     isExpanded={expandedExerciseIndex === index}
                     onToggle={() => setExpandedExerciseIndex(expandedExerciseIndex === index ? null : index)}
-                    isPro={isPro}
                   />
                 ))}
               </View>
@@ -811,7 +798,6 @@ export function WorkoutDetailsModal({
                     index={index + warmupExercises.length}
                     isExpanded={expandedExerciseIndex === (index + warmupExercises.length)}
                     onToggle={() => setExpandedExerciseIndex(expandedExerciseIndex === (index + warmupExercises.length) ? null : (index + warmupExercises.length))}
-                    isPro={isPro}
                   />
                 ))}
               </View>
@@ -833,7 +819,6 @@ export function WorkoutDetailsModal({
                     index={index + warmupExercises.length + mainExercises.length}
                     isExpanded={expandedExerciseIndex === (index + warmupExercises.length + mainExercises.length)}
                     onToggle={() => setExpandedExerciseIndex(expandedExerciseIndex === (index + warmupExercises.length + mainExercises.length) ? null : (index + warmupExercises.length + mainExercises.length))}
-                    isPro={isPro}
                   />
                 ))}
               </View>
@@ -981,21 +966,14 @@ function getEquipmentAlternatives(exerciseName: string): string | null {
   return null;
 }
 
-function ExerciseCard({ exercise, index, isExpanded, onToggle, isPro }: any) {
+function ExerciseCard({ exercise, index, isExpanded, onToggle }: any) {
   const alternatives = getEquipmentAlternatives(exercise.name);
-  const isSuperset = exercise?.setType === 'superset' || exercise?.isSuperset;
-  const showAsRegular = isSuperset && !isPro;
   
   return (
     <View style={styles.exerciseCard}>
       <TouchableOpacity style={styles.exerciseHeader} onPress={onToggle}>
         <View style={styles.exerciseInfo}>
           <Text style={styles.exerciseName}>{exercise.name}</Text>
-          {isSuperset && !showAsRegular && (
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 2 }}>
-              <Text style={{ fontSize: 10, fontWeight: '700', color: '#A259FF', backgroundColor: '#EDE8FF', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 6 }}>SUPERSET</Text>
-            </View>
-          )}
           <View style={styles.exerciseDetails}>
             <View style={styles.detailItem}>
               <Ionicons name="repeat-outline" size={14} color={COLORS.mediumGray} />

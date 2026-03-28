@@ -1,18 +1,13 @@
 import { useEffect, useRef } from 'react';
 import { notificationService } from '../services/notificationService';
 import { useAuthStore } from '../stores/auth-store';
-import { useWorkoutStore } from '../stores/workout-store';
 import { router } from 'expo-router';
 
 /**
- * Hook to set up smart notifications for the app.
- * - Requests permissions on first load
- * - Schedules today's specific workout as the morning notification
- * - Wires up deep-link navigation when a notification is tapped
+ * Hook to set up notifications for the app
  */
 export function useNotifications() {
   const { user, updateUser } = useAuthStore();
-  const { weekWorkouts } = useWorkoutStore();
   const hasSetup = useRef(false);
 
   useEffect(() => {
@@ -20,52 +15,38 @@ export function useNotifications() {
 
     const setupNotifications = async () => {
       try {
+        // Request permissions
         const hasPermission = await notificationService.requestPermissions();
-
+        
         if (hasPermission) {
-          // Push token
+          // Get push token
           const pushToken = await notificationService.getPushToken();
-          if (pushToken && pushToken !== (user as any).pushToken) {
-            updateUser({ pushToken } as any);
+          
+          if (pushToken && pushToken !== user.pushToken) {
+            // Update user with push token
+            updateUser({ pushToken });
+            console.log('✅ Push token saved to user');
           }
 
-          // Determine today's workout (if any)
-          const today = new Date().toDateString();
-          const todayWorkout = weekWorkouts.find(
-            (w) => new Date(w.date).toDateString() === today
-          );
-          const isRestDay = !!todayWorkout?.isRestDay;
-          const workoutTitle =
-            !isRestDay && todayWorkout?.title ? todayWorkout.title : undefined;
+          // Schedule daily reminders
+          const trainingDays = parseInt(user.trainingDays || '3');
+          await notificationService.scheduleDailyReminders(trainingDays);
+          console.log('✅ Daily reminders scheduled');
 
-          // Schedule smart 2-notification pattern
-          await notificationService.scheduleSmartReminders({
-            workoutTitle,
-            isRestDay,
-          });
-
-          // Streak check — if user hasn't worked out in 2+ days, nudge them
-          const completedDates = weekWorkouts
-            .filter((w) => w.completed && !w.isRestDay)
-            .map((w) => new Date(w.completedAt || w.date).getTime())
-            .sort((a, b) => b - a);
-
-          if (completedDates.length === 0) {
-            await notificationService.checkStreakAtRisk(7); // assume long gap for new users
-          } else {
-            const daysSinceLast = Math.floor(
-              (Date.now() - completedDates[0]) / (1000 * 60 * 60 * 24)
-            );
-            await notificationService.checkStreakAtRisk(daysSinceLast);
-          }
-
-          // Notification tap → navigate to correct screen
+          // Set up notification listeners
           notificationService.setupListeners(
-            undefined,
+            // On notification received (foreground)
+            (notification) => {
+              console.log('📬 Notification received:', notification);
+            },
+            // On notification tapped
             (response) => {
+              console.log('👆 Notification tapped:', response);
               const data = response.notification.request.content.data;
+              
+              // Navigate to appropriate screen
               if (data?.screen) {
-                router.push(`/(tabs)/${data.screen}` as any);
+                router.push(`/(tabs)/${data.screen}`);
               }
             }
           );
@@ -73,26 +54,21 @@ export function useNotifications() {
 
         hasSetup.current = true;
       } catch (error) {
-        console.error('[Notif] Setup error:', error);
+        console.error('Error setting up notifications:', error);
       }
     };
 
     setupNotifications();
 
+    // Cleanup on unmount
     return () => {
       notificationService.removeListeners();
     };
-  }, [user, weekWorkouts]);
+  }, [user]);
 
   return {
     requestPermissions: () => notificationService.requestPermissions(),
-    scheduleReminders: (days?: number) => notificationService.scheduleSmartReminders({}),
+    scheduleReminders: (days: number) => notificationService.scheduleDailyReminders(days),
     cancelAll: () => notificationService.cancelAll(),
-    onWorkoutCompleted: (xp: number, streak: number) =>
-      notificationService.notifyWorkoutCompleted(xp, streak),
-    onBadgeUnlocked: (name: string) => notificationService.notifyBadgeUnlocked(name),
-    onNewPlanReady: () => notificationService.notifyNewPlanReady(),
-    onWeeklyRecap: (done: number, total: number) =>
-      notificationService.notifyWeeklyRecap(done, total),
   };
 }

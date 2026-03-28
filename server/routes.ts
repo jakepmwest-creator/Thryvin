@@ -507,7 +507,7 @@ The totals for dailyCalories, dailyProtein, dailyCarbs, and dailyFat should be t
 Make sure all numerical values are numbers, not strings.`;
 
     const response = await openai.chat.completions.create({
-      model: "gpt-5.4-mini",
+      model: "gpt-4o",
       messages: [
         { role: "system", content: systemPrompt },
         { role: "user", content: "Generate a personalized meal plan for me." },
@@ -583,7 +583,7 @@ async function generateCoachTip(
     Focus on form, nutrition, recovery, or motivation.`;
 
     const response = await openai.chat.completions.create({
-      model: "gpt-5.4-mini",
+      model: "gpt-4o",
       messages: [{ role: "user", content: prompt }],
       max_tokens: 150,
       temperature: 0.7,
@@ -628,7 +628,7 @@ async function generateScheduleEdits(
     - Include helpful notes explaining the reasoning`;
 
     const response = await openai.chat.completions.create({
-      model: "gpt-5.4-mini",
+      model: "gpt-4o",
       messages: [{ role: "user", content: prompt }],
       response_format: { type: "json_object" },
       max_tokens: 800,
@@ -818,13 +818,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Log workout performance for AI learning
   // SECURITY: Requires authentication - userId derived from session
-  app.post("/api/workouts/log-performance", authenticateToken, async (req: AuthenticatedRequest, res) => {
+  app.post("/api/workouts/log-performance", async (req, res) => {
     try {
       const { workoutId, exercises, overallFeedback, duration } = req.body;
       
-      // SECURITY: Derive userId from authenticated user (session or Bearer token)
-      const userId = req.user?.id;
-      if (!userId) {
+      // SECURITY: Derive userId from authenticated session, never trust client
+      const DEMO_MODE = process.env.DEMO_MODE === 'true';
+      const DEMO_USER_ID = -1;
+      
+      let userId: number | undefined;
+      if (req.isAuthenticated() && req.user?.id) {
+        userId = req.user.id;
+      } else if (DEMO_MODE) {
+        userId = DEMO_USER_ID;
+      } else {
         return res.status(401).json({ 
           error: "Authentication required",
           code: "AUTH_REQUIRED",
@@ -1102,7 +1109,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }`;
 
       const response = await openai.chat.completions.create({
-        model: "gpt-5.4-mini",
+        model: "gpt-4o",
         messages: [
           {
             role: "system",
@@ -1354,7 +1361,7 @@ Respond with JSON ONLY:
       const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
       
       const response = await openai.chat.completions.create({
-        model: "gpt-5.4-mini",
+        model: "gpt-4o-mini",
         messages: [
           { role: "system", content: "You are a fitness expert. Respond with valid JSON only. Keep exercise names EXACTLY the same." },
           { role: "user", content: modificationPrompt }
@@ -1975,68 +1982,6 @@ Respond with JSON ONLY:
   });
 
   // AI Workout Generation (with fallback)
-  // ── Plan Overview ─────────────────────────────────────────────────────────
-  // POST /api/workouts/plan-overview
-  // Called once after 4-week plan generation. Returns AI description of what
-  // the next 4 weeks look like, why, and what to expect.
-  app.post("/api/workouts/plan-overview", authenticateToken, async (req: AuthenticatedRequest, res) => {
-    try {
-      const userId = req.user?.id;
-      if (!userId) return res.status(401).json({ error: 'Not authenticated' });
-
-      const { weekWorkouts, userProfile, isPro } = req.body;
-
-      const user = await storage.getUser(userId);
-      if (!user) return res.status(404).json({ error: 'User not found' });
-
-      // Build a concise workout list for the AI
-      const workoutSummary = (weekWorkouts || [])
-        .filter((w: any) => !w.isRestDay)
-        .slice(0, 16) // First 2 weeks to keep prompt manageable
-        .map((w: any) => `W${w.weekNumber || '?'} ${w.dayOfWeek || ''}: ${w.type || ''} — ${w.title || ''} (${w.duration || 45}min)`)
-        .join('\n');
-
-      const systemPrompt = isPro
-        ? `You are an expert personal trainer writing a detailed, exciting plan overview for a Pro user. Be specific about the training structure, progression, deload week, and what results to expect. Use their goals and data. Tone: professional but motivating. Max 250 words.`
-        : `You are a friendly fitness coach writing a brief plan overview. Be encouraging and clear about what the next 4 weeks involve. Max 150 words.`;
-
-      const userMsg = `User goals: ${JSON.stringify(user.fitnessGoals || user.goal || 'general fitness')}
-Experience: ${user.experience || 'intermediate'}
-Training days/week: ${user.trainingDays || 4}
-Session duration: ${user.sessionDuration || 45} min
-
-Workout plan sample (first 2 weeks):
-${workoutSummary || 'Mixed strength and cardio training'}
-
-Write a ${isPro ? 'detailed' : 'brief'} overview explaining:
-1. What the next 4 weeks look like (structure, progressive overload, deload)
-2. Why this plan is designed this way for their goals
-3. What they can expect to achieve
-${isPro ? '4. Week-by-week progression and the deload week rationale' : ''}`;
-
-      let overview = '';
-      try {
-        const aiResp = await openai.chat.completions.create({
-          model: 'gpt-4o',
-          messages: [
-            { role: 'system', content: systemPrompt },
-            { role: 'user', content: userMsg },
-          ],
-          max_tokens: isPro ? 350 : 200,
-          temperature: 0.7,
-        });
-        overview = aiResp.choices[0]?.message?.content || '';
-      } catch (aiErr) {
-        overview = `Your 4-week plan is ready! Weeks 1–3 progressively build intensity with your chosen training style, while Week 4 is a planned deload to help your body recover and come back stronger. Each session is tailored to your goals and available time. Let's get started! 💪`;
-      }
-
-      res.json({ ok: true, overview });
-    } catch (err: any) {
-      console.error('[PLAN-OVERVIEW] Error:', err);
-      res.status(500).json({ error: 'Failed to generate plan overview' });
-    }
-  });
-
   app.post("/api/workouts/generate", async (req, res) => {
     try {
       const { userProfile, dayOfWeek, weekNumber, recentExercises } = req.body;
@@ -2055,11 +2000,6 @@ ${isPro ? '4. Week-by-week progression and the deload week rationale' : ''}`;
         // Add userId for comprehensive context lookup
         enrichedProfile.userId = user.id;
         
-        // ── Pro vs Standard feature gating ─────────────────────────────────
-        // Standard users: basic AI only — no advanced questionnaire, no preference learning
-        const isPro = user.hasActiveSubscription === true;
-        enrichedProfile._isPro = isPro; // pass to generator so it can adapt prompt
-        
         // Parse and add advanced questionnaire from onboarding_responses
         if (user.onboardingResponses) {
           try {
@@ -2070,11 +2010,6 @@ ${isPro ? '4. Week-by-week progression and the deload week rationale' : ''}`;
             if (onboardingData.advancedQuestionnaire) {
               enrichedProfile.advancedQuestionnaire = onboardingData.advancedQuestionnaire;
               console.log('📚 Advanced questionnaire loaded:', Object.keys(onboardingData.advancedQuestionnaire));
-            }
-            // Standard: strip advanced questionnaire — basic AI plans only
-            if (!isPro && enrichedProfile.advancedQuestionnaire) {
-              delete enrichedProfile.advancedQuestionnaire;
-              console.log('🔒 [Tier] Standard plan — advanced questionnaire excluded from AI context');
             }
           } catch (parseErr) {
             console.log('⚠️ Could not parse onboarding responses');
@@ -2181,7 +2116,7 @@ Respond with ONLY a JSON object (no markdown, no explanation):
 }`;
 
       const response = await client.chat.completions.create({
-        model: "gpt-5.4-mini",
+        model: 'gpt-4o',
         messages: [
           { role: 'system', content: 'You are an expert personal trainer. Generate workout plans in valid JSON format only.' },
           { role: 'user', content: prompt }
@@ -2307,16 +2242,6 @@ Respond with ONLY a JSON object (no markdown, no explanation):
         return res.status(401).json({ error: 'Not authenticated' });
       }
 
-      // Pro-only feature: rolling regeneration requires active subscription
-      if (!req.user?.hasActiveSubscription) {
-        return res.status(403).json({
-          error: 'Pro feature',
-          code: 'PRO_REQUIRED',
-          message: 'Rolling regeneration is a Pro feature. Upgrade to unlock it! 🚀',
-          isProFeature: true,
-        });
-      }
-
       const feedback = req.body?.feedback || {};
       const availableDaysWeek1 = Array.isArray(feedback.availableDaysWeek1)
         ? feedback.availableDaysWeek1
@@ -2325,12 +2250,6 @@ Respond with ONLY a JSON object (no markdown, no explanation):
           : [];
       const availableDaysWeek2 = Array.isArray(feedback.availableDaysWeek2)
         ? feedback.availableDaysWeek2
-        : availableDaysWeek1;
-      const availableDaysWeek3 = Array.isArray(feedback.availableDaysWeek3)
-        ? feedback.availableDaysWeek3
-        : availableDaysWeek1;
-      const availableDaysWeek4 = Array.isArray(feedback.availableDaysWeek4)
-        ? feedback.availableDaysWeek4
         : availableDaysWeek1;
 
       if (availableDaysWeek1.length === 0) {
@@ -2362,18 +2281,10 @@ Respond with ONLY a JSON object (no markdown, no explanation):
 
       const normalizedWeek1Days = availableDaysWeek1.map((day: string) => normalizeDay(String(day)));
       const normalizedWeek2Days = availableDaysWeek2.map((day: string) => normalizeDay(String(day)));
-      const normalizedWeek3Days = availableDaysWeek3.map((day: string) => normalizeDay(String(day)));
-      const normalizedWeek4Days = availableDaysWeek4.map((day: string) => normalizeDay(String(day)));
       const gymDaysAvailableWeek1 = normalizedWeek1Days
         .map(day => dayNameToIndex[day])
         .filter((day) => typeof day === 'number');
       const gymDaysAvailableWeek2 = normalizedWeek2Days
-        .map(day => dayNameToIndex[day])
-        .filter((day) => typeof day === 'number');
-      const gymDaysAvailableWeek3 = normalizedWeek3Days
-        .map(day => dayNameToIndex[day])
-        .filter((day) => typeof day === 'number');
-      const gymDaysAvailableWeek4 = normalizedWeek4Days
         .map(day => dayNameToIndex[day])
         .filter((day) => typeof day === 'number');
 
@@ -2396,8 +2307,6 @@ Respond with ONLY a JSON object (no markdown, no explanation):
         gymDaysAvailable: gymDaysAvailableWeek1.length > 0 ? gymDaysAvailableWeek1 : existingAdvanced.gymDaysAvailable,
         gymDaysAvailableWeek1: gymDaysAvailableWeek1,
         gymDaysAvailableWeek2: gymDaysAvailableWeek2,
-        gymDaysAvailableWeek3: gymDaysAvailableWeek3,
-        gymDaysAvailableWeek4: gymDaysAvailableWeek4,
         additionalInfo: existingAdvanced.additionalInfo
           ? `${existingAdvanced.additionalInfo}\n\n${feedbackSummary}`
           : feedbackSummary,
@@ -3403,29 +3312,6 @@ Respond with ONLY a JSON object (no markdown, no explanation):
     }
   });
 
-  // ── Standard-tier coach message rate limiter ──────────────────────────────
-  // Standard users: 15 coach messages per day (resets at midnight UTC)
-  // Pro users (hasActiveSubscription=true): unlimited
-  // Stored in-memory; safe for single-instance Railway deployments.
-  const _coachDailyUsage: Map<number, { date: string; count: number }> = new Map();
-  const STANDARD_COACH_DAILY_LIMIT = 15;
-
-  function checkCoachRateLimit(userId: number, isPro: boolean): { allowed: boolean; remaining: number } {
-    if (isPro) return { allowed: true, remaining: Infinity };
-    const today = new Date().toISOString().slice(0, 10); // YYYY-MM-DD UTC
-    const entry = _coachDailyUsage.get(userId);
-    if (!entry || entry.date !== today) {
-      _coachDailyUsage.set(userId, { date: today, count: 1 });
-      return { allowed: true, remaining: STANDARD_COACH_DAILY_LIMIT - 1 };
-    }
-    if (entry.count >= STANDARD_COACH_DAILY_LIMIT) {
-      return { allowed: false, remaining: 0 };
-    }
-    entry.count += 1;
-    return { allowed: true, remaining: STANDARD_COACH_DAILY_LIMIT - entry.count };
-  }
-  // ─────────────────────────────────────────────────────────────────────────
-
   // UNIFIED COACH CHAT ENDPOINT - Primary endpoint for all coach interactions
   // Uses ai-coach-service.ts for consistent behavior
   // UNIFIED COACH CHAT ENDPOINT - Primary endpoint for all coach interactions
@@ -3475,32 +3361,6 @@ Respond with ONLY a JSON object (no markdown, no explanation):
           message: "Please log in to use the AI coach"
         });
       }
-
-      // ── Standard-tier rate limit check ────────────────────────────────────
-      // Fetch user's subscription status from DB (skip for demo user)
-      let userIsPro = false;
-      if (userId && userId !== -1) {
-        try {
-          const userRow = await db.query.users.findFirst({
-            where: (u, { eq }) => eq(u.id, userId),
-            columns: { hasActiveSubscription: true },
-          });
-          userIsPro = userRow?.hasActiveSubscription ?? false;
-        } catch (_e) {
-          // If we can't check, allow the message (fail open)
-          userIsPro = true;
-        }
-      }
-      const rateCheck = checkCoachRateLimit(userId, userIsPro);
-      if (!rateCheck.allowed) {
-        return res.status(429).json({
-          error: "Daily coach message limit reached",
-          code: "COACH_LIMIT_REACHED",
-          message: `You've used your ${STANDARD_COACH_DAILY_LIMIT} daily coach messages. Upgrade to Pro for unlimited coaching! 🚀`,
-          isLimitError: true,
-        });
-      }
-      // ─────────────────────────────────────────────────────────────────────
       
       // Log workout context if provided (Phase 8: In-Workout Coach)
       if (process.env.NODE_ENV !== 'production') {
@@ -6354,7 +6214,7 @@ Respond with a complete workout in JSON format:
 }`;
 
       const response = await openai.chat.completions.create({
-        model: "gpt-5.4-mini",
+        model: "gpt-4o",
         messages: [
           {
             role: "system",
@@ -6871,7 +6731,7 @@ Respond with a complete workout in JSON format:
           }
           
           Requirements:
-          - EXACTLY 1 warmup block with exercises (Warm-up exercises should be varied: include a mix of dynamic stretches, light cardio (e.g. 5-10 min treadmill, stair master, jumping jacks, jump rope, rowing), and mobility work. Do NOT always use static stretches.)
+          - EXACTLY 1 warmup block with exercises
           - EXACTLY 1 main block - FOLLOW EXERCISE COUNT GUIDELINES ABOVE (do NOT exceed)
           - EXACTLY 1 recovery block with stretches
           - CRITICAL: Use ONLY exercise names from the exercises library above with EXACT canonical names
@@ -6901,7 +6761,7 @@ Respond with a complete workout in JSON format:
 
               aiResponse = await Promise.race([
                 openai.chat.completions.create({
-                  model: "gpt-5.4-mini",
+                  model: "gpt-4o",
                   messages: [
                     { role: "system", content: systemPrompt },
                     { role: "user", content: userPrompt },
@@ -7190,7 +7050,7 @@ Respond with a complete workout in JSON format:
 
           const aiResponse: any = await Promise.race([
             openai.chat.completions.create({
-              model: "gpt-5.4-mini",
+              model: "gpt-4o",
               messages: [
                 { role: "system", content: systemPrompt },
                 { role: "user", content: userPrompt },
@@ -9590,175 +9450,6 @@ Respond with a complete workout in JSON format:
     }
   });
 
-  // ──────────────────────────────────────────────────────────────────────────
-  // CHECK-IN ENDPOINTS
-  // Standard: monthly check-in (every 28 days)
-  // Pro:      weekly check-in (every 7 days) — more detailed, AI PT feedback
-  // ──────────────────────────────────────────────────────────────────────────
-
-  // Ensure check_ins table exists
-  app.use(async (_req, _res, next) => { next(); }); // no-op middleware (table created below)
-  (async () => {
-    try {
-      await db.execute(sql`
-        CREATE TABLE IF NOT EXISTS check_ins (
-          id SERIAL PRIMARY KEY,
-          user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-          created_at TIMESTAMP NOT NULL DEFAULT NOW(),
-          tier TEXT NOT NULL DEFAULT 'standard',
-          energy_level INTEGER,
-          sleep_quality INTEGER,
-          mood INTEGER,
-          soreness INTEGER,
-          motivation INTEGER,
-          weight_kg NUMERIC(5,1),
-          notes TEXT,
-          goals_still_same BOOLEAN,
-          injuries TEXT,
-          photo_url TEXT,
-          ai_feedback TEXT
-        )
-      `);
-    } catch (e) {
-      console.log('⚠️ [CHECK-IN] Table creation skipped (may already exist)');
-    }
-  })();
-
-  // GET /api/checkins — list all check-ins for current user
-  app.get('/api/checkins', authenticateToken, async (req: AuthenticatedRequest, res) => {
-    try {
-      const userId = req.user?.id;
-      if (!userId) return res.status(401).json({ error: 'Not authenticated' });
-
-      const rows = await db.execute(sql`
-        SELECT id, created_at, tier, energy_level, sleep_quality, mood, soreness,
-               motivation, weight_kg, notes, goals_still_same, injuries, photo_url, ai_feedback
-        FROM check_ins
-        WHERE user_id = ${userId}
-        ORDER BY created_at DESC
-        LIMIT 50
-      `);
-
-      res.json({ ok: true, checkIns: rows.rows });
-    } catch (err: any) {
-      console.error('[CHECK-IN] GET error:', err);
-      res.status(500).json({ error: 'Failed to fetch check-ins' });
-    }
-  });
-
-  // GET /api/checkins/next — when is the next check-in due?
-  app.get('/api/checkins/next', authenticateToken, async (req: AuthenticatedRequest, res) => {
-    try {
-      const userId = req.user?.id;
-      if (!userId) return res.status(401).json({ error: 'Not authenticated' });
-
-      const isPro = req.user?.hasActiveSubscription === true;
-      const intervalDays = isPro ? 7 : 28;
-
-      const rows = await db.execute(sql`
-        SELECT created_at FROM check_ins
-        WHERE user_id = ${userId}
-        ORDER BY created_at DESC
-        LIMIT 1
-      `);
-
-      const last = rows.rows[0]?.created_at ? new Date(rows.rows[0].created_at as string) : null;
-      const nextDue = last ? new Date(last.getTime() + intervalDays * 24 * 60 * 60 * 1000) : new Date();
-      const isDue = !last || new Date() >= nextDue;
-
-      res.json({
-        ok: true,
-        isPro,
-        intervalDays,
-        lastCheckIn: last?.toISOString() || null,
-        nextDue: nextDue.toISOString(),
-        isDue,
-        daysUntilDue: isDue ? 0 : Math.ceil((nextDue.getTime() - Date.now()) / (24 * 60 * 60 * 1000)),
-      });
-    } catch (err: any) {
-      console.error('[CHECK-IN] NEXT error:', err);
-      res.status(500).json({ error: 'Failed to get next check-in info' });
-    }
-  });
-
-  // POST /api/checkins — submit a check-in + get AI feedback
-  app.post('/api/checkins', authenticateToken, async (req: AuthenticatedRequest, res) => {
-    try {
-      const userId = req.user?.id;
-      if (!userId) return res.status(401).json({ error: 'Not authenticated' });
-
-      const isPro = req.user?.hasActiveSubscription === true;
-      const {
-        energyLevel, sleepQuality, mood, soreness, motivation,
-        weightKg, notes, goalsStillSame, injuries, photoUrl,
-      } = req.body;
-
-      // Generate AI feedback
-      let aiFeedback = '';
-      try {
-        const userCtx = await getComprehensiveUserContext(userId);
-        const ctxStr = formatUserContextForAI(userCtx);
-
-        const systemPrompt = isPro
-          ? `You are an expert personal trainer and physiotherapist giving a detailed weekly check-in analysis. Be specific, professional, and actionable. Reference the user's actual workout history and goals. Keep it under 300 words.`
-          : `You are a friendly fitness coach giving a brief monthly check-in response. Be encouraging and give 2-3 specific tips. Keep it under 150 words.`;
-
-        const userMsg = `User check-in:
-- Energy: ${energyLevel}/10
-- Sleep: ${sleepQuality}/10
-- Mood: ${mood}/10
-- Soreness: ${soreness}/10
-- Motivation: ${motivation}/10
-${weightKg ? `- Weight: ${weightKg}kg` : ''}
-${goalsStillSame !== undefined ? `- Goals still same: ${goalsStillSame}` : ''}
-${injuries ? `- Injuries/pain: ${injuries}` : ''}
-${notes ? `- Notes: ${notes}` : ''}
-
-User context:
-${ctxStr}
-
-${isPro
-  ? 'Give detailed PT feedback: what\'s going well, what needs attention, specific training adjustments, recovery advice, and one motivational insight.'
-  : 'Give a brief, warm monthly check-in response with 2-3 practical tips based on their scores.'}`;
-
-        const aiResp = await openai.chat.completions.create({
-          model: 'gpt-4o',
-          messages: [
-            { role: 'system', content: systemPrompt },
-            { role: 'user', content: userMsg },
-          ],
-          max_tokens: isPro ? 400 : 200,
-          temperature: 0.7,
-        });
-        aiFeedback = aiResp.choices[0]?.message?.content || '';
-      } catch (aiErr) {
-        console.log('⚠️ [CHECK-IN] AI feedback failed (non-blocking):', aiErr);
-        aiFeedback = isPro
-          ? 'Great check-in! Your consistency is showing. Keep focusing on quality sleep and progressive overload this week. 💪'
-          : 'Awesome work checking in! Keep up the consistency and remember to prioritise sleep and recovery. 💪';
-      }
-
-      const result = await db.execute(sql`
-        INSERT INTO check_ins (user_id, tier, energy_level, sleep_quality, mood, soreness,
-          motivation, weight_kg, notes, goals_still_same, injuries, photo_url, ai_feedback)
-        VALUES (
-          ${userId}, ${isPro ? 'pro' : 'standard'},
-          ${energyLevel || null}, ${sleepQuality || null}, ${mood || null},
-          ${soreness || null}, ${motivation || null}, ${weightKg || null},
-          ${notes || null}, ${goalsStillSame ?? null}, ${injuries || null},
-          ${photoUrl || null}, ${aiFeedback}
-        )
-        RETURNING id, created_at, ai_feedback
-      `);
-
-      const newCheckIn = result.rows[0];
-      res.json({ ok: true, checkIn: newCheckIn, aiFeedback });
-    } catch (err: any) {
-      console.error('[CHECK-IN] POST error:', err);
-      res.status(500).json({ error: 'Failed to save check-in' });
-    }
-  });
-
   return httpServer;
 }
 
@@ -9952,7 +9643,7 @@ NEVER answer non-fitness questions, even if the user insists. Stay focused on be
 Respond in 1-3 paragraphs. Be concise but helpful. Never mention that you're an AI model. Be personal - use their name if you know it.`;
 
     const response = await openai.chat.completions.create({
-      model: "gpt-5.4-nano",
+      model: "gpt-4o",
       messages: [
         { role: "system", content: systemPrompt },
         { role: "user", content: userMessage },

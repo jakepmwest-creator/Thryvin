@@ -1,8 +1,5 @@
 import { create } from 'zustand';
 import { REVENUECAT_API_KEY, isThryvinProActive } from '../services/revenuecat';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-
-const PERSIST_IS_PRO_KEY = 'thryvin_is_pro_override';
 
 // RevenueCat native modules may not be available in Expo Go
 let Purchases: any = null;
@@ -55,16 +52,6 @@ export const useSubscriptionStore = create<SubscriptionState>((set, get) => ({
   nativeAvailable: !!Purchases,
 
   initialize: async (appUserId?: string | null) => {
-    // Check persisted isPro override first (set during onboarding plan selection)
-    try {
-      const persistedIsPro = await AsyncStorage.getItem(PERSIST_IS_PRO_KEY);
-      if (persistedIsPro === 'true') {
-        console.log('[Subscriptions] Using persisted Pro override from onboarding');
-        set({ isTestMode: true, isInitialized: true, isLoading: false, isPro: true, error: null });
-        return;
-      }
-    } catch (e) { /* ignore */ }
-
     // If in test mode, skip real initialization
     if (get().isTestMode) return;
 
@@ -74,14 +61,17 @@ export const useSubscriptionStore = create<SubscriptionState>((set, get) => ({
     }
 
     if (!Purchases) {
-      console.log('[Subscriptions] Native SDK not available — defaulting to Standard');
-      set({ isInitialized: true, isLoading: false, isPro: false, nativeAvailable: false });
+      console.log('[Subscriptions] Native SDK not available — defaulting to Pro for testing');
+      // TESTER MODE: Default to Pro when RevenueCat is not available
+      // Revert isPro to false when ready to enforce real subscriptions
+      set({ isInitialized: true, isLoading: false, isPro: true, nativeAvailable: false });
       return;
     }
 
     if (!REVENUECAT_API_KEY) {
-      console.log('[Subscriptions] No RevenueCat API key — defaulting to Standard');
-      set({ isInitialized: true, isLoading: false, isPro: false, error: null });
+      // TESTER MODE: Default to Pro when no API key configured
+      // Revert isPro to false when ready to enforce real subscriptions
+      set({ isInitialized: true, isLoading: false, isPro: true, error: null });
       return;
     }
 
@@ -195,8 +185,6 @@ export const useSubscriptionStore = create<SubscriptionState>((set, get) => ({
       isPro,
       error: null,
     });
-    // Persist so it survives app restarts
-    AsyncStorage.setItem(PERSIST_IS_PRO_KEY, isPro ? 'true' : 'false').catch(() => {});
   },
 
   // Production: Restore previous purchases

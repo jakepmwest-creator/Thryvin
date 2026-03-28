@@ -10,8 +10,8 @@
 
 import OpenAI from 'openai';
 import { db } from './db';
-import { coachMemory, messages as messagesTable } from '@shared/schema';
-import { eq, desc, sql, and } from 'drizzle-orm';
+import { coachMemory } from '@shared/schema';
+import { eq, desc, sql } from 'drizzle-orm';
 import { buildAiContext } from './ai-user-context';
 import { 
   buildUserCoachSummary, 
@@ -469,31 +469,9 @@ Summary:`;
   }
 }
 
-// ── Persistent Message History ──
 
-async function saveMessage(userId: number, content: string, isFromCoach: boolean): Promise<void> {
-  try {
-    await db.insert(messagesTable).values({ userId, content, isFromCoach });
-  } catch (e) {
-    console.log('⚠️ Could not save message to DB:', e);
-  }
-}
-
-async function getRecentMessages(userId: number, limit = 20): Promise<Array<{ role: 'user' | 'coach'; content: string }>> {
-  try {
-    const rows = await db
-      .select({ content: messagesTable.content, isFromCoach: messagesTable.isFromCoach })
-      .from(messagesTable)
-      .where(eq(messagesTable.userId, userId))
-      .orderBy(desc(messagesTable.createdAt))
-      .limit(limit);
-    // Rows are newest-first; reverse so they are chronological for GPT
-    return rows.reverse().map(r => ({ role: r.isFromCoach ? 'coach' : 'user', content: r.content }));
-  } catch (e) {
-    console.log('⚠️ Could not load recent messages from DB:', e);
-    return [];
-  }
-}
+/**
+ * Get coach response with full user context
  * This is the ONLY function that should be called for coach interactions
  * 
  * Phase 9.5: Now includes personality system and context modes
@@ -501,26 +479,6 @@ async function getRecentMessages(userId: number, limit = 20): Promise<Array<{ ro
 export async function getUnifiedCoachResponse(request: CoachChatRequest): Promise<CoachChatResponse> {
   const { message, coach = 'default', userId, coachingStyle, conversationHistory = [], workoutContext, contextMode } = request;
   
-  // ── Persist user message to DB & load history ──
-  if (userId) {
-    // Save incoming user message first (non-blocking)
-    saveMessage(userId, message, false).catch(() => {});
-  }
-  
-  // Load persistent message history from DB; merge with any client-provided history
-  // DB history wins (more reliable, survives app restarts)
-  let effectiveHistory = conversationHistory;
-  if (userId) {
-    const dbHistory = await getRecentMessages(userId, 20);
-    if (dbHistory.length > 0) {
-      // Use DB history; skip the last entry if it matches the just-sent message
-      const trimmed = (dbHistory.at(-1)?.content === message && !dbHistory.at(-1)?.role.includes('coach'))
-        ? dbHistory.slice(0, -1)
-        : dbHistory;
-      effectiveHistory = trimmed;
-    }
-  }
-
   try {
     // Get coach character personality (Kai, Titan, Lumi, etc.)
     const coachCharacter = COACH_PERSONALITIES[coach.toLowerCase()] || COACH_PERSONALITIES['default'];
@@ -749,8 +707,8 @@ FOR APP MODIFICATIONS (redirect WITH value):
       { role: 'system', content: systemPrompt },
     ];
     
-    // Add conversation history (last 20 messages from DB or client, newest 6 for GPT window)
-    effectiveHistory.slice(-6).forEach(msg => {
+    // Add conversation history (last 6 messages for context)
+    conversationHistory.slice(-6).forEach(msg => {
       messages.push({
         role: msg.role === 'coach' || msg.role === 'assistant' ? 'assistant' : 'user',
         content: msg.content,
@@ -772,7 +730,7 @@ FOR APP MODIFICATIONS (redirect WITH value):
     
     // Call OpenAI
     const response = await openai.chat.completions.create({
-      model: 'gpt-5.4-mini',
+      model: 'gpt-4o',
       messages,
       max_tokens: maxTokens,
       temperature: 0.7,
@@ -781,9 +739,8 @@ FOR APP MODIFICATIONS (redirect WITH value):
     const aiResponse = response.choices[0].message.content || 
       "I'm here to help with your fitness journey! What would you like to know?";
     
-    // Save coach reply to DB + save long-term memory summary (both non-blocking)
+    // Save memory in background (don't block the response)
     if (userId) {
-      saveMessage(userId, aiResponse, true).catch(() => {});
       saveCoachMemory(userId, message, aiResponse).catch(() => {});
     }
 

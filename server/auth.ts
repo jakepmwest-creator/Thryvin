@@ -112,12 +112,10 @@ export function setupAuth(app: Express) {
   passport.deserializeUser(async (id: number, done) => {
     try {
       const user = await storage.getUser(id);
-      // If user not found, pass false (not an error) — session will be treated as unauthenticated
-      done(null, user || false);
+      done(null, user);
     } catch (error) {
-      // Don't propagate DB errors — treat as unauthenticated session instead of 500
-      console.warn('DB error during user deserialization (treating as unauthenticated):', (error as any)?.message);
-      done(null, false);
+      console.error('Database error during user deserialization:', error);
+      done(error);
     }
   });
 
@@ -454,34 +452,19 @@ export function setupAuth(app: Express) {
         }
       }
 
-      // Generate JWT access token for mobile (session-free path)
-      const accessToken = generateAccessToken(user);
-      const { password, ...safeUser } = user;
-      const requestId = (req as ApiRequest).requestId || 'unknown';
-      
-      // Try to establish session (for web clients) but don't block the mobile response on it.
-      // IMPORTANT: We ALWAYS respond with the JWT token. Session failure is non-fatal.
-      // We use a flag to ensure we only ever send one response.
-      let responseSent = false;
-      const sendSuccess = () => {
-        if (!responseSent) {
-          responseSent = true;
+      req.login(user, (err) => {
+        if (err) return next(err);
+        // Save session before responding to prevent race condition
+        req.session.save((saveErr) => {
+          if (saveErr) return next(saveErr);
+          // Remove password from response for security
+          const { password, ...safeUser } = user;
+          const requestId = (req as ApiRequest).requestId || 'unknown';
+          // Generate JWT access token for mobile
+          const accessToken = generateAccessToken(user);
           res.status(201).json({ ok: true, user: safeUser, accessToken, requestId });
-        }
-      };
-
-      try {
-        req.login(user, (err) => {
-          if (err) {
-            // Session login failed — non-critical for mobile JWT auth
-            console.warn('Session login failed after registration (non-critical for mobile):', err?.message);
-          }
-          sendSuccess();
         });
-      } catch (loginErr) {
-        console.warn('req.login threw synchronously (non-critical):', loginErr);
-        sendSuccess();
-      }
+      });
     } catch (error) {
       console.error("Registration error:", error);
       const requestId = (req as ApiRequest).requestId || 'unknown';
@@ -520,38 +503,24 @@ export function setupAuth(app: Express) {
         if (!user) {
           return res.status(401).json({ ok: false, error: "Invalid email or password", code: "INVALID_CREDENTIALS", requestId });
         }
-        // Remove password from response for security
-        const { password, ...safeUser } = user;
-        // Generate JWT access token for mobile
-        const accessToken = generateAccessToken(user);
-
-        // Try session login — non-critical for JWT-based mobile clients.
-        // Use a flag to ensure exactly one response is sent.
-        let loginResponseSent = false;
-        const sendLoginSuccess = () => {
-          if (!loginResponseSent) {
-            loginResponseSent = true;
-            return res.status(200).json({ ok: true, user: safeUser, accessToken, requestId });
+        req.logIn(user, (err: any) => {
+          if (err) {
+            console.error("Session login error:", err);
+            return res.status(500).json({ ok: false, error: "Session error", code: "SESSION_ERROR", requestId });
           }
-        };
-
-        try {
-          req.logIn(user, (err: any) => {
-            if (err) {
-              console.warn('Session login error (non-critical for mobile JWT):', err?.message);
-              return sendLoginSuccess();
+          // Save session before responding to prevent race condition
+          req.session.save((saveErr: any) => {
+            if (saveErr) {
+              console.error("Session save error:", saveErr);
+              return res.status(500).json({ ok: false, error: "Session save failed", code: "SESSION_ERROR", requestId });
             }
-            req.session.save((saveErr: any) => {
-              if (saveErr) {
-                console.warn('Session save error (non-critical):', saveErr?.message);
-              }
-              return sendLoginSuccess();
-            });
+            // Remove password from response for security
+            const { password, ...safeUser } = user;
+            // Generate JWT access token for mobile
+            const accessToken = generateAccessToken(user);
+            return res.status(200).json({ ok: true, user: safeUser, accessToken, requestId });
           });
-        } catch (loginErr) {
-          console.warn('req.logIn threw synchronously (non-critical):', loginErr);
-          sendLoginSuccess();
-        }
+        });
       })(req, res, next);
     } catch (error: any) {
       console.error("Login route error:", error);

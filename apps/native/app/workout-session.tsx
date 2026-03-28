@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -8,9 +8,7 @@ import {
   TextInput,
   Dimensions,
   ActivityIndicator,
-  AppState,
 } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
@@ -69,40 +67,9 @@ export default function WorkoutSessionScreen() {
   };
   const hideAlert = () => setAlertConfig(prev => ({ ...prev, visible: false }));
 
-  const appStateRef = useRef(AppState.currentState);
-  
-  // Persist exercise index and set index when app backgrounds
-  useEffect(() => {
-    const subscription = AppState.addEventListener('change', (nextState) => {
-      if (appStateRef.current === 'active' && nextState !== 'active') {
-        // App going to background - save current position
-        AsyncStorage.setItem('active_workout_position', JSON.stringify({
-          exerciseIndex: currentExerciseIndex,
-          setIndex: currentSetIndex,
-          weight,
-          reps,
-        })).catch(() => {});
-      }
-      appStateRef.current = nextState;
-    });
-    return () => subscription.remove();
-  }, [currentExerciseIndex, currentSetIndex, weight, reps]);
-  
   useEffect(() => {
     if (currentWorkout && !activeSession) {
       startWorkoutSession(currentWorkout.id);
-      // Try to restore position from last session
-      AsyncStorage.getItem('active_workout_position').then(saved => {
-        if (saved) {
-          try {
-            const pos = JSON.parse(saved);
-            if (pos.exerciseIndex !== undefined) setCurrentExerciseIndex(pos.exerciseIndex);
-            if (pos.setIndex !== undefined) setCurrentSetIndex(pos.setIndex);
-            if (pos.weight) setWeight(pos.weight);
-            if (pos.reps) setReps(pos.reps);
-          } catch {}
-        }
-      }).catch(() => {});
     }
   }, [currentWorkout]);
 
@@ -188,10 +155,6 @@ export default function WorkoutSessionScreen() {
         onPress: async () => {
           try {
             await finishWorkoutSession();
-            // Clear persisted workout state on completion
-            AsyncStorage.removeItem('active_workout_session').catch(() => {});
-            AsyncStorage.removeItem('active_workout_snapshot').catch(() => {});
-            AsyncStorage.removeItem('active_workout_position').catch(() => {});
             router.replace('/(tabs)');
             
             setTimeout(() => {

@@ -17,10 +17,6 @@ import * as ImagePicker from 'expo-image-picker';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useAuthStore } from '../stores/auth-store';
 import { CustomAlert } from './CustomAlert';
-import { getApiBaseUrl } from '../services/env';
-import * as SecureStore from 'expo-secure-store';
-
-const API_BASE = getApiBaseUrl();
 
 const COLORS = {
   accent: '#A22BF6',
@@ -44,8 +40,6 @@ export const EditProfileModal = ({ visible, onClose, onSave }: EditProfileModalP
   const [bio, setBio] = useState('');
   const [profileImage, setProfileImage] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
-  const [height, setHeight] = useState('');
-  const [weight, setWeight] = useState('');
   
   // CustomAlert state
   const [alertConfig, setAlertConfig] = useState<{
@@ -81,32 +75,12 @@ export const EditProfileModal = ({ visible, onClose, onSave }: EditProfileModalP
   const loadProfile = async () => {
     try {
       const userId = user?.id;
+      // Try user-specific keys first, then fall back to global keys
       const savedBio = await AsyncStorage.getItem(`user_bio_${userId}`) || await AsyncStorage.getItem('user_bio');
       const savedImage = await AsyncStorage.getItem(`profile_image_${userId}`) || await AsyncStorage.getItem('user_profile_image');
       if (savedBio) setBio(savedBio);
       if (savedImage) setProfileImage(savedImage);
       setName(user?.name || '');
-
-      // Load height/weight — try user object first, then AsyncStorage
-      const profileRaw = await AsyncStorage.getItem('thryvin_user_profile') || await AsyncStorage.getItem(`user_profile_${userId}`);
-      if (profileRaw) {
-        try {
-          const profile = JSON.parse(profileRaw);
-          if (profile.height) setHeight(String(profile.height));
-          if (profile.weight) setWeight(String(profile.weight));
-        } catch {}
-      }
-      // Fallback: check auth user object
-      if (!(user as any)?.height && !height) {
-        const storedUser = await AsyncStorage.getItem('auth_user');
-        if (storedUser) {
-          try {
-            const u = JSON.parse(storedUser);
-            if (u.height) setHeight(String(u.height));
-            if (u.weight) setWeight(String(u.weight));
-          } catch {}
-        }
-      }
     } catch (error) {
       console.error('Error loading profile:', error);
     }
@@ -169,6 +143,7 @@ export const EditProfileModal = ({ visible, onClose, onSave }: EditProfileModalP
     setIsSaving(true);
     try {
       const userId = user?.id;
+      // Save with user-specific keys for isolation between accounts
       await AsyncStorage.setItem('user_name', name);
       if (userId) {
         await AsyncStorage.setItem(`user_bio_${userId}`, bio);
@@ -178,35 +153,18 @@ export const EditProfileModal = ({ visible, onClose, onSave }: EditProfileModalP
           await AsyncStorage.removeItem(`profile_image_${userId}`);
         }
       }
+      // Also save to global keys for backward compatibility
       await AsyncStorage.setItem('user_bio', bio);
       if (profileImage) {
         await AsyncStorage.setItem('user_profile_image', profileImage);
       } else {
         await AsyncStorage.removeItem('user_profile_image');
       }
-
-      // Save height/weight locally
-      const profileData = { height, weight, updatedAt: new Date().toISOString() };
-      await AsyncStorage.setItem('thryvin_user_profile', JSON.stringify(profileData));
-      if (userId) await AsyncStorage.setItem(`user_profile_${userId}`, JSON.stringify(profileData));
-
-      // Update auth store so name + height/weight sync everywhere
-      await updateUser({ name, ...(height ? { height } as any : {}), ...(weight ? { weight } as any : {}) });
-
-      // Sync height/weight to backend
-      try {
-        const token = await SecureStore.getItemAsync('thryvin_access_token');
-        if (token) {
-          await fetch(`${API_BASE}/api/users/profile`, {
-            method: 'PATCH',
-            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-            body: JSON.stringify({ name, height: height || undefined, weight: weight || undefined }),
-          });
-        }
-      } catch (syncErr) {
-        console.log('Profile sync to backend failed (non-critical):', syncErr);
-      }
-
+      
+      // Update auth store so name syncs everywhere
+      await updateUser({ name });
+      
+      // Call onSave first to refresh parent data, then close
       onSave();
       onClose();
     } catch (error) {
@@ -305,33 +263,6 @@ export const EditProfileModal = ({ visible, onClose, onSave }: EditProfileModalP
                 maxLength={200}
               />
               <Text style={styles.charCount}>{bio.length}/200</Text>
-            </View>
-
-            {/* Height & Weight */}
-            <View style={styles.inputSection}>
-              <Text style={styles.inputLabel}>Height & Weight</Text>
-              <View style={{ flexDirection: 'row', gap: 12 }}>
-                <View style={{ flex: 1 }}>
-                  <TextInput
-                    style={styles.textInput}
-                    value={height}
-                    onChangeText={setHeight}
-                    placeholder="Height (e.g. 175cm)"
-                    placeholderTextColor={COLORS.mediumGray}
-                    keyboardType="default"
-                  />
-                </View>
-                <View style={{ flex: 1 }}>
-                  <TextInput
-                    style={styles.textInput}
-                    value={weight}
-                    onChangeText={setWeight}
-                    placeholder="Weight (e.g. 75kg)"
-                    placeholderTextColor={COLORS.mediumGray}
-                    keyboardType="default"
-                  />
-                </View>
-              </View>
             </View>
 
             {/* Experience Level */}

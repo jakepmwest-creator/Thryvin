@@ -32,7 +32,7 @@
 *.dylib
 *.env
 *.env.*
-# *.json  # removed - was blocking package.json from EAS build archives
+*.json
 *.log
 *.pack
 *.pem

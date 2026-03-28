@@ -1,12 +1,16 @@
+// Keep Expo config dependency-free so EAS CLI can evaluate it before install.
+// Production Railway URL — used when env vars are not injected.
+const FALLBACK_API_URL = 'https://thryvin-production-fbdd.up.railway.app';
+
 export default {
   expo: {
-    name: "Thryvin'",
+    name: 'Thryvin',
     slug: 'thryvin',
     version: '1.0.0',
     orientation: 'portrait',
     icon: './assets/icon.png',
     userInterfaceStyle: 'light',
-    newArchEnabled: true,
+    newArchEnabled: false,
     scheme: 'thryvin',
     splash: {
       image: './assets/splash-icon.png',
@@ -20,24 +24,27 @@ export default {
     android: {
       adaptiveIcon: {
         foregroundImage: './assets/adaptive-icon.png',
-        backgroundColor: '#ffffff',
+        backgroundColor: '#A259FF',
       },
       package: 'com.thryvin.app',
+      edgeToEdgeEnabled: true,
+      predictiveBackGestureEnabled: false,
     },
     web: {
       favicon: './assets/favicon.png',
     },
-    plugins: [
-      'expo-router',
-      'expo-image-picker',
-      'expo-speech-recognition',
-    ],
+    plugins: ['expo-router'],
+    experiments: {
+      bridgeless: false,
+      turboModules: false,
+    },
     extra: {
       eas: {
         projectId: 'ca2d383b-786b-4caa-bf8c-84ea08c5de58',
       },
-      EXPO_PUBLIC_API_BASE_URL: process.env.EXPO_PUBLIC_API_BASE_URL || 'https://thryvin-production-fbdd.up.railway.app',
-      EXPO_PUBLIC_OPENAI_API_KEY: process.env.EXPO_PUBLIC_OPENAI_API_KEY,
+      openaiApiKey: process.env.EXPO_PUBLIC_OPENAI_API_KEY,
+      EXPO_PUBLIC_API_BASE_URL:
+        process.env.EXPO_PUBLIC_API_BASE_URL || FALLBACK_API_URL,
       EXPO_PUBLIC_REVENUECAT_API_KEY: process.env.EXPO_PUBLIC_REVENUECAT_API_KEY,
     },
   },

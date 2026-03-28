@@ -1,13 +1,13 @@
 /**
  * Rolling Regeneration Modal
  * 
- * Shows just before a 4-week plan ends to gather feedback
+ * Shows just before a 3-week plan ends to gather feedback
  * and regenerate the next workout block.
  * 
  * Steps:
  * 1. Week 1 availability
- * 2. Weeks 2, 3 & 4 availability (toggle: same as week 1)
- * 3. How the first 4 weeks felt + feedback
+ * 2. Week 2 & 3 availability (toggle: same as week 1)
+ * 3. How the first 3 weeks felt + feedback
  */
 
 import React, { useState } from 'react';
@@ -52,7 +52,6 @@ interface RegenerationFeedback {
   availableDaysWeek1: string[];
   availableDaysWeek2: string[];
   availableDaysWeek3: string[];
-  availableDaysWeek4: string[];
   overallFeeling: string;
   favoriteThing: string;
   leastFavoriteThing: string;
@@ -90,7 +89,6 @@ export const RollingRegenerationModal = ({
     availableDaysWeek1: [],
     availableDaysWeek2: [],
     availableDaysWeek3: [],
-    availableDaysWeek4: [],
     overallFeeling: '',
     favoriteThing: '',
     leastFavoriteThing: '',
@@ -98,9 +96,9 @@ export const RollingRegenerationModal = ({
     keepSame: '',
   });
 
-  const handleDayToggle = (weekKey: 'week1' | 'week2' | 'week3' | 'week4', day: string) => {
+  const handleDayToggle = (weekKey: 'week1' | 'week2' | 'week3', day: string) => {
     setFeedback(prev => {
-      const keyMap = { week1: 'availableDaysWeek1', week2: 'availableDaysWeek2', week3: 'availableDaysWeek3', week4: 'availableDaysWeek4' } as const;
+      const keyMap = { week1: 'availableDaysWeek1', week2: 'availableDaysWeek2', week3: 'availableDaysWeek3' } as const;
       const key = keyMap[weekKey];
       const nextDays = prev[key].includes(day)
         ? prev[key].filter(d => d !== day)
@@ -109,7 +107,6 @@ export const RollingRegenerationModal = ({
       if (sameSchedule && weekKey === 'week1') {
         updated.availableDaysWeek2 = [...nextDays];
         updated.availableDaysWeek3 = [...nextDays];
-        updated.availableDaysWeek4 = [...nextDays];
       }
       return updated;
     });
@@ -120,7 +117,6 @@ export const RollingRegenerationModal = ({
       ...feedback,
       availableDaysWeek2: sameSchedule ? feedback.availableDaysWeek1 : feedback.availableDaysWeek2,
       availableDaysWeek3: sameSchedule ? feedback.availableDaysWeek1 : feedback.availableDaysWeek3,
-      availableDaysWeek4: sameSchedule ? feedback.availableDaysWeek1 : feedback.availableDaysWeek4,
     };
     onSubmit(submission);
     onClose();
@@ -130,8 +126,6 @@ export const RollingRegenerationModal = ({
       availableDaysWeek1: [],
       availableDaysWeek2: [],
       availableDaysWeek3: [],
-      availableDaysWeek4: [],
-    availableDaysWeek4: [],
       overallFeeling: '',
       favoriteThing: '',
       leastFavoriteThing: '',
@@ -143,13 +137,13 @@ export const RollingRegenerationModal = ({
   const canProceed = () => {
     switch (step) {
       case 0: return feedback.availableDaysWeek1.length > 0;
-      case 1: return sameSchedule ? true : (feedback.availableDaysWeek2.length > 0 && feedback.availableDaysWeek3.length > 0 && feedback.availableDaysWeek4.length > 0);
+      case 1: return sameSchedule ? true : (feedback.availableDaysWeek2.length > 0 && feedback.availableDaysWeek3.length > 0);
       case 2: return feedback.overallFeeling.length > 0;
       default: return true;
     }
   };
 
-  const renderDayGrid = (weekKey: 'week1' | 'week2' | 'week3' | 'week4', days: string[]) => (
+  const renderDayGrid = (weekKey: 'week1' | 'week2' | 'week3', days: string[]) => (
     <View style={styles.daysGrid}>
       {DAYS.map(day => {
         const selected = days.includes(day.key);
@@ -220,7 +214,7 @@ export const RollingRegenerationModal = ({
               <View style={styles.sameScheduleCard}>
                 <Ionicons name="checkmark-circle" size={20} color={COLORS.success} />
                 <Text style={styles.sameScheduleText}>
-                  Using your Week 1 schedule for all 4 weeks
+                  Using your Week 1 schedule for all 3 weeks
                 </Text>
               </View>
             ) : (
@@ -229,8 +223,6 @@ export const RollingRegenerationModal = ({
                 {renderDayGrid('week2', feedback.availableDaysWeek2)}
                 <Text style={[styles.weekLabel, { marginTop: 20 }]}>Week 3</Text>
                 {renderDayGrid('week3', feedback.availableDaysWeek3)}
-                <Text style={[styles.weekLabel, { marginTop: 20 }]}>Week 4</Text>
-                {renderDayGrid('week4', feedback.availableDaysWeek4)}
               </>
             )}
           </View>
@@ -239,7 +231,7 @@ export const RollingRegenerationModal = ({
       case 2:
         return (
           <View style={styles.stepContent}>
-            <Text style={styles.stepTitle}>How were the last 4 weeks?</Text>
+            <Text style={styles.stepTitle}>How were the last 3 weeks?</Text>
             <Text style={styles.stepSubtitle}>Quick check-in so we can perfect your next plan</Text>
 
             <Text style={styles.fieldLabel}>How are you finding your program?</Text>
@@ -361,7 +353,7 @@ export const RollingRegenerationModal = ({
             </LinearGradient>
             <Text style={styles.headerTitle}>Time for a Refresh</Text>
             <Text style={styles.headerSubtitle}>
-              Let's optimise your next 4 weeks based on your progress
+              Let's optimise your next 3 weeks based on your progress
             </Text>
           </View>
         </View>

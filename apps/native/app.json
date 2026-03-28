@@ -1,12 +1,12 @@
 {
   "expo": {
-    "name": "Thryvin'",
+    "name": "Thryvin",
     "slug": "thryvin",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
-    "newArchEnabled": true,
+    "newArchEnabled": false,
     "scheme": "thryvin",
     "splash": {
       "image": "./assets/splash-icon.png",
@@ -22,13 +22,20 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#A259FF"
       },
-      "package": "com.thryvin.app"
+      "package": "com.thryvin.app",
+      "edgeToEdgeEnabled": true,
+      "predictiveBackGestureEnabled": false,
+      "buildType": "apk"
     },
     "web": {
       "favicon": "./assets/favicon.png"
     },
     "plugins": [
       "expo-router"
-    ]
+    ],
+    "experiments": {
+      "bridgeless": false,
+      "turboModules": false
+    }
   }
 }

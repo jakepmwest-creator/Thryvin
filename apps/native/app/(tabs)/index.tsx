@@ -42,9 +42,7 @@ import { CoachNudgeCard } from '../../src/components/CoachNudgeCard';
 import { useCoachNudges } from '../../src/hooks/useCoachNudges';
 import { ViewAllWeeksModal } from '../../src/components/ViewAllWeeksModal';
 import { EditPlanScreen } from '../../src/components/EditPlanScreen';
-import { ExternalActivityModal } from '../../src/components/ExternalActivityModal';
 import { getApiBaseUrl } from '../../src/services/env';
-import { notificationService } from '../../src/services/notificationService';
 
 // Activity cards with vibrant gradients
 const ACTIVITY_CARDS = [
@@ -130,7 +128,6 @@ export default function HomeScreen() {
   const [hasCheckedQuestionnaire, setHasCheckedQuestionnaire] = useState(false);
   const [showAllWeeks, setShowAllWeeks] = useState(false);
   const [showEditPlan, setShowEditPlan] = useState(false);
-  const [showLogExtra, setShowLogExtra] = useState(false);
   const [showRollingRegeneration, setShowRollingRegeneration] = useState(false);
   const [rollingWeek, setRollingWeek] = useState(2);
   const [hasCheckedRollingRegeneration, setHasCheckedRollingRegeneration] = useState(false);
@@ -254,12 +251,12 @@ export default function HomeScreen() {
       const lastShownDate = lastShown ? new Date(lastShown) : null;
 
       // TIMING RULES:
-      // 1) First trigger: 25 days after join (3 days before initial 4-week plan ends)
-      // 2) Subsequent triggers: every 28 days (4 weeks) after each completion
+      // 1) First trigger: 18 days after join (3 days before initial 3-week plan ends)
+      // 2) Subsequent triggers: every 21 days (3 weeks) after each completion
       // 3) If dismissed without completing: re-show after 7 days
       if (completedDate) {
         const daysSinceCompleted = Math.floor((Date.now() - completedDate.getTime()) / (1000 * 60 * 60 * 24));
-        if (daysSinceCompleted < 28) {
+        if (daysSinceCompleted < 21) {
           setHasCheckedRollingRegeneration(true);
           return;
         }
@@ -276,18 +273,18 @@ export default function HomeScreen() {
       joinDate.setDate(joinDate.getDate() - 7);
 
       const daysSinceJoin = Math.floor((Date.now() - joinDate.getTime()) / (1000 * 60 * 60 * 24));
-      // First trigger: show 25 days after join (before initial 4-week plan ends)
-      if (!completedDate && daysSinceJoin >= 25) {
-        const weekNumber = Math.max(4, Math.floor(daysSinceJoin / 7) + 1);
+      // First trigger: show 18 days after join (before initial 3-week plan ends)
+      if (!completedDate && daysSinceJoin >= 18) {
+        const weekNumber = Math.max(3, Math.floor(daysSinceJoin / 7) + 1);
         setRollingWeek(weekNumber);
         setShowRollingRegeneration(true);
         await AsyncStorage.setItem(lastShownKey, new Date().toISOString());
         return;
       }
 
-      // Recurring trigger: 28+ days since last completion → show again
+      // Recurring trigger: 21+ days since last completion → show again
       if (completedDate) {
-        const weekNumber = Math.max(4, Math.floor(daysSinceJoin / 7) + 1);
+        const weekNumber = Math.max(3, Math.floor(daysSinceJoin / 7) + 1);
         setRollingWeek(weekNumber);
         setShowRollingRegeneration(true);
         await AsyncStorage.setItem(lastShownKey, new Date().toISOString());
@@ -333,8 +330,6 @@ export default function HomeScreen() {
     ]);
 
     Alert.alert('Plan Updated', 'Your next block has been refreshed based on your feedback.');
-    // 🔔 Notify user their new plan is ready
-    notificationService.notifyNewPlanReady().catch(() => {});
   };
 
   // Check for weekly schedule check (for "It depends" users)
@@ -622,8 +617,7 @@ export default function HomeScreen() {
         visible={modalVisible}
         onClose={() => setModalVisible(false)}
         onStartWorkout={handleStartWorkout}
-        selectedFullDate={new Date()}
-        workout={actualTodayWorkout || undefined}
+        selectedDate={23}
       />
 
       {selectedExercise && (
@@ -941,22 +935,30 @@ export default function HomeScreen() {
           </Animated.ScrollView>
         </View>
 
-        {/* Program Management Section - 3-Button Row */}
+        {/* Program Management Section - Side by Side Buttons */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Program</Text>
           <View style={styles.programButtonsRow}>
-            {/* All Weeks */}
-            <TouchableOpacity
-              style={styles.pillButton}
+            {/* View All Weeks - Larger */}
+            <TouchableOpacity 
+              style={styles.programButtonLarge}
               onPress={() => setShowAllWeeks(true)}
             >
-              <Ionicons name="calendar-outline" size={16} color="#A259FF" />
-              <Text style={styles.pillButtonText}>All Weeks</Text>
+              <LinearGradient
+                colors={[COLORS.gradientStart, COLORS.gradientEnd]}
+                style={styles.programButtonGradient}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+              >
+                <Ionicons name="calendar" size={24} color={COLORS.white} />
+                <Text style={styles.programButtonTitle}>View All Weeks</Text>
+                <Text style={styles.programButtonSubtitle}>21-day schedule</Text>
+              </LinearGradient>
             </TouchableOpacity>
-
-            {/* Edit Plan */}
-            <TouchableOpacity
-              style={styles.pillButton}
+            
+            {/* Edit Plan - Smaller */}
+            <TouchableOpacity 
+              style={styles.programButtonSmall}
               onPress={() => {
                 if (!isPro) {
                   setShowProPaywall(true);
@@ -966,19 +968,37 @@ export default function HomeScreen() {
               }}
               data-testid="home-edit-plan-button"
             >
-              <Ionicons name="create-outline" size={16} color="#A259FF" />
-              <Text style={styles.pillButtonText}>Edit Plan</Text>
-            </TouchableOpacity>
-
-            {/* Log Extra */}
-            <TouchableOpacity
-              style={styles.pillButton}
-              onPress={() => setShowLogExtra(true)}
-            >
-              <Ionicons name="add-circle-outline" size={16} color="#A259FF" />
-              <Text style={styles.pillButtonText}>Log Extra</Text>
+              <LinearGradient
+                colors={[COLORS.gradientEnd, COLORS.gradientStart]}
+                style={styles.programButtonGradient}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+              >
+                <Ionicons name="create" size={22} color={COLORS.white} />
+                <Text style={styles.programButtonTitleSmall}>Edit Plan</Text>
+              </LinearGradient>
             </TouchableOpacity>
           </View>
+        </View>
+
+        {/* Log Unexpected Workout */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Log Unexpected Workout</Text>
+          <TouchableOpacity 
+            style={styles.logWorkoutCard}
+            onPress={() => openChat("I did an unexpected workout today. Can I log it?")}
+          >
+            <View style={styles.logWorkoutContent}>
+              <View style={styles.logWorkoutIcon}>
+                <Ionicons name="add-circle" size={32} color={COLORS.gradientStart} />
+              </View>
+              <View style={styles.logWorkoutText}>
+                <Text style={styles.logWorkoutTitle}>Track Extra Activity</Text>
+                <Text style={styles.logWorkoutSubtitle}>Gym session, run, or other workout you did</Text>
+              </View>
+              <Ionicons name="chevron-forward" size={20} color={COLORS.mediumGray} />
+            </View>
+          </TouchableOpacity>
         </View>
 
         {/* Original Nutrition Card (keeping for reference, can be removed later) 
@@ -1096,14 +1116,6 @@ export default function HomeScreen() {
       <EditPlanScreen
         visible={showEditPlan}
         onClose={() => setShowEditPlan(false)}
-      />
-
-      {/* Log Extra Activity Modal */}
-      <ExternalActivityModal
-        visible={showLogExtra}
-        onClose={() => setShowLogExtra(false)}
-        activityName="Extra Activity"
-        onComplete={() => setShowLogExtra(false)}
       />
     </SafeAreaView>
   );
@@ -1516,26 +1528,7 @@ const styles = StyleSheet.create({
   // Program Buttons - Side by Side
   programButtonsRow: {
     flexDirection: 'row',
-    gap: 10,
-  },
-  // Pill buttons for 3-button row
-  pillButton: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 6,
-    paddingVertical: 12,
-    paddingHorizontal: 8,
-    backgroundColor: '#FFFFFF',
-    borderRadius: 24,
-    borderWidth: 1.5,
-    borderColor: '#A259FF',
-  },
-  pillButtonText: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: '#A259FF',
+    gap: 12,
   },
   programButtonLarge: {
     flex: 2,

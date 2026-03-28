@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { Stack, useSegments, usePathname } from 'expo-router';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { Provider as PaperProvider } from 'react-native-paper';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { SplashScreen } from '../src/components/SplashScreen';
 import { useAuthStore } from '../src/stores/auth-store';
 import { useSubscriptionStore } from '../src/stores/subscription-store';
@@ -19,11 +18,6 @@ export default function RootLayout() {
   useEffect(() => {
     initializeApiUrl();
     checkAuth();
-    // Clear any stale workout generation lock left over from a previous crash.
-    // This ensures workouts reload correctly after the app is force-closed or crashes.
-    AsyncStorage.removeItem('workout_generation_lock').catch(() => {});
-    AsyncStorage.removeItem('today_workout').catch(() => {});
-    AsyncStorage.removeItem('today_workout_date').catch(() => {});
   }, [checkAuth]);
 
   const inAuthGroup = segments[0] === '(auth)';
