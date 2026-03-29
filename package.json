@@ -153,5 +153,6 @@
   },
   "optionalDependencies": {
     "bufferutil": "^4.0.8"
-  }
+  },
+  "_eas_fix": "force-rebuild"
 }
