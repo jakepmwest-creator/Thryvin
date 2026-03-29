@@ -1,29 +1,18 @@
-# Keep EAS uploads focused on the Expo app inside apps/native,
-# but include root package.json and config for EAS build to work.
-*
-
-# Include the native Expo app
-!apps/
-!apps/native/
-!apps/native/**
-
-# Include root package.json and app entry (needed for npm install + Expo entry point)
-!package.json
-!App.tsx
-!app.json
-!eas.json
-!.easignore
-!.gitignore
-
-# Include mobile/thryvin-mobile source (where App.tsx lives)
-!mobile/
-!mobile/thryvin-mobile/
-!mobile/thryvin-mobile/**
-
-# Exclude local dependency/build artefacts inside the app
-mobile/thryvin-mobile/node_modules/
-mobile/thryvin-mobile/.expo/
-mobile/thryvin-mobile/dist/
-mobile/thryvin-mobile/web-build/
-mobile/thryvin-mobile/android/
-mobile/thryvin-mobile/ios/
+# Exclude heavy/unnecessary directories
+node_modules/
+.git/
+.expo/
+dist/
+web-build/
+android/
+ios/
+backend/
+server/
+tests/
+test_reports/
+memory/
+.emergent/
+*.py
+*.patch
+*.md
+launch-crash-fix.patch

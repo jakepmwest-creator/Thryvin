@@ -1,2 +1,3 @@
-// Re-export App from the mobile app directory
-export { default } from './mobile/thryvin-mobile/App';
+// Re-export expo-router as the app entry point
+// Required by Expo's AppEntry.js (metro bundler resolves ../../App to this file)
+export { default } from 'expo-router/entry';
