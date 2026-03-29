@@ -10,12 +10,8 @@
     },
     "production": {
       "android": {
-        "buildType": "apk"
+        "buildType": "app-bundle"
       }
-    },
-    "development": {
-      "developmentClient": true,
-      "distribution": "internal"
     }
   }
 }
