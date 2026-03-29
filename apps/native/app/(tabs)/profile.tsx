@@ -19,7 +19,6 @@ import { Ionicons } from '@expo/vector-icons';
 import { PINSetupModal } from '../../src/components/PINSetupModal';
 import { EditProfileModal } from '../../src/components/EditProfileModal';
 import { ResetProgramModal } from '../../src/components/ResetProgramModal';
-import { BiometricsModal } from '../../src/components/BiometricsModal';
 import { HelpFAQModal } from '../../src/components/HelpFAQModal';
 import { LegalModal } from '../../src/components/LegalModal';
 import { ViewAllWeeksModal } from '../../src/components/ViewAllWeeksModal';
@@ -117,8 +116,7 @@ export default function ProfileScreen() {
   const [showPINSetup, setShowPINSetup] = useState(false);
   const [showEditProfile, setShowEditProfile] = useState(false);
   const [showResetProgram, setShowResetProgram] = useState(false);
-  const [showBiometrics, setShowBiometrics] = useState(false);
-  const [showHelpFAQ, setShowHelpFAQ] = useState(false);
+const [showHelpFAQ, setShowHelpFAQ] = useState(false);
   const [showPrivacy, setShowPrivacy] = useState(false);
   const [showTerms, setShowTerms] = useState(false);
   const [showAllWeeks, setShowAllWeeks] = useState(false);
@@ -132,7 +130,8 @@ export default function ProfileScreen() {
   const [notifications, setNotifications] = useState(true);
   const [workoutReminders, setWorkoutReminders] = useState(true);
   const [pinEnabled, setPinEnabled] = useState(false);
-  const [biometricsEnabled, setBiometricsEnabled] = useState(false);
+  const [appearanceMode, setAppearanceMode] = useState<'auto'|'light'|'dark'>('auto');
+
   const [hasPinSet, setHasPinSet] = useState(false);
   const [autoLoginEnabled, setAutoLoginEnabled] = useState(true); // Auto-login on by default
   
@@ -190,7 +189,6 @@ export default function ProfileScreen() {
         setHasCompletedQuestionnaire(false);
         setHasPinSet(false);
         setPinEnabled(false);
-        setBiometricsEnabled(false);
         return;
       }
       
@@ -202,7 +200,6 @@ export default function ProfileScreen() {
       const advancedQuestionnaire = await AsyncStorage.getItem(`advancedQuestionnaire_${userId}`);
       const savedPin = await AsyncStorage.getItem(`user_pin_${userId}`);
       const savedPinEnabled = await AsyncStorage.getItem(`pin_enabled_${userId}`);
-      const savedBiometrics = await AsyncStorage.getItem(`biometrics_enabled_${userId}`);
       const savedAutoLogin = await AsyncStorage.getItem('auto_login_enabled');
       
       // Also check global keys for backward compatibility
@@ -241,7 +238,11 @@ export default function ProfileScreen() {
       if (advancedQuestionnaire || globalQuestionnaire) setHasCompletedQuestionnaire(true);
       if (savedPin) setHasPinSet(true);
       if (savedPinEnabled !== null) setPinEnabled(savedPinEnabled === 'true');
-      if (savedBiometrics !== null) setBiometricsEnabled(savedBiometrics === 'true');
+      // Load appearance preference
+      const savedAppearance = await AsyncStorage.getItem('appearance_mode');
+      if (savedAppearance === 'light' || savedAppearance === 'dark' || savedAppearance === 'auto') {
+        setAppearanceMode(savedAppearance);
+      }
     } catch (error) {
       console.error('Error loading settings:', error);
     }
@@ -334,27 +335,6 @@ export default function ProfileScreen() {
     });
   };
   
-  const toggleBiometrics = async () => {
-    const newValue = !biometricsEnabled;
-    setBiometricsEnabled(newValue);
-    await AsyncStorage.setItem('biometrics_enabled', newValue.toString());
-    
-    if (newValue) {
-      showAlert({
-        type: 'success',
-        title: 'Biometric Login Enabled',
-        message: 'You can now use Face ID / Touch ID for quick and secure login!',
-        buttons: [{ text: 'OK', onPress: hideAlert }]
-      });
-    } else {
-      showAlert({
-        type: 'info',
-        title: 'Biometric Login Disabled',
-        message: 'Biometric login has been turned off.',
-        buttons: [{ text: 'OK', onPress: hideAlert }]
-      });
-    }
-  };
 
   const handlePinSetupComplete = async (pin: string) => {
     await AsyncStorage.setItem('user_pin', pin);
@@ -688,14 +668,39 @@ export default function ProfileScreen() {
         <View style={styles.menuSection}>
           <Text style={styles.sectionTitle}>Security</Text>
           <View style={styles.menuContainer}>
-            {/* Biometrics Section */}
-            <SettingToggle
-              icon="finger-print"
-              title="Biometric Login"
-              subtitle="Use Face ID / Touch ID"
-              value={biometricsEnabled}
-              onToggle={toggleBiometrics}
-            />
+            {/* Appearance Section */}
+            <View style={styles.menuButton}>
+              <View style={styles.menuIconContainer}>
+                <Ionicons name="moon-outline" size={20} color={COLORS.accent} />
+              </View>
+              <View style={styles.menuContent}>
+                <Text style={styles.menuTitle}>Appearance</Text>
+                <View style={styles.appearancePills}>
+                  {(['auto','light','dark'] as const).map((mode) => (
+                    <TouchableOpacity
+                      key={mode}
+                      onPress={async () => {
+                        setAppearanceMode(mode);
+                        await AsyncStorage.setItem('appearance_mode', mode);
+                      }}
+                      style={[
+                        styles.appearancePill,
+                        appearanceMode === mode && styles.appearancePillActive,
+                      ]}
+                    >
+                      <Text
+                        style={[
+                          styles.appearancePillText,
+                          appearanceMode === mode && styles.appearancePillTextActive,
+                        ]}
+                      >
+                        {mode.charAt(0).toUpperCase() + mode.slice(1)}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              </View>
+            </View>
             
             {/* Auto-Login Section */}
             <SettingToggle
@@ -974,19 +979,6 @@ export default function ProfileScreen() {
         </View>
       </Modal>
       
-      <BiometricsModal
-        visible={showBiometrics}
-        onClose={() => setShowBiometrics(false)}
-        onSuccess={() => {
-          setBiometricsEnabled(true);
-          showAlert({
-            type: 'success',
-            title: 'Biometrics Enabled!',
-            message: 'You can now use biometric login for quick access.',
-            buttons: [{ text: 'Great!', onPress: hideAlert }]
-          });
-        }}
-      />
       
       <HelpFAQModal
         visible={showHelpFAQ}
@@ -1445,6 +1437,31 @@ const styles = StyleSheet.create({
   menuSubtitle: {
     fontSize: 14,
     color: COLORS.mediumGray,
+  },
+  appearancePills: {
+    flexDirection: 'row',
+    gap: 6,
+    marginTop: 6,
+  },
+  appearancePill: {
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    borderRadius: 20,
+    backgroundColor: COLORS.lightGray,
+    borderWidth: 1,
+    borderColor: 'transparent',
+  },
+  appearancePillActive: {
+    backgroundColor: COLORS.accent + '20',
+    borderColor: COLORS.accent,
+  },
+  appearancePillText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: COLORS.mediumGray,
+  },
+  appearancePillTextActive: {
+    color: COLORS.accent,
   },
   securityItem: {
     position: 'relative',
