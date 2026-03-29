@@ -1,0 +1,15 @@
+{
+  "expo": {
+    "name": "Thryvin",
+    "slug": "thryvin",
+    "owner": "jakevswest",
+    "android": {
+      "package": "com.thryvin.app"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "ca2d383b-786b-4caa-bf8c-84ea08c5de58"
+      }
+    }
+  }
+}
