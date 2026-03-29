@@ -33,6 +33,8 @@
 *.env
 *.env.*
 *.json
+# Exception: keep package.json (required by EAS Build)
+!/package.json
 *.log
 *.pack
 *.pem
