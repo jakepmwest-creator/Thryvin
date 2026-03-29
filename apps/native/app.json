@@ -35,6 +35,10 @@
     "experiments": {
       "bridgeless": false,
       "turboModules": false
+    },
+    "updates": {
+      "enabled": false,
+      "checkAutomatically": "ON_ERROR_RECOVERY"
     }
   }
 }
