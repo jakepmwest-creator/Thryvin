@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity, Image, ActivityIndicator,
-  Modal, ScrollView,
+  Modal, ScrollView, Dimensions,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -13,13 +13,11 @@ const API_BASE_URL = getApiBaseUrl();
 const G = { start: '#A22BF6', end: '#FF4EC7' };
 const T = { text: '#1F1F1F', textSecondary: '#6B7280', textMuted: '#9CA3AF', starred: '#F59E0B', white: '#FFFFFF', surface: '#F8F7FC', cardBorder: '#EDE8F5', accentLight: '#EDE9FE', liked: '#10B981' };
 
-function getThumbUrl(videoUrl: string | undefined, width = 300, height = 400): string | null {
-  if (!videoUrl || typeof videoUrl !== 'string') return null;
-  if (!videoUrl.startsWith('http') || !videoUrl.includes('cloudinary')) return null;
-  return videoUrl.replace('/upload/', `/upload/w_${width},h_${height},c_fill,so_1/`).replace('.mp4', '.jpg');
-}
+// Cycle of accent colours: purple / pink / blue / teal
+const ACCENT_COLORS = ['#A22BF6', '#FF4EC7', '#3B82F6', '#14B8A6'];
+const { width: SW } = Dimensions.get('window');
 
-// ── Inline Exercise Detail ──
+// ── Inline Exercise Detail Modal ──────────────────────────────────────────────
 const ExerciseDetailModal = ({ exercise, visible, onClose }: { exercise: any; visible: boolean; onClose: () => void }) => {
   const hasVideo = isValidVideoUrl(exercise?.videoUrl);
   const { getPreference, likeExercise, removePreference, isStarred, starExercise, unstarExercise } = usePreferencesStore();
@@ -111,7 +109,14 @@ const dS = StyleSheet.create({
   noStatsS: { fontSize: 12, color: T.textMuted },
 });
 
-// ── Main Card ──
+// ── Card dimensions ────────────────────────────────────────────────────────────
+const CARD_GAP = 8;
+const COLS = 3;
+const CARD_WIDTH = (SW - 32 - 2 * CARD_GAP) / COLS; // 8px gap × 2 = 16px
+const THUMB_H = 110;
+const CARD_H = 160; // total card height
+
+// ── Main Card ─────────────────────────────────────────────────────────────────
 interface FavoriteExercisesCardProps {
   onViewAll?: () => void;
 }
@@ -142,53 +147,96 @@ export const FavoriteExercisesCard = ({ onViewAll }: FavoriteExercisesCardProps)
       <View style={styles.container}>
         <View style={styles.headerRow}>
           <View style={styles.headerLeft}><Ionicons name="star" size={18} color={T.starred} /><Text style={styles.headerTitle}>Favourite Exercises</Text></View>
-          {onViewAll && <TouchableOpacity onPress={onViewAll} style={styles.viewAllBtn} data-testid="fav-view-all-btn"><Text style={styles.viewAllText}>View All</Text><Ionicons name="arrow-forward" size={14} color={G.start} /></TouchableOpacity>}
+          {onViewAll && <TouchableOpacity onPress={onViewAll} style={styles.viewAllBtn}><Text style={styles.viewAllText}>View All</Text><Ionicons name="arrow-forward" size={14} color={G.start} /></TouchableOpacity>}
         </View>
         <View style={styles.emptyCard}><Ionicons name="star-outline" size={32} color={T.textMuted} /><Text style={styles.emptyText}>No favourites yet</Text><Text style={styles.emptySub}>Star up to 3 exercises to track them here</Text></View>
       </View>
     );
   }
 
+  // Pad to 3 items so grid is always 3 per row
+  const displayItems = [...starred];
+  while (displayItems.length % COLS !== 0) {
+    displayItems.push(null);
+  }
+
   return (
-    <View style={styles.container} data-testid="favorite-exercises-card">
+    <View style={styles.container}>
       <View style={styles.headerRow}>
         <View style={styles.headerLeft}><Ionicons name="star" size={18} color={T.starred} /><Text style={styles.headerTitle}>Favourite Exercises</Text></View>
-        {onViewAll && <TouchableOpacity onPress={onViewAll} style={styles.viewAllBtn} data-testid="fav-view-all-btn"><Text style={styles.viewAllText}>View All</Text><Ionicons name="arrow-forward" size={14} color={G.start} /></TouchableOpacity>}
+        {onViewAll && <TouchableOpacity onPress={onViewAll} style={styles.viewAllBtn}><Text style={styles.viewAllText}>View All</Text><Ionicons name="arrow-forward" size={14} color={G.start} /></TouchableOpacity>}
       </View>
-      <View style={styles.exercisesRow}>
-        {starred.map((exercise) => {
+
+      {/* 3-column grid */}
+      <View style={styles.grid}>
+        {displayItems.map((exercise, i) => {
+          if (!exercise) {
+            // Empty slot
+            return (
+              <View key={`e-${i}`} style={[styles.card, styles.cardEmpty]}>
+                <View style={styles.accentStripEmpty} />
+                <View style={styles.emptyThumb}><Ionicons name="add" size={20} color={T.textMuted} /></View>
+                <Text style={styles.emptySlotText}>Empty</Text>
+              </View>
+            );
+          }
+
+          const accentColor = ACCENT_COLORS[i % ACCENT_COLORS.length];
           const thumbUrl = getThumbUrl(exercise.videoUrl);
           const stat = stats[exercise.exerciseId];
           const hasHistory = stat?.history?.length > 0;
           const pb = hasHistory ? (stat.personalBest?.weight || stat.history[0]?.maxWeight) : null;
+
           return (
-            <TouchableOpacity key={exercise.exerciseId} style={styles.exerciseItem} onPress={() => setSelectedExercise(exercise)} activeOpacity={0.8}>
-              {/* Gradient left border strip */}
-              <LinearGradient colors={[G.start, G.end]} style={styles.gradBorderStrip} start={{ x: 0, y: 0 }} end={{ x: 0, y: 1 }} />
-              <View style={styles.exerciseItemInner}>
-                <LinearGradient colors={[G.start, G.end]} style={styles.thumbRing} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}>
-                  <View style={styles.thumbInner}>
-                    {thumbUrl ? <Image source={{ uri: thumbUrl }} style={styles.thumbImage} resizeMode="cover" />
-                      : <View style={styles.thumbPlaceholder}><Ionicons name="barbell-outline" size={20} color={T.textMuted} /></View>}
+            <TouchableOpacity
+              key={exercise.exerciseId}
+              style={styles.card}
+              onPress={() => setSelectedExercise(exercise)}
+              activeOpacity={0.8}
+            >
+              {/* 4px coloured accent strip at top */}
+              <View style={[styles.accentStrip, { backgroundColor: accentColor }]} />
+
+              {/* Thumbnail with gradient overlay */}
+              <View style={styles.thumbWrap}>
+                {thumbUrl ? (
+                  <>
+                    <Image source={{ uri: thumbUrl }} style={styles.thumbImage} resizeMode="cover" />
+                    <LinearGradient
+                      colors={['transparent', 'rgba(0,0,0,0.4)']}
+                      style={styles.thumbGradient}
+                      start={{ x: 0, y: 0.5 }}
+                      end={{ x: 0, y: 1 }}
+                    />
+                  </>
+                ) : (
+                  <View style={styles.thumbPlaceholder}>
+                    <LinearGradient
+                      colors={['rgba(162,43,246,0.2)', 'rgba(255,78,199,0.2)']}
+                      style={StyleSheet.absoluteFill}
+                    />
+                    <Ionicons name="barbell-outline" size={22} color={T.textMuted} />
                   </View>
-                </LinearGradient>
-                <View style={styles.starBadgeWrapper}><Ionicons name="star" size={9} color={T.starred} /></View>
-                <View style={styles.exerciseTextBlock}>
-                  <Text style={styles.exerciseName} numberOfLines={2}>{exercise.exerciseName}</Text>
-                  {loadingStats ? <ActivityIndicator size="small" color={G.start} style={{ marginTop: 2 }} />
-                    : pb ? <View style={styles.weightBadge}><Ionicons name="trophy" size={10} color={T.starred} /><Text style={styles.weightText}>{pb} kg</Text></View>
-                    : <Text style={styles.notYetText}>Not yet logged</Text>}
-                </View>
+                )}
+              </View>
+
+              {/* Exercise info */}
+              <View style={styles.infoBlock}>
+                <Text style={styles.exerciseName} numberOfLines={2}>{exercise.exerciseName}</Text>
+                {loadingStats ? (
+                  <ActivityIndicator size="small" color={G.start} style={{ marginTop: 2 }} />
+                ) : pb ? (
+                  <View style={[styles.pbPill, { backgroundColor: `${accentColor}18`, borderColor: accentColor }]}>
+                    <Ionicons name="trophy" size={9} color={accentColor} />
+                    <Text style={[styles.pbText, { color: accentColor }]}>{pb} kg</Text>
+                  </View>
+                ) : (
+                  <Text style={styles.notYetText}>Not yet logged</Text>
+                )}
               </View>
             </TouchableOpacity>
           );
         })}
-        {Array.from({ length: 3 - starred.length }).map((_, i) => (
-          <View key={`e-${i}`} style={[styles.exerciseItem, { justifyContent: 'center', alignItems: 'center' }]}>
-            <View style={styles.thumbRingEmpty}><View style={styles.thumbInnerEmpty}><Ionicons name="add" size={20} color={T.textMuted} /></View></View>
-            <Text style={styles.emptySlotText}>Empty slot</Text>
-          </View>
-        ))}
       </View>
 
       <ExerciseDetailModal exercise={selectedExercise} visible={!!selectedExercise} onClose={() => setSelectedExercise(null)} />
@@ -196,42 +244,124 @@ export const FavoriteExercisesCard = ({ onViewAll }: FavoriteExercisesCardProps)
   );
 };
 
-const TW = 56; const TH = 56; const RW = TW + 6; const RH = TH + 6; const BR = 14;
+function getThumbUrl(videoUrl: string | undefined, width = 300, height = 200): string | null {
+  if (!videoUrl || typeof videoUrl !== 'string') return null;
+  if (!videoUrl.startsWith('http') || !videoUrl.includes('cloudinary')) return null;
+  return videoUrl.replace('/upload/', `/upload/w_${width},h_${height},c_fill,so_1/`).replace('.mp4', '.jpg');
+}
+
+// ── Styles ─────────────────────────────────────────────────────────────────────
 const styles = StyleSheet.create({
-  container: { marginHorizontal: 0, marginBottom: 16, width: '100%' },
+  container: { marginBottom: 16, width: '100%' },
   headerRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12, paddingHorizontal: 2 },
   headerLeft: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   headerTitle: { fontSize: 17, fontWeight: '800', color: T.text },
   viewAllBtn: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingVertical: 4, paddingHorizontal: 10, borderRadius: 14, backgroundColor: T.accentLight },
   viewAllText: { fontSize: 13, fontWeight: '600', color: G.start },
-  exercisesRow: { gap: 10 },
-  exerciseItem: {
+
+  // Grid
+  grid: {
     flexDirection: 'row',
-    alignItems: 'center',
-    minHeight: 120,
+    flexWrap: 'wrap',
+    gap: CARD_GAP,
+  },
+
+  // Card
+  card: {
+    width: CARD_WIDTH,
+    height: CARD_H,
     backgroundColor: T.surface,
-    borderRadius: 16,
+    borderRadius: 14,
     borderWidth: 1,
     borderColor: T.cardBorder,
     overflow: 'hidden',
     position: 'relative',
   },
-  gradBorderStrip: { width: 4, alignSelf: 'stretch' },
-  exerciseItemInner: { flex: 1, flexDirection: 'row', alignItems: 'center', paddingVertical: 14, paddingHorizontal: 12, gap: 14 },
-  thumbRing: { width: RW, height: RH, borderRadius: BR + 2, justifyContent: 'center', alignItems: 'center', flexShrink: 0 },
-  thumbInner: { width: TW, height: TH, borderRadius: BR, overflow: 'hidden', backgroundColor: T.surface, borderWidth: 2, borderColor: T.white },
+  cardEmpty: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#F8F7FC',
+    borderStyle: 'dashed',
+  },
+
+  // 4px coloured accent strip at top
+  accentStrip: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    height: 4,
+    zIndex: 2,
+  },
+  accentStripEmpty: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    height: 4,
+    backgroundColor: T.cardBorder,
+  },
+
+  // Thumbnail
+  thumbWrap: {
+    height: THUMB_H,
+    width: '100%',
+    marginTop: 4,
+    overflow: 'hidden',
+    backgroundColor: '#EDE8F5',
+  },
   thumbImage: { width: '100%', height: '100%' },
-  thumbPlaceholder: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: T.surface },
-  starBadgeWrapper: { position: 'absolute', top: 10, left: 50, backgroundColor: '#FEF3C7', width: 18, height: 18, borderRadius: 9, justifyContent: 'center', alignItems: 'center', borderWidth: 2, borderColor: T.white, zIndex: 2 },
-  starBadge: { position: 'absolute', top: -3, right: 6, backgroundColor: '#FEF3C7', width: 18, height: 18, borderRadius: 9, justifyContent: 'center', alignItems: 'center', borderWidth: 2, borderColor: T.white },
-  thumbRingEmpty: { width: RW, height: RH, borderRadius: BR + 2, borderWidth: 2, borderColor: T.cardBorder, borderStyle: 'dashed', justifyContent: 'center', alignItems: 'center' },
-  thumbInnerEmpty: { width: TW, height: TH, borderRadius: BR, justifyContent: 'center', alignItems: 'center', backgroundColor: T.surface },
-  exerciseTextBlock: { flex: 1 },
-  exerciseName: { fontSize: 15, fontWeight: '800', color: T.text, lineHeight: 20, marginBottom: 4 },
-  weightBadge: { flexDirection: 'row', alignItems: 'center', gap: 3, paddingHorizontal: 8, paddingVertical: 3, borderRadius: 8, backgroundColor: '#FEF3C7', alignSelf: 'flex-start' },
-  weightText: { fontSize: 12, fontWeight: '700', color: '#B45309' },
-  notYetText: { fontSize: 11, color: T.textMuted, fontStyle: 'italic' },
-  emptySlotText: { fontSize: 10, color: T.textMuted, marginTop: 6 },
+  thumbGradient: { ...StyleSheet.absoluteFillObject },
+  thumbPlaceholder: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+
+  // Info block
+  infoBlock: {
+    flex: 1,
+    paddingHorizontal: 8,
+    paddingTop: 6,
+    paddingBottom: 8,
+    justifyContent: 'flex-start',
+  },
+  exerciseName: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: T.text,
+    lineHeight: 16,
+  },
+
+  // PB pill badge
+  pbPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 3,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 6,
+    borderWidth: 1,
+    alignSelf: 'flex-start',
+    marginTop: 4,
+  },
+  pbText: { fontSize: 10, fontWeight: '700' },
+
+  notYetText: { fontSize: 10, color: T.textMuted, fontStyle: 'italic', marginTop: 4 },
+
+  // Empty slot
+  emptyThumb: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: T.cardBorder,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 4,
+  },
+  emptySlotText: { fontSize: 10, color: T.textMuted },
+
+  // Empty state card
   emptyCard: { backgroundColor: T.surface, borderRadius: 16, padding: 24, alignItems: 'center', gap: 6, borderWidth: 1, borderColor: T.cardBorder },
   emptyText: { fontSize: 14, fontWeight: '600', color: T.textSecondary },
   emptySub: { fontSize: 12, color: T.textMuted, textAlign: 'center' },
